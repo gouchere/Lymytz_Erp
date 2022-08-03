@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml" 
+                xmlns:h="http://java.sun.com/jsf/html" 
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Modèle Formulaire','modParam', 'smenModelForm', true,managedParamForm)}
+    </ui:define>  
+    <ui:define name="contents">
+        #{managedParamForm.loadAll()}
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('model_form');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>  
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteModel" closeOnEscape="true"
+                             message="#{lab.LRH_PRS_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedParamForm.deleteBeanModel()}" oncomplete="dlgConfirmDeleteModel.hide();collapseForm('model_form')"
+                                 update=":main_model_form:data_composant_formulaire"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteModel.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LRH_PRS_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedParamForm.deleteBean()}" oncomplete="dlgConfirmDelete.hide();collapseForm('model_form')"
+                                 update=":main_model_form:data_composant_formulaire"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddModelFormulaire" header="#{lab.LMP_PMF_formulaire}" width="30%" footer="#{lab.L_copy}">
+                <h:inputText id="txt_intitule_model_form" value="#{managedParamForm.modele.intitule}" style="width: 90%"/>
+                <p:commandButton icon="ui-icon-circle-plus" style="width: 22px; height: 22px;float: right;margin-top: 5px"
+                                 update=":main_model_form:data_model_formulaire" actionListener="#{managedParamForm.saveNewModel()}"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_formulaire">
+            <p:dialog widgetVar="dlgFormulaire" header="#{lab.LMP_PMF_formulaires}" width="90%" footer="#{lab.L_copy}">
+                <div class="part_scroll">
+                    <p:outputPanel id="blog_formulaire">
+                        <div style="width: 40%;float: left">
+                            <h:panelGrid columns="2" style="width: 100%;background: white;border: 2px solid #045491!important; border-radius: 5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0"> 
+                                <h:panelGrid id="form_formulaire" columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="padding-top: 2px;padding-bottom: -5px">
+                                    <h:outputText value="#{lab.LMP_PMF_formulaire}" />
+                                    <h:selectOneMenu value="#{managedParamForm.formulaire.intitule}">
+                                        <f:selectItem itemLabel="--" itemValue=""/>
+                                        <f:selectItems value="#{constantes.DOCUMENTS}" var="doc" itemLabel="#{doc.label}" itemValue="#{doc.value}"/>
+                                    </h:selectOneMenu>
+                                </h:panelGrid>   
+                                <p:commandButton icon="ui-icon-circle-plus" style="width: 22px; height: 22px;float: right"
+                                                 update="blog_formulaire :main_model_form:select_formulaire" actionListener="#{managedParamForm.saveNewFormulaire()}"/>
+                            </h:panelGrid> 
+                            <p:dataTable id="data_formulaire" value="#{managedParamForm.formulaires}" var="forme"
+                                         selectionMode="single"  rowKey="#{forme.id}"  rowIndexVar="line_">
+                                <p:ajax event="rowSelect" listener="#{managedParamForm.loadOnViewFormulaire}" update=":main_formulaire:blog_formulaire :main_model_form:select_formulaire"/>
+                                <p:ajax event="rowUnselect" listener="#{managedParamForm.unLoadOnViewFormulaire}" update=":main_formulaire:blog_formulaire :main_model_form:select_formulaire"/>
+                                <p:column headerText="N°" width="20" style="text-align: center">
+                                    #{line_+1}
+                                </p:column>
+                                <p:column headerText="#{lab.L_intitule}">
+                                    #{forme.intitule}
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                        <div style="width: 59%;margin-left: 41%"> 
+                            <h:panelGrid columns="2" style="width: 100%;background: white;border: 2px solid #045491!important; border-radius: 5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0"> 
+                                <h:panelGrid id="form_champ_formulaire" columns="4" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="padding-top: 2px;padding-bottom: -5px">
+                                    <h:outputText value="#{lab.L_code}" />
+                                    <h:inputText value="#{managedParamForm.composant.code}" />
+                                    <h:outputText value="#{lab.LMP_PMF_champ}" />
+                                    <h:inputText value="#{managedParamForm.composant.champ}" />
+                                </h:panelGrid>   
+                                <p:commandButton icon="ui-icon-circle-plus" style="width: 22px; height: 22px;float: right"
+                                                 update="form_champ_formulaire data_champ_formulaire" actionListener="#{managedParamForm.saveNew()}"/>
+                            </h:panelGrid>  
+                            <p:dataTable id="data_champ_formulaire" value="#{managedParamForm.formulaire.composants}" var="comp"
+                                         rowKey="#{comp.id}"  rowIndexVar="line_" selectionMode="single">
+                                <p:ajax event="rowSelect" listener="#{managedParamForm.loadOnView}" update=":main_formulaire:form_champ_formulaire"/>
+                                <p:ajax event="rowUnselect" listener="#{managedParamForm.unLoadOnView}" update=":main_formulaire:form_champ_formulaire"/>
+                                <p:column headerText="N°" width="20" style="text-align: center">
+                                    #{line_+1}
+                                </p:column>
+                                <p:column headerText="#{lab.L_code}">
+                                    #{comp.code}
+                                </p:column>
+                                <p:column headerText="#{lb.LMP_PMF_champ}">
+                                    #{comp.champ}
+                                </p:column>
+                                <p:column headerText=" " width="32" style="text-align: center">
+                                    <p:contextMenu for="btn_option_composant_formulaire" event="left click" style="font-size: 0.8em">
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedParamForm.deleteBean(comp)}" oncomplete="dlgConfirmDelete.show()"/>
+                                    </p:contextMenu>                           
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_composant_formulaire" type="button"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                    </p:outputPanel>
+                </div>   
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_model_form">
+            <div class="part_scroll">
+                <div style="width: 30%;float: left">
+                    <p:dataTable id="data_model_formulaire" value="#{managedParamForm.modeles}" var="model"
+                                 selectionMode="single"  rowKey="#{model.id}"  rowIndexVar="line_">
+                        <p:ajax event="rowSelect" listener="#{managedParamForm.loadOnViewModel}" update=":main_model_form:data_composant_formulaire"/>
+                        <p:ajax event="rowUnselect" listener="#{managedParamForm.unLoadOnViewModel}" update=":main_model_form:data_composant_formulaire"/>
+                        <p:column headerText="N°" width="20" style="text-align: center">
+                            #{line_+1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}">
+                            #{model.intitule}
+                        </p:column>
+                        <p:column headerText=" " width="32" style="text-align: center">
+                            <p:contextMenu for="btn_option_formulaire" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="#{lab.L_modifier}" icon="ui-icon-shuffle" global="false" actionListener="#{managedParamForm.updateModele(model)}"/>
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedParamForm.deleteBeanModel(model)}" oncomplete="dlgConfirmDeleteModel.show()"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_formulaire" type="button"/>
+                        </p:column>
+                    </p:dataTable>
+                    <h:panelGroup>
+                        <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="float: left">
+                            <h:outputText value="#{lab.LMP_PMF_formulaire}" />
+                            <h:selectOneMenu id="select_formulaire" value="#{managedParamForm.formulaire.id}">
+                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                <f:selectItems value="#{managedParamForm.formulaires}" var="frm" itemLabel="#{frm.intitule}" itemValue="#{frm.id}"/>
+                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                <f:selectItem itemLabel="#{lab.L_plus_option}" itemValue="-1"/>
+                                <p:ajax event="valueChange" listener="#{managedParamForm.chooseFormulaire()}" update="data_model_formulaire"/>
+                            </h:selectOneMenu>
+                        </h:panelGrid>
+                        <p:commandLink value="#{lab.L_ajouter}" actionListener="#{managedParamForm.newModele()}" 
+                                       style="font-size: 0.9em;margin-top: 3px;border: 2px solid black; border-radius: 5px;padding: 2px;background: #CCC;float: right"/>
+                    </h:panelGroup>
+                </div>
+                <div style="width: 69%;margin-left: 31%"> 
+                    <p:dataTable id="data_composant_formulaire" value="#{managedParamForm.selectModel.composants}" var="comp" rowKey="#{comp.id}" rowIndexVar="line_">
+                        <p:column headerText="N°" width="20" style="text-align: center">
+                            #{line_+1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_code}">
+                            #{comp.champ.code}
+                        </p:column>
+                        <p:column headerText="#{lab.LMP_PMF_champ}">
+                            #{comp.champ.champ}
+                        </p:column>
+                        <p:column headerText="#{lab.LMP_PMF_obig}" width="30" style="text-align: center">
+                            <p:commandLink actionListener="#{managedParamForm.activeObligatoire(comp)}" update="data_composant_formulaire" style="margin-top: 5px" process="@this">
+                                <h:graphicImage library="img/icones" name="#{(comp.obligatoire)?'vu.png':'cancel.png'}" width="16" height="15"/>
+                            </p:commandLink>
+                        </p:column>
+                        <p:column headerText="#{lab.LMP_PMF_visible}" width="30" style="text-align: center">
+                            <p:commandLink actionListener="#{managedParamForm.activeVisible(comp)}" update="data_composant_formulaire" style="margin-top: 5px" process="@this">
+                                <h:graphicImage library="img/icones" name="#{(comp.visible)?'vu.png':'cancel.png'}" width="16" height="15"/>
+                            </p:commandLink>
+                        </p:column>
+                        <p:column headerText="#{lab.LMP_PMF_editable}" width="30" style="text-align: center">
+                            <p:commandLink actionListener="#{managedParamForm.activeEditable(comp)}" update="data_composant_formulaire" style="margin-top: 5px" process="@this">
+                                <h:graphicImage library="img/icones" name="#{(comp.editable)?'vu.png':'cancel.png'}" width="16" height="15"/>
+                            </p:commandLink>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

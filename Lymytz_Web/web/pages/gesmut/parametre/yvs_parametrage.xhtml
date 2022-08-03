@@ -1,0 +1,874 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Paramétrage général','modMutuelle', 'smenParamMut', true)}
+    </ui:define>   
+    <ui:define name="contents"> 
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('type_contribution_');
+                collapseForm('type_evenement_');
+                collapseForm('poste_mutuelle_');
+                collapseForm('type_cout_mut');
+                collapseForm('type_caisse_');
+                collapseForm('type_compte_');
+                collapseForm('type_avance_');
+                collapseForm('type_prime_');
+            });
+        </script>
+        <h:form>
+            <p:remoteCommand name="updateDlgPrimePoste" global="false" actionListener="#{managedPoste.loadAllTypePrime()}"/>
+        </h:form>
+        #{managedCompte.loadAllActif(true)}
+        #{managedTypePrime.loadAll()}
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LDB_PTA_liste_compte}" widgetVar="dlgListComptes" modal="true" width="50%" closeOnEscape="true" style="min-height: 250px">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PTT_saisir_compte_g}" for="txt_cmpte_find_typeCoutMut"/>
+                    <p:watermark value="#{lab.LDB_PTT_saisir_nature_compte}" for="txt_nature_find_typeCoutMut"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_typeCoutMut">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_type_mut" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_typeCoutMut">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_type_mut" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_type_mut" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_type_mut" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_type_mut"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_type_mut" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cltIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedTypeCout.loadOnViewCompte}"  oncomplete="dlgListComptes.hide()"
+                                update=":main_param_mut:tabview_param_mut:txt_compte_type_cout_mut"/>
+                        <p:column width="15">
+                            <span>#{cltIdx+1}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LC_PPG_numero_g}">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LC_PPG_compte_general}">
+                            <span>#{cpt.compteGeneral.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="80">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:dialog hideEffect="explode" widgetVar="dlgConfirmCreate" closeOnEscape="true"
+                      header="#{lab.L_confirmation}">
+                <h:outputText value="#{lab.LM_PPG_text2}" />
+                <p:commandButton value="#{lab.L_oui}" onclick="dlgConfirmCreate.hide()" oncomplete="dlgAddExercice.show()" global="false"/>
+                <p:commandButton type="button" value="#{lab.L_non}" onclick="dlgConfirmCreate.hide()"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PEX_creation_exercice}" widgetVar="dlgAddExercice" 
+                      width="25%" modal="true" closeOnEscape="true">
+                <h:panelGrid columns="1" styleClass="yvs_table" style="width: 100%">
+                    <h:panelGrid columns="2" styleClass="yvs_table" style="width: 98%;margin: auto"> 
+                        <span>#{lab.L_reference} </span>  
+                        <h:inputText value="#{exercice.reference}"/>
+                        <span>#{lab.L_date_debut} </span> 
+                        <p:calendar value="#{exercice.dateDebut}" navigator="true" pattern="dd-MM-yyyy"/>
+                        <span>#{lab.L_date_fin} </span>
+                        <p:calendar value="#{exercice.dateFin}" navigator="true" pattern="dd-MM-yyyy"/>
+                        <span>#{lab.L_actif} </span>
+                        <h:selectBooleanCheckbox value="#{exercice.actif}"/>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedExercice.saveNew()}"
+                                     oncomplete="dlgAddExercice.hide()" style="width: 100%"/> 
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014
+                </f:facet>
+            </p:dialog>
+        </h:form>    
+        <!-->
+        *****************************************************************************
+        Boite de dialogue type contribuion 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgAddTypeContribution_">
+            <p:dialog header="#{lab.LM_PPG_gestion_activites}" widgetVar="dlgAddTypeContribution" width="30%" closeOnEscape="true">
+                <p:outputPanel id="form_type_contribution_" autoUpdate="true">
+                    <h:inputHidden id="input_hide_reset_type_contribution_" value="#{managedTypeContribution.input_reset}"/>
+                    <p:outputPanel id="blog_form_type_contribution_" style="width: 100%">
+                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                            <span>#{lab.L_libelle}</span>
+                            <h:inputText value="#{typeContribution.libelle}" style="width: 100%"/>
+                        </h:panelGrid>            
+                        <span>#{lab.L_description} </span>
+                        <h:inputTextarea value="#{typeContribution.description}" style="width: 98%" rows="3"/>                                    
+                        <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                            <p:commandButton value="#{lab.L_nouveau}" id="cancel_type_contribution_" global="false" style="float: left"
+                                             update="blog_form_type_contribution_" actionListener="#{managedTypeContribution.resetFiche()}"/>
+                            <p:commandButton value="#{lab.L_enregistrer}" id="save_type_contribution_" actionListener="#{managedTypeContribution.saveNew()}" style="float: right"
+                                             update="blog_form_type_contribution_ data_type_contribution_ :main_param_mut:tabview_param_mut:select_activite_taux_evement"/>
+                        </h:panelGrid>
+                    </p:outputPanel>
+                    <p:outputPanel id="blog_list_type_contribution_" style="width: 99%; margin: auto; background: white">
+                        <h:inputHidden id="input_hide_type_contribution_" value="#{managedTypeContribution.tabIds}"/>
+                        <p:dataTable id="data_type_contribution_" value="#{managedTypeContribution.types}" var="typCo" rowKey="#{typCo.id}" 
+                                     rowIndexVar="typCoIdx" selectionMode="single">
+                            <p:ajax event="rowSelect" global="false" listener="#{managedTypeContribution.loadOnView}" update=":form_dlgAddTypeContribution_:blog_form_type_contribution_"/>
+                            <p:ajax event="rowUnselect" global="false" listener="#{managedTypeContribution.unLoadOnView}" update=":form_dlgAddTypeContribution_:blog_form_type_contribution_"/>
+                            <p:column width="30" headerText="N°" style="text-align: center">
+                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typCo.new_}"/>
+                                <span>#{typCoIdx+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_designation}">
+                                <span>#{typCo.libelle}</span>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:contextMenu for="btn_option_type_contribution_" event="left click" style="font-size: 0.8em">
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedTypeContribution.deleteBean(typCo)}" 
+                                                update="data_type_contribution_ :form_dlgAddTypeContribution_:blog_form_type_contribution_
+                                                :main_param_mut:tabview_param_mut:select_activite_taux_evement"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_type_contribution_" type="button"/>
+                            </p:column> 
+                        </p:dataTable>     
+                    </p:outputPanel>                                                     
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue type prime 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgAddTypePrime_">
+            <p:dialog id="dlgAddTypePrime_" header="#{lab.LM_PPG_creation_type_prime}" widgetVar="dlgAddTypePrime" modal="true"
+                      width="20%"  closeOnEscape="true">
+                <h:panelGrid id="blog_form_type_prime" styleClass="yvs_table" columns="2" cellpadding="0" cellspacing="0" style="width: 98%;margin: auto">
+                    <span>#{lab.L_designation} </span>
+                    <h:inputText value="#{managedPoste.type.designation}"/>
+                    <span>#{lab.L_nature} </span>
+                    <p:selectOneRadio value="#{managedPoste.type.natureMontant}">
+                        <f:selectItem itemLabel="#{lab.LM_PPG_fixe}" itemValue="Fixe" />
+                        <f:selectItem itemLabel="% #{lab.LM_PPG_interet}" itemValue="Pourcentage" />
+                        <p:ajax event="valueChange" global="false" listener="#{managedPoste.chooseNatureMontant()}"/>
+                    </p:selectOneRadio>
+                    <span>#{lab.LM_PPG_montant_maximal} </span>
+                    <pe:inputNumber value="#{managedPoste.type.montantMaximal}"/>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedPoste.saveNewTypePrime()}" 
+                                 style="float: right" oncomplete="dlgAddTypePrime.hide()"/>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue primes poste
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgPrimePoste_">
+            <p:dialog id="dlgPrimePoste_" header="#{lab.LM_PPG_primes_poste}" widgetVar="dlgPrimePoste" modal="true"
+                      width="40%"  closeOnEscape="true">
+                <h:inputHidden id="input_hide_reset_prime_poste" value="#{managedPoste.input_reset_prime}"/>
+                <h:panelGrid id="blog_form_prime_poste" styleClass="yvs_table" columns="2" style="width: 98%;margin: auto" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LM_PPG_type_prime} </span>
+                    <h:selectOneMenu value="#{managedPoste.prime.type.id}" id="type_prime_poste" style="min-width: 200px">
+                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedTypePrime.types}" var="typPri" 
+                                       itemLabel="#{typPri.designation}" itemValue="#{typPri.id}" />
+                    </h:selectOneMenu>
+                    <span>#{lab.L_montant} </span>
+                    <pe:inputNumber value="#{managedPoste.prime.montant}"/>
+                </h:panelGrid>
+                <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%;margin: auto">
+                    <p:commandButton value="#{lab.L_nouveau}" actionListener="#{managedPoste.resetFichePrimePoste()}" 
+                                     style="float: left" update="blog_form_prime_poste"/>
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedPoste.saveNewPrimePoste()}" 
+                                     style="float: right" update="data_prime_poste :main_param_mut:tabview_param_mut:data_poste_mutuelle_"/>
+                </h:panelGrid>
+                <p:outputPanel id="blog_list_prime_poste">
+                    <h:inputHidden id="input_hide_prime_poste_id" value="#{managedPoste.tabIds_prime}"/>
+                    <p:dataTable id="data_prime_poste" value="#{poste.primes}" var="prim" rowKey="#{prim.id}"
+                                 selectionMode="single" rowIndexVar="primIdx">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedPoste.loadOnViewPrimePoste}" update=":form_dlgPrimePoste_:blog_form_prime_poste"/>
+                        <p:ajax event="rowUnselect" global="false" listener="#{managedPoste.unLoadOnViewPrimePoste}" update=":form_dlgPrimePoste_:blog_form_prime_poste"/>
+                        <p:column headerText="N°" style="width: 12%;text-align: center">
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{prim.new_}"/>
+                            <span>#{primIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_type}">
+                            <span>#{prim.type.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}">
+                            <h:outputText value="#{prim.montant}" converter="DN" style="text-align: right"/>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <p:commandLink global="false" actionListener="#{managedPoste.deleteBeanPrimePoste(prim)}" 
+                                           update="data_prime_poste :form_dlgPrimePoste_:blog_form_prime_poste :main_param_mut:tabview_param_mut:data_poste_mutuelle_">
+                                <!--<p:confirm message="Voulez-vous vraiment supprimer" header="supprimer ce poste"/>-->
+                                <h:graphicImage library="img" name="del.png" width="20" height="20" title="Supprimer"/>      
+                            </p:commandLink>
+                        </p:column> 
+                        <p:column style="width: 8%;text-align: center">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_prime_poste" value="false"
+                                                         onclick="selectionAllLineContribution(#{managedPoste.posteSelect.primes.size()})">
+                                </h:selectBooleanCheckbox>
+                            </f:facet>
+                            <h:selectBooleanCheckbox  value="#{prim.selectActif}" styleClass="chek_line_prime_poste" 
+                                                      onclick="selectionLineContribution(#{prim.id})">
+                            </h:selectBooleanCheckbox>
+                        </p:column>
+                    </p:dataTable>
+                    <p:commandButton value="#{lab.L_supprimer}" id="delete_prime_poste_" actionListener="#{managedPoste.deleteBeanPrimePoste()}"
+                                     style="float: right" global="false" rendered="false">
+                        <!--<p:confirm message="Voulez-vous vraiment supprimer ce type de prime?" header="Supprimmer un type de prime" />-->
+                    </p:commandButton>     
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014
+                    <span style="margin-left: 35%; font-size: .8em; font-style: italic; color: #828c95" class="nbSelectPrimePoste"></span> 
+                </f:facet> 
+            </p:dialog>
+        </h:form> 
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTypeCout" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text3}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeCout.deleteBean()}" update=":main_param_mut:tabview_param_mut:form_type_cout_mut :main_param_mut:tabview_param_mut:data_type_cout_mut"
+                                 oncomplete="dlgConfirmDeleteTypeCout.hide();collapseForm('type_cout_mut')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTypeCout.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTypeCout_" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text3}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeCout.deleteBean_()}" update=":main_param_mut:tabview_param_mut:form_type_cout_mut :main_param_mut:tabview_param_mut:data_type_cout_mut"
+                                 oncomplete="dlgConfirmDeleteTypeCout_.hide();collapseForm('type_cout_mut')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTypeCout_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_param_mut">  
+            <div  class="part_scroll" style="width: 99%; margin: auto; background: white">
+                <h:outputText value="!! #{lab.LM_PPG_text1}" 
+                              style="font-size: x-small; color: brown; font-style: italic; margin-left: 20%; text-decoration: blink" rendered="#{managedParametrage.currentAgence.mutuelle==null}"/>
+                <p:tabView id="tabview_param_mut">
+                    <p:tab title="#{lab.LM_PPG_bases}">
+                        #{managedParametrage.loadAll()}
+                        <p:outputPanel id="form_parametrage" style="width: 99%; margin: auto; background: white">
+                            <h:panelGrid columns="4" styleClass="yvs_table" style="width: 100%;margin: auto"
+                                         cellpadding="0" cellspacing="0">                                            
+                                <span>#{lab.LM_PPG_periode_minimal_evaluation} </span>
+                                <pe:inputNumber value="#{parametrage.dureeMembre}" symbol=" mois" symbolPosition="suffixe" style="width: 100px;text-align: right"
+                                                title="#{lab.LM_PPG_text3}" decimalPlaces="0"/>
+                                <span>#{lab.LM_PPG_capacite_maximale_endettement}  </span>
+                                <h:panelGroup>
+                                    <pe:inputNumber value="#{parametrage.capaciteEndettement}"  
+                                                    symbolPosition="suffixe" style="width: 50px;text-align: right"
+                                                    title="#{lab.LM_PPG_text4} "/>
+                                    <span style="font-size: 1.2em">X</span>
+                                    <h:selectOneMenu value="#{parametrage.baseCapaciteEndettement}">
+                                        <f:selectItem itemValue="#{constantes.MUT_NATURE_OP_EPARGNE}" itemLabel="#{constantes.MUT_NATURE_OP_EPARGNE}" />
+                                        <f:selectItem itemValue="#{constantes.MUT_NATURE_OP_SALAIRE}" itemLabel="#{constantes.MUT_NATURE_OP_SALAIRE}" />
+                                    </h:selectOneMenu>
+                                </h:panelGroup>
+                                <span>#{lab.LM_PPG_salaire_moyen_determiner_sur}  </span>
+                                <h:panelGroup>
+                                    <pe:inputNumber value="#{parametrage.periodeSalaireMoyen}" 
+                                                    decimalPlaces="0" style="width: 40px; text-align: center"
+                                                    title="#{lab.LM_PPG_text5} "/> <span> #{lab.LM_PPG_dernier_mois}</span>
+                                </h:panelGroup>
+                                <span title="#{lab.LM_PPG_text6}">#{lab.LM_PPG_souscription_generale} </span>
+                                <h:selectBooleanCheckbox value="#{parametrage.souscriptionGeneral}"/>
+                                <span>#{lab.LM_PPG_monnaie} </span>
+                                <h:inputText value="#{parametrage.monnaie}" style="width: 100px"/>                                
+                                <span>#{lab.LM_PPG_periode_etude_credit} </span>
+                                <pe:inputNumber value="#{parametrage.dureeEtudeCredit}" symbol=" jours" symbolPosition="suffixe" 
+                                                style="width: 100px;text-align: right" decimalPlaces="0"/>
+                                <span>#{lab.LM_PPG_taux_couverture_credit} *</span>
+                                <pe:inputNumber value="#{parametrage.tauxCouvertureCredit}" symbol=" %" symbolPosition="suffixe" 
+                                                style="width: 100px;text-align: right" />
+                                <span>#{lab.LM_PPG_periode_epargne_jour}</span>
+                                <h:panelGroup>
+                                    <span>#{lab.LM_PPG_entre_le}</span>
+                                    <pe:inputNumber value="#{parametrage.debutEpargne}" style="width: 50px; text-align: center" decimalPlaces="0"/>
+                                    et
+                                    <pe:inputNumber value="#{parametrage.finEpargne}" style="width: 50px; text-align: center" decimalPlaces="0"/>
+                                </h:panelGroup>
+                            </h:panelGrid>
+                            <h:panelGrid columns="3" style="width: 100%">
+                                <h:panelGroup>
+                                    <span>#{lab.LM_PPG_valide_credits_par_vote}</span>
+                                    <h:selectBooleanCheckbox value="#{parametrage.validCreditByVote}">
+                                        <p:ajax event="valueChange" global="false"/>
+                                    </h:selectBooleanCheckbox>
+                                </h:panelGroup>
+                                <h:panelGroup>
+                                    <span>#{lab.LM_PPG_pourcentage_vote_requis} :</span>                                                                    
+                                    <h:panelGrid columns="2" styleClass="yvs_nostyle" style="display: inline">
+                                        <span>#{lab.LM_PPG_conditions} =</span>
+                                        <pe:inputNumber value="#{parametrage.tauxVoteValidCreditCorrect}" 
+                                                        symbol="%" symbolPosition="suffixe" style="width: 100px;text-align: right"/>
+                                        <span>#{lab.LM_PPG_conditions_non_rempli} =</span>
+                                        <pe:inputNumber value="#{parametrage.tauxVoteValidCreditIncorrect}" 
+                                                        symbol="%" symbolPosition="suffixe" style="width: 100px;text-align: right"/>
+                                    </h:panelGrid>
+                                </h:panelGroup>
+                            </h:panelGrid>
+                            <h:panelGrid columns="2" cellpadding="5" cellspacing="5">
+                                <span>#{lab.LM_PPG_paiement_credit_salaire_partir_compte}</span>
+                                <p:selectBooleanCheckbox value="#{parametrage.paiementParCompteStrict}" />
+                                <span>#{lab.LM_PPG_autoriser_retraits_compte_epargne}</span>
+                                <p:selectBooleanCheckbox value="#{parametrage.acceptRetraitEpargne}" />
+                                <span>#{lab.LM_PPG_retenir_epargne}</span>
+                                <p:selectBooleanCheckbox value="#{parametrage.retainsEpargne}" />
+                                <span>#{lab.LM_PPG_antidater_saisie_epargne} </span>
+                                <h:panelGroup>
+                                    <pe:inputNumber value="#{parametrage.retardSaisieEpargne}" 
+                                                    style="width: 100px;text-align: right"/>
+                                    <span>#{lab.L_jour}(s)</span>
+                                </h:panelGroup>
+                                <span>#{lab.LM_PPG_retenir_interet_emprunt}</span>
+                                <p:selectBooleanCheckbox value="#{parametrage.creditRetainsInteret}" />
+                            </h:panelGrid>                                                                                      
+                            <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%">     
+                                <p:commandButton value="#{lab.L_enregistrer}" id="save_parametrage_" actionListener="#{managedParametrage.saveNew()}"
+                                                 style="float: right" update="form_parametrage"/>                                                                                        
+                            </h:panelGrid>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LM_PPG_postes}">
+                        #{managedPoste.loadAll()}
+                        <p:outputPanel id="form_poste_mutuelle_">
+                            <div style="width: 34%;float: left">
+                                <h:inputHidden id="input_hide_reset_poste_mutuelle_" value="#{managedPoste.input_reset}"/>
+                                <p:outputPanel id="blog_form_poste_mutuelle_" style="width: 99%; margin: auto; background: white">
+                                    <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                                        <f:facet name="header">
+                                            <div align="left">
+                                                <span>#{lab.LM_PPG_text}</span>                                                
+                                                <p:selectBooleanCheckbox value="#{poste.canVoteCredit}"/>                                                
+                                            </div>
+                                        </f:facet>
+                                        <span>#{lab.L_designation} : </span>
+                                        <h:inputText value="#{poste.designation}" style="width: 100%"/>                                           
+                                    </h:panelGrid>
+                                    <span>#{lab.L_description} : </span>
+                                    <h:inputTextarea value="#{poste.description}" style="width: 100%" rows="5"/>   
+                                    <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%">                                                
+                                        <p:commandButton value="#{lab.L_nouveau}" id="cancel_poste_mutuelle_" global="false" style="float: left"
+                                                         update="blog_form_poste_mutuelle_" actionListener="#{managedPoste.resetFiche()}"/>
+                                        <p:commandButton value="#{lab.L_enregistrer}" id="save_poste_mutuelle_" actionListener="#{managedPoste.saveNew()}"
+                                                         style="float: right" update="blog_form_poste_mutuelle_ data_poste_mutuelle_"/>
+                                    </h:panelGrid>
+                                </p:outputPanel>
+                            </div>
+                            <div style="width: 65%;margin-left: 35%">
+                                <h:inputHidden id="input_hide_poste_mutuelle_" value="#{managedPoste.tabIds}"/>
+                                <p:outputPanel id="blog_list_poste_mutuelle_" style="width: 99%; margin: auto; background: white">
+                                    <p:contextMenu for="data_poste_mutuelle_">
+                                        <p:menuitem value="Primes" icon="ui-icon-folder-open" global="false" actionListener="#{managedPoste.showPrime()}"
+                                                    oncomplete="dlgPrimePoste.show()"/>
+                                    </p:contextMenu>
+                                    <p:dataTable id="data_poste_mutuelle_" value="#{managedPoste.postes}" var="post" rowKey="#{post.id}" rowIndexVar="postIdx"
+                                                 selectionMode="single" selection="#{managedPoste.posteSelect}">
+                                        <p:ajax event="rowSelect" global="false" listener="#{managedPoste.loadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_poste_mutuelle_"/>
+                                        <p:ajax event="rowUnselect" global="false" listener="#{managedPoste.unLoadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_poste_mutuelle_"/>
+                                        <p:column width="30" headerText="N°" style="text-align: center">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{post.new_}"/>
+                                            <span>#{postIdx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_designation}">
+                                            <span>#{post.designation}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PPG_prime}" style="text-align: right">
+                                            <h:outputText value="#{post.montantPrime}" converter="DN"/>
+                                            <span style="font-size: 0.8em"> Fcfa</span>
+                                        </p:column>                                   
+                                        <p:column headerText="#{lab.LM_PPG_vote}" width="20" style="text-align: center">
+                                            <h:graphicImage library="img" name="#{post.canVoteCredit?'yes.png':'no.png'}" />
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center">
+                                            <p:contextMenu for="param_bnt_opt_post_m_c" event="left click">
+                                                <p:menuitem icon="ui-icon-trash" value="Supprimer" actionListener="#{managedPoste.deleteBean(post)}" 
+                                                            update="data_poste_mutuelle_ :main_param_mut:tabview_param_mut:blog_form_poste_mutuelle_"/>
+                                            </p:contextMenu>
+                                            <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="param_bnt_opt_post_m_c" />                                                                                    
+                                        </p:column>                                         
+                                    </p:dataTable>         
+                                </p:outputPanel>       
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>                    
+                    <p:tab title="#{lab.LM_PPG_types_comptes}">
+                        #{managedTypeCompte.loadAll()}
+                        <p:outputPanel id="form_type_compte_">
+                            <div style="width: 34%;float: left">
+                                <h:inputHidden id="input_hide_reset_type_compte_" value="#{managedTypeCompte.input_reset}"/>
+                                <p:outputPanel id="blog_form_type_compte_" style="width: 99%; margin: auto; background: white">
+                                    <p:panelGrid columns="2" style="width: 98%;margin: auto">
+                                        <span>#{lab.L_designation} </span>
+                                        <h:inputText value="#{typeCompte.libelle}"/>
+                                        <span>#{lab.LM_PPG_nature} </span>
+                                        <h:selectOneMenu value="#{typeCompte.nature}">
+                                            <f:selectItem itemLabel="#{constantes.MUT_TYPE_COMPTE_COURANT}" itemValue="#{constantes.MUT_TYPE_COMPTE_COURANT}"/>
+                                            <f:selectItem itemLabel="#{constantes.MUT_TYPE_COMPTE_EPARGNE}" itemValue="#{constantes.MUT_TYPE_COMPTE_EPARGNE}"/>                                    
+                                            <f:selectItem itemLabel="#{constantes.MUT_TYPE_COMPTE_A_TERME}" itemValue="#{constantes.MUT_TYPE_COMPTE_A_TERME}"/>                           
+                                            <f:selectItem itemLabel="#{constantes.MUT_TYPE_COMPTE_ASSURANCE}" itemValue="#{constantes.MUT_TYPE_COMPTE_ASSURANCE}"/>                           
+                                        </h:selectOneMenu>
+                                    </p:panelGrid>
+                                    <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%">
+                                        <p:commandButton value="#{lab.L_nouveau}" id="cancel_type_compte_" global="false" style="float: left"
+                                                         update="blog_form_type_compte_" actionListener="#{managedTypeCompte.resetFiche()}"/>
+                                        <p:commandButton value="#{lab.L_enregistrer}" id="save_type_compte_" actionListener="#{managedTypeCompte.saveNew()}"
+                                                         style="float: right" update="blog_form_type_compte_ data_type_compte_"/>
+                                    </h:panelGrid>
+                                </p:outputPanel>
+                            </div>
+                            <div style="width: 64%;margin-left: 35%">
+                                <h:inputHidden id="input_hide_type_compte_" value="#{managedTypeCompte.tabIds}"/>
+                                <p:outputPanel id="blog_list_type_compte_" style="width: 99%; margin: auto; background: white">
+                                    <p:dataTable id="data_type_compte_" value="#{managedTypeCompte.types}" var="typCom" rowKey="#{typCom.id}" 
+                                                 rowIndexVar="typComIdx" selectionMode="single">
+                                        <p:ajax event="rowSelect" global="false" listener="#{managedTypeCompte.loadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_type_compte_"/>
+                                        <p:ajax event="rowUnselect" global="false" listener="#{managedTypeCompte.unLoadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_type_compte_"/>
+                                        <p:column width="30" headerText="N°" style="text-align: center">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typCom.new_}"/>
+                                            <span>#{typComIdx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_designation}">
+                                            <span>#{typCom.libelle}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PPG_nature}">
+                                            <span>#{typCom.nature}</span>
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center">
+                                            <p:contextMenu for="param_bnt_opt_typ_c" event="left click">
+                                                <p:menuitem icon="ui-icon-trash" value="Supprimer" actionListener="#{managedTypeCompte.deleteBean(typCom)}"
+                                                            update="data_type_compte_ :main_param_mut:tabview_param_mut:blog_form_type_compte_" />
+                                            </p:contextMenu>
+                                            <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="param_bnt_opt_typ_c" />                                            
+                                        </p:column>                                         
+                                    </p:dataTable>                                            
+                                </p:outputPanel>                                                     
+                            </div> 
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LM_PPG_type_prime}">
+                        <p:outputPanel id="form_type_prime_">
+                            <div style="width: 34%;float: left">
+                                <h:inputHidden id="input_hide_reset_type_prime_" value="#{managedTypePrime.input_reset}"/>
+                                <p:outputPanel id="blog_form_type_prime_" style="width: 99%; margin: auto; background: white">
+                                    <p:panelGrid columns="2" style="width: 100%">
+                                        <span>#{lab.L_designation} </span>
+                                        <h:inputText value="#{typePrime.designation}"/>
+                                        <span>#{lab.LM_PPG_nature} </span>
+                                        <h:selectOneRadio value="#{typePrime.natureMontant}" styleClass="yvs_nostyle">
+                                            <f:selectItem itemLabel="#{lab.LM_PPG_fixe}" itemValue="Fixe" />
+                                            <f:selectItem itemLabel="#{lab.LM_PPG_interet}" itemValue="Pourcentage" rendered="false"/>
+                                            <p:ajax event="valueChange" global="false" listener="#{managedTypePrime.chooseNatureMontant()}"/>
+                                        </h:selectOneRadio>
+                                        <span>#{lab.L_montant}</span>
+                                        <pe:inputNumber value="#{typePrime.montantMaximal}"/>  
+                                        <span>#{lab.LM_PPG_periodicite}</span>
+                                        <h:selectOneMenu value="#{typePrime.periodeRemuneration}">
+                                            <f:selectItem itemLabel="#{lab.L_mois}" itemValue="Mois" />
+                                            <f:selectItem itemLabel="#{lab.LM_PPG_trimestres}" itemValue="Trimestre" />
+                                            <f:selectItem itemLabel="#{lab.LM_PPG_semestres}" itemValue="Semestres" />
+                                            <f:selectItem itemLabel="#{lab.LM_PPG_annes}" itemValue="Annee" />
+                                        </h:selectOneMenu>
+                                    </p:panelGrid>
+                                    <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 99%; margin: auto">
+                                        <p:commandButton value="#{lab.L_nouveau}" id="cancel_type_prime_" global="false" style="float: left"
+                                                         update="blog_form_type_prime_" actionListener="#{managedTypePrime.resetFiche()}"/>
+                                        <p:commandButton value="#{lab.L_enregistrer}" id="save_type_prime_" actionListener="#{managedTypePrime.saveNew()}"
+                                                         style="float: right" update="blog_form_type_prime_ data_type_prime_"/>
+                                    </h:panelGrid>
+                                </p:outputPanel>
+                            </div>
+                            <div style="width: 65%;margin-left: 35%">
+                                <h:inputHidden id="input_hide_type_prime_" value="#{managedTypePrime.tabIds}"/>
+                                <p:outputPanel id="blog_list_type_prime_" style="width: 99%; margin: auto; background: white">
+                                    <p:dataTable id="data_type_prime_" value="#{managedTypePrime.types}" var="typP" rowKey="#{typP.id}" 
+                                                 rowIndexVar="typPIdx" selectionMode="single">
+                                        <p:ajax event="rowSelect" global="false" listener="#{managedTypePrime.loadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_type_prime_"/>
+                                        <p:ajax event="rowUnselect" global="false" listener="#{managedTypePrime.unLoadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_type_prime_"/>
+                                        <p:column width="30" headerText="N°" style="text-align: center">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typP.new_}"/>
+                                            <span>#{typPIdx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_designation}">
+                                            <span>#{typP.designation}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_montant}" style="width: 15%;text-align: right">
+                                            <h:outputText value="#{typP.montantMaximal}" converter="DN" style="text-align: right"/>
+                                            <h:outputText value=" % #{lab.LM_PPG_interet}" rendered="#{(typP.natureMontant=='Pourcentage')}" />
+                                        </p:column>                                               
+                                        <p:column headerText="#{lab.LM_PPG_periode}" style="width: 15%;text-align: center">
+                                            <span>#{typP.periodeRemuneration}</span>
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center">
+                                            <p:commandLink global="false" actionListener="#{managedTypePrime.deleteBean(typP)}"
+                                                           update="data_type_prime_ :main_param_mut:tabview_param_mut:blog_form_type_prime_">
+                                                <!--<p:confirm message="Voulez-vous vraiment supprimer" header="supprimer ce type de primes"/>-->
+                                                <h:graphicImage library="img" name="del.png" width="20" height="20" title="#{lab.L_supprimer}"/>      
+                                            </p:commandLink>
+                                        </p:column> 
+                                        <p:column width="25" style="text-align: center">
+                                            <f:facet name="header">
+                                                <h:selectBooleanCheckbox styleClass="chek_all_line_type_prime_" value="false"
+                                                                         onclick="selectionAllLineTab(#{managedTypePrime.types.size()}, 'type_prime_')">
+                                                </h:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <h:selectBooleanCheckbox  value="#{typP.selectActif}" styleClass="chek_line_type_prime_" 
+                                                                      onclick="selectionLineTab(#{typP.id}, 'type_prime_')">
+                                            </h:selectBooleanCheckbox>
+                                        </p:column>
+                                    </p:dataTable>     
+                                    <p:commandButton value="#{lab.L_supprimer}" id="delete_type_prime_" actionListener="#{managedTypePrime.deleteBean()}"
+                                                     style="float: right" global="false" rendered="false">
+                                        <!--<p:confirm message="Voulez-vous vraiment supprimer" header="Supprimer les types de primes" />-->
+                                    </p:commandButton>       
+                                </p:outputPanel>                                                     
+                            </div> 
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LM_PPG_evenements}" titletip="#{lab.LM_PPG_evenements_type_evenement}">
+                        #{managedTypeEvenement.loadAll()}
+                        #{managedTypeContribution.loadAll()}
+                        <p:outputPanel id="form_type_evenement_">                              
+                            <div style="width: 50%;float: left">
+                                <h:inputHidden id="input_hide_reset_type_evenement_" value="#{managedTypeEvenement.input_reset}"/>
+                                <h:panelGrid columns="1" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 98%;margin: auto" id="blog_form_type_evenement_">
+                                    <f:facet name="header">
+                                        <div style="float: left">
+                                            <p:contextMenu styleClass="context_menu" event="left click" for="btn_opt_type_evt">
+                                                <p:menuitem icon="ui-icon-document" value="#{lab.L_nouveau}" update="blog_form_type_evenement_" actionListener="#{managedTypeEvenement.resetFiche()}"/>
+                                                <p:separator />
+                                                <p:menuitem icon="ui-icon-document" value="#{lab.LM_PPG_activites}" onclick="dlgAddTypeContribution.show()"/>
+                                            </p:contextMenu>
+                                            <p:commandButton icon="ui-icon-gear" title="#{lab.LM_PPG_gerer_type_evenements}" type="button" id="btn_opt_type_evt"/>                                
+                                        </div>
+                                        <div style="float: right">
+                                            <p:commandButton value="#{lab.L_enregistrer}" id="save_type_evenement_" actionListener="#{managedTypeEvenement.saveNew()}"
+                                                             update="blog_form_type_evenement_ data_type_evenement_" />                                            
+                                        </div>
+                                    </f:facet>
+                                    <span>#{lab.L_designation} </span>
+                                    <h:panelGroup>
+                                        <h:inputText value="#{typeEvenement.designation}"/>
+                                        <h:panelGroup style="float: right">
+                                            <span>#{lab.LM_PPG_nombre_representant}  </span>
+                                            <h:inputText value="#{typeEvenement.nombreRepresentant}" style="width: 50px;text-align: center"/>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                    <span>#{lab.L_description} </span>
+                                    <h:inputTextarea value="#{typeEvenement.description}" style="width: 98%" rows="3"/>
+                                    <f:facet name="footer">
+                                        <div>
+                                            <div style="border: solid 2px; height: 200px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                                <span style="display: inline-block; background: #CCC; width: 100%">
+                                                    #{lab.LM_PPG_activites_types} 
+                                                </span>
+                                                <div style="width: 99.5%; border: solid 1px; height: 150px; margin: auto;overflow-y: auto">
+                                                    <h:panelGrid id="blog_form_contribution" columns="5" styleClass="yvs_nostyle" style="width: 100%">
+                                                        <span>#{lab.LM_PPG_activite}</span>
+                                                        <h:selectOneMenu id="select_activite_taux_evement" value="#{managedTypeEvenement.contribution.typeContibution.id}" style="min-width: 140px">
+                                                            <f:selectItem itemLabel="--" itemValue="0" />
+                                                            <f:selectItems value="#{managedTypeContribution.types}" var="act" itemValue="#{act.id}" itemLabel="#{act.libelle}"/>
+                                                        </h:selectOneMenu>
+                                                        <span>#{lab.LM_PPG_budget_min}.</span>
+                                                        <h:inputText  value="#{managedTypeEvenement.contribution.montant}" />                                                        
+                                                        <h:panelGroup>
+                                                            <p:commandButton icon="ui-icon-circle-plus" actionListener="#{managedTypeEvenement.saveNewContribution()}" 
+                                                                             style="width: 22px; height: 22px" update="blog_form_contribution data_contribution" title="#{lab.L_enregistrer}"/>
+                                                            <p:commandButton icon="ui-icon-document" actionListener="#{managedTypeEvenement.resetFicheContribution()}" 
+                                                                             style="width: 22px; height: 22px" update="blog_form_contribution" title="#{lab.L_nouveau}"/>
+                                                        </h:panelGroup>
+                                                        <f:facet name="footer">
+
+                                                        </f:facet>
+                                                    </h:panelGrid>
+                                                    <p:outputPanel>
+                                                        <h:inputHidden id="input_hide_contribution_id" value="#{managedTypeEvenement.tabIds_contribution}"/>
+                                                        <p:dataTable id="data_contribution" value="#{typeEvenement.contributions}" var="cont" rowKey="#{cont.id}"
+                                                                     selectionMode="single" rowIndexVar="contIdx">
+                                                            <p:ajax event="rowSelect" global="false" listener="#{managedTypeEvenement.loadOnViewContribution}"/>
+                                                            <p:ajax event="rowUnselect" global="false" listener="#{managedTypeEvenement.unLoadOnViewContribution}"/>
+                                                            <p:column headerText="N°" style="width: 10%;text-align: center">
+                                                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{cont.new_}"/>
+                                                                <span>#{contIdx+1}</span>
+                                                            </p:column>
+                                                            <p:column headerText="#{lab.L_type}">
+                                                                <span>#{cont.typeContibution.libelle}</span>
+                                                            </p:column>
+                                                            <p:column headerText="#{lab.L_montant}">
+                                                                <h:outputText value="#{cont.montantMin}" converter="DN" style="text-align: right"/>
+                                                            </p:column>
+                                                            <p:column style="width: 5%;text-align: center">
+                                                                <p:contextMenu styleClass="context_menu" event="left click" for="btn_opt_type_act">
+                                                                    <p:menuitem icon="ui-icon-trash" value="#{lab.L_supprimer}" actionListener="#{managedTypeEvenement.deleteBeanContribution(cont)}"
+                                                                                update="data_contribution"/>                                                                       
+                                                                </p:contextMenu>
+                                                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btn_opt_type_act"/>                                
+                                                            </p:column>
+                                                        </p:dataTable>
+                                                    </p:outputPanel>
+                                                </div>
+                                                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+
+                                                </h:panelGrid>
+                                            </div>  
+                                        </div>
+                                    </f:facet>
+                                </h:panelGrid>
+                            </div>
+                            <div style="margin-left: 50%">
+                                <h:inputHidden id="input_hide_type_evenement_" value="#{managedTypeEvenement.tabIds}"/>
+                                <p:contextMenu for="data_type_evenement_">
+                                    <p:menuitem icon="ui-icon-folder-open" value="#{lab.LM_PPG_contributions}" actionListener="#{managedTypeEvenement.update('data_contribution')}"
+                                                oncomplete="dlgContribution.show()" global="false"/>
+                                </p:contextMenu>
+                                <p:outputPanel id="blog_list_type_evenement_" style="width: 99%; margin: auto; background: white">
+                                    <p:dataTable id="data_type_evenement_" value="#{managedTypeEvenement.types}" var="typEvt" rowKey="#{typEvt.id}"
+                                                 rowIndexVar="typEvtIdx" selectionMode="single">
+                                        <p:ajax event="rowSelect" global="false" listener="#{managedTypeEvenement.loadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_type_evenement_"/>
+                                        <p:ajax event="rowUnselect" global="false" listener="#{managedTypeEvenement.unLoadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_type_evenement_"/>
+                                        <p:column width="30" headerText="N°" style="text-align: center">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typEvt.new_}"/>
+                                            <span>#{typEvtIdx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_designation}">
+                                            <span>#{typEvt.designation}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PPG_nbre_repr}." style="text-align: right">
+                                            <span>#{typEvt.nombreParticipant}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PPG_lier_mutualiste}" style="width: 15%;text-align: center">
+                                            <h:graphicImage library="img"  name="#{(typEvt.lierMutualiste)?'yes.png':'no.png'}" width="15" height="15"/>
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center">
+                                            <p:contextMenu styleClass="context_menu" event="left click" for="btn_opt_type_evenement_">
+                                                <p:menuitem icon="ui-icon-trash" value="#{lab.L_supprimer}" actionListener="#{managedTypeEvenement.deleteBean(typEvt)}"
+                                                            update="data_type_evenement_ :main_param_mut:tabview_param_mut:blog_form_type_evenement_"/>                                                                       
+                                            </p:contextMenu>
+                                            <p:commandButton icon="ui-icon-gear" type="button" style="width: 22px; height: 22px" id="btn_opt_type_evenement_"/>
+                                        </p:column> 
+                                        <p:column width="25" style="text-align: center">
+                                            <f:facet name="header">
+                                                <h:selectBooleanCheckbox styleClass="chek_all_line_type_evenement_" value="false"
+                                                                         onclick="selectionAllLineTab(#{managedTypeEvenement.types.size()}, 'type_evenement_')">
+                                                </h:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <h:selectBooleanCheckbox  value="#{typEvt.selectActif}" styleClass="chek_line_type_evenement_" 
+                                                                      onclick="selectionLineTab(#{typEvt.id}, 'type_evenement_')">
+                                            </h:selectBooleanCheckbox>
+                                        </p:column>
+                                    </p:dataTable>     
+                                    <p:commandButton value="#{lab.L_supprimer}" id="delete_type_evenement_" actionListener="#{managedTypeEvenement.deleteBean()}" oncomplete="afterDeleteTypeEvenement()"
+                                                     style="float: right" global="false" rendered="false">
+                                        <!--<p:confirm message="Voulez-vous vraiment supprimer?" header="Supprimer les types évènement" />-->
+                                    </p:commandButton>       
+                                </p:outputPanel>                                                     
+                            </div> 
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>                    
+                    <p:tab title="#{lab.LM_PPG_types_avances}" titletip="#{lab.LM_PPG_types_avances_salaire}">
+                        #{managedTypeAvance.loadAll()}
+                        <p:outputPanel id="form_type_avance_">
+                            <div style="width: 40%;float: left">
+                                <h:inputHidden id="input_hide_reset_type_avance_" value="#{managedTypeAvance.input_reset}"/>
+                                <p:panelGrid id="blog_form_type_avance_" columns="2" style="width: 100%">
+                                    <span>#{lab.L_designation} </span>
+                                    <h:inputText value="#{typeAvance.designation}"/>                                    
+                                    <span>#{lab.LM_PPG_montant_plafone} </span>
+                                    <h:panelGroup>
+                                        <pe:inputNumber value="#{typeAvance.montantMaximal}" style="width: 100px"/>
+                                        <h:selectOneRadio value="#{typeAvance.natureMontant}" styleClass="yvs_nostyle" style="display: inline">
+                                            <f:selectItem itemLabel="#{lab.LM_PPG_fixe}" itemValue="Fixe" />
+                                            <f:selectItem itemLabel="% #{lab.LM_PPG_salaire}" itemValue="Pourcentage" />
+                                            <p:ajax event="valueChange" global="false" listener="#{managedTypeAvance.chooseNatureMontant()}"/>
+                                        </h:selectOneRadio>
+                                    </h:panelGroup>
+                                    <span>#{lab.LM_PPG_taux_interet_max}. </span>
+                                    <pe:inputNumber value="#{typeAvance.tauxMaximal}" symbol="%" symbolPosition="suffixe" style="width: 100px"/>
+                                    <span>#{lab.LM_PPG_duree_max} </span>
+                                    <pe:inputNumber value="#{typeAvance.periodeMaximal}" symbol=" mois" symbolPosition="suffixe" 
+                                                    style="width: 100px" disabled="true"/>                                                
+                                    <span>#{lab.LM_PPG_periode_autorise}</span>
+                                    <h:panelGroup>
+                                        <span> #{lab.L_du} </span>
+                                        <h:selectOneMenu value="#{typeAvance.jourDebutAvance}">
+                                            <f:selectItems value="#{constantes.tabJour}" var="debut" itemLabel="#{debut}" itemValue="#{debut}" />
+                                        </h:selectOneMenu>
+                                        <span> #{lab.L_au} </span>
+                                        <h:selectOneMenu value="#{typeAvance.jourFinAvance}">
+                                            <f:selectItems value="#{constantes.tabJour}" var="fin" itemLabel="#{fin}" itemValue="#{fin}" />
+                                        </h:selectOneMenu>
+                                    </h:panelGroup>
+                                </p:panelGrid>
+                                <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 99%; margin: auto">
+                                    <p:commandButton value="#{lab.L_nouveau}" id="cancel_type_avance_" global="false" style="float: left"
+                                                     update="blog_form_type_avance_" actionListener="#{managedTypeAvance.resetFiche()}"/>
+                                    <p:commandButton value="#{lab.L_enregistrer}" id="save_type_avance_" actionListener="#{managedTypeAvance.saveNew()}"
+                                                     style="float: right" update="blog_form_type_avance_ data_type_avance_"/>
+                                </h:panelGrid>
+                            </div>
+                            <div style="margin-left: 40.5%">
+                                <h:inputHidden id="input_hide_type_avance_" value="#{managedTypeAvance.tabIds}"/>
+                                <p:dataTable id="data_type_avance_" value="#{managedTypeAvance.types}" var="typA" rowKey="#{typA.id}" 
+                                             rowIndexVar="typAIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedTypeAvance.loadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_type_avance_"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedTypeAvance.unLoadOnView}" update=":main_param_mut:tabview_param_mut:blog_form_type_avance_"/>
+                                    <p:column width="30" headerText="N°" style="text-align: center">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typA.new_}"/>
+                                        <span>#{typAIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_designation}">
+                                        <span>#{typA.designation}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_montant}" style="width: 15%;text-align: right">
+                                        <h:outputText value="#{typA.montantMaximal}" converter="DN" style="text-align: right"/>
+                                        <span style="text-align: right">#{typA.suffixeMontant}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_taux}" style="width: 15%;text-align: right">
+                                        <h:outputText value="#{typA.tauxMaximal}" style="text-align: right"/>
+                                        <span>%</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_montant}" style="width: 15%;text-align: center">
+                                        <span>#{typA.natureMontant}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PPG_periode}">
+                                        #{lab.L_du} <span>#{typA.jourDebutAvance}</span> Au #{typA.jourFinAvance}
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">
+                                        <p:contextMenu for="param_bnt_typ_avn_s" event="left click">
+                                            <p:menuitem icon="ui-icon-trash" value="#{lab.L_supprimer}" actionListener="#{managedTypeAvance.deleteBean(typA)}"
+                                                        update="data_type_avance_ :main_param_mut:tabview_param_mut:blog_form_type_avance_"/>
+                                        </p:contextMenu>
+                                        <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="param_bnt_typ_avn_s" />                                                                                                                            
+                                    </p:column> 
+                                </p:dataTable>    
+                            </div> 
+                        </p:outputPanel> 
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LM_PPG_type_cout}">
+                        #{managedTypeCout.loadAll(constantes.MOD_MUT)}
+                        <p:outputPanel id="blog_form_type_cout_mut">
+                            <div style="float: left;width: 30%">
+                                <h:panelGrid id="form_type_cout_mut" columns="1" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                                    <span>#{lab.L_libelle} </span>
+                                    <h:inputText value="#{managedTypeCout.typeCout.libelle}" style="width: 100%"/>
+                                    <span>#{lab.L_compte} </span>
+                                    <h:panelGroup id="txt_compte_type_cout_mut">
+                                        <h:inputText value="#{managedTypeCout.typeCout.compte.numCompte}" style="color: #{managedTypeCout.typeCout.compte.error?'red':''};width: 35%">
+                                            <p:ajax event="blur" global="false" listener="#{managedTypeCout.searchCompte()}" update="txt_compte_type_cout_mut"/>
+                                        </h:inputText>  
+                                        <h:outputText value="#{managedTypeCout.typeCout.compte.intitule}"/>                                    
+                                        <p:commandButton icon="ui-icon-note" style="float: right; width: 20px;height: 22px" title="Liste Comptes" global="false"
+                                                         actionListener="#{managedTypeCout.initComptes()}" oncomplete="dlgListComptes.show()"/>
+                                    </h:panelGroup>
+                                    <span>#{lab.LM_PPG_module} </span>
+                                    <h:selectOneMenu value="#{managedTypeCout.typeCout.module}" style="width: 100%" valueChangeListener="#{managedTypeCout.chooseType}">
+                                        <f:selectItem itemValue="" itemLabel="--"/>
+                                        <f:selectItems value="#{constantes.COUTS(constantes.MOD_MUT)}" var="mol" itemValue="#{mol.value}" itemLabel="#{mol.label}"/>
+                                        <p:ajax event="valueChange" global="false" update="data_type_cout_mut"/>
+                                    </h:selectOneMenu>
+                                    <span>#{lab.LM_PPG_sens} </span>
+                                    <p:commandLink actionListener="#{managedTypeCout.typeCout.setAugmentation(!managedTypeCout.typeCout.augmentation)}" global="false" update="@this"
+                                                   style="margin-top: 3px;border: 2px solid black; border-radius: 5px;padding: 2px;background: #CCC;font-size: 0.8em">
+                                        <h:outputText value="#{managedTypeCout.typeCout.augmentation?lab.LCF_PGG_augmentation:lab.LRH_PP_diminution}"/>
+                                    </p:commandLink>
+                                </h:panelGrid>
+                                <div>
+                                    <p:commandButton value="#{lab.L_nouveau}" update="form_type_cout_mut" global="false"
+                                                     actionListener="#{managedTypeCout.resetFiche()}" style="float: left"
+                                                     oncomplete="collapseForm('type_cout_mut')"/>
+                                    <p:commandButton value="#{lab.L_enregistrer}" update="form_type_cout_mut data_type_cout_mut"
+                                                     actionListener="#{managedTypeCout.saveNew()}" style="float: right"/>
+                                </div>
+                            </div>
+                            <div style="margin-left:31%;width: 69%">
+                                <h:inputHidden id="input_hide_type_cout_mut" value="#{managedTypeCout.tabIds}"/>
+                                <p:dataTable id="data_type_cout_mut" value="#{managedTypeCout.types}" var="typC"
+                                             rowKey="#{typC.id}" rowIndexVar="modeIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedTypeCout.loadOnView}" update=":main_param_mut:tabview_param_mut:form_type_cout_mut"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedTypeCout.unLoadOnView}" update=":main_param_mut:tabview_param_mut:form_type_cout_mut"/>
+                                    <p:column width="20" headerText="N°">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typC.new_}"/>
+                                        <span>#{modeIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_valeur}">
+                                        <span>#{typC.libelle}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_compte}">
+                                        <span title="#{typC.compte.intitule}">#{typC.compte.numCompte}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PPG_module}">
+                                        <span>#{managedTypeCout.giveNameCouts(typC.moduleCout)}</span>
+                                    </p:column>
+                                    <p:column style="width: 7%;text-align: center">
+                                        <h:graphicImage title="#{typC.augmentation?lab.LRH_PP_augmente:lab.LRH_PP_diminu} #{lab.LRH_PP_net_a_payer}" library="icones" name="#{typC.augmentation?'in.png':'out.png'}" width="15" height="15"/>                                                        
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">                                          
+                                        <p:contextMenu for="btn_option_type_cout_mut" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedTypeCout.deleteBean_(typC)}" oncomplete="dlgConfirmDeleteTypeCout_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_type_cout_mut" type="button"/>
+                                    </p:column> 
+                                    <p:column width="20" style="text-align: center" rendered="false">
+                                        <f:facet name="header">
+                                            <h:selectBooleanCheckbox styleClass="chek_all_line_type_cout_mut" value="false"
+                                                                     onclick="selectionAllLineTab(#{managedTypeCout.types.size()}, 'type_cout_mut')">
+                                            </h:selectBooleanCheckbox>
+                                        </f:facet>
+                                        <h:selectBooleanCheckbox  value="#{typC.selectActif}" styleClass="chek_line_type_cout_mut" 
+                                                                  onclick="selectionLineTab(#{typC.id}, 'type_cout_mut')">
+                                        </h:selectBooleanCheckbox>
+                                    </p:column>
+                                </p:dataTable>
+                                <p:commandButton value="#{lab.L_supprimer}" id="delete_type_cout_mut" global="false" rendered="false"
+                                                 onclick="dlgConfirmDeleteMode.show()" style="float: right"/>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                </p:tabView>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

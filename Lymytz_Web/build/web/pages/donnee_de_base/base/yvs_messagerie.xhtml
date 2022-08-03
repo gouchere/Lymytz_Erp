@@ -1,0 +1,1086 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" 
+      xmlns:h="http://java.sun.com/jsf/html"       
+      xmlns:p="http://primefaces.org/ui"  
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:f="http://java.sun.com/jsf/core"  
+      >   
+    <script type="text/javascript">
+        var resh = document.getElementById("page").clientHeight;
+        document.getElementById("panel_messagerie").style.height = (resh - 50) + "px";
+        function resetMainFormNom(idForm) {
+            $("#" + idForm).find('input:text, input:password, input:file, select, textarea').val('');
+            $("#" + idForm).find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected');
+        }
+    </script> 
+    <ui:composition template="./../../WEB-INF/template/template_page.xhtml">
+        <ui:define name="headPage"> 
+            dz
+        </ui:define>
+        <ui:define name="restPage">
+            <h:form prependId="false" enctype="multipart/form-data">
+                <p:dialog header="Ajouter pieces jointes" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="addPieceJointe"
+                          modal="true" style="margin: auto">
+                    <p:panelGrid columns="1" style="width: 100%" id="body_dlg_piece_jointe">                        
+                        <p:fileUpload value="#{managedConversation.file0}" mode="simple" label="Piece Jointe N°1"/>
+                        <p:fileUpload value="#{managedConversation.file1}" mode="simple" label="Piece Jointe N°2"/>
+                        <p:fileUpload value="#{managedConversation.file2}" mode="simple" label="Piece Jointe N°3"/>
+                        <p:fileUpload value="#{managedConversation.file3}" mode="simple" label="Piece Jointe N°4"/>
+                        <p:fileUpload value="#{managedConversation.file4}" mode="simple" label="Piece Jointe N°5"/>
+                    </p:panelGrid>
+                    <f:facet name="footer">
+                        <p:commandButton value="Ajouter" actionListener="#{managedConversation.onCreatePieceJointe()}" style="width: 100%"
+                                         oncomplete="addPieceJointe.hide()" ajax="false"/>                        
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Recherche direct de message" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="dlgSearchMail"
+                          modal="true" style="margin: auto">
+                    <h:panelGrid columns="2" style="margin-bottom:10px;width: 100%">
+                        <h:outputLabel for="console" value="Filtrer sur :" />
+                        <p:selectOneRadio id="console" value="#{managedConversation.eltSearch}">
+                            <f:selectItem itemLabel="Mail recu" itemValue="inbox" />
+                            <f:selectItem itemLabel="Mail Envoyé" itemValue="send" />
+                            <f:selectItem itemLabel="Brouillon" itemValue="draft" />
+                            <f:selectItem itemLabel="Corbeille" itemValue="corb" />
+                            <f:selectItem itemLabel="Tous" itemValue="all" />
+                            <p:ajax event="valueChange" global="false" listener="#{managedConversation.chooseSector()}"/>
+                        </p:selectOneRadio>
+                    </h:panelGrid>
+                    <h:panelGrid columns="2" styleClass="yvs_table" style="margin-bottom:10px;width: 100%" id="blog_search">
+                        <h:outputLabel value="Emetteur :"/>
+                        <h:inputText value="#{managedConversation.emetteurSearch}" style="width: 95%">
+                            <p:ajax event="blur" global="false" listener="#{managedConversation.onSearchUserEmetteur()}"/>
+                        </h:inputText>
+                        <h:outputLabel value="Destinataire :"/>
+                        <h:inputText value="#{managedConversation.destinataireSearch}" style="width: 95%">
+                            <p:ajax event="blur" global="false" listener="#{managedConversation.onSearchUserDestinataire()}"/>
+                        </h:inputText>
+                        <h:outputLabel value="Objet :" />
+                        <h:inputText value="#{managedConversation.objetSearch}" style="width: 95%"/>
+                        <h:outputLabel value="Contenu :" />
+                        <h:inputTextarea value="#{managedConversation.contenuSearch}" style="width: 95%"/>
+                        <h:outputLabel value="Date Envoi :" />
+                        <p:calendar value="#{managedConversation.dateEnvoiSearch}" navigator="true"/>
+                    </h:panelGrid>
+                    <f:facet name="footer">
+                        <p:commandButton value="Rechercher" actionListener="#{managedConversation.onSearchMail()}" style="width: 100%"
+                                         oncomplete="dlgSearchMail.hide()"/>                        
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Recherche avec filtrage de message" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="dlgFiltreSearchMail"
+                          modal="true" style="margin: auto">
+                    <h:panelGrid columns="2" style="margin-bottom:10px;width: 100%"> 
+                        <h:outputLabel for="console_" value="Filtrer sur :" />
+                        <p:selectOneRadio id="console_" value="#{managedConversation.eltSearch}">
+                            <f:selectItem itemLabel="Mail recu" itemValue="inbox" />
+                            <f:selectItem itemLabel="Mail Envoyé" itemValue="send" />
+                            <f:selectItem itemLabel="Brouillon" itemValue="draft" />
+                            <f:selectItem itemLabel="Corbeille" itemValue="corb" />
+                            <f:selectItem itemLabel="Tous" itemValue="all" />
+                            <p:ajax event="valueChange" global="false" listener="#{managedConversation.chooseSector()}"/>
+                        </p:selectOneRadio>
+                    </h:panelGrid>
+                    <h:panelGrid id="form_dlg_search_filter" columns="3" styleClass="yvs_table" style="margin-bottom:10px;width: 100%">
+                        <h:outputLabel value="Emetteur :"/>
+                        <h:inputText value="#{managedConversation.emetteurSearch}" style="width: 95%">
+                            <p:ajax event="blur" global="false" listener="#{managedConversation.onSearchUserEmetteur()}" update="@this"/>
+                        </h:inputText>
+                        <p:commandLink actionListener="#{managedConversation.onFilterMailByEmetteur()}" oncomplete="dlgFiltreSearchMail.hide()">
+                            <h:graphicImage library="img/icones/" name="filter.png" title="Filtrer sur l'emeteur"/>
+                        </p:commandLink>
+                        <h:outputLabel value="Destinataire :"/>
+                        <h:inputText value="#{managedConversation.destinataireSearch}" style="width: 95%">
+                            <p:ajax event="blur" global="false" listener="#{managedConversation.onSearchUserDestinataire()}" update="@this"/>
+                        </h:inputText>
+                        <p:commandLink actionListener="#{managedConversation.onFilterMailByDestinataire()}" oncomplete="dlgFiltreSearchMail.hide()">
+                            <h:graphicImage library="img/icones/" name="filter.png" title="Filtrer sur le destinataire"/>
+                        </p:commandLink>
+                        <h:outputLabel value="Objet :" />
+                        <h:inputText value="#{managedConversation.objetSearch}" style="width: 95%"/>
+                        <p:commandLink actionListener="#{managedConversation.onFilterMailByObjet()}" oncomplete="dlgFiltreSearchMail.hide()">
+                            <h:graphicImage library="img/icones/" name="filter.png" title="Filtrer sur l'objet"/>
+                        </p:commandLink>
+                        <h:outputLabel value="Contenu :" />
+                        <h:inputTextarea value="#{managedConversation.contenuSearch}" style="width: 95%"/>
+                        <p:commandLink actionListener="#{managedConversation.onFilterMailByContenu()}" oncomplete="dlgFiltreSearchMail.hide()">
+                            <h:graphicImage library="img/icones/" name="filter.png" title="Filtrer sur le contenu"/>
+                        </p:commandLink>
+                        <h:outputLabel value="Date Envoi :" />
+                        <p:calendar value="#{managedConversation.dateEnvoiSearch}" navigator="true"/>
+                        <p:commandLink actionListener="#{managedConversation.onFilterMailByDateEnvoi()}" oncomplete="dlgFiltreSearchMail.hide()">
+                            <h:graphicImage library="img/icones/" name="filter.png" title="Filtrer la date d'envoi"/>
+                        </p:commandLink>
+                    </h:panelGrid>
+                    <f:facet name="footer">
+                        <p:commandButton value="Nouveau Filtre" actionListener="#{managedConversation.chooseSector()}" style="width: 100%" 
+                                         oncomplete="resetMainFormNom('form_dlg_search_filter')"/>                        
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Filtrage de message" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="dlgFilterMail"
+                          modal="true" style="margin: auto">                     
+                    <p:outputPanel id="customPanel" style="margin-bottom:10px">
+                        <p:selectOneRadio id="customRadio" value="#{filtreMail.base}" layout="custom" valueChangeListener="#{managedConversation.chooseBaseFilterMail}">
+                            <f:selectItem itemLabel="Sur Objet" itemValue="O"/>
+                            <f:selectItem itemLabel="Sur Emetteur" itemValue="E" />
+                            <f:selectItem itemLabel="Sur Priotité" itemValue="P" />
+                            <p:ajax event="valueChange" global="false" update="customPanel"/>
+                        </p:selectOneRadio>
+                        <h:panelGrid columns="3" cellpadding="5" id="customChoose">
+                            <p:radioButton id="opt1" for="customRadio" itemIndex="0" />
+                            <h:outputLabel for="opt1" value="Sur Objet" />
+                            <p:inputText value="#{filtreMail.valeur}" disabled="#{filtreMail.base != 'O'}"/>
+                            <p:radioButton id="opt2" for="customRadio" itemIndex="1" />
+                            <h:outputLabel for="opt2" value="Sur Emetteur" />
+                            <p:inputText value="#{filtreMail.valeur}" disabled="#{filtreMail.base != 'E'}"/>
+                            <p:radioButton id="opt3" for="customRadio" itemIndex="2" />
+                            <h:outputLabel for="opt3" value="Sur Priotité" />                            
+                            <p:selectOneRadio value="#{filtreMail.valeur}" disabled="#{filtreMail.base != 'P'}">
+                                <f:selectItem itemLabel="Normal" itemValue="N"/>
+                                <f:selectItem itemLabel="Important" itemValue="I" />
+                                <f:selectItem itemLabel="Urgent" itemValue="U" />
+                            </p:selectOneRadio>
+                            <h:inputHidden value="vide"/>
+                            <h:outputLabel value="Dossier Destinataire" /> 
+                            <p:selectOneMenu value="#{filtreMail.groupeMessage.id}">
+                                <f:selectItem itemLabel="Boite Reception" itemValue="0"/>
+                                <f:selectItems value="#{managedConversation.listParentGroupMessage}" var="grou"
+                                               itemLabel="#{grou.cheminParent}" itemValue="#{grou.id}"/>
+                            </p:selectOneMenu> 
+                        </h:panelGrid>
+                    </p:outputPanel>
+                    <f:facet name="footer">
+                        <p:commandButton value="Filtrer" actionListener="#{managedConversation.onCreateFilter()}" style="width: 100%"
+                                         oncomplete="dlgFilterMail.hide()"/>                        
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Detail Destinataire du message" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="viewDetailMessage"
+                          modal="true" style="margin: auto" width="50%" height="500">
+                    <p:dataTable id="data_messageDest" value="#{managedConversation.listDestinationMesssage}" var="send1" 
+                                 rowKey="#{send1.id}" scrollHeight="400" scrollable="true">  
+                        <p:column headerText="Destinataire" sortBy="#{send1.sendTo}">
+                            <h:outputText value="#{send1.sendTo}"/>
+                        </p:column>
+                        <p:column headerText="Date Lecture" sortBy="#{send1.dateReception}">
+                            <p:outputPanel rendered="#{!send1.externe}">
+                                <p:outputPanel rendered="#{send1.accuse}">
+                                    <h:outputText value="#{send1.dateReception}" converter="DATE"/>
+                                    <h:outputText value=" "/>                                            
+                                    <h:outputText value="#{send1.heureReception}" converter="TIME"/>
+                                </p:outputPanel>
+                                <h:outputText value="Pas Lu" rendered="#{!send1.accuse}"/>
+                            </p:outputPanel>
+                            <h:outputText value="Impossible d'avoir l'accusé de lecture" rendered="#{send1.externe}"/>
+                        </p:column>
+                        <p:column width="15" style="text-align: center">
+                            <h:graphicImage library="img" name="#{(send1.accuse)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Choisir le parent" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="dlgParentGroupeMessage"
+                          modal="true" style="margin: auto" width="300" height="500">
+                    #{managedConversation.loadAllParentGroupMessage()}
+                    <p:dataTable value="#{managedConversation.listParentGroupMessage}" var="parent" rowKey="#{parent.id}" selectionMode="single"
+                                 scrollHeight="400" scrollable="true">
+                        <p:ajax event="rowSelect" listener="#{managedConversation.loadOnViewParentGroupeMessage}" 
+                                oncomplete="dlgParentGroupeMessage.hide()" global="false"/>
+                        <p:column>
+                            <p:outputLabel value="#{parent.libelle}"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Creation groupe diffusion" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="dlgCreateGroupDiffusion"
+                          modal="true" style="margin: auto">
+                    <p:ajax event="close" listener="#{managedConversation.resetFicheGroupeDiffusion()}" global="false"/>
+                    <p:panelGrid columns="2" style="width: 100%" id="body_dlg_groupe_diffusion">
+                        <p:outputLabel value="Designation : "/>
+                        <p:inputText value="#{managedConversation.groupe.reference}">
+                            <p:ajax event="blur" global="false"/>
+                        </p:inputText>
+                        <p:outputLabel value="Description : "/>
+                        <p:inputText value="#{managedConversation.groupe.libelle}">
+                            <p:ajax event="blur" global="false"/>
+                        </p:inputText>
+                    </p:panelGrid>
+                    <f:facet name="footer">
+                        <p:commandButton value="Enregistrer" actionListener="#{managedConversation.saveNewGroupeDiffusion()}" style="width: 100%"
+                                         oncomplete="dlgCreateGroupDiffusion.hide()"/>                        
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Creation nouveau dossier" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="dlgCreateGroupMessage"
+                          modal="true" style="margin: auto">
+                    <p:ajax event="close" listener="#{managedConversation.onCloseDialogGroupeMessage()}" global="false"/>
+                    <p:panelGrid columns="2" style="width: 100%" id="body_dlg_groupe_message">
+                        <p:outputLabel value="Designation : "/>
+                        <p:inputText value="#{managedConversation.groupeM.reference}">
+                            <p:ajax event="blur" global="false"/>
+                        </p:inputText>
+                        <p:outputLabel value="Description : "/>
+                        <p:inputText value="#{managedConversation.groupeM.libelle}">
+                            <p:ajax event="blur" global="false"/>
+                        </p:inputText>
+                        <p:outputLabel value="Parent : "/>
+                        <p:selectOneMenu value="#{managedConversation.parentGroupMessage.id}" valueChangeListener="#{managedConversation.chooseParentGroupMessage_}">
+                            <f:selectItem itemLabel="-" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedConversation.listParentGroupMessage}" var="parent"
+                                           itemLabel="#{parent.cheminParent}" itemValue="#{parent.id}"/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </p:selectOneMenu>
+                    </p:panelGrid>
+                    <f:facet name="footer">
+                        <p:commandButton value="Enregistrer" actionListener="#{managedConversation.saveNewGroupeMessage()}" style="width: 100%"
+                                         oncomplete="dlgCreateGroupMessage.hide()"/>                        
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Carnet d'adresse" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="dlgCarnetAdresse"
+                          modal="true" style="margin: auto" width="300" height="500">
+                    #{managedConversation.loadAllCarnetAdresse()}
+                    <p:dataTable value="#{managedConversation.carnetAdresses}" var="car" rowKey="#{car.id}" id="data_carnet_adresse_00"
+                                 scrollable="true" scrollHeight="400">
+                        <p:column style="width:16px">
+                            <p:selectBooleanCheckbox value="#{car.selectActif}">
+                                <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewCarnetAdresse(car)}"/>
+                            </p:selectBooleanCheckbox>
+                        </p:column>
+                        <p:column headerText="Adresse">
+                            <p:outputLabel value="#{car.adresse}"/>
+                        </p:column>
+                    </p:dataTable>
+                    <f:facet name="footer">                        
+                        <p:outputPanel id="footer_dlg_carnetAdress" autoUpdate="true">
+                            <p:commandButton value="Ajouter" actionListener="#{managedConversation.buildDestinatairesExterne()}" style="width: 100%"
+                                             disabled="#{!managedConversation.selectCarnetAdresse}" oncomplete="dlgCarnetAdresse.hide()"/>
+                        </p:outputPanel>
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Listes Contacts" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="dlgContacts" modal="true"
+                          width="35%" height="500" style="margin: auto">
+                    <p:outputPanel id="head_dlg_contacts">
+                        <p:commandButton value="#{(managedConversation.viewListUser)?'Groupes Contact':'Liste Contact'}" update="@this"
+                                         actionListener="#{managedConversation.changeViewUser()}" style="float: right"/>                        
+                    </p:outputPanel>
+                    <p:separator style="width: 100%"/>
+                    <p:outputPanel id="body_dlg_contacts">
+                        <p:outputPanel id="form_dlg_contacts_00">
+                            <p:dataTable value="#{managedConversation.listUsers}" var="user" scrollable="true" scrollHeight="400"
+                                         rowKey="#{user.id}" rendered="#{managedConversation.viewListUser}">
+                                <p:ajax event="rowSelect" listener="#{managedConversation.loadOnViewUsers}"/>
+                                <p:ajax event="rowUnselect" listener="#{managedConversation.unLoadOnViewUsers}"/>
+                                <p:column style="width:16px">
+                                    <p:selectBooleanCheckbox value="#{user.selectActif}">
+                                        <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewUser(user)}"/>
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                                <p:column headerText="Noms et Prenoms">
+                                    <h:outputText value="#{user.nomUsers}"/>
+                                </p:column>
+                                <p:column headerText="Agence">
+                                    <h:outputText value="#{user.agence.designation}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:outputPanel>
+                        <p:outputPanel id="form_dlg_contacts_01">
+                            <p:dataTable value="#{managedConversation.listGroupDiffusion}" var="group" scrollable="true" scrollHeight="400"
+                                         rowKey="#{group.id}" rendered="#{!managedConversation.viewListUser}">
+                                <p:column style="width:16px">
+                                    <p:selectBooleanCheckbox value="#{group.selectActif}">
+                                        <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewGroupeDiffusionG(group)}"/>
+                                    </p:selectBooleanCheckbox>
+                                </p:column>
+                                <p:column headerText="Libelle">
+                                    <h:outputText value="#{group.libelle}"/>
+                                </p:column>
+                                <p:column headerText="Total Contact">
+                                    <h:outputText value="#{group.diffusionContactList.size()}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                    <f:facet name="footer">                        
+                        <p:outputPanel id="footer_dlg_contacts" autoUpdate="true">
+                            <p:commandButton value="Ajouter" actionListener="#{managedConversation.buildDestinataires()}" style="width: 100%"
+                                             disabled="#{!managedConversation.selectRecepteur}" oncomplete="dlgContacts.hide()"/>
+                        </p:outputPanel>
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog header="Listes Contacts" dynamic="true" closeOnEscape="true" resizable="false" widgetVar="dlgContacts_01" modal="true"
+                          width="35%" height="500" style="margin: auto">
+                    <p:outputPanel id="body_dlg_contacts_00">
+                        #{managedConversation.loadAllUsersDiffusion()}
+                        <p:dataTable value="#{managedConversation.listUsersDiffusion}" var="user1" rowKey="#{user1.id}"
+                                     scrollable="true" scrollHeight="400">
+                            <p:column style="width:16px">
+                                <p:selectBooleanCheckbox value="#{user1.selectActif}" disabled="#{user1.viewActif}">
+                                    <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewDiffusion(user1)}"/>
+                                </p:selectBooleanCheckbox>
+                            </p:column>
+                            <p:column headerText="Noms et Prenoms" sortBy="#{user1.nomUsers}">
+                                <h:outputText value="#{user1.nomUsers}"/>
+                            </p:column>
+                            <p:column headerText="Agence" sortBy="#{user1.agence.designation}">
+                                <h:outputText value="#{user1.agence.designation}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </p:outputPanel>
+                    <f:facet name="footer">                        
+                        <p:outputPanel id="footer_dlg_contacts_00" autoUpdate="true">
+                            <p:commandButton value="Ajouter" actionListener="#{managedConversation.addContactInGroup()}" style="width: 100%"
+                                             disabled="#{!managedConversation.selectMembreDiffusion}" oncomplete="dlgContacts_01.hide()"/>
+                        </p:outputPanel>
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeplacer" closeOnEscape="true"
+                                 message="Êtes-vous sûr de vouloir deplacer les messages?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deplacerMessage()}" oncomplete="dlgConfirmDeplacer.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeplacer.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDelete" closeOnEscape="true" 
+                                 message="Êtes-vous sûr de vouloir supprimer?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.onDraftBean(true)}" oncomplete="dlgConfirmDelete.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDelete.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteD" closeOnEscape="true"
+                                 message="Êtes-vous sûr de vouloir supprimer definitivement?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteBean()}" oncomplete="dlgConfirmDeleteD.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteD.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmActionG" closeOnEscape="true"
+                                 message="Quelle action à effectuer sur le groupe?">                    
+                    <p:commandButton value="Suppression" onclick="dlgConfirmDeleteG.show()" oncomplete="dlgConfirmActionG.hide()"/>
+                    <p:commandButton value="Modification" actionListener="#{managedConversation.updateBeanGroupeDiffusion()}" oncomplete="dlgConfirmActionG.hide()"/>
+                    <p:commandButton value="Annuler" onclick="dlgConfirmActionG.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteG" closeOnEscape="true"
+                                 message="Êtes-vous sûr de vouloir supprimer le groupe?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteBeanGroupeDiffusion()}" oncomplete="dlgConfirmDeleteG.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteG.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmActionF" closeOnEscape="true"
+                                 message="Quelle action à effectuer sur le dossier?">
+                    <p:commandButton value="Suppression" onclick="dlgConfirmDeleteF.show()" oncomplete="dlgConfirmActionF.hide()"/>
+                    <p:commandButton value="Modification" actionListener="#{managedConversation.updateBeanGroupeMessage()}" oncomplete="dlgConfirmActionF.hide()"/>
+                    <p:commandButton value="Annuler" onclick="dlgConfirmActionF.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteF" closeOnEscape="true"
+                                 message="Êtes-vous sûr de vouloir supprimer le dossier?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteBeanGroupeMessage()}" oncomplete="dlgConfirmDeleteF.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteF.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteC" closeOnEscape="true"
+                                 message="Êtes-vous sûr de vouloir supprimer les contacts?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteBeanContact()}" oncomplete="dlgConfirmDeleteC.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteC.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmNew" closeOnEscape="true"
+                                 message="voulez vous vider les champs?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.resetFiche()}" oncomplete="dlgConfirmNew.hide()"/>
+                    <p:commandButton value="Non" actionListener="#{managedConversation.onNewFiche()}" oncomplete="dlgConfirmNew.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteMailInbox" closeOnEscape="true"
+                                 message="voulez vous supprimer ce message?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteDestinataire(true, false)}" oncomplete="dlgConfirmDeleteMailInbox.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteMailInbox.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteMailFolder" closeOnEscape="true"
+                                 message="voulez vous supprimer ce message?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteDestinataire(false, true)}" oncomplete="dlgConfirmDeleteMailFolder.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteMailFolder.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteMailSend" closeOnEscape="true"
+                                 message="voulez vous supprimer ce message?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteConversation(true, false, false, false)}" oncomplete="dlgConfirmDeleteMailSend.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteMailSend.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteMailDraft" closeOnEscape="true"
+                                 message="voulez vous supprimer ce message?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteConversation(false, true, false, false)}" oncomplete="dlgConfirmDeleteMailDraft.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteMailDraft.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteMailCorb" closeOnEscape="true"
+                                 message="voulez vous supprimer ce message?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteConversation(false, false, true, false)}" oncomplete="dlgConfirmDeleteMailCorb.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteMailCorb.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:confirmDialog widgetVar="dlgConfirmDeleteMailSearch" closeOnEscape="true"
+                                 message="voulez vous supprimer ce message?">
+                    <p:commandButton value="Oui" actionListener="#{managedConversation.deleteConversation(false, false,false, true)}" oncomplete="dlgConfirmDeleteMailSearch.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgConfirmDeleteMailSearch.hide()"/>
+                </p:confirmDialog>
+            </h:form>
+            #{managedConversation.loadAllUsers()}
+            #{managedConversation.loadAll()}
+            #{managedConversation.createMenu()}
+            <h:form prependId="false" id="form_messagerie">                
+                <p:outputPanel id="head_messagerie">
+                    <h:panelGrid columns="1" style="float: left" rendered="#{managedConversation.selectMessage and !managedConversation.onLecture}">                        
+                        <p:commandButton value="Restaure" actionListener="#{managedConversation.onDraftBean(false)}" rendered="#{managedConversation.inCorbeille}"/>
+                    </h:panelGrid>
+                    <h:panelGrid columns="2" style="float: left" rendered="#{managedConversation.selectMessage and !managedConversation.onLecture and (managedConversation.inInbox or managedConversation.inDossier)}">
+                        <h:outputLabel value="Deplacer  "/>
+                        <p:selectOneMenu value="#{managedConversation.parentGroupMessage.id}" valueChangeListener="#{managedConversation.chooseParentGroupMessage}" rendered="#{managedConversation.inInbox}">
+                            <f:selectItem itemLabel="-" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedConversation.listParentGroupMessage}" var="parent"
+                                           itemLabel="#{parent.cheminParent}" itemValue="#{parent.id}"/>
+                            <f:selectItem itemLabel="-" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItem itemValue="-1" itemLabel="Plus de Choix..."/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </p:selectOneMenu>
+                        <p:selectOneMenu value="#{managedConversation.parentGroupMessage.id}" valueChangeListener="#{managedConversation.chooseParentGroupMessage}" rendered="#{managedConversation.inDossier}">
+                            <f:selectItem itemLabel="-" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItem itemLabel="Boite Reception" itemValue="-2"/>
+                            <f:selectItem itemLabel="-" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedConversation.listParentGroupMessage}" var="parent"
+                                           itemLabel="#{parent.cheminParent}" itemValue="#{parent.id}"/>
+                            <f:selectItem itemLabel="-" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItem itemValue="-1" itemLabel="Plus de Choix..."/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </p:selectOneMenu>
+                    </h:panelGrid>
+                    <h:panelGrid columns="3" style="float: left" rendered="#{managedConversation.selectMessage and !managedConversation.onLecture}">
+                        <p:commandButton value="Modifier" actionListener="#{managedConversation.updateBean()}" rendered="#{managedConversation.optionUpdate}"/>
+                        <p:splitButton value="Marquer" rendered="#{managedConversation.inInbox}" id="split_marquer">
+                            <p:menuitem value="#{(managedConversation.destination.accuse)?'Non Lu':'Lu'}" actionListener="#{managedConversation.marquerMessage()}" update="@this"/>                           
+                        </p:splitButton>
+                        <p:splitButton value="Plus">
+                            <p:menuitem value="Transferer" actionListener="#{managedConversation.transferMessage()}" 
+                                        rendered="#{managedConversation.optionTransfert and (managedConversation.selectMessage or managedConversation.onLecture)}"/>                            
+                            <p:menuitem value="Filtrer" onclick="dlgFilterMail.show()" rendered="#{(managedConversation.inInbox or managedConversation.inDossier)}"/>
+                            <p:menuitem value="Supprimer" actionListener="#{managedConversation.openDlgDelete()}"/>
+                        </p:splitButton>
+                    </h:panelGrid>
+                    <h:panelGrid columns="3" style="float: left" rendered="#{!managedConversation.viewListe and !managedConversation.onLecture}">
+                        <p:commandButton value="Enregistrer" actionListener="#{managedConversation.saveMessage(false)}"/>
+                        <p:commandButton value="Envoyer" actionListener="#{managedConversation.saveMessage(true)}"/>
+                        <p:commandButton value="Nouveau" onclick="dlgConfirmNew.show()"/>
+                    </h:panelGrid>
+                    <h:panelGrid columns="1" style="float: right">
+                        <p:commandButton value="#{(managedConversation.viewListe)?'Ecrire':'Boite Messagerie'}" update="@this"
+                                         actionListener="#{managedConversation.changeView()}"/>
+                    </h:panelGrid>
+                    <div style="clear: right"/>
+                </p:outputPanel>
+                <p:separator style="width: 100%"/>
+                <p:outputPanel id="body_messagerie">
+                    <div id="panel_messagerie0" style="float: left;width: 25%">
+                        <p:treeTable id="panel_messagerie_00" value="#{managedConversation.menu}" var="menu" selectionMode="single"
+                                     style="border: white">
+                            <p:ajax event="select" global="false" listener="#{managedConversation.loadOnViewMenu}"/>
+                            <p:ajax event="expand" global="false"/>
+                            <p:ajax event="collapse" global="false"/>
+                            <p:ajax event="unselect"  global="false"/>
+                            <p:column>
+                                <p:graphicImage library="img/icones" name="#{menu.iconeBefore}" width="15" height="15"/>
+                            </p:column>
+                            <p:column headerText="Menus">
+                                <h:outputText value="#{menu.libelle}" title="#{menu.title}"/>
+                            </p:column>
+                            <p:column style="width:15px">
+                                <p:commandLink actionListener="#{managedConversation.clearBoxOrGroupe(menu)}" rendered="#{(menu.iconeAfter!=null)?menu.iconeAfter!='':false}">
+                                    <p:graphicImage library="img/icones" name="#{menu.iconeAfter}" title="#{menu.titleIconeAfter}" width="15" height="15"/>
+                                </p:commandLink>
+                            </p:column>
+                        </p:treeTable>
+                    </div>
+                    <div id="panel_messagerie" style="float: right;width: 74%;margin: auto">
+                        <p:outputPanel id="panel_messagerie_01">
+                            <p:outputPanel rendered="#{managedConversation.viewListe and !managedConversation.onLecture}">
+                                <p:outputPanel id="messageRecu" rendered="#{managedConversation.inInbox}">
+                                    <p:contextMenu for="data_messageRecu">
+                                        <p:menuitem value="Supprimer" onclick="dlgConfirmDeleteMailInbox.show()"/>
+                                        <p:menuitem value="Changer Marquage" actionListener="#{managedConversation.marquerDestinataire()}"/>
+                                    </p:contextMenu>
+                                    <p:dataTable id="data_messageRecu" value="#{managedConversation.listMailIndox}" var="inbox" 
+                                                 rowKey="#{inbox.id}" selectionMode="single" style=" width: 100%" selection="#{managedConversation.destinataireSelect}">
+                                        <f:facet name="header">
+                                            Messages Recus
+                                        </f:facet>
+                                        <p:ajax event="rowSelect" listener="#{managedConversation.loadOnView}"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedConversation.unLoadOnView}"/>
+                                        <p:column style="width:16px">
+                                            <f:facet name="header">                                                
+                                                <p:selectBooleanCheckbox value="#{managedConversation.selectAllInbox}" id="chk_selectAllInbox">
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedConversation.changeEtatInbox()}"/>
+                                                </p:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <p:selectBooleanCheckbox value="#{inbox.selectActif}">
+                                                <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewInbox(inbox)}"/>
+                                            </p:selectBooleanCheckbox>
+                                        </p:column>
+                                        <p:column headerText="Emetteur" sortBy="#{inbox.message.emetteur.nomUsers}">
+                                            <h:outputText value="#{inbox.message.emetteur.nomUsers}" styleClass="lu_#{(inbox.message.accuse)?(inbox.accuse)?'accuse_true':'accuse_false':(inbox.accuse)?'true':'false'}"/>
+                                        </p:column>
+                                        <p:column headerText="Objet" sortBy="#{inbox.message.objet}">
+                                            <h:outputText value="#{inbox.message.objet}" styleClass="lu_#{(inbox.message.accuse)?(inbox.accuse)?'accuse_true':'accuse_false':(inbox.accuse)?'true':'false'}"/>
+                                        </p:column>
+                                        <p:column headerText="Date Reception" sortBy="#{inbox.message.dateEnvoi}">
+                                            <h:outputText value="#{inbox.message.dateEnvoi}" converter="DATE" styleClass="lu_#{(inbox.message.accuse)?(inbox.accuse)?'accuse_true':'accuse_false':(inbox.accuse)?'true':'false'}"/>
+                                            <h:outputText value=" "/>                                            
+                                            <h:outputText value="#{inbox.message.heureEnvoi}" converter="TIME" styleClass="lu_#{(inbox.message.accuse)?(inbox.accuse)?'accuse_true':'accuse_false':(inbox.accuse)?'true':'false'}"/>
+                                        </p:column>
+                                        <p:column width="25" style="text-align: center">
+                                            <h:graphicImage library="img" name="#{(inbox.message.priorite!='N')?(inbox.message.priorite!='I')?'etoile_04.png':'etoile_03.png':'etoile_02.png'}" width="25" height="20"/>
+                                        </p:column>
+                                        <p:column width="15" style="text-align: center">
+                                            <p:commandLink actionListener="#{managedConversation.downloadAllPieceJointeS(inbox)}" ajax="false">
+                                                <h:graphicImage library="img" name="piece_jointe_01.png" width="15" height="15" 
+                                                                rendered="#{(inbox.message.pieceJointe != null and inbox.message.pieceJointe != '')}"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:outputPanel>
+                                <p:outputPanel id="messageSend" rendered="#{managedConversation.inSend}">
+                                    <p:contextMenu for="data_messageSend">
+                                        <p:menuitem value="Supprimer" onclick="dlgConfirmDeleteMailSend.show()"/>
+                                        <p:menuitem value="Voir les details" actionListener="#{managedConversation.viewDetailMessage()}"/>
+                                    </p:contextMenu>
+                                    <p:dataTable id="data_messageSend" value="#{managedConversation.listMailSend}" var="send" 
+                                                 rowKey="#{send.id}" selectionMode="single" selection="#{managedConversation.conversationSelect}">
+                                        <f:facet name="header">
+                                            Messages Envoyés
+                                        </f:facet>
+                                        <p:ajax event="rowSelect" listener="#{managedConversation.loadOnViewSend}"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedConversation.unLoadOnViewSend}"/>                                
+                                        <p:column style="width:16px">
+                                            <f:facet name="header">                                                
+                                                <p:selectBooleanCheckbox value="#{managedConversation.selectAllSend}" id="chk_selectAllSend">
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedConversation.changeEtatSend()}"/>
+                                                </p:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <p:selectBooleanCheckbox value="#{send.selectActif}">
+                                                <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewSend(send)}"/>
+                                            </p:selectBooleanCheckbox>                                       
+                                        </p:column>
+                                        <p:column headerText="Destinataire" sortBy="#{send.destinataires}">
+                                            <h:outputText value="#{send.destinataires}" styleClass="lu_#{(send.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>
+                                        <p:column headerText="Objet" sortBy="#{send.objet}">
+                                            <h:outputText value="#{send.objet}" styleClass="lu_#{(send.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>
+                                        <p:column headerText="Date Envoi" sortBy="#{send.dateEnvoi}">
+                                            <h:outputText value="#{send.dateEnvoi}" converter="DATE" styleClass="lu_#{(send.accuse)?'accuse_false':'true'}"/>
+                                            <h:outputText value=" "/>                                            
+                                            <h:outputText value="#{send.heureEnvoi}" converter="TIME" styleClass="lu_#{(send.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>
+                                        <p:column width="25" style="text-align: center">
+                                            <h:graphicImage library="img" name="#{(send.priorite!='N')?(send.priorite!='I')?'etoile_04.png':'etoile_03.png':'etoile_02.png'}" width="25" height="20"/>
+                                        </p:column>
+                                        <p:column width="15" style="text-align: center">
+                                            <p:commandLink actionListener="#{managedConversation.downloadAllPieceJointe(send)}" ajax="false">
+                                                <h:graphicImage library="img" name="piece_jointe_01.png" width="15" height="15"
+                                                                rendered="#{(send.pieceJointe != null and send.pieceJointe != '')}"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:outputPanel>
+                                <p:outputPanel id="messageBrouillon" rendered="#{managedConversation.inDraft}">
+                                    <p:contextMenu for="data_messageBrouillon">
+                                        <p:menuitem value="Supprimer" onclick="dlgConfirmDeleteMailDraft.show()"/>
+                                    </p:contextMenu>
+                                    <p:dataTable id="data_messageBrouillon" value="#{managedConversation.listMailDraft}" var="draft" 
+                                                 rowKey="#{draft.id}" selectionMode="single" selection="#{managedConversation.conversationSelect}">
+                                        <f:facet name="header">
+                                            Messages Brouillons
+                                        </f:facet>
+                                        <p:ajax event="rowSelect" listener="#{managedConversation.loadOnViewDraft}"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedConversation.unLoadOnViewDraft}"/>                                
+                                        <p:column style="width:16px">
+                                            <f:facet name="header">                                                
+                                                <p:selectBooleanCheckbox value="#{managedConversation.selectAllDraft}" id="chk_selectAllDraft">
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedConversation.changeEtatDraft()}"/>
+                                                </p:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <p:selectBooleanCheckbox value="#{draft.selectActif}">
+                                                <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewDraft(draft)}"/>
+                                            </p:selectBooleanCheckbox>                                            
+                                        </p:column>
+                                        <p:column headerText="Destinataire" sortBy="#{draft.destinataires}">
+                                            <h:outputText value="#{draft.destinataires}"/>
+                                        </p:column>
+                                        <p:column headerText="Objet" sortBy="#{draft.objet}">
+                                            <h:outputText value="#{draft.objet}"/>
+                                        </p:column>
+                                        <p:column headerText="Date Enregistrement" sortBy="#{draft.dateEnvoi}">
+                                            <h:outputText value="#{draft.dateEnvoi}" converter="DATE"/>
+                                            <h:outputText value=" "/>                                            
+                                            <h:outputText value="#{draft.heureEnvoi}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column width="25" style="text-align: center">
+                                            <h:graphicImage library="img" name="#{(draft.priorite!='N')?(draft.priorite!='I')?'etoile_04.png':'etoile_03.png':'etoile_02.png'}" width="25" height="20"/>
+                                        </p:column>
+                                        <p:column width="15" style="text-align: center">                                                
+                                            <p:commandLink actionListener="#{managedConversation.downloadAllPieceJointe(draft)}" ajax="false">
+                                                <h:graphicImage library="img" name="piece_jointe_01.png" width="15" height="15"
+                                                                rendered="#{(draft.pieceJointe != null and draft.pieceJointe != '')}"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:outputPanel>
+                                <p:outputPanel id="messageSupprimer" rendered="#{managedConversation.inCorbeille}">
+                                    <p:contextMenu for="data_messageSupprimer">
+                                        <p:menuitem value="Supprimer" onclick="dlgConfirmDeleteMailCorb.show()"/>
+                                        <p:menuitem value="Restaurer" actionListener="#{managedConversation.restaureOne()}"/>
+                                    </p:contextMenu>
+                                    <p:dataTable id="data_messageSupprimer" value="#{managedConversation.listMailCorb}" var="corb" 
+                                                 rowKey="#{corb.id}" selectionMode="single" selection="#{managedConversation.conversationSelect}">
+                                        <f:facet name="header">
+                                            Messages Supprimés
+                                        </f:facet>
+                                        <p:ajax event="rowSelect" listener="#{managedConversation.loadOnViewCorb}"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedConversation.unLoadOnViewCorb}"/>                                
+                                        <p:column style="width:16px">
+                                            <f:facet name="header">                                                
+                                                <p:selectBooleanCheckbox value="#{managedConversation.selectAllCorb}" id="chk_selectAllCorb">
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedConversation.changeEtatCorb()}"/>
+                                                </p:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <p:selectBooleanCheckbox value="#{corb.selectActif}">
+                                                <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewCorb(corb)}"/>
+                                            </p:selectBooleanCheckbox>    
+                                        </p:column>
+                                        <p:column headerText="Emetteur" sortBy="#{corb.emetteur.nomUsers}">
+                                            <h:outputText value="#{corb.emetteur.nomUsers}" styleClass="lu_#{(corb.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>
+                                        <p:column headerText="Destinataire" sortBy="#{corb.destinataires}">
+                                            <h:outputText value="#{corb.destinataires}" rendered="#{corb.conversation}" styleClass="lu_#{(corb.accuse)?'accuse_false':'true'}"/>
+                                            <h:outputText value="#{corb.nomDestinataire}"  rendered="#{!corb.conversation}" styleClass="lu_#{(corb.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>
+                                        <p:column headerText="Objet" sortBy="#{corb.objet}">
+                                            <h:outputText value="#{corb.objet}" styleClass="lu_#{(corb.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>
+                                        <p:column headerText="Date Envoi" sortBy="#{corb.dateEnvoi}">
+                                            <h:outputText value="#{corb.dateEnvoi}" converter="DATE" styleClass="lu_#{(corb.accuse)?'accuse_false':'true'}"/>
+                                            <h:outputText value=" "/>                                            
+                                            <h:outputText value="#{corb.heureEnvoi}" converter="TIME" styleClass="lu_#{(corb.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>  
+                                        <p:column width="25" style="text-align: center">
+                                            <h:graphicImage library="img" name="#{(corb.priorite!='N')?(corb.priorite!='I')?'etoile_04.png':'etoile_03.png':'etoile_02.png'}" width="25" height="20"/>
+                                        </p:column>
+                                        <p:column width="15" style="text-align: center">
+                                            <p:commandLink actionListener="#{managedConversation.downloadAllPieceJointe(corb)}" ajax="false">
+                                                <h:graphicImage library="img" name="piece_jointe_01.png" width="15" height="15"
+                                                                rendered="#{(corb.pieceJointe != null and corb.pieceJointe != '')}"/>
+                                            </p:commandLink>
+                                        </p:column>                                      
+                                    </p:dataTable>
+                                </p:outputPanel>
+                                <p:outputPanel id="contact" rendered="#{managedConversation.inContact}">
+                                    <p:outputPanel id="data_contact" style="width: 100%;margin: auto">
+                                        <p:dataTable value="#{managedConversation.groupe.diffusionContactList}" var="diff" 
+                                                     rowKey="#{diff.id}" selectionMode="single">       
+                                            <f:facet name="header">
+                                                Liste Contact
+                                            </f:facet>                                     
+                                            <p:ajax event="rowSelect" listener="#{managedConversation.loadOnViewContact}"/>
+                                            <p:ajax event="rowUnselect" listener="#{managedConversation.unLoadOnViewContact}"/>     
+                                            <p:column width="15" style="text-align: center">
+                                                <h:graphicImage library="img"  name="#{(diff.selectActif)?'connecte.png':'deconnecte.png'}" width="15" height="15"/>
+                                            </p:column>
+                                            <p:column headerText="Contact" sortBy="#{diff.user.nomUsers}">
+                                                <p:outputLabel value="#{diff.user.nomUsers}"/>
+                                            </p:column>
+                                            <p:column headerText="Agence" sortBy="#{diff.user.agence.designation}">
+                                                <h:outputText value="#{diff.user.agence.designation}"/>
+                                            </p:column>
+                                            <p:column width="30" headerText="Actif" style="text-align: center">
+                                                <h:graphicImage library="img" name="#{(diff.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                            </p:column>
+                                        </p:dataTable> 
+                                        <p:outputPanel rendered="#{!managedConversation.groupe.publics}">
+                                            <p:separator style="width: 100%"/>
+                                            <p:commandButton value="Ajouter Contact" actionListener="#{managedConversation.openDlgAddMembreDiffusion()}" style="float: right"/>  
+                                            <p:commandButton value="Supprimer" rendered="#{managedConversation.selectContact}" onclick="dlgConfirmDeleteC.show()"
+                                                             style="float: left"/>  
+                                        </p:outputPanel>
+                                    </p:outputPanel>
+                                </p:outputPanel>    
+                                <p:outputPanel id="dossier" rendered="#{managedConversation.inDossier}">
+                                    <p:contextMenu for="data_dossier">
+                                        <p:menuitem value="Supprimer" onclick="dlgConfirmDeleteMailFolder.show()"/>
+                                        <p:menuitem value="Changer Marquage" actionListener="#{managedConversation.marquerDestinataire()}"/>
+                                    </p:contextMenu>
+                                    <p:dataTable id="data_dossier" value="#{managedConversation.listMailFolder}" var="folder" 
+                                                 rowKey="#{folder.id}" selectionMode="single" style=" width: 100%" selection="#{managedConversation.destinataireSelect}">
+                                        <f:facet name="header">
+                                            Messages Archivés
+                                        </f:facet>
+                                        <p:ajax event="rowSelect" listener="#{managedConversation.loadOnViewFolder}"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedConversation.unLoadOnViewFolder}"/>
+                                        <p:column style="width:16px">
+                                            <f:facet name="header">                                                
+                                                <p:selectBooleanCheckbox value="#{managedConversation.selectAllFolder}" id="chk_selectAllFolder">
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedConversation.changeEtatFolder()}"/>
+                                                </p:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <p:selectBooleanCheckbox value="#{folder.selectActif}">
+                                                <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewFolder(folder)}"/>
+                                            </p:selectBooleanCheckbox>
+                                        </p:column>
+                                        <p:column headerText="Emetteur" sortBy="#{folder.message.emetteur.nomUsers}">
+                                            <h:outputText value="#{folder.message.emetteur.nomUsers}" styleClass="lu_#{(folder.message.accuse)?(folder.accuse)?'accuse_true':'accuse_false':(folder.accuse)?'true':'false'}"/>
+                                        </p:column>
+                                        <p:column headerText="Objet" sortBy="#{folder.message.objet}">
+                                            <h:outputText value="#{folder.message.objet}" styleClass="lu_#{(folder.message.accuse)?(folder.accuse)?'accuse_true':'accuse_false':(folder.accuse)?'true':'false'}"/>
+                                        </p:column>
+                                        <p:column headerText="Date Envoi" sortBy="#{folder.message.dateEnvoi}">
+                                            <h:outputText value="#{folder.message.dateEnvoi}" converter="DATE" styleClass="lu_#{(folder.message.accuse)?(folder.accuse)?'accuse_true':'accuse_false':(folder.accuse)?'true':'false'}"/>
+                                            <h:outputText value=" "/>                                            
+                                            <h:outputText value="#{folder.message.heureEnvoi}" converter="TIME" styleClass="lu_#{(folder.message.accuse)?(folder.accuse)?'accuse_true':'accuse_false':(folder.accuse)?'true':'false'}"/>
+                                        </p:column>
+                                        <p:column width="25" style="text-align: center">
+                                            <h:graphicImage library="img" name="#{(folder.message.priorite!='N')?(folder.message.priorite!='I')?'etoile_04.png':'etoile_03.png':'etoile_02.png'}" width="25" height="20"/>
+                                        </p:column>
+                                        <p:column width="15" style="text-align: center">
+                                            <p:commandLink actionListener="#{managedConversation.downloadAllPieceJointe(folder)}" ajax="false">
+                                                <h:graphicImage library="img" name="piece_jointe_01.png" width="15" height="15"
+                                                                rendered="#{(folder.message.pieceJointe != null and folder.message.pieceJointe != '')}"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:outputPanel>
+                                <p:outputPanel id="messageSearch" rendered="#{managedConversation.inSearch}">
+                                    <p:contextMenu for="data_messageSearch">
+                                        <p:menuitem value="Supprimer" onclick="dlgConfirmDeleteMailSearch.show()"/>
+                                    </p:contextMenu>
+                                    <p:dataTable id="data_messageSearch" value="#{managedConversation.listMailSearch}" var="searc" 
+                                                 rowKey="#{searc.id}" selectionMode="single" selection="#{managedConversation.conversationSelect}">
+                                        <f:facet name="header">
+                                            Messages Recherchés
+                                        </f:facet>
+                                        <p:ajax event="rowSelect" listener="#{managedConversation.loadOnViewCorb}"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedConversation.unLoadOnViewCorb}"/>                                
+                                        <p:column style="width:16px">
+                                            <f:facet name="header">                                                
+                                                <p:selectBooleanCheckbox value="#{managedConversation.selectAllSearch}" id="chk_selectAllSearch">
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedConversation.changeEtatSearch()}"/>
+                                                </p:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <p:selectBooleanCheckbox value="#{searc.selectActif}">
+                                                <p:ajax event="valueChange" global="false" listener="#{managedConversation.selectOnViewSearch(searc)}"/>
+                                            </p:selectBooleanCheckbox>    
+                                        </p:column>
+                                        <p:column headerText="Emetteur" sortBy="#{searc.emetteur.nomUsers}">
+                                            <h:outputText value="#{searc.emetteur.nomUsers}" styleClass="lu_#{(searc.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>
+                                        <p:column headerText="Destinataire" sortBy="#{searc.destinataires}">
+                                            <h:outputText value="#{searc.destinataires}" rendered="#{searc.conversation}" styleClass="lu_#{(searc.accuse)?'accuse_false':'true'}"/>
+                                            <h:outputText value="#{searc.nomDestinataire}"  rendered="#{!searc.conversation}" styleClass="lu_#{(searc.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>
+                                        <p:column headerText="Objet" sortBy="#{searc.objet}">
+                                            <h:outputText value="#{searc.objet}" styleClass="lu_#{(searc.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>
+                                        <p:column headerText="Date Envoi" sortBy="#{searc.dateEnvoi}">
+                                            <h:outputText value="#{searc.dateEnvoi}" converter="DATE" styleClass="lu_#{(searc.accuse)?'accuse_false':'true'}"/>
+                                            <h:outputText value=" "/>                                            
+                                            <h:outputText value="#{searc.heureEnvoi}" converter="TIME" styleClass="lu_#{(searc.accuse)?'accuse_false':'true'}"/>
+                                        </p:column>  
+                                        <p:column width="25" style="text-align: center">
+                                            <h:graphicImage library="img" name="#{(searc.priorite!='N')?(searc.priorite!='I')?'etoile_04.png':'etoile_03.png':'etoile_02.png'}" width="25" height="20"/>
+                                        </p:column>
+                                        <p:column width="15" style="text-align: center">
+                                            <p:commandLink actionListener="#{managedConversation.downloadAllPieceJointe(searc)}" ajax="false">
+                                                <h:graphicImage library="img" name="piece_jointe_01.png" width="15" height="15"
+                                                                rendered="#{(searc.pieceJointe != null and searc.pieceJointe != '')}"/>
+                                            </p:commandLink>
+                                        </p:column>                                      
+                                    </p:dataTable>
+                                </p:outputPanel>
+                            </p:outputPanel>   
+                            <p:outputPanel id="panel_update">
+                                <p:outputPanel rendered="#{!managedConversation.viewListe and !managedConversation.onLecture}">
+                                    <h:panelGrid columns="1" style="width: 100%;margin: auto" id="panel_write_message">
+                                        <p:panelGrid style="width: 100%">
+                                            <p:row>
+                                                <p:column>
+                                                    <h:outputLabel value="Destinataire  " for="txt_list_destinataire"/>
+                                                </p:column>
+                                                <p:column>
+                                                    <h:panelGrid columns="4">
+                                                        <p:autoComplete id="txt_list_destinataire" multiple="true" value="#{managedConversation.listSelectThemes}" completeMethod="#{managedConversation.completeTheme}"
+                                                                        var="theme" itemLabel="#{theme.displayName}" itemValue="#{theme}" converter="themeConverter" forceSelection="true" >
+                                                            <p:ajax event="itemSelect" global="false" listener="#{managedConversation.addUsersInListSelect}"/>
+                                                            <p:ajax event="itemUnselect" global="false" listener="#{managedConversation.delUsersInListSelect}"/>
+                                                            <p:column>
+                                                                <h:outputText value="#{theme.displayName}" />
+                                                            </p:column>
+                                                        </p:autoComplete>
+                                                        <p:commandButton icon="ui-icon-search" actionListener="#{managedConversation.openDlgContact(false)}"/>
+                                                        <h:outputText value="  "/>
+                                                        <p:commandLink actionListener="#{managedConversation.showCcInterne()}" global="false">
+                                                            <h:outputText value="#{(!managedConversation.viewCcInterne)?'Afficher':'Cacher'} Cc.Int" style="color: blue;font-style: italic"/>
+                                                        </p:commandLink>
+                                                    </h:panelGrid>
+                                                </p:column>
+                                            </p:row>
+                                            <p:row rendered="#{managedConversation.viewCcInterne}">
+                                                <p:column>
+                                                    <h:outputLabel value="Cc Interne  " for="txt_list_Cc_destinataire"/>
+                                                </p:column>
+                                                <p:column>
+                                                    <h:panelGrid columns="2">
+                                                        <p:autoComplete id="txt_list_Cc_destinataire" multiple="true" value="#{managedConversation.listCcSelectThemes}" completeMethod="#{managedConversation.completeTheme}"
+                                                                        var="theme" itemLabel="#{theme.displayName}" itemValue="#{theme}" converter="themeConverter" forceSelection="true" >
+                                                            <p:ajax event="itemSelect" global="false" listener="#{managedConversation.addCcUsersInListSelect}"/>
+                                                            <p:ajax event="itemUnselect" global="false" listener="#{managedConversation.delCcUsersInListSelect}"/>
+                                                            <p:column>
+                                                                <h:outputText value="#{theme.displayName}" />
+                                                            </p:column>
+                                                        </p:autoComplete>
+                                                        <p:commandButton icon="ui-icon-search" actionListener="#{managedConversation.openDlgContact(true)}"/>
+                                                    </h:panelGrid>
+                                                </p:column>
+                                            </p:row>
+                                            <p:row>
+                                                <p:column>
+                                                    <h:outputLabel value="Mail Externe  "/>
+                                                </p:column>
+                                                <p:column>
+                                                    <p:inputText value="#{managedConversation.destinatairesExtern}" style="width: 70%" id="txt_list_destinataire_ext">
+                                                        <p:ajax event="keyup" global="false" listener="#{managedConversation.onKeyUpDestinataireExterne(false)}"/>
+                                                        <p:ajax event="blur" global="false" listener="#{managedConversation.onBlurDestinataireExterne(false)}"/>
+                                                    </p:inputText>                                                    
+                                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedConversation.openDlgCarnetAdresse(false)}"/>
+                                                    <h:outputText value="  "/>
+                                                    <p:commandLink actionListener="#{managedConversation.showCcExterne()}" global="false">
+                                                        <h:outputText value="#{(!managedConversation.viewCcExterne)?'Afficher':'Cacher'} Cc.Ext" style="color: blue;font-style: italic"/>
+                                                    </p:commandLink>
+                                                </p:column>
+                                            </p:row>
+                                            <p:row rendered="#{managedConversation.viewCcExterne}">
+                                                <p:column>
+                                                    <h:outputLabel value="CC Externe  "/>
+                                                </p:column>
+                                                <p:column>
+                                                    <p:inputText value="#{managedConversation.ccDestExterne}" style="width: 70%" id="txt_list_cc_destinataire_ext">
+                                                        <p:ajax event="keyup" global="false" listener="#{managedConversation.onKeyUpDestinataireExterne(true)}"/>
+                                                        <p:ajax event="blur" global="false" listener="#{managedConversation.onBlurDestinataireExterne(true)}"/>
+                                                    </p:inputText>                                            
+                                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedConversation.openDlgCarnetAdresse(true)}"/>
+                                                </p:column>
+                                            </p:row>
+                                            <p:row>
+                                                <p:column>
+                                                    <h:outputLabel value="Objet : "/>
+                                                </p:column>
+                                                <p:column>
+                                                    <p:inputText value="#{conversation.objet}" style="width: 60%">
+                                                        <p:ajax event="blur" global="false"/>
+                                                    </p:inputText>
+                                                </p:column>
+                                            </p:row>
+                                            <p:row>
+                                                <p:column>
+                                                    <p:outputLabel value="Message : "/>
+                                                </p:column>
+                                                <p:column>
+                                                    <p:editor value="#{conversation.contenu}"/>
+                                                </p:column>
+                                            </p:row>
+                                            <p:row>
+                                                <p:column>
+                                                    <p:outputLabel value="Priorité : "/>
+                                                </p:column>
+                                                <p:column style="float: right">
+                                                    <p:selectOneRadio value="#{conversation.priorite}">
+                                                        <f:selectItem itemLabel="Normal" itemValue="N" />
+                                                        <f:selectItem itemLabel="Important" itemValue="I" />
+                                                        <f:selectItem itemLabel="Urgent" itemValue="U" />
+                                                        <p:ajax event="valueChange" global="false"/>
+                                                    </p:selectOneRadio>
+                                                </p:column>
+                                            </p:row>
+                                            <p:row>
+                                                <p:column colspan="2">
+                                                    <p:commandButton value="Pieces Jointes" actionListener="#{managedConversation.openDlgPieceJointe()}"/>
+                                                    <h:outputLabel value=" #{managedConversation.nbrPieceJointe} piece(s) jointe(s)" id="lab_piece_jointe_mail"/>
+                                                    <p:commandButton value="Effacer piece jointe" actionListener="#{managedConversation.onErasePieceJointe()}"/>
+                                                </p:column>
+                                            </p:row>
+                                        </p:panelGrid>
+                                    </h:panelGrid>
+                                </p:outputPanel>     
+                            </p:outputPanel> 
+                            <p:outputPanel rendered="#{managedConversation.onLecture}">
+                                <p:panelGrid columns="1" style="width: 98%;margin: auto" id="panel_read_message">
+                                    <h:panelGrid style="width: 100%">
+                                        <p:row>
+                                            <p:column>
+                                                <p:outputLabel value="Objet : "/>
+                                                <p:outputLabel value="#{conversation.objet}" style="font-size: large;font-weight: bolder"/> 
+                                                <h:outputText value="#{conversation.heureEnvoi}" converter="TIME" style="float: right"/>
+                                                <h:outputText value="_" style="float: right"/>                                      
+                                                <h:outputText value="#{conversation.dateEnvoi}" converter="DATE" style="float: right"/>     
+                                            </p:column>
+                                        </p:row>
+                                        <p:row rendered="#{!managedConversation.inSend}">
+                                            <p:column>
+                                                <p:outputLabel value="De "/>
+                                                <p:outputLabel value="#{conversation.emetteur.nomUsers}" style="color: blue"/>
+                                            </p:column>
+                                        </p:row>
+                                        <p:row rendered="#{managedConversation.destination.copie or conversation.sendMultiple}">
+                                            <p:column>
+                                                <p:outputLabel value="A "/>
+                                                <p:outputLabel value="#{conversation.destinataires_}" style="color: blue"/>
+                                            </p:column>
+                                        </p:row>
+                                        <p:row rendered="#{conversation.sendCopie and !managedConversation.inCorbeille}">
+                                            <p:column>
+                                                <p:outputLabel value="Cc "/>
+                                                <p:outputLabel value="#{conversation.destinataires_cc}" style="color: blue"/>
+                                            </p:column>
+                                        </p:row>
+                                        <p:separator style="width: 100%"/>
+                                        <p:row>
+                                            <p:column>
+                                                <h:outputFormat escape="false" value="#{conversation.contenu}" style="width: 100%;height: 50%"/>
+                                            </p:column>
+                                        </p:row>   
+                                        <p:row>
+                                            <p:column>
+                                                <p:spacer width="5%"/>
+                                            </p:column>
+                                        </p:row>                  
+                                        <p:row rendered="#{managedConversation.inInbox or managedConversation.inSend}">
+                                            <p:column>
+                                                <p:commandLink actionListener="#{managedConversation.showHistorique()}" global="false">
+                                                    <h:outputText value="+ #{conversation.conversationList.size()} conversations (voir)" style="color: blue;font-style: italic"/>
+                                                </p:commandLink>
+                                            </p:column>
+                                        </p:row>
+                                        <p:row rendered="#{managedConversation.viewHistorique}">
+                                            <p:column style="width: 100%">
+                                                <h:panelGrid columns="1" style="width: 100%">
+                                                    <p:dataGrid var="hist" value="#{conversation.conversationList}" columns="1" rows="2" paginator="true" style="width: 100%">
+                                                        <f:facet name="header">
+                                                            <p:outputLabel value="Historique entre #{conversation.emetteur.nomUsers} et #{managedConversation.destination.sendTo}"
+                                                                           rendered="#{managedConversation.inInbox or managedConversation.inDossier}"/>                                                
+                                                        </f:facet>
+                                                        <p:panel style="width: 100%">
+                                                            <h:panelGrid columns="1" style="width: 98%;margin: auto" id="panel_read_message">
+                                                                <h:panelGrid style="width: 100%">
+                                                                    <p:row>
+                                                                        <p:column>
+                                                                            <p:outputLabel value="Objet : "/>
+                                                                            <p:outputLabel value="#{hist.objet}" style="font-size: large;font-weight: 600"/>                                      
+                                                                            <h:outputText value="#{hist.heureEnvoi}" converter="TIME" style="float: right"/>
+                                                                            <h:outputText value="_" style="float: right"/>      
+                                                                            <h:outputText value="#{hist.dateEnvoi}" converter="DATE" style="float: right"/>
+                                                                        </p:column>
+                                                                    </p:row>
+                                                                    <p:row>
+                                                                        <p:column>
+                                                                            <p:outputLabel value="De "/>
+                                                                            <p:outputLabel value="#{hist.emetteur.nomUsers}" style="color: blue"/>
+                                                                        </p:column>
+                                                                    </p:row>
+                                                                    <p:separator style="width: 100%"/>
+                                                                    <p:row>
+                                                                        <p:column>
+                                                                            <h:outputFormat escape="false" value="#{hist.contenu}" style="width: 100%;height: 50%"/>
+                                                                        </p:column>
+                                                                    </p:row>   
+                                                                </h:panelGrid>
+                                                            </h:panelGrid>
+                                                        </p:panel>
+                                                    </p:dataGrid>
+                                                    <p:commandLink actionListener="#{managedConversation.hideHistorique()}" global="false">
+                                                        <h:outputText value="- cacher conversations" style="color: blue;font-style: italic;float: right"/>
+                                                    </p:commandLink>
+                                                </h:panelGrid>
+                                            </p:column>
+                                        </p:row>
+                                        <p:separator style="width: 100%"/>
+                                        <p:row rendered="#{managedConversation.inInbox and !conversation.accuse}">
+                                            <p:column>
+                                                <p:commandLink actionListener="#{managedConversation.onReponseMessage()}">
+                                                    <h:outputText value="Repondre" style="color: blue;font-style: italic"/>
+                                                </p:commandLink>
+                                            </p:column>
+                                        </p:row>
+                                        <p:row rendered="#{managedConversation.inDraft}">
+                                            <p:column>
+                                                <p:commandLink actionListener="#{managedConversation.updateBean()}">
+                                                    <h:outputText value="Modifier" style="color: blue;font-style: italic"/>
+                                                </p:commandLink>
+                                            </p:column>
+                                        </p:row>
+                                        <p:row rendered="#{(conversation.pieceJointe != null and conversation.pieceJointe != '')?true : false}">
+                                            <p:column>
+                                                <p:separator style="width: 100%"/>
+                                                <p:selectOneMenu value="#{managedConversation.piecejointeDownload}">
+                                                    <f:selectItem itemLabel="-" itemValue="0" noSelectionOption="true"/>
+                                                    <f:selectItems value="#{managedConversation.listPiecesJointe}" var="piec"
+                                                                   itemLabel="#{piec[0]}" itemValue="#{piec[1]}"/>
+                                                    <p:ajax event="valueChange" global="false"/>
+                                                </p:selectOneMenu>
+                                                <p:commandLink actionListener="#{managedConversation.downloadPieceJointe(managedConversation.piecejointeDownload)}" ajax="false">
+                                                    <h:graphicImage library="img" name="piece_jointe_01.png" width="15" height="15"/>
+                                                    <h:outputLabel value=" Telecharger   "/>
+                                                </p:commandLink> 
+                                            </p:column>
+                                            <p:column style="float: right">
+                                                <p:commandLink actionListener="#{managedConversation.downloadAllPieceJointe(conversation)}" ajax="false">
+                                                    <h:graphicImage library="img" name="piece_jointe_01.png" width="15" height="15"/>
+                                                    <h:outputLabel value=" Telecharger tout"/>
+                                                </p:commandLink> 
+                                            </p:column>
+                                        </p:row>
+                                    </h:panelGrid>
+                                </p:panelGrid>
+                            </p:outputPanel>                                                                  
+                        </p:outputPanel>
+                    </div>
+                </p:outputPanel>
+            </h:form>
+        </ui:define>
+    </ui:composition>
+</html>

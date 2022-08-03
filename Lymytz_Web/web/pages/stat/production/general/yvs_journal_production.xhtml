@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Journal de production','modStat', 'smenStatProdJournal', true)}
+    </ui:define>  
+    <ui:define name="contents"> 
+        #{managedParamProd.loadAll()}
+        #{managedDepot.loadAllDepot()}
+        #{managedSiteProduction.loadAll()}
+        #{managedAgence.loadAgence()}  
+        #{managedBordStatistique.loadAll()}
+        #{Marticle.doNothing()}
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                definedTabView('tabview', '0,1,2,3,4', ((($('body').find('.part_scroll').height())) - 20), 3, 30);
+            });
+        </script>
+        <p:dialog header="#{lab.LDB_PA_liste_articles}" widgetVar="dlgListArticles" width="80%" height="400">
+            <ui:include src="../../../donnee_de_base/articles/liste_multiple_article.xhtml" />
+            <f:facet name="footer">
+                <p:commandButton value="Ajouter" actionListener="#{managedBordStatistique.loadArticlesSelect()}" style="float: right" oncomplete="dlgListArticles.hide()"/>
+            </f:facet>
+        </p:dialog>
+        <p:dialog header="Liste des articles" widgetVar="dlgOneArticles" width="80%" height="400">
+            <ui:include src="../../../donnee_de_base/articles/liste_single_article.xhtml" />
+            <f:facet name="footer">
+                <p:commandButton value="Ajouter" actionListener="#{managedBordStatistique.loadArticleSelect()}" style="float: right" oncomplete="dlgOneArticles.hide()"/>
+            </f:facet>
+        </p:dialog>   
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PA_liste_articles}" widgetVar="dlgListArticle" modal="true" width="70%" closeOnEscape="true" height="450"> 
+                <p:watermark for="txt_search_board_data_articles" value="Reference article..." />
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_board_data_articles" value="#{Marticle.article.refArt}" style="text-align: center">
+                        <p:ajax event="valueChange" listener="#{Marticle.searchArticleActif('', Marticle.article.refArt, false)}" update="board_data_articles" />
+                    </h:inputText> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(false, false)}" global="false"
+                                         update="board_data_articles" icon="ui-icon-circle-triangle-w" disabled="#{Marticle.pa.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{Marticle.pa.currentPage}/#{Marticle.pa.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(true, false)}" global="false" 
+                                         update="board_data_articles" icon="ui-icon-circle-triangle-e" disabled="#{Marticle.pa.disNext}"/>
+                        <p:selectOneMenu value="#{Marticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{Marticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="board_data_articles"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>
+                <p:dataTable value="#{Marticle.articlesResult}" var="art" rowKey="#{art.id}" rowIndexVar="artIdx"
+                             selectionMode="single" scrollable="true" scrollHeight="385" id="board_data_articles" style="font-size: 0.9em">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedBordStatistique.loadOnViewArticle}" oncomplete="dlgListArticle.hide()"/>
+                    <p:column headerText="N°" width="15">
+                        <span title="#{art.designation}">#{artIdx+1}</span>
+                    </p:column>
+                    <p:column width="70">
+                        <span title="#{art.designation}">#{art.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}" width="150">
+                        <span title="#{art.designation}">#{art.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" width="80">
+                        <span title="#{art.designation}">#{art.categorie}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_prix_a}" width="80" style="text-align: right">
+                        <h:outputText value="#{art.pua}" title="#{art.designation}" converter="DN" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_prix_v}" width="80" style="text-align: right">
+                        <h:outputText value="#{art.puv}" title="#{art.designation}" converter="DN" />
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form> 
+        <h:form prependId="false" id="main_journal_production">
+            <p:dialog header="#{lab.L_plus_option}" widgetVar="dlgPlusOption" closeOnEscape="true" width="50%">                            
+                <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:outputText value="#{lab.L_depot} : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.depot}" style="width: 100%">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedDepot.depots_all}" var="depSd" itemLabel="#{depSd.designation}" itemValue="#{depSd.id}" />   
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.LP_PPG_site} : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.site}" style="width: 100%">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedSiteProduction.sites}" var="sitS" itemLabel="#{sitS.designation}" itemValue="#{sitS.id}" />   
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.L_article} : "/>
+                    <h:panelGroup id="blog_bord_article">
+                        <h:inputText value="#{managedBordStatistique.article.refArt}" style="color: #{managedBordStatistique.article.error?'red':''}">
+                            <p:ajax event="valueChange" global="false" listener="#{managedBordStatistique.searchArticle()}"/>
+                        </h:inputText>
+                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white;margin-top: 5px" title="#{lab.L_liste_article}" global="false"
+                                         onclick="dlgListArticle.show()"/>
+                        <h:selectOneMenu value="#{managedBordStatistique.unite}" style="min-width: 200px">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedBordStatistique.article.conditionnements}" var="cod" itemLabel="#{cod.unite.reference}" itemValue="#{cod.id}" />   
+                            <p:ajax event="valueChange" process="@this" global="false" />
+                        </h:selectOneMenu> 
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.L_categorie} : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.categorie}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.LC_PTBC_produit_fini}" itemValue="PF"/>
+                        <f:selectItem itemLabel="#{lab.LS_PJP_produit_semi_fini}" itemValue="PSF"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.L_nature} : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.nature}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.LDB_PA_articles.toUpperCase()}" itemValue="A"/>
+                        <f:selectItem itemLabel="#{lab.LC_PTBV_toutes_caisses}" itemValue="C"/>
+                        <f:selectItem itemLabel="#{lab.LC_PTBV_classes_parent}" itemValue="CP"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.LP_PTB_valoriser_par} : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.valoriserBy}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.LP_PTB_prix_vente.toUpperCase()}" itemValue="V"/>
+                        <f:selectItem itemLabel="#{lab.LC_PSA_prix_achat.toUpperCase()}" itemValue="A"/>
+                        <f:selectItem itemLabel="#{lab.LC_PSA_prix_revient.toUpperCase()}" itemValue="R"/>
+                        <f:selectItem itemLabel="#{lab.LS_PJP_prix_production}" itemValue="P"/>  
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+            <div id="tabview">
+                <div class="tabview_top part_fix" style="background: black;color: white;width: 100%">
+                    <h:panelGrid columns="4" style="float: left;color: white;font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.L_agence} : "/>
+                        <h:outputText value="#{lab.L_dates} : "/>
+                        <h:outputText value="#{lab.LC_PCOM_periodicite} : "/>
+                        <h:outputText value=""/>
+                        <h:selectOneMenu value="#{managedBordStatistique.agence}">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0"/>
+                            <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:selectOneMenu>
+                        <h:panelGroup >
+                            <p:calendar value="#{managedBordStatistique.dateDebut}" navigator="true" pattern="dd-MM-yyyy" size="8"/>
+                            <p:calendar value="#{managedBordStatistique.dateFin}" navigator="true" pattern="dd-MM-yyyy" size="8"/>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedBordStatistique.periode}">
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}"/>
+                            <f:selectItem itemValue="A" itemLabel="#{lab.LC_PTB_annuel}"/>
+                            <f:selectItem itemValue="T" itemLabel="#{lab.LC_PTB_trimestriel}"/>
+                            <f:selectItem itemValue="M" itemLabel="#{lab.LC_PTB_mensuel}"/>
+                            <f:selectItem itemValue="S" itemLabel="#{lab.LC_PTB_hebdomendaire}"/>
+                            <f:selectItem itemValue="J" itemLabel="#{lab.LC_PTB_journalier}"/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:selectOneMenu>
+                        <p:commandLink style="border: 2px solid white; border-radius: 5px;padding: 2px;color: white" global="false" 
+                                       onclick="dlgPlusOption.show()" value="#{lab.L_plus_option}"/>
+                    </h:panelGrid>
+                    <div class="checkbox" style="float: right">
+
+                    </div>
+                </div>
+                <div class="tabview_content part_scroll" style="width: 100%">
+                    <ui:include src="../sub/journal/yvs_journal_production.xhtml"/>               
+                    <ui:include src="../sub/journal/yvs_journal_production_equipe.xhtml"/>                
+                    <ui:include src="../sub/journal/yvs_journal_production_tranche.xhtml"/>    
+                    <ui:include src="../sub/journal/yvs_recapitulatif_of.xhtml"/>    
+                    <ui:include src="../sub/journal/yvs_consommation_production.xhtml"/>     
+                    <ui:include src="../sub/journal/yvs_production_consommation_equipe.xhtml"/>     
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

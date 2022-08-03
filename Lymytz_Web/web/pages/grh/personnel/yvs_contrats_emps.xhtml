@@ -1,0 +1,1232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Contrats','modRh', 'smenContratEmps', true,managedContratEmploye)}
+    </ui:define>         
+    <ui:define name="contents">
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('contratEmp');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PC_mise_a_jour_contrats}" widgetVar="dlgMajContrat" width="50%"
+                      >
+                <h:panelGrid columns="2"          >
+                    <span>Choix du contrat</span>
+                    <p:selectOneRadio value="#{managedContratEmploye.choixSelect}">
+                        <f:selectItem itemValue="SINGLE" itemLabel="#{lab.LRH_PC_contrat_en_cours}" />
+                        <f:selectItem itemValue="SELECT" itemLabel="#{lab.LRH_PC_selection_en_cours}" />
+                        <f:selectItem itemValue="ALL" itemLabel="#{lab.LRH_PC_tous_contrats}" />
+                        <p:ajax event="valueChange" global="false" />
+                    </p:selectOneRadio>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_appliquer}" icon="ui-icon-refresh" actionListener="#{managedContratEmploye.changeInfosContrats()}" />
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.L_supprimer} !" message="#{lab.LRH_PC_text}" closeOnEscape="true" widgetVar="dlgDelTypePrime"
+                             >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-check" 
+                                 actionListener="#{managedContratEmploye.deleteOneTypePrime()}" 
+                                 oncomplete="dlgDelTypePrime.hide()" update=":contrat_body_typeP0:form_createTypeP"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-close"  onclick="dlgDelTypePrime.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.L_supprimer} !" message="#{lab.LRH_PC_text}" closeOnEscape="true" widgetVar="dlgDelTypePrime" >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-check" 
+                                 actionListener="#{managedContratEmploye.deleteOneTypePrime()}" 
+                                 oncomplete="dlgDelTypePrime.hide()" update=":contrat_body_typeP0:form_createTypeP"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-close"  onclick="dlgDelTypePrime.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.L_supprimer} !" message="#{lab.LRH_PC_text1}" 
+                             closeOnEscape="true" widgetVar="dlgDelTypePrime_" >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-check" 
+                                 actionListener="#{managedContratEmploye.deleteTypePrime()}" 
+                                 oncomplete="dlgDelTypePrime_.hide()"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-close"  onclick="dlgDelTypePrime_.hide()" type="button"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PC_liste_niveaux_acces}" widgetVar="dlgNiveauAcces" width="30%"
+                      modal="true" closeOnEscape="true" footer="&copy;Lymytz 2014"> 
+                <p:dataTable value="#{managedNiveauAcces.listNiveauAcces}" var="niv" selectionMode="single"
+                             rowKey="#{niv.id}" id="table_contrat_nivoA" rowIndexVar="line_"
+                             >
+                    <p:ajax event="rowSelect" listener="#{managedContratEmploye.limitAccesContrats}" 
+                            update=":body_contrat:form_contrat_00" />
+                    <p:column headerText="N° " width="20">
+                        #{line_+1}
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation} " width="100"> 
+                        #{niv.designation}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PE_grade}" width="50" style="text-align: center">
+                        #{niv.grade}
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <div style="clear: right" ></div>      
+        #{navigations.doNothing()}      
+        #{MEmps.addParamActifSimple(true)}
+        #{managedContratEmploye.loadAll()}
+        #{managedContratEmploye.loadAllStructureSalaire()}
+        #{managedContratEmploye.loadAllTypeContrat()}
+        #{managedContratEmploye.loadAlModePaiement()}
+        #{managedContratEmploye.loadAllCalendrier()}  
+        #{managedContratEmploye.loadTypePrime()}
+        #{managedNiveauAcces.loadAll()} 
+        #{managedCaisses.loadAllCaisseActif(true)}
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PP_nouveau_calendrier}" width="40%"  widgetVar="dlgNewCal" closeOnEscape="true">
+                <h:panelGrid columns="4">
+                    <span>Référence </span>
+                    <h:inputText value="#{managedContratEmploye.newCal.reference}" />
+                    <span>Marge Acceptable par jour </span>
+                    <pe:timePicker value="#{managedContratEmploye.newCal.marge}" />
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-disk" 
+                                 actionListener="#{managedContratEmploye.saveNewCalendrier()}" 
+                                 update=":body_contrat:footer_contrat:champ_refCalendrier" oncomplete="dlgNewCal').hide"/>
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_regle_eltImport">
+            <p:dialog header="#{lab.LRH_PPT_liste_societes}" width="40%"  widgetVar="dlgScte" closeOnEscape="true">
+                <p:dataTable value="#{managedSociete.listSociete}" var="scte" 
+                             selectionMode="single" rowKey="#{scte.id}" id="table_contr_societe">
+                    <p:ajax event="rowSelect" listener="#{managedContratEmploye.selectionSocieteToImport}"  global="false" 
+                            update=":form_regle_eltImport:table_reg_to_import" process="@this" oncomplete="dlgScte.hide()" />
+                    <p:column headerText="#{lab.LRH_PC_raison_sociale}" >
+                        <h:outputText value="#{scte.name}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" >
+                        <h:outputText value="#{scte.codeAbreviation}" />
+                    </p:column>
+                </p:dataTable>  
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+            <p:dialog header="#{lab.LRH_PPT_elements_importer}" width="40%"  widgetVar="dlgEltToImport" closeOnEscape="true">
+                <p:dataTable value="#{managedContratEmploye.listTypePrimeToImport}" var="itemImp" 
+                             selectionMode="single" rowKey="#{itemImp.id}" id="table_reg_to_import">                        
+                    <p:column headerText="#{lab.LRH_PPT_elements} " >
+                        <h:outputText value="#{itemImp.libelle}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" >
+                        <h:outputText value="#{itemImp.codeElement}" />
+                    </p:column>
+                    <p:column width="20">
+                        <p:commandButton icon="ui-icon-circle-minus" style="width: 20px; height: 20px"  update="table_reg_to_import"
+                                         actionListener="#{managedContratEmploye.removeTypeEltAdd(itemImp)}"/>
+                    </p:column>
+                </p:dataTable>  
+                <p:commandButton value="#{lab.L_importer}" icon="ui-icon-circle-arrow-s" actionListener="#{managedContratEmploye.valideTypeEltImporte()}"
+                                 />
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_libelle">
+            <p:dialog header="#{lab.LRH_PC_autres_elements_indemnites}" width="50%" footer="#{lab.L_copy}"
+                      closeOnEscape="true" widgetVar="dlgCreateLib" modal="true">
+                <h:panelGrid columns="5" styleClass="yvs_table" cellpadding="0" cellspacing="0" 
+                             id="form_grid_libelle" style="width: 90%; margin: auto">
+                    <span>#{lab.LRH_PC_element_aditionnel} </span>
+                    <h:inputText value="#{managedContratEmploye.newLibelle.libelle}" />
+                    <span>#{lab.L_actif}</span>
+                    <p:selectBooleanCheckbox value="#{managedContratEmploye.newLibelle.actif}" />
+                    <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-circle-plus" global="false"
+                                     actionListener="#{managedContratEmploye.createLibelleDroit()}" 
+                                     update=":form_libelle_droit:chp_libelle_droit tab_libelle form_grid_libelle"/>
+                </h:panelGrid>
+                <p:dataTable value="#{managedContratEmploye.libelles}" var="libe" rowIndexVar="lib_"
+                             selectionMode="single" rowKey="#{libe.id}" id="tab_libelle">
+                    <p:ajax event="rowSelect" listener="#{managedContratEmploye.selectOneLibelle}"
+                            global="false" update=":form_libelle:form_grid_libelle"/>
+                    <p:column headerText="N°" width="20">
+                        #{lib_+1}
+                    </p:column>
+                    <p:column headerText="#{lab.L_libelle}" >
+                        #{libe.libelle}
+                    </p:column>
+                    <p:column headerText="#{lab.L_actif}" width="20">
+                        <h:graphicImage library="img" name="#{(libe.actif)?'vu.png':'erase-128.png'}" width="18" height="18" />
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_libelle_droit">
+            <p:dialog header="#{lab.LRH_PC_autres_elements_indemnites}" width="60%" footer="#{lab.L_copy}"
+                      closeOnEscape="true" widgetVar="dlgOtherIndemnite" >
+                <h:panelGrid columns="7" styleClass="yvs_table" cellpadding="0" cellspacing="0" id="form_grid_other_I">
+                    <span>#{lab.LRH_PC_element_aditionnel} </span>
+                    <h:selectOneMenu value="#{managedContratEmploye.otherIndemnite.lib.id}" id="chp_libelle_droit"
+                                     onchange="openDialog(dlgCreateLib, $(this))">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedContratEmploye.libelles}" var="item_lib" itemValue="#{item_lib.id}" itemLabel="#{item_lib.libelle}" />
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" noSelectionOption="true"/>
+                    </h:selectOneMenu>
+                    <span>#{lab.L_valeur}</span>
+                    <pe:inputNumber value="#{managedContratEmploye.otherIndemnite.base}" style="width: 100px"/>
+                    <span>#{lab.LRH_PC_retenue}</span>
+                    <p:selectBooleanCheckbox value="#{managedContratEmploye.otherIndemnite.retenue}" />
+                    <p:commandButton value="#{lab.L_ajouter}" icon="ui-icon-circle-plus" actionListener="#{managedContratEmploye.createNewElementIndemnite()}" 
+                                     update=":form_elt_indemnite:table_elt_indemnite form_grid_other_I"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_elt_indemnite">
+            <p:dialog header="#{lab.LRH_PC_elements_indemnites}" width="70%" footer="#{lab.L_copy}"
+                      closeOnEscape="true" widgetVar="dlgEltIndemnite">
+                <p:outputPanel id="table_elt_indemnite">                        
+                    <ui:repeat value="#{managedContratEmploye.indemnites}" var="rub" >
+                        <li style="background: #E9FBF9;color: #790000;font-weight: bold; list-style-type: none">
+                            <td ><h:graphicImage library="img" name="gnavigation.png" width="14" height="12" /></td>
+                            <td >#{rub.designation}</td>
+                        </li>
+                        <tr>
+                            <table  style="margin-left: 20px;" width="99%">
+                                <ui:repeat value="#{rub.indemnites}" var="eltI" >
+                                    <tr>
+                                        <td><h:graphicImage library="img" name="pointe.png" width="12" height="10" /></td>
+                                        <td style="color: #006666">#{eltI.libelle} -------</td>
+                                        <td align="center"></td>
+                                        <td align="right" style="margin-right: 5px">
+                                            <h:outputText value="#{eltI.base}" converter="DN" id="chp_base_ind"/>
+                                            <p:inplace label="Modifier" style="font-size: 0.7em; color: #790000; text-decoration: underline"
+                                                       rendered="#{(eltI.id!=0)}" id="inplace_base_ind">
+                                                <pe:inputNumber value="#{eltI.base}" style="width: 100px" >
+                                                    <p:ajax event="blur" update="chp_base_ind inplace_base_ind" global="false" process="@this"/>
+                                                </pe:inputNumber>
+                                            </p:inplace>
+                                        </td>
+                                    </tr>
+                                </ui:repeat>
+                            </table>
+                        </tr>
+                    </ui:repeat>
+                </p:outputPanel>
+                <div align="right" style="background: #E9FBF9">
+                    <p:commandButton icon="ui-icon-circle-plus" type="button" style="width: 22px; height: 22px" onclick="dlgOtherIndemnite.show()"/>
+                </div>
+                <div align="center" style="background: #E9FBF9">
+                    <p:commandButton icon="ui-icon-disk" value="#{lab.L_enregistrer}" actionListener="#{managedContratEmploye.saveElementIndemnite()}" />
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_grille">
+            <p:dialog header="#{lab.LRH_PC_parametrer_contrats}" width="70%" footer="#{lab.L_copy}"
+                      closeOnEscape="true" widgetVar="dlgParamContrat">
+                <p:panel header="" styleClass="ui-panel">
+                    <f:facet name="header"> 
+                        <span>Fin de contrat pour le secteur </span> 
+                        <span style="font-weight: bold; color: #790000">#{managedContratEmploye.currentAgence.secteurActivite.nom}</span>
+                        <div style="float: right; margin: 0px; padding: 0px; margin-top: -7px" >
+                            <span>#{lab.LRH_PC_periode_reference} </span>
+                            <pe:inputNumber value="#{managedContratEmploye.beanParamContrat.periodeReference}" style="width: 90px" decimalPlaces="0"/>(en mois)
+                        </div>
+                    </f:facet>
+                    <span>#{lab.LRH_PC_minimum_anciennete_requise}</span>
+                    <pe:inputNumber value="#{managedContratEmploye.beanParamContrat.ancienneteRequise}" decimalPlaces="0" style="width: 90px" symbol=" An(s)" symbolPosition="suffix"/>                            
+                    <h:panelGrid columns="1" style="width: 100%;clear: right">
+                        <span>#{lab.LRH_PC_formule_base_preavis}</span>
+                        <h:inputTextarea style="width: 100%" rows="4" value="#{managedContratEmploye.beanParamContrat.formulePreavis}" />
+                        <span>#{lab.LRH_PC_formule_salaire_moyen}</span>
+                        <h:inputTextarea style="width: 100%" rows="4" value="#{managedContratEmploye.beanParamContrat.formuleSalaireMoyen}" />
+                    </h:panelGrid>
+                    <p:commandButton icon="ui-icon-disk" value="#{lab.L_enregistrer}" actionListener="#{managedContratEmploye.createParamContrat()}" style="float: right"/>
+                    <fieldset style="clear: right">
+                        <legend>#{lab.LRH_PC_indemnite_licenciement_grille_taux}</legend>                           
+                        <div align="center">
+                            <h:panelGrid columns="7" styleClass="yvs_table" cellpadding="0" cellspacing="0" id="F_grilleTaux">
+                                <span>#{lab.LRH_PC_anciennete_min}.</span>
+                                <pe:inputNumber value="#{managedContratEmploye.grille.ancMin}" style="width: 90px" symbol=" An(s)" symbolPosition="suffix"/>
+                                <span>#{lab.LRH_PC_anciennete_max} .</span>
+                                <pe:inputNumber value="#{managedContratEmploye.grille.ancMax}" style="width: 90px" symbol=" An(s)" symbolPosition="suffix"/>
+                                <span>#{lab.L_taux}</span>
+                                <pe:inputNumber value="#{managedContratEmploye.grille.taux}" style="width: 90px" symbol=" %" symbolPosition="suffix"/>
+                                <p:commandButton icon="ui-icon-circle-plus" style="width: 20px; height: 20px" />
+                            </h:panelGrid>
+                        </div>
+                        <p:dataTable value="#{managedContratEmploye.beanParamContrat.grillesTaux}" var="glt" selectionMode="single"
+                                     rowKey="#{glt.id}">
+                            <p:ajax event="rowSelect" listener="#{managedContratEmploye.selectOneGrille}" update=":form_grille:F_grilleTaux" global="false" />
+                            <p:column headerText="#{lab.LRH_PC_anc_min}.">
+                                #{glt.ancMin} An(s)
+                            </p:column>
+                            <p:column headerText="Anc. Max.">
+                                #{glt.ancMax} An(s)
+                            </p:column>
+                            <p:column headerText="#{lab.L_taux}">
+                                #{glt.taux} %
+                            </p:column>
+                        </p:dataTable>
+                    </fieldset> 
+                </p:panel>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PC_suspension_contrats}" width="70%" footer="#{lab.L_copy}"
+                      closeOnEscape="true" widgetVar="dlgSuspendContrat">
+                <div style="background: #c2dfef;float: right">
+                    <p:splitButton type="button" global="false" icon="ui-icon-arrow-4-diag"  style="font-size: 0.8em;"
+                                   id="delete_contratSus">                            
+                        <p:menuitem value="#{lab.LRH_PC_calculer_afficher_indemnite}" title="#{lab.LRH_PC_afficher_etat_liquidation}" 
+                                    icon="ui-icon-calculator" style="font-size: 0.8em"
+                                    actionListener="#{managedContratEmploye.calculIndemniteLicenciement()}"/>
+                    </p:splitButton>
+                    <h:inputHidden id="input_hide_contratSus" value="#{managedContratEmploye.chaineSelectContratSus}" />
+                </div>
+                <div style="float: right">                         
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('contratSus');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('contratSus');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                        
+                </div>
+                <div class="yvs_form_contratSus">
+                    <h:panelGrid columns="1" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%" 
+                                 id="dlgGridCS">
+                        <h:panelGroup rendered="#{managedContratEmploye.finContrat.contrat.id gt 0}">
+                            <span><b>#{lab.LRH_PC_motif_suspension}</b></span>
+                            <h:inputTextarea value="#{managedContratEmploye.finContrat.motif}" style="width: 100%; margin: auto"/>
+                        </h:panelGroup>
+                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0" 
+                                     rendered="#{managedContratEmploye.finContrat.contrat.id gt 0}">                        
+                            <span>#{lab.LRH_PC_prend_effet_le}</span>
+                            <p:calendar value="#{managedContratEmploye.finContrat.dateEffet}" pattern="dd-MM-yyyy" size="8"/>
+                            <span>#{lab.LRH_PCP_duree_preavis}</span>
+                            <pe:inputNumber value="#{managedContratEmploye.finContrat.durrePreavis}" style="width: 80px"/>
+                            <span>#{managedContratEmploye.finContrat.uniteDuree}</span>
+                            <span>#{lab.LRH_PC_anciennete}</span>
+                            <h:outputText value="#{managedContratEmploye.finContrat.anciennete}" />                        
+                        </h:panelGrid>
+                        <p:commandButton value="#{lab.L_enregistrer}" style="float: right" actionListener="#{managedContratEmploye.saveSuspension()}"
+                                         update=":body_contrat:contrat-typeContrat tabContSuspendu" oncomplete="dlgAddTypeContrat.hide()"
+                                         rendered="#{managedContratEmploye.finContrat.contrat.id gt 0}"/>
+                    </h:panelGrid>
+                </div>
+                <div class="yvs_list_contratSus">
+                    <p:dataTable value="#{managedContratEmploye.listFinContrat}" var="contS" id="tabContSuspendu" 
+                                 rowIndexVar="ui_" style="font-size: 0.8em">
+                        <p:column headerText="N°" width="20">
+                            #{ui_+1}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PC_contrat}" >
+                            #{contS.contrat.referenceContrat}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PC_employe}" >
+                            #{contS.contrat.employe.nom} #{contS.contrat.employe.prenom}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PC_motif_suspension}">
+                            #{contS.motif}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PC_date_effet}">
+                            <h:outputText value="#{contS.dateEffet}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PC_suspendu_le}">
+                            <h:outputText value="#{contS.dateSave}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_par}">
+                            <h:outputText value="#{contS.author.users.nomUsers}"/> 
+                        </p:column>
+                        <p:column width="20" >                                
+                            <h:selectBooleanCheckbox value="false" class="chek_line_contratSus" onclick="selectionLineTab(#{ui_}, 'contratSus')"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PC_creer_type_contrat}" width="30%"
+                      closeOnEscape="true" widgetVar="dlgAddTypeContrat">
+                <h:panelGrid columns="3" style="width: 100%">
+                    <span>#{lab.LRH_PC_type_contrat}</span>
+                    <h:inputText value="#{managedContratEmploye.newTypeContrat}" />
+                    <p:commandButton value="#{lab.LRH_PC_creer}" actionListener="#{managedContratEmploye.createNewTypeContrat()}"
+                                     update=":body_contrat:contrat-typeContrat" oncomplete="dlgAddTypeContrat.hide()"/>
+                </h:panelGrid>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog widgetVar="dlgUploadImg" width="300" height="100" closeOnEscape="true"
+                      dynamic="true" resizable="false" modal="true" header="#{lab.LRH_PC_lier_document}">
+                <p:fileUpload sizeLimit="100000"  mode="advanced" dragDropSupport="true"
+                              allowTypes="/(\.|\/)(rar|zip|doc|docx|pdf|html|htmlx)$/" 
+                              fileUploadListener="#{managedContratEmploye.handleFileUpload}" uploadLabel="Envoyer" 
+                              label="#{lab.L_parcourir}" auto="true" oncomplete="dlgUploadImg.hide()"> 
+                </p:fileUpload>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" rendered="#{parametrageGRH.positionBaseSalaire==1}">
+            <p:dialog header="#{lab.LRH_PPT_suspendre_prime}" widgetVar="dlgSuspension" width="50%"
+                      closeOnEscape="true" modal="true" >
+                <p:outputPanel id="pan-sus-prim-contrat">
+                    <h:panelGrid columns="5" style="width: 100%; margin: auto" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <span>#{lab.LRH_PC_nombre_mois}</span>
+                        <pe:inputNumber value="#{managedContratEmploye.prime.dureeSuspension}" style="width: 50px" />
+                        <span>#{lab.LRH_PC_partir_du}</span>
+                        <p:calendar value="#{managedContratEmploye.prime.debutSuspension}" pattern="dd-MM-yyyy"/>                            
+                        <p:commandButton value="#{lab.L_valider}" actionListener="#{managedContratEmploye.valideSuspension()}"/>
+                    </h:panelGrid>
+                    <p:dataTable value="#{managedContratEmploye.selectedElt.retenues}" var="sus" rowKey="#{sus.id}"
+                                 selectionMode="single" selection="#{managedContratEmploye.selectPrelev}" id="tab_retSus">
+                        <p:column headerText="#{lab.L_date}" >
+                            <h:outputText value="#{sus.datePrelevement}"  converter="DATE" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}" style="text-align: right">
+                            <h:outputText value="#{sus.valeur}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="" width="20" style="text-align: center">
+                            <p:commandLink title="#{(sus.statutReglement=='S')?lab.LRH_PC_activer_suspension:lab.LRH_PC_annuler_suspension}" 
+                                           actionListener="#{managedContratEmploye.confirmCancelSuspension(sus)}" update="tab_retSus">
+                                <p:graphicImage library="img" name="#{(sus.statutReglement=='E')?'yes.png':'no.png'}" />
+                            </p:commandLink>
+                        </p:column>
+                        <p:column headerText=" " style="text-align: center" width="20">
+                            <p:contextMenu for="btn_opt_prim_contrat" event="left click">
+                                <p:menuitem icon="ui-icon-trash" value="#{lab.L_supprimer}" actionListener="#{managedContratEmploye.confirmDelete(sus)}" update="tab_retSus"/>
+                            </p:contextMenu>
+                            <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_opt_prim_contrat"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+                <f:facet name="footer">
+                    &copy;Lymytz 2014
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="contrat_body_typeP0" rendered="#{parametrageGRH.positionBaseSalaire==1}"> 
+            <p:dialog header="#{lab.LRH_PC_gestion_primes_avantages}" width="40%" 
+                      height="400"  closeOnEscape="true" widgetVar="dlgAddTypePrime" modal="true">
+                <div style="float: left">
+                    <p:commandButton icon="ui-icon-circle-arrow-s" title="#{lab.LRH_PC_importer_autres_societe}" type="button" 
+                                     update=":form_regle_eltImport:table_contr_societe" oncomplete="dlgScte.show()" style="width: 22px; height: 22px" actionListener="#{managedSociete.loadAll()}"/>
+                    <p:outputPanel id="delete_contratTypePrime">
+                        <p:commandButton value="#{lab.L_supprimer}"  global="false" oncomplete="dlgDelTypePrime_.show()" />
+                        <p:commandButton value="#{lab.LDB_PD_activer_desactiver}" update="table_contrat_prime input_hide_contratTypePrime"
+                                         actionListener="#{managedContratEmploye.desactiverTypePrime()}" 
+                                         global="false">
+                        </p:commandButton>
+                    </p:outputPanel> 
+                </div>
+                <h:inputHidden value="#{managedContratEmploye.chaineSelectTypePrime}" id="input_hide_contratTypePrime"  />
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('contratTypePrime');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('contratTypePrime');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div style="clear: right"></div>
+                <div class="yvs_form_contratTypePrime">
+                    <p:tooltip  for="code-prim-contrat" value="#{lab.LRH_PP_text16}"
+                                showEffect="clip" hideEffect="explode" />
+                    <h:panelGrid columns="2" style="width: 100%; margin: auto" styleClass="yvs_table" id="form_createTypeP" cellpadding="0" cellspacing="0">                    
+                        <span>#{lab.LRH_PP_code_referencce}</span>
+                        <h:inputText value="#{managedContratEmploye.newType.code}" style="width: 99%" id="code-prim-contrat"/>
+                        <span>#{lab.L_libelle}</span>
+                        <h:inputText value="#{managedContratEmploye.newType.libelle}" style="width: 99%"/>
+                        <h:panelGroup>
+                            <span>#{lab.L_actif}</span>
+                            <h:selectBooleanCheckbox value="#{managedContratEmploye.newType.actif}" /> 
+                        </h:panelGroup>
+                        <h:panelGroup styleClass="right">
+                            <span>#{lab.LRH_PC_generer_une_regle_salaire}</span>
+                            <h:selectBooleanCheckbox value="#{managedContratEmploye.generer}" /> 
+                        </h:panelGroup>
+
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer} " actionListener="#{managedContratEmploye.addTypePrime()}"
+                                     style="margin-left: 50%"
+                                     update="table_contrat_prime :contrat_body_typeP0:form_createTypeP"/>
+
+                    <p:commandButton value="#{lab.LRH_PPT_enregistrer_fermer}" actionListener="#{managedContratEmploye.addTypePrime()}"
+                                     style="float: right;" id="save_contratTypePrime" oncomplete="dlgAddTypePrime.hide()"
+                                     update="table_contrat_prime :contrat_body_typeP0:form_createTypeP"/>
+
+                    <p:defaultCommand target="save_contratTypePrime"/>
+                </div>
+                <div class="yvs_list_contratTypePrime">
+                    <p:dataTable value="#{managedContratEmploye.listTypePrime}" var="typP" selectionMode="single" rowIndexVar="lineTypeP"
+                                 rowKey="#{typP.id}" id="table_contrat_prime">
+                        <p:ajax event="rowSelect" listener="#{managedContratEmploye.selectTypePrime}" 
+                                update=":contrat_body_typeP:input_selectcontrat_type_prime" oncomplete="dlgAddTypePrime.hide()"/>
+                        <p:column headerText="N°" width="25">
+                            #{lineTypeP+1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_code}">
+                            <h:outputText value="#{typP.codeElement}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_designation}">
+                            #{typP.libelle}
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="25">
+                            <p:commandLink  style="width: 22px; height: 22px" process="@this"
+                                            actionListener="#{managedContratEmploye.disableOneTypePrime(typP)}" update="@this table_contrat_prime">
+                                <h:graphicImage library="img" name="#{(typP.actif)?'vu.png':'vu_non.png'}" width="15" height="15" title="#{typP.actif? 'Désactiver le type de prime':'Activer le type de prime'}" />
+                            </p:commandLink>
+                        </p:column>
+                        <p:column headerText="" style="text-align: center" width="25">
+                            <p:contextMenu for="btn_option_contrat_prim" event="left click" styleClass="context_menu">
+                                <p:menuitem value="#{lab.L_modifier}" icon="ui-icon-refresh" oncomplete="collapseForm('contratTypePrime')"
+                                            actionListener="#{managedContratEmploye.openSelectedTypePrime(typP, false)}" update=":contrat_body_typeP0:table_contrat_prime"/>
+                                <p:menuitem value="#{typP.actif?lab.L_desactiver:lab.L_activer}" icon="#{typP.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" 
+                                            actionListener="#{managedContratEmploye.toogleActiveSelectedTypePrime(typP)}"/>
+                                <p:separator />
+                                <p:menuitem value="#{lab.L_supprimer}"  icon="ui-icon-trash" oncomplete="collapseForm('contratTypePrime')"
+                                            actionListener="#{managedContratEmploye.openSelectedTypePrime(typP, true)}" update=":contrat_body_typeP0:form_createTypeP"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btn_option_contrat_prim"
+                                             />                            
+                        </p:column>
+                        <p:column width="25" style="text-align: center">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox value="false" class="chek_all_line_contratTypePrime" onclick="selectionAllLineTab(#{managedContratEmploye.listTypePrime.size()}, 'contratTypePrime')"/>
+                            </f:facet>
+                            <h:selectBooleanCheckbox value="false" class="chek_line_contratTypePrime" onclick="selectionLineTab(#{lineTypeP}, 'contratTypePrime')"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>                                                              
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>            
+        </h:form>
+        <h:form prependId="false" rendered="#{parametrageGRH.positionBaseSalaire==1}">
+            <p:dialog header="#{lab.LRH_PC_creer_mode_paiement}" width="40%" closeOnEscape="true" widgetVar="dlgAddTypeModePaiement">
+                <p:outputPanel id="body_dlg_mode_paiement" autoUpdate="true">
+                    <h:panelGrid columns="3" style="margin: auto" styleClass="yvs_nostyle">
+                        <span>#{lab.LCF_PRV_mode_paiement}</span>
+                        <h:inputText value="#{managedContratEmploye.modeP.designation}" />
+                        <p:commandButton icon="ui-icon-circle-plus" actionListener="#{managedContratEmploye.createNewModePaiement()}"
+                                         update="body_dlg_mode_paiement"/>
+                    </h:panelGrid>
+                    <p:dataTable value="#{managedContratEmploye.listModePaiement}" var="mode_" rowKey="#{mode_.id}" 
+                                 selectionMode="single" id="table_mode_paiement">
+                        <p:ajax event="rowSelect" listener="#{managedContratEmploye.loadOnViewModePaiement}"
+                                update=":body_contrat:footer_contrat:contrat-modePaiement" process="@this" oncomplete="dlgAddTypeModePaiement.hide()"/>
+                        <p:column headerText="#{lab.L_libelle}">
+                            <h:outputText value="#{mode_.designation}"/>
+                        </p:column>
+                        <p:column headerText=" " style="text-align: center" width="20">
+                            <p:contextMenu for="btn_opt_model_contrat" event="left click">
+                                <p:menuitem icon="ui-icon-trash" value="#{lab.L_supprimer}" actionListener="#{managedContratEmploye.deleteModePaiement(mode_)}" update="table_mode_paiement"/>
+                            </p:contextMenu>
+                            <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_opt_model_contrat"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>                    
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-contratEmps-E01">            
+            <p:dialog header="#{lab.LRH_PC_employes_actif}" widgetVar="dlgEmploye" width="80%" height="600" 
+                      closeOnEscape="true" resizable="false" dynamic="true" modal="true">                         
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('contratEmpContrat');
+                    });
+                </script>
+
+                <div class="dlg_part_fixe" >
+                    <h:panelGrid columns="1" style="float: left; font-size: 0.8em">
+                        <span>#{lab.LRH_PC_nom_matricule}</span>
+                        <h:inputText value="#{MEmps.matriculeToUpdate}" >
+                            <p:ajax event="valueChange" listener="#{MEmps.findSimpleEmploye(MEmps.matriculeToUpdate)}" update="tabEmployes-contratEmps"/>
+                        </h:inputText>
+                    </h:panelGrid>                    
+                    <div style="float: right" >                        
+                        <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                            <h:panelGrid columns="1" style="float: left; font-size: 0.8em">
+                                <span>#{lab.L_agence}</span>
+                                <h:selectOneMenu value="#{managedDepartement.agence_}" valueChangeListener="#{MEmps.addSimpleParamAgence}" >
+                                    <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedDepartement.currentScte.agences}" var="itemA" itemValue="#{itemA.id}" itemLabel="#{itemA.designation}" />
+                                    <f:selectItem itemValue="-1" itemLabel="#{lab.L_tout}" />
+                                    <p:ajax event="valueChange" update="tabEmployes-contratEmps"/>
+                                </h:selectOneMenu>
+                            </h:panelGrid>
+                            <p:commandButton actionListener="#{MEmps.pagineSimpleResult(false)}" update="tabEmployes-contratEmps" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{MEmps.paginator.currentPage} / #{MEmps.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton actionListener="#{MEmps.pagineSimpleResult(true)}" update="tabEmployes-contratEmps" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{MEmps.changeSimpleMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{MEmps.paginations}"/>
+                                <p:ajax event="valueChange" update="tabEmployes-contratEmps"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel>                                                               
+                    </div> 
+                </div>
+                <div style="clear: both" ></div>
+                <div class="dlg_part_scroll"  >
+                    <div class="yvs_list_contratEmpContrat">
+                        <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" 
+                                     widgetVar="tabEmployes" id="tabEmployes-contratEmps" selectionMode="single"
+                                     rowIndexVar="line_empC">  
+                            <p:ajax event="rowSelect" listener="#{managedContratEmploye.loadViewEmploye}" 
+                                    oncomplete="collapseForm('contratEmp');dlgEmploye.hide()" global="false" 
+                                    update=":body_contrat:panel_contrat_donnee_00 :body_contrat:footer_contrat" process="@this"/>
+                            <p:column headerText="N°" width="25">
+                                <h:outputText value="#{line_empC+1}" />
+                                <h:graphicImage library="img" name="vu.png" rendered="#{emp.contrat!=null}" width="15" height="15" style="float: right"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                                <h:outputText value="#{emp.nom} #{emp.prenom}" />
+                            </p:column>                        
+                            <p:column headerText="#{lab.LDB_PD_matricule}" width="80" style="text-align: center">
+                                <h:outputText value="#{emp.matricule}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PC_contrat}" width="80" style="text-align: center">
+                                <h:outputText value="#{emp.contrat.referenceContrat}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PE_poste} " width="100">
+                                <h:outputText value="#{emp.posteActif.intitule}" />
+                            </p:column>
+                        </p:dataTable> 
+                    </div>
+                </div>
+                <f:facet name="footer">
+                    <span>&copy;Lymytz 2014</span>                    
+                    <p:selectOneRadio value="#{MEmps.optionSearch}" style="float: right; font-size: 0.8em" 
+                                      valueChangeListener="#{MEmps.loadEmployeWithoutContrat}">
+                        <f:selectItem itemValue="1" itemLabel="#{lab.LRH_PE_tous}" />
+                        <f:selectItem itemValue="2" itemLabel="#{lab.LRH_PC_employe_sans_contrat}" />      
+                        <p:ajax event="valueChange" process="@this" update="tabEmployes-contratEmps" />
+                    </p:selectOneRadio>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="contrat_body_typeP01" rendered="#{parametrageGRH.positionBaseSalaire==1}">
+            <p:dialog header="#{lab.LRH_PC_modeele_primes_avanatages}" widgetVar="dlgModelPrime" width="50%" resizable="false"
+                      closeOnEscape="true" >  
+                <p:dataTable  value="#{managedContratEmploye.modelePrimes}" var="Mprime" selectionMode="single"
+                              rowKey="#{Mprime.typeElement.id}" id="tabPrime_modele_contrat" 
+                              selection="#{managedContratEmploye.selectedModelElt}">                        
+                    <p:column headerText="#{lab.L_libelle}" width="200" styleClass="prime_perm_#{Mprime.permanent} prime_sus_#{(Mprime.suspendu)}">
+                        <h:outputText value="#{Mprime.typeElement.libelle}" style="width: 100%;" styleClass="prime_perm_#{Mprime.permanent}" 
+                                      title="#{((Mprime.suspendu)?'Prime suspendu':(!Mprime.permanent)?'Prime périodique':'')}"/>
+                    </p:column>                                               
+                    <p:column headerText="#{lab.L_montant}" width="90"
+                              styleClass="prime_perm_#{Mprime.permanent} prime_sus_#{(Mprime.suspendu)}">
+                        <h:outputText value="#{Mprime.montantElement}" converter="DN" style="width: 100%;" 
+                                      styleClass="prime_perm_#{Mprime.permanent}"
+                                      title="#{((Mprime.suspendu)?'Prime suspendu':(Mprime.permanent)?'Prime périodique':'')}"/>                                            
+                    </p:column> 
+                    <p:column headerText="#{lab.L_debut}" width="90" styleClass="prime_perm_#{Mprime.permanent} prime_sus_#{(Mprime.suspendu)}" >
+                        <h:outputText value="#{Mprime.dateDebut}" converter="DATE" style="width: 100%;" styleClass="prime_perm_#{Mprime.permanent}" 
+                                      title="#{((Mprime.suspendu)?'Prime suspendu':(Mprime.permanent)?'Prime périodique':'')}"/>                                            
+                    </p:column>
+                    <p:column headerText="#{lab.L_fin}"  width="90" styleClass="prime_perm_#{Mprime.permanent} prime_sus_#{(Mprime.suspendu)}">
+                        <h:outputText value="#{Mprime.dateFin}" converter="DATE" style="width: 100%;"  
+                                      title="#{((Mprime.suspendu)?'Prime suspendu':(Mprime.permanent)?'Prime périodique':'')}"/>                                            
+                    </p:column>
+                    <p:column headerText=""  width="50" styleClass="prime_perm_#{Mprime.permanent} prime_sus_#{(Mprime.suspendu)}"  style="text-align: center">
+                        <p:contextMenu for="btn_opt_model_contrat" event="left click">
+                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedContratEmploye.deleteOneModelAdditionnel(Mprime)}" />
+                        </p:contextMenu>
+                        <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_opt_model_contrat"/>
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="contrat_body_typeP">
+            <p:dialog header="#{lab.LRH_PC_primes_avantages}" widgetVar="prime" width="50%" resizable="false"
+                      closeOnEscape="true" dynamic="true">  
+                <p:commandButton icon="ui-icon-newwin" title="#{lab.LRH_PC_afficher_modele}" style="float: right; width: 20px; height: 20px" 
+                                 onclick="dlgModelPrime.show()"/>
+                <p:commandButton icon="ui-icon-circle-arrow-s" title="#{lab.LRH_PC_ajouter_au_model}" style="float: right; width: 20px; height: 20px" 
+                                 actionListener="#{managedContratEmploye.createModelePrime()}" 
+                                 update=":contrat_body_typeP01:tabPrime_modele_contrat :body_contrat:footer_contrat:tabPrime-contrat"/>
+                <h:panelGrid id="form-add-prime"  style="width: 95%; margin: auto" columns="2" 
+                             styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PPT_primes}</span>
+                    <h:selectOneMenu value="#{managedContratEmploye.prime.typeElt.id}"
+                                     onchange="choixTypePrime($(this))" id="input_selectcontrat_type_prime">
+                        <f:selectItem itemValue="#{0}" itemLabel="" noSelectionOption="true"/>                        
+                        <f:selectItems value="#{managedContratEmploye.listTypePrime}" var="typp" itemValue="#{typp.id}" itemLabel="#{typp.libelle}" />
+                        <f:selectItem itemValue="#{0}" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_avancees}..."/> 
+                    </h:selectOneMenu>
+                    <span>#{lab.LRH_PC_prime_permanente} ?</span>
+                    <h:selectBooleanCheckbox value="#{managedContratEmploye.prime.permanent}">
+                        <p:ajax event="valueChange" update="cont-int-prim cont-int-prim_label" global="false" process="@this"/>
+                    </h:selectBooleanCheckbox>
+                    <span>#{lab.L_montant}</span>
+                    <pe:inputNumber value="#{managedContratEmploye.prime.montant}" />
+                    <span>#{lab.L_description}</span>
+                    <h:inputTextarea value="#{managedContratEmploye.prime.description}"  /> 
+                    <h:panelGroup id="cont-int-prim_label">
+                        <h:outputText value="#{lab.LDB_PC_periode}" rendered="#{!managedContratEmploye.prime.permanent}" />
+                    </h:panelGroup>
+                    <h:panelGroup id="cont-int-prim" >
+                        <h:panelGroup rendered="#{!managedContratEmploye.prime.permanent}" > 
+                            <p:calendar value="#{managedContratEmploye.prime.debut}" pattern="dd-MM-yyyy" size="8"/>
+                            <span>---</span>
+                            <p:calendar value="#{managedContratEmploye.prime.fin}" pattern="dd-MM-yyyy" size="8"/>
+                        </h:panelGroup>                            
+                    </h:panelGroup>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-circle-plus" actionListener="#{managedContratEmploye.addPrime()}" 
+                                 style="float: right; margin-right: 2.5%" update=":body_contrat:footer_contrat:tabPrime-contrat form-add-prime"/> 
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>        
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PC_text2}" header="#{lab.LRH_PC_supprimer_des_contrats}"
+                             closeOnEscape="true" widgetVar="dlgDeleteContrat" >
+                <p:commandButton value="#{lab.L_oui}"  styleClass="ui-confirmdialog-yes" icon="ui-icon-check"
+                                 actionListener="#{managedContratEmploye.deleteContrat()}"
+                                 oncomplete="dlgDeleteContrat.hide()"/>
+                <p:commandButton value="#{lab.L_non}" type="button" global="false" styleClass="ui-confirmdialog-no" icon="ui-icon-close" 
+                                 onclick="dlgDeleteContrat.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PC_text3}" header="#{lab.L_confirmation}" widgetVar="dlgDelPrime"
+                             width="30%" closeOnEscape="true" >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedContratEmploye.deleteOnePrime()}" 
+                                 oncomplete="dlgDelPrime.hide()" update=":body_contrat:footer_contrat:tabPrime-contrat"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" type="button" onclick="dlgDelPrime.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="body_contrat">
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedContratEmploye.saveNew()}" id="save_contratEmp"
+                               update=":body_contrat:form_contrat_00">
+                    <p:menuitem value="#{lab.L_nouveau}" icon="ui-icon-document" actionListener="#{managedContratEmploye.resetFiche()}"
+                                id="cancel_contratEmp" process="@this" update=":body_contrat:panel_contrat_donnee_00 :body_contrat:footer_contrat"/> 
+                    <p:menuitem icon="ui-icon-print" value="#{lab.L_telecharger}" actionListener="#{managedContratEmploye.print(managedContratEmploye.entityContrat, null)}" 
+                                ajax="false" title="Télécharger le contrat" rendered="#{managedContratEmploye.entityContrat.id gt 0}"/>                   
+                    <p:menuitem value="#{lab.L_modifier}" actionListener="#{managedContratEmploye.affichageVue()}" rendered="#{managedContratEmploye.optionUpdate}"/>                    
+                    <p:separator />
+                    <p:menuitem value="#{lab.L_supprimer}"  icon="ui-icon-close"  onclick="dlgDeleteContrat.show()" global="false" />
+                </p:splitButton>
+
+                <p:splitButton value="#{lab.L_supprimer}"  global="false" id="delete_contratEmp" icon="ui-icon-trash" onclick="dlgDeleteContrat.show()" >
+                    <p:menuitem value="Mettre en attente" actionListener="#{managedContratEmploye.changeStatutContrat(constantes.ETAT_ATTENTE)}" />                    
+                    <p:menuitem value="Confirmer" actionListener="#{managedContratEmploye.changeStatutContrat(constantes.ETAT_CLOTURE)}" />                    
+                    <p:separator />
+                    <p:menuitem value="#{lab.L_suspendre}" icon="ui-icon-clock" global="false" 
+                                actionListener="#{managedContratEmploye.calculPreavisAndAnciennete()}" 
+                                oncomplete="dlgSuspendContrat.show(); collapseForm('contratSus')" />
+                    <p:menuitem value="#{lab.LRH_PC_restreindre_acces_a}"  icon="ui-icon-key" onclick="dlgNiveauAcces.show()" global="false" />
+                </p:splitButton>  
+                <h:panelGroup style="margin-left: 30%; display: initial">                                    
+                    <p:commandButton actionListener="#{managedContratEmploye.navigateInView(false)}" icon="ui-icon-circle-triangle-w"
+                                     update="txt_parc_linear_employe_contrat :body_contrat:panel_contrat_donnee_00 :body_contrat:footer_contrat pagination_Cemps form_contrat_00 form_contrat_00" process="@this" /> 
+                    <h:inputText value="#{managedContratEmploye.offset}" style="width: 35px; text-align: center"  title="#{lab.L_aller_au}" id="txt_parc_linear_employe_contrat"/>
+                    <p:outputPanel id="pagination_Cemps" autoUpdate="true">
+                        <p:outputLabel value="/#{managedContratEmploye.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                    </p:outputPanel>
+                    <p:commandButton icon="ui-icon-circle-triangle-e" action="#{managedContratEmploye.navigateInView(true)}"
+                                     update="txt_parc_linear_employe_contrat :body_contrat:panel_contrat_donnee_00 :body_contrat:footer_contrat pagination_Cemps form_contrat_00 form_contrat_00" process="@this" />
+                </h:panelGroup>
+                <div style="float: right">                        
+                    <p:splitButton type="button" global="false" icon="ui-icon-arrow-4-diag"  style="float: left; font-size: 0.8em;">
+                        <p:menuitem value="#{lab.LRH_PC_voir_contrats_suspendu}" icon="ui-icon-bookmark"
+                                    global="false" style="font-size: 0.8em;" onclick="dlgSuspendContrat.show();
+                                            collapseList('contratSus')"/>
+                        <p:menuitem value="#{lab.LRH_PC_afficher_tout}" title="#{lab.LRH_PC_afficher_ontrats_restreint}" icon="ui-icon-radio-on" global="false" style="font-size: 0.8em;" onclick="dlgParamContrat.show()"/>
+                        <p:menuitem value="#{lab.LRH_PC_parametrage}" icon="ui-icon-gear" global="false" style="font-size: 0.8em;" onclick="dlgParamContrat.show()"/>
+                        <p:menuitem value="#{lab.LRH_PC_mise_jour}" icon="ui-icon-refresh" global="false" style="font-size: 0.8em;" title="#{lab.LRH_PC_mise_jour_date_embauche_contrat}"/>
+                    </p:splitButton>                        
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('contratEmp');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('contratEmp');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                        
+                </div>
+                <h:inputHidden id="input_hide_contratEmp" value="#{managedContratEmploye.chaineSelecContrat}" />
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_contratEmp" style="width: 100%;margin: auto; background: white">                   
+                    <p:outputPanel  id="panel_contrat_donnee_00" style="border: 1px solid #CCCCCC; clear: both">  
+                        <h:panelGrid style="width: 100%; border-bottom: none" styleClass="yvs_table" columns="4" 
+                                     id="form_contrat_" cellpadding="0" cellspacing="0">
+                            <f:facet name="header">
+                                <div align="left">
+                                    <h:panelGrid columns="6"  cellpadding="0" cellspacing="0" style="font-size: 0.8em;float: left; ">
+                                        <span>#{lab.LRH_PC_id_emp}</span>
+                                        <h:outputText value="#{contratEmploye.employe.id}" title="#{lab.LRH_PC_identifiant_employe}" style="font-weight: bold"/>
+                                        <span>#{lab.L_nom_prenom}</span>
+                                        <h:outputText value="#{contratEmploye.employe.nom_prenom}"  style="font-weight: bold"/>                                        
+                                        <span>#{lab.LRH_PE_matricule}</span>
+                                        <h:outputText value="#{contratEmploye.employe.matricule}"  style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PPT_poste_travail}</span>
+                                        <h:outputText value="#{contratEmploye.employe.posteDeTravail.intitule}"  style="font-weight: bold"/>                                    
+                                        <span>#{lab.LRH_PC_date_embauche}</span>
+                                        <h:outputText value="#{contratEmploye.employe.dateEmbauche}"  style="font-weight: bold" converter="DATE"/>                                       
+                                        <span>Actif</span>
+                                        <h:outputText value="#{contratEmploye.employe.actif?'Oui':'Non'}" style="font-weight: bold"/>
+                                        <span>Cat.</span>
+                                        <h:outputText value="#{contratEmploye.employe.convention.categorie.categorie}"  style="font-weight: bold"/> 
+                                        <span>Ech.</span>
+                                        <h:outputText value="#{contratEmploye.employe.convention.echelon.echelon}"  style="font-weight: bold"/> 
+                                        <h:inputHidden value="-" />
+                                        <h:inputHidden value="-" />
+                                    </h:panelGrid>
+                                    <h:panelGroup id="grp_btn_etat_contrat_emp" rendered="#{contratEmploye.id gt 0}" style="float: right; position: relative; top:0px">
+                                        <p:commandLink value="#{(contratEmploye.statut == 'W')?'EN ATTENTE':'METTRE EN ATTENTE'}" process="@this" styleClass="#{(contratEmploye.statut == 'W')?'statut_valide':'etat_formation_true'}"   
+                                                       disabled="#{contratEmploye.statut == 'W'}" actionListener="#{managedContratEmploye.onWaitBean()}" update="grp_btn_etat_contrat_emp"/>
+                                        <p:commandLink value="#{(contratEmploye.statut == 'C')?'CONFIRME':'CONFIRMER'}" process="@this" styleClass="#{(contratEmploye.statut == 'C')?'statut_valide':'etat_formation_true'}"   
+                                                       disabled="#{contratEmploye.statut == 'C'}" actionListener="#{managedContratEmploye.onConfirmeBean()}" update="grp_btn_etat_contrat_emp"/>
+                                    </h:panelGroup>
+                                </div>
+                            </f:facet>
+                            <span  onclick="dlgEmploye.show();"
+                                   style="cursor: pointer;color: #0099ff; font-weight: bold">Employe</span>
+                            <h:panelGroup >
+                                <h:inputText value="#{contratEmploye.employe.nom}" id="input_select_emps" >
+                                    <p:ajax event="blur" update="form_contrat_"  listener="#{managedContratEmploye.searchEmploye(contratEmploye.employe.nom)}"/>
+                                </h:inputText>
+                                <p:commandButton type="button" icon="ui-icon-search" onclick="dlgEmploye.show();" style="width: 22px; height: 22px" />
+                                <h:outputText value="#{contratEmploye.id}"  style="font-weight: bold; float: right; font-size: 0.8em; background: #333; color: #FFF; padding: 2px; border: solid 1px #FFF" title="identifiant contrat"/>
+                            </h:panelGroup>
+                            <span>#{lab.L_reference}</span>
+                            <h:inputText value="#{contratEmploye.reference}" />
+
+                            <span>#{lab.LRH_PC_type_contrat}</span>
+                            <h:selectOneMenu value="#{contratEmploye.typeContrat.id}" id="contrat-typeContrat" 
+                                             onchange="choixTypeContrat($(this))">
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedContratEmploye.listTypeContrat}" var="type" 
+                                               itemLabel="#{type.libelle}" itemValue="#{type.id}" />
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                <f:selectItem itemValue="-1" itemLabel="Créer..."/>
+                            </h:selectOneMenu>   
+                            <span>#{lab.L_date_debut}</span>
+                            <p:calendar value="#{contratEmploye.dateDebut}" pattern="dd-MM-yyyy" navigator="true" 
+                                        required="true" />
+                            <span>#{lab.L_date_fin}</span>
+                            <p:calendar value="#{contratEmploye.dateFin}" pattern="dd-MM-yyyy" navigator="true" 
+                                        required="true" />
+                            <span>#{lab.LRH_PC_fin_essai}</span>
+                            <p:calendar value="#{contratEmploye.finEssai}" pattern="dd-MM-yyyy" 
+                                        required="true" navigator="true" />                                                                      
+                            <f:facet name="footer" >
+                                <span>#{lab.L_actif}</span>
+                                <h:selectBooleanCheckbox value="#{contratEmploye.actif}" />  
+                            </f:facet>
+                        </h:panelGrid>                           
+                        <div style="border: 1px solid #333; width: 100%" />
+                        <p:commandButton title="#{lab.LRH_PC_lier_document_physique}" icon="ui-icon-folder-open" action="#{managedContratEmploye.handlerFileDownload()}" 
+                                         disabled="#{managedContratEmploye.displayViewFile}" style="width: 20px;height: 20px; float: right"/>
+                        <p:commandButton icon="ui-icon-unlocked" title="#{lab.LRH_PC_lever_limitation_acces_contrat}" actionListener="#{managedContratEmploye.autoriserAccesContrats()}"
+                                         update=":body_contrat:form_contrat_00" style="width: 22px; height: 22px"/>
+                    </p:outputPanel>
+                    <div style="width: 100%;background: white">
+                        <p:tabView id="footer_contrat">
+                            <p:tab title="#{lab.LRH_PC_remuneration}">
+                                <p:outputPanel id="tab_general_contrat_00" layout="block">
+                                    <div class="headline_data">#{lab.LRH_PC_regles_remuneration}</div>
+                                    <h:panelGrid columns="4"   styleClass="yvs_nostyle" style="width: 100%">
+                                        <span>#{lab.LRH_PC_salaire}</span>
+                                        <h:panelGrid columns="2">
+                                            <span>#{lab.LRH_PC_mensuel}</span>
+                                            <pe:inputNumber id="SalaireMensuel" value="#{contratEmploye.salaireMensuel}" required="true" label="#{lab.LRH_PPT_salaire_par_mois}"/>                                    
+                                            <span>#{lab.LRH_PC_horaire}</span>
+                                            <pe:inputNumber value="#{contratEmploye.salaireHoraire}" required="true" label="#{lab.LRH_PPT_salaire_par_heure}" />                                    
+                                        </h:panelGrid>                                      
+                                        <span>#{lab.LRH_PC_structure_salaire}</span>
+                                        <h:selectOneMenu value="#{contratEmploye.structSalaire.id}" >
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItems value="#{managedContratEmploye.listStructureSalaire}" var="eltS" 
+                                                           itemValue="#{eltS.id}" itemLabel="#{eltS.nom}"/>
+                                        </h:selectOneMenu>  
+                                        <span>#{lab.L_caisse}</span>                                    
+                                        <h:selectOneMenu value="#{contratEmploye.caisse.id}" style="max-width: 200px">
+                                            <f:selectItem itemLabel="--" itemValue="0" />
+                                            <f:selectItems value="#{managedCaisses.caisses}" var="cais" itemLabel="#{cais.intitule}" itemValue="#{cais.id}" />
+                                            <p:ajax event="valueChange" global="false" listener="#{managedContratEmploye.chooseCaisse()}"/>
+                                        </h:selectOneMenu>
+                                        <span>#{lab.LRH_PC_mode_paiement}</span>
+                                        <h:selectOneMenu id="contrat-modePaiement" value="#{contratEmploye.modePaiement.id}">
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItems value="#{managedContratEmploye.listModePaiement}" var="mode" itemLabel="#{mode.designation}"
+                                                           itemValue="#{mode.id}" />
+                                        </h:selectOneMenu>                                        
+                                    </h:panelGrid>
+                                    <div class="headline_data">#{lab.LRH_PC_regles_conges}</div>
+                                    <h:panelGrid columns="4"  id="tab_general_contrat_00_1" styleClass="yvs_nostyle" style="width: 100%">                                                                           
+                                        <span>#{lab.LRH_PC_conges_acquis_mois}</span>
+                                        <h:panelGroup>
+                                            <pe:inputNumber value="#{contratEmploye.congeAcquis}" style="width: 100px"/>
+                                            <span>#{lab.LRH_PC_majoration} </span>
+                                            <pe:inputNumber value="#{contratEmploye.dureeMajoration}" style="width: 100px"/>
+                                        </h:panelGroup>
+                                        <span>#{lab.LRH_PC_duree_preavis}</span>
+                                        <h:panelGroup>
+                                            <pe:inputNumber value="#{contratEmploye.dureePreavie}" symbol=" #{contratEmploye.unitePreavisView}" symbolPosition="suffix"/>&nbsp;
+                                            <h:selectOneMenu value="#{contratEmploye.unitePreavis}" >
+                                                <f:selectItem itemLabel="#{lab.L_jour}" itemValue="Jour" />
+                                                <f:selectItem itemLabel="#{lab.L_mois}" itemValue="Mois" />
+                                            </h:selectOneMenu>
+                                        </h:panelGroup>                                    
+                                    </h:panelGrid>
+                                    <span style="display: none">#{lab.LRH_PC_evaluer_premier_conge_partir}</span>
+                                    <p:selectOneRadio value="#{contratEmploye.sourceFirstConge}" onchange="choixParamFirstConge($(this))" style="display: inline"
+                                                      layout="pageDirection" rendered="false">
+                                        <f:selectItem itemLabel="#{lab.LRH_PC_la_date_embauche}" itemValue="DE" />
+                                        <f:selectItem itemLabel="#{lab.LRH_PC_la_date_debut_exercice}" itemValue="DEX" />
+                                        <f:selectItem itemLabel="#{lab.LRH_PC_la_date_fixer}" itemValue="DF" />
+                                    </p:selectOneRadio>
+                                    <p:calendar value="#{contratEmploye.dateFirstConge}" pattern="dd-MM-yyyy" size="8" styleClass="paramDateF" style="display: none"/>                            
+                                    <div class="headline_data">#{lab.LRH_PC_regles_presence}</div>
+                                    <h:panelGrid columns="7" id="detail_calendier_00" style="width: 100%">
+                                        <span>#{lab.LRH_PC_horaire_dynamique}</span>
+                                        <h:selectBooleanCheckbox value="#{contratEmploye.employe.horaireDynamique}" >
+                                            <p:ajax event="valueChange" global="false" process="@this" update="champ_refCalendrier" />
+                                        </h:selectBooleanCheckbox>
+                                        <span>#{lab.LRH_PC_reference_calendrier_defaut}</span>
+                                        <h:selectOneMenu value="#{managedContratEmploye.calendrier.id}" id="champ_refCalendrier" 
+                                                         valueChangeListener="#{managedContratEmploye.searchCalendarByReference}" >
+                                            <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                            <f:selectItems value="#{managedContratEmploye.listCalendrier}" var="cal" itemLabel="#{cal.reference}"
+                                                           itemValue="#{cal.id}" />                                            
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" />
+                                            <p:ajax event="valueChange" global="false"  update="tab_jours_ouvres" process="@this"/>
+                                        </h:selectOneMenu> 
+                                        <p:outputLabel value="#{lab.LRH_PC_heure_semaine}: "/>
+                                        <h:inputText id="HoraireHebdomadaire" value="#{managedContratEmploye.calendrier.totalHeureHebdo}" disabled="true"/>                                        
+                                        <h:panelGroup style="float: right">
+                                            <span>#{lab.LRH_PC_type_tranche_defaut}</span>
+                                            <h:selectOneMenu value="#{contratEmploye.typeTranche}">
+                                                <f:selectItem itemValue="" itemLabel="" />
+                                                <f:selectItems value="#{managedContratEmploye.listTypesTranche}" var="typT" itemValue="#{typT}" itemLabel="#{typT}" />
+                                            </h:selectOneMenu>
+                                        </h:panelGroup>
+                                    </h:panelGrid>                                    
+                                    <p:separator style="width: 100%"/>
+                                    <h:panelGrid columns="7"  id="detail_jour_travail_00" style="width: 100%"> 
+                                        <h:panelGroup >
+                                            <span>#{lab.L_jour} :</span>
+                                            <h:selectOneMenu value="#{managedContratEmploye.joursOuvres.jour}" 
+                                                             disabled="#{managedContratEmploye.defautCalendar}">
+                                                <f:selectItem itemLabel="" itemValue=""/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_lundi}" itemValue="Lundi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_mardi}" itemValue="Mardi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_mercredi}" itemValue="Mercredi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_jeudi}" itemValue="Jeudi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_vendredi}" itemValue="Vendredi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_samedi}" itemValue="Samedi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_dimanche}" itemValue="Dimanche"/>
+                                                <p:ajax event="valueChange" global="false" listener="#{managedContratEmploye.searchJoursOuvreeByJour()}"/>
+                                            </h:selectOneMenu> 
+                                        </h:panelGroup>
+
+                                        <span>#{lab.LP_PPG_ouvrable} </span>
+                                        <p:selectBooleanCheckbox value="#{managedContratEmploye.joursOuvres.ouvrable}"  >
+                                            <p:ajax global="false" process="@this" />
+                                        </p:selectBooleanCheckbox>
+                                        <h:panelGrid columns="4" style="width: 100%">
+                                            <span style="color: #006666">#{lab.L_debut} </span>
+                                            <pe:timePicker value="#{managedContratEmploye.joursOuvres.heureDebutTravail}" disabled="#{managedContratEmploye.defautCalendar}"
+                                                           style="width: 100px">
+                                                <p:ajax event="timeSelect" listener="#{managedContratEmploye.calculDureeTravailAdd()}" global="false"/>
+                                            </pe:timePicker>
+                                            <span style="color: #006666">#{lab.L_fin}: </span>
+                                            <pe:timePicker value="#{managedContratEmploye.joursOuvres.heureFinTravail}" disabled="#{managedContratEmploye.defautCalendar}"
+                                                           style="width: 100px">
+                                                <p:ajax event="timeSelect" listener="#{managedContratEmploye.calculDureeTravailAdd()}" global="false"/>
+                                            </pe:timePicker>
+                                            <span style="color: #c2a00c">#{lab.LP_PPG_debut_pause}: </span>
+                                            <pe:timePicker value="#{managedContratEmploye.joursOuvres.heureDebutPause}" disabled="#{managedContratEmploye.defautCalendar}"
+                                                           style="width: 100px">
+                                                <p:ajax event="timeSelect" listener="#{managedContratEmploye.calculDureePause()}" global="false"/>
+                                            </pe:timePicker>
+                                            <span style="color: #c2a00c">#{lab.LP_PPG_fin_pause}: </span>
+                                            <pe:timePicker value="#{managedContratEmploye.joursOuvres.heureFinPause}" disabled="#{managedContratEmploye.defautCalendar}"
+                                                           style="width: 100px">
+                                                <p:ajax event="timeSelect" listener="#{managedContratEmploye.calculDureePause()}" global="false"/>
+                                            </pe:timePicker>                                                
+                                        </h:panelGrid>
+                                        <p:outputLabel value="#{lab.LP_PPG_duree}"/>
+                                        <p:inputText disabled="true" value="#{managedContratEmploye.dureePause}" 
+                                                     id="txt_duree_pause_contrat" style="width: 80px"/>
+                                        <p:commandButton value="#{managedContratEmploye.nameBtnAddJour}" update="footer_contrat:tab_jours_ouvres"
+                                                         actionListener="#{managedContratEmploye.saveNewJoursOuvree()}" disabled="#{managedContratEmploye.defautCalendar}"/>
+                                    </h:panelGrid>
+                                    <p:dataTable id="tab_jours_ouvres" value="#{managedContratEmploye.calendrier.listJoursOuvres}" var="jour"
+                                                 rowKey="#{jour.id}" selectionMode="single" widgetVar="tabJoursOuvres">
+                                        <p:ajax event="rowSelect" listener="#{managedContratEmploye.loadOnViewJours}"/> 
+                                        <p:ajax event="rowUnselect" listener="#{managedContratEmploye.unLoadOnViewJours}"/>
+                                        <p:column headerText="#{lab.L_jour}" styleClass="ouvrable_#{jour.ouvrable}">
+                                            <h:outputText value="#{jour.jour}"/>
+                                            <span style="font-size: 1.1em; font-weight: bold; float: right">#{jour.jourDeRepos?'R':''}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_debut_travail}" style="text-align: center" styleClass="ouvrable_#{jour.ouvrable}">
+                                            <h:outputText value="#{jour.heureDebutTravail}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_fin_travail}" style="text-align: center" styleClass="ouvrable_#{jour.ouvrable}">
+                                            <h:outputText value="#{jour.heureFinTravail}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_debut_pause}" style="text-align: center" styleClass="ouvrable_#{jour.ouvrable}">
+                                            <h:outputText value="#{jour.heureDebutPause}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_fin_pause}" style="text-align: center" styleClass="ouvrable_#{jour.ouvrable}">
+                                            <h:outputText value="#{jour.heureFinPause}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LRH_PC_duree_service} " style="text-align: center" styleClass="ouvrable_#{jour.ouvrable}">
+                                            <h:outputText value="#{util.ecartOnDate(jour.heureFinTravail, jour.heureDebutTravail, 'J')}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_duree_pause}" style="text-align: center" styleClass="ouvrable_#{jour.ouvrable}">
+                                            <h:outputText value="#{jour.dureePause}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="" width="15" style="text-align: center">                                        
+                                            <p:contextMenu for="ctrat_buton_option_cal" event="left click" style="font-size: 0.8em; width: 13%" >
+                                                <p:menuitem value="#{jour.ouvrable?lab.L_desactiver:lab.L_activer} #{lab.LRH_PC_jour_ouvrable}" icon="ui-icon-calendar" actionListener="#{managedContratEmploye.changeStatutJourOuvrable(jour)}"
+                                                            update="tab_jours_ouvres"/>
+                                                <p:menuitem value="#{jour.jourDeRepos?lab.L_desactiver:lab.L_activer}#{lab.LP_PPG_jour_repos}" icon="ui-icon-home" actionListener="#{managedContratEmploye.changeStatutJourRepos(jour)}"
+                                                            update="tab_jours_ouvres"/>
+                                                <p:separator />
+                                                <p:menuitem  update="tab_jours_ouvres" value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedContratEmploye.deletedayCalendar(jour)}" />
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="ctrat_buton_option_cal" type="button"/> 
+                                        </p:column>
+                                        <f:facet name="footer">
+                                            <p:commandButton value="#{lab.L_supprimer}" actionListener="#{managedContratEmploye.deleteBeanJoursOuvreee()}"
+                                                             rendered="#{managedContratEmploye.updateJoursOuvres}" disabled="#{managedContratEmploye.defautCalendar}"/>
+                                        </f:facet>
+                                    </p:dataTable> 
+                                </p:outputPanel>
+                            </p:tab>
+                            <p:tab title="#{lab.LRH_PPT_primes_avantages}" rendered="#{parametrageGRH.positionBaseSalaire==1}">
+                                <div>
+                                    <p:commandButton icon="ui-icon-circle-arrow-s" style="float: left;margin-left: 40% ;width: 22px; height: 22px" title="#{lab.LRH_PC_importer_partir_modele}" 
+                                                     global="false" update="tabPrime-contrat" actionListener="#{managedContratEmploye.importPrimeFromModele()}"/>
+                                    <p:commandButton icon="ui-icon-circle-plus" onclick="prime.show()" style="float: right ;width: 22px; height: 22px" title="#{lab.LRH_PC_ajouter_creer_nouvelle_prime}"
+                                                     type="button"  update=":contrat_body_typeP:input_selectcontrat_type_prime :contrat_body_typeP0:table_contrat_prime"/>                                                                                          
+                                </div>                             
+                                <p:dataTable  value="#{contratEmploye.primes}" var="prime" selectionMode="single"
+                                              rowKey="#{prime.typeElement.id}" id="tabPrime-contrat" 
+                                              selection="#{managedContratEmploye.selectedElt}">                                       
+                                    <p:column headerText="#{lab.L_libelle}" width="200" styleClass="prime_perm_#{prime.permanent} prime_sus_#{(prime.suspendu)}">
+                                        <h:outputText value="#{prime.typeElement.libelle}" style="width: 100%;" styleClass="prime_perm_#{prime.permanent}" 
+                                                      title="#{((prime.suspendu)?lab.LRH_PPT_prime_suspendu:(prime.permanent)?lab.LRH_PPT_prime_periodique:'')}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_code}" width="100" styleClass="prime_perm_#{prime.permanent} prime_sus_#{(prime.suspendu)}">
+                                        <h:outputText value="#{prime.typeElement.codeElement}" style="width: 100%;" styleClass="prime_perm_#{prime.permanent}" 
+                                                      title="#{((prime.suspendu)?lab.LRH_PPT_prime_suspendu:(prime.permanent)?lab.LRH_PPT_prime_periodique:'')}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_montant}" width="90"
+                                              styleClass="prime_perm_#{prime.permanent} prime_sus_#{(prime.suspendu)}">
+                                        <h:outputText value="#{prime.montantElement}" converter="DN" style="width: 100%;" 
+                                                      styleClass="prime_perm_#{prime.permanent}"
+                                                      title="#{((prime.suspendu)?lab.LRH_PPT_prime_suspendu:(prime.permanent)?lab.LRH_PPT_prime_periodique:'')}"/>                                            
+                                    </p:column> 
+                                    <p:column headerText="#{lab.L_debut}" width="90" styleClass="prime_perm_#{prime.permanent} prime_sus_#{(prime.suspendu)}" >
+                                        <h:outputText value="#{prime.dateDebut}" converter="DATE" style="width: 100%;" styleClass="prime_perm_#{prime.permanent}" 
+                                                      title="#{((prime.suspendu)?lab.LRH_PPT_prime_suspendu:(prime.permanent)?lab.LRH_PPT_prime_periodique:'')}"/>                                            
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_fin}"  width="90" styleClass="prime_perm_#{prime.permanent} prime_sus_#{(prime.suspendu)}">
+                                        <h:outputText value="#{prime.dateFin}" converter="DATE" style="width: 100%;"  
+                                                      title="#{((prime.suspendu)?lab.LRH_PPT_prime_suspendu:(prime.permanent)?lab.LRH_PPT_prime_periodique:'')}"/>                                            
+                                    </p:column> 
+                                    <p:column headerText=""  width="15" style="text-align: center" >                                            
+                                        <p:contextMenu for="btn_opt_cntrat" event="left click" style="background: #CCCCCC !important">
+                                            <p:menuitem value="#{lab.L_modifier}" icon="ui-icon-refresh" actionListener="#{managedContratEmploye.openPrimeToUpdate(prime)}"
+                                                        update=":contrat_body_typeP:input_selectcontrat_type_prime :contrat_body_typeP0:table_contrat_prime tabPrime-contrat" />
+                                            <p:menuitem value="#{lab.L_suspendre}" icon="ui-icon-circle-close" actionListener="#{managedContratEmploye.confirmSuspendPrime(prime)}"
+                                                        update=":body_contrat:footer_contrat:tabPrime-contrat" />
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedContratEmploye.openConfirmDelPrime(prime)}" />                                                
+                                        </p:contextMenu>
+                                        <p:commandButton type="button" icon="ui-icon-gear" style="width: 18px; height: 18px" id="btn_opt_cntrat"  rendered="#{!prime.typeElement.retenue}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:tab>
+                        </p:tabView>
+                    </div>
+                </div>
+                <div class="yvs_list_contratEmp" style="background: white">  
+
+                    <p:dataTable value="#{managedContratEmploye.listContrat}" var="cont" rowKey="#{cont.id}" editMode="cell" editable="true"
+                                 selectionMode="single" rowIndexVar="lineContrat" id="form_contrat_00" style="font-size: 0.9em">        
+                        <p:ajax event="rowSelect" listener="#{managedContratEmploye.loadOnView}"
+                                process="@this" 
+                                update=":body_contrat:panel_contrat_donnee_00 :body_contrat:footer_contrat form_contrat_00  :body_contrat:input_hide_contratEmp @this"/>
+                        <p:column width="40" style="text-align: center">
+                            <h:graphicImage library="icones" name="lock.png" width="15" height="15" rendered="#{cont.accesRestreint}" />
+                            <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{cont.id eq contratEmploye.id}"/>
+                            <span class="suspendu_#{cont.contratSuspendu.id>0}">#{lineContrat+1}</span>
+                            <f:facet name="header">
+                                <p:contextMenu event="left click" for="chmp_tab_emp">
+                                    <p:menuitem value="#{lab.LRH_PE_afficher_cahcer}" icon="ui-icon-transfer-e-w" 
+                                                actionListener="#{managedContratEmploye.displayIdTab()}" 
+                                                global="false" update="form_contrat_00"/>
+                                </p:contextMenu>
+                                <h:outputText value="N°" id="chmp_tab_emp" style="cursor: pointer"/>                                
+                            </f:facet>
+                            <h:outputText value="[#{cont.id}]" rendered="#{managedContratEmploye.toogleDisplayId}" />
+                        </p:column>                           
+                        <p:column headerText="#{lab.LRH_PE_matricule}" width="80" style="text-align: center">                            
+                            <h:outputText styleClass="suspendu_#{cont.contratSuspendu.id>0}" value="#{cont.employe.matricule}" title="#{(cont.contratSuspendu.id>0)?lab.LRH_PC_ce_contrat_suspendu:''}"/> 
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PE_employe}" width="200">
+                            <h:outputText styleClass="suspendu_#{cont.contratSuspendu.id>0}" 
+                                          value="#{cont.employe.nom} #{cont.employe.prenom}" title="#{(cont.contratSuspendu.id>0)?lab.LRH_PC_ce_contrat_suspendu:''}"/>
+                        </p:column>                             
+                        <p:column headerText="#{lab.LRH_PC_type_contrat}" width="80">       
+                            <h:outputText styleClass="suspendu_#{cont.contratSuspendu.id>0}" value="#{cont.typeContrat.libelle}" title="#{(cont.contratSuspendu.id>0)?lab.LRH_PC_ce_contrat_suspendu:''}"/> 
+                        </p:column>   
+                        <p:column headerText="#{lab.L_reference}"  width="100">
+                            <h:outputText styleClass="suspendu_#{cont.contratSuspendu.id>0}" value="#{cont.referenceContrat}" title="#{(cont.contratSuspendu.id>0)?lab.LRH_PC_ce_contrat_suspendu:''}"/> 
+                        </p:column>   
+                        <p:column headerText="#{lab.LRH_PC_salaire_mensuel}" width="80" >
+                            <h:outputText styleClass="suspendu_#{cont.contratSuspendu.id>0}" value="#{cont.salaireMensuel}" converter="DN" style="float: right" title="#{(cont.contratSuspendu.id>0)?'ce contrat a été suspendu':''}"/>                                                          
+                        </p:column>                                      
+                        <p:column headerText="#{lab.LRH_PC_structure} " width="120">
+                            <h:outputText styleClass="suspendu_#{cont.contratSuspendu.id>0}" value="#{cont.structureSalaire.nom}" title="#{(cont.contratSuspendu.id>0)?lab.LRH_PC_ce_contrat_suspendu:''}"/>
+                        </p:column>
+                        <p:column headerText="Agence" width="120">
+                            <h:outputText styleClass="suspendu_#{cont.contratSuspendu.id>0}" value="#{cont.employe.agence.designation}" title="#{(cont.contratSuspendu.id>0)?lab.LRH_PC_ce_contrat_suspendu:''}"/>
+                        </p:column>
+                        <p:column headerText="Actif" width="30" style="text-align: center">
+                            <h:outputText value="#{cont.actif?'Oui':'Non'}" title="#{(cont.contratSuspendu.id>0)?lab.LRH_PC_ce_contrat_suspendu:''}"/>
+                        </p:column>
+                        <p:column headerText="Statut" width="50" style="text-align: center">
+                            <h:outputText value="#{cont.statut eq 'C'?'Confirmé':'En attente'}" title="#{(cont.contratSuspendu.id>0)?lab.LRH_PC_ce_contrat_suspendu:''}"/>
+                        </p:column>
+                        <p:column headerText=" " width="30" style="text-align: center">
+                            <f:facet name="header">
+                                <p:contextMenu for="btn_opt_contrat_h" event="left click">
+                                    <p:menuitem disabled="true"  value="#{lab.LRH_PE_ordonner}" icon="ui-icon-triangle-2-n-s" style="font-weight: bold" />
+                                    <p:menuitem title="#{lab.LRH_PE_ordonner_par_matricule}" value="#{lab.LRH_PE_par_matricule}" icon="ui-icon-triangle-1-n" style="font-weight: bold; text-indent: 20px;" actionListener="#{managedContratEmploye.changeOrderList('y.employe.matricule')}"
+                                                update="form_contrat_00"/>
+                                    <p:menuitem title="#{lab.LRH_PE_ordonner_par_nom}" value="#{lab.LRH_PE_par_nom}"  icon="ui-icon-triangle-1-n" style="font-weight: bold; text-indent: 20px;" actionListener="#{managedContratEmploye.changeOrderList('y.employe.nom, y.employe.prenom')}"
+                                                update="form_contrat_00"/>                                    
+                                </p:contextMenu>
+                                <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_opt_contrat_h"/>
+                            </f:facet>
+                            <p:contextMenu for="btn_opt_contrat" event="left click"> 
+                                <p:menuitem value="#{cont.statut eq 'C'?'Mettre en attente':'Confirmer'}" icon="#{cont.statut eq 'C'?'ui-icon-cancel':'ui-icon-check'}" actionListener="#{managedContratEmploye.onChangeStatut(cont, (cont.statut eq 'C'?'W':'C'))}"/>
+                                <p:separator />
+                                <p:menuitem title="#{lab.LRH_PC_aller_fiche_employe}" value="#{lab.LRH_PC_aller_fiche_employe}" icon="ui-icon-arrowthick-1-e" global="false" actionListener="#{managedContratEmploye.onSelectDistantEmploye(cont)}"/>
+                                <p:separator />
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash"/>
+                            </p:contextMenu>
+                            <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_opt_contrat"/>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox value="false" class="chek_all_line_contratEmp" onclick="selectionAllLineTab(#{managedContratEmploye.listContrat.size()}, 'contratEmp')" />
+                            </f:facet>
+                            <h:selectBooleanCheckbox value="false" class="chek_line_contratEmp" onclick="selectionLineTab(#{lineContrat}, 'contratEmp')"/>
+                        </p:column>
+                    </p:dataTable>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <span class="nbSelectemploye" style="font-size: .8em; font-style: italic; color: #828c95"></span>
+                        <p:commandButton actionListener="#{managedContratEmploye.pagineResult(false)}" update=":body_contrat:form_contrat_00" icon="ui-icon-circle-triangle-w" disabled="#{managedContratEmploye.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedContratEmploye.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedContratEmploye.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedContratEmploye.gotoPagePaginator()}" update=":body_contrat:form_contrat_00"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedContratEmploye.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedContratEmploye.pagineResult(true)}" update=":body_contrat:form_contrat_00" icon="ui-icon-circle-triangle-e" disabled="#{managedContratEmploye.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedContratEmploye.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedContratEmploye.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedContratEmploye.paginations}"/>
+                            <p:ajax event="valueChange" update=":body_contrat:form_contrat_00" />
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>
+            </div>                           
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">   
+                <div class="yvs_form_contratEmp display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedContratEmploye.entityContrat.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedContratEmploye.entityContrat.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedContratEmploye.entityContrat.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div> 
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="4" style="float: left;font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.L_agence} " />                        
+                        <h:outputText value="#{lab.LRH_PC_employe} " />
+                        <h:outputText value="Statut " />
+                        <h:outputText value="Actif " />
+                        <h:selectOneMenu value="#{managedContratEmploye.agence_}" valueChangeListener="#{managedContratEmploye.addParamAgence}">
+                            <f:selectItem itemValue="0" itemLabel="#{lab.L_tout}" />
+                            <f:selectItems value="#{managedContratEmploye.currentScte.agences}" var="ag" 
+                                           itemValue="#{ag.id}" itemLabel="#{ag.designation}"/>
+                            <p:ajax event="valueChange"   update=":body_contrat:form_contrat_00" oncomplete="collapseList('contratEmp')" />
+                        </h:selectOneMenu> 
+                        <p:inputText value="#{managedContratEmploye.matriculeEmps}" >
+                            <p:ajax event="valueChange" listener="#{managedContratEmploye.findByEmploye()}" update=":body_contrat:form_contrat_00" process="@this"
+                                    oncomplete="collapseList('contratEmp')"/>
+                        </p:inputText>                                                
+                        <h:selectOneMenu value="#{managedContratEmploye.paramStatut}" valueChangeListener="#{managedContratEmploye.addParamStatut}">
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}" />
+                            <f:selectItem itemValue="#{constantes.ETAT_ATTENTE}" itemLabel="Non confirmé" />
+                            <f:selectItem itemValue="#{constantes.ETAT_CLOTURE}" itemLabel="Confirmé" />
+                            <p:ajax event="valueChange" update=":body_contrat:form_contrat_00" oncomplete="collapseList('contratEmp')" />
+                        </h:selectOneMenu>   
+                        <h:selectOneMenu value="#{managedContratEmploye.paramActif}" >
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}" />
+                            <f:selectItem itemValue="#{true}" itemLabel="#{lab.L_actif}" />
+                            <f:selectItem itemValue="#{false}" itemLabel="#{lab.L_inactif}" />
+                            <p:ajax event="valueChange" listener="#{managedContratEmploye.addParamActif()}"  
+                                    update=":body_contrat:form_contrat_00" oncomplete="collapseList('contratEmp')" />
+                        </h:selectOneMenu>                                              
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.LRH_PC_afficher_employes_sans_contrat}" style="background: none; font-size: 0.8em; float: right;margin-right: 10%" actionListener="#{managedContratEmploye.displayEmpsWithoutContrat()}" 
+                                     update=":form-contratEmps-E01:tabEmployes-contratEmps"/>
+                </h:panelGrid>
+
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

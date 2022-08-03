@@ -1,0 +1,508 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">  
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Gestion des niveaux d\'acces','modDonneBase', 'smenNiveauAcces', true,managedNiveauAcces)}
+    </ui:define>         
+    <ui:define name="contents">
+        <style type="text/css">
+            .part_fix{
+                height: 50px !important;
+                font-size: 0.8em !important;
+            }
+        </style>
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        <h:form prependId="false">
+            <p:confirmDialog showEffect="fade" hideEffect="explode">
+                <p:commandButton value="#{lab.L_oui}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+            </p:confirmDialog> 
+        </h:form>
+        #{managedAgence.loadAgence()}
+        #{managedSociete.loadByGroupe()}   
+        #{managedNiveauAcces.loadAll()}   
+        <h:form prependId="false" id="main-niveau_copy">
+            <p:dialog widgetVar="dlgCopyAccesFromNiveau" width="35%" closeOnEscape="true"  header="Copier les acces d'un autre niveau" modal="true" >
+                <h:panelGrid columns="1" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:outputText value="Choisir le niveau" />
+                    <h:selectOneMenu value="#{managedNiveauAcces.niveauCopy}" style="width: 100%" id="select-niveau_copy">
+                        <f:selectItem itemValue="0" itemLabel=""  />
+                        <f:selectItems value="#{managedNiveauAcces.listNiveauAcces}" var="niv" itemValue="#{niv.id}" itemLabel="#{niv.designation}" 
+                                       noSelectionValue="#{niv.id gt selectedNiveau.id}"/>
+                    </h:selectOneMenu>
+                </h:panelGrid>
+                <f:facet name="footer">
+                    <p:commandButton icon='ui-icon-copy' value="Copier" style="float: right" oncomplete="dlgCopyAccesFromNiveau.hide()"
+                                     actionListener="#{managedNiveauAcces.copyAccesFromNiveau()}"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="fzone_edit_ppte_res">
+            <p:dialog widgetVar="dlgPpteRessource" width="35%" closeOnEscape="true" 
+                      header="Propriété de la ressource" modal="true" >
+                <p:outputPanel id="zone_edit_ppte_res" >
+                    <h:panelGrid columns="4" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <h:outputText value="Identifiant" />
+                        <h:inputText value="#{managedNiveauAcces.ressourcePage.id}" readonly="true"
+                                     style="width: 50px"/>
+                        <h:outputText value="Référence" />
+                        <h:inputText value="#{managedNiveauAcces.ressourcePage.reference}" readonly="true"/>
+                        <h:outputText value="Groupe" />
+                        <h:selectOneMenu value="#{managedNiveauAcces.ressourcePage.groupe.id}" 
+                                         style="width: 100px">
+                            <f:selectItem itemValue="#{null}" itemLabel=""  />
+                            <f:selectItems value="#{managedNiveauAcces.groupes}" var="grpa" itemValue="#{grpa.id}"
+                                           itemLabel="#{grpa.designation}"  />
+                        </h:selectOneMenu>
+                        <h:inputHidden value="1" />
+                    </h:panelGrid>
+                    <h:inputTextarea value="#{managedNiveauAcces.ressourcePage.description}"  style="width: 100%" rows="3"/>
+                </p:outputPanel>
+                <f:facet name="footer">
+                    <p:commandButton value="#{lab.LDB_PNA_appliquer}" style="float: right" 
+                                     actionListener="#{managedNiveauAcces.applyPpteResource()}"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddUsers" width="35%" closeOnEscape="true" header="Attribuer à un utilisateur" modal="true" >
+                <h:panelGrid columns="1" cellpadding="0" cellspacing="0">
+                    <h:outputText value="#{lab.LDB_PD_agence}" />
+                    <h:selectOneMenu value="#{managedNiveauAcces.agenceNiveau}" style="min-width: 120px">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedAgence.agences}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedNiveauAcces.loadUsers()}"/>
+                    </h:selectOneMenu>
+                </h:panelGrid>
+                <p:dataTable value="#{managedNiveauAcces.usersList}" var="usrb" rowKey="#{usr.id}" rowIndexVar="nivIdx" id="data_add_users_niveau"
+                             paginator="true" paginatorAlwaysVisible="false" rows="20">  
+                    <p:column headerText="#{lab.LDB_PU_civilite}" width="30">
+                        <h:outputText value="#{usrb.civilite}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PU_code}">
+                        <h:outputText value="#{usrb.codeUsers}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PU_nom}">
+                        <h:outputText value="#{usrb.nomUsers}"/>
+                    </p:column>
+                    <p:column width="20" style="text-align: center">                       
+                        <p:commandButton icon="ui-icon-plus" style="width: 22px; height: 22px" title="Attribuer"
+                                         actionListener="#{managedNiveauAcces.addUsers(usrb)}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgListNiveauAcces" width="60%" closeOnEscape="true" modal="true">
+                <f:facet name="header" >
+                    <h:outputText value="Liste des niveaux d'accès :" />
+                    <p:outputPanel autoUpdate="true" style="color: blue">#{managedNiveauAcces.acces.reference}</p:outputPanel>
+                </f:facet>
+                <p:dataTable id="table-select_niveau_acces" value="#{managedNiveauAcces.listNiveauAcces}" var="nive" rowKey="#{nive.id}"
+                             selection="#{managedNiveauAcces.listSelectNiveauAcces}" style="max-height: 100%; overflow-y: auto">
+                    <p:column headerText="#{lab.LDB_PNA_designation}" styleClass="#{nive.exist?'line_actiftrue':'_'}">
+                        <p:outputLabel value="#{nive.designation}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PNA_description}">
+                        <p:outputLabel value="#{nive.description}"/>
+                    </p:column>                            
+                    <p:column headerText="#{lab.LDB_PNA_grade}" width="50" style="text-align: center">
+                        <p:outputLabel value="#{nive.grade.reference}" title="#{nive.grade.libelle}"/>
+                    </p:column>
+                    <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                </p:dataTable>
+                <f:facet name="footer">
+                    <p:commandButton value="#{lab.LDB_PNA_appliquer}" style="float: right" actionListener="#{managedNiveauAcces.copyAcces()}"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_fusionn_niveauDroit">
+            <p:dialog widgetVar="dlgConfirmFusion" header="Fusionner" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_niveauDroit" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LDB_PNA_text1} </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedNiveauAcces.fusionneTo}"/>
+                    <span>#{lab.LDB_PNA_text2}</span>
+                    <c:forEach items="#{managedNiveauAcces.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LDB_PNA_text3}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNiveauAcces.fusionner(false)}" style="float: right"  
+                                 oncomplete="dlgConfirmFusion.hide();collapseForm('niveauDroit')"  update=":form_form_niveauA:table_niveauA"/> 
+            </p:dialog>
+        </h:form> 
+        <h:form prependId="false" id="form_form_niveauA">
+            <p:dialog widgetVar="dlgNiveauAcces" width="60%" height="600" closeOnEscape="true" header="Gérer les niveaux d'accès"
+                      id="form_niveau_acces_00" modal="true">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('niveauDroit');
+                    });
+                </script>
+                <div class="dlg_part_fixe">
+                    <div style="float: left">
+                        <p:splitButton value="#{lab.L_enregistrer}" actionListener="#{managedNiveauAcces.saveNew()}" id="save_niveauDroit" icon="ui-icon-disk" style="font-size: 0.8em">
+                            <p:menuitem value="#{lab.L_nouveau}" actionListener="#{managedNiveauAcces.resetFiche()}" id="cancel_niveauDroit"
+                                        icon="ui-icon-document"/>      
+                        </p:splitButton>
+                        <p:splitButton value="Créer un nouveau" actionListener="#{managedNiveauAcces.resetFiche()}" oncomplete="collapseForm('niveauDroit')"
+                                       id="must_option_niveauDroit" icon="ui-icon-plus" style="font-size: 0.8em">                         
+                            <p:menuitem value="#{lab.L_fusionner}" icon="ui-icon-refresh" actionListener="#{managedNiveauAcces.fusionner(true)}" global="false"
+                                        oncomplete="dlgConfirmFusion.show()" update=":main_fusionn_niveauDroit:blog_fusionner_niveauDroit"/>
+                        </p:splitButton>
+                        <h:panelGroup id="find_niveauDroit" style="float: right">
+                            <p:watermark value="#{lab.LDB_PNA_saisir_designation}" for="txt_numero_search_niveau"/>
+                            <p:watermark value="#{lab.LDB_PNA_saisir_utilisateur}" for="txt_users_search_niveau"/>
+                            <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                                <h:inputText value="#{managedNiveauAcces.numSearch}" id="txt_numero_search_niveau">
+                                    <p:ajax event="valueChange" listener="#{managedNiveauAcces.findByNumero()}"/>
+                                </h:inputText>
+                                <h:inputText value="#{managedNiveauAcces.usersSearch}" id="txt_users_search_niveau">
+                                    <p:ajax event="valueChange" listener="#{managedNiveauAcces.findByUsers()}" />
+                                </h:inputText>
+                            </h:panelGrid>
+                        </h:panelGroup>
+                    </div>
+                    <div style="float: right">                            
+                        <h:link onclick="collapseForm('niveauDroit');
+                                return false" title="#{lab.L_mode_liste}">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>              
+                        <h:link  onclick="collapseList('niveauDroit');
+                                return false" title="#{lab.L_mode_hierrachique}">
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>                           
+                    </div>                        
+                </div>
+                <div class="dlg_part_scroll" style="clear: both">
+                    <div class="yvs_form_niveauDroit">
+                        <h:panelGrid id="body_dlg_niveau_acces" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <span>#{lab.LDB_PNA_designation}</span>
+                            <h:inputText value="#{niveauAcces.designation}" style="width: 98%"/>
+                            <span>#{lab.LDB_PNA_grade}</span>
+                            <h:selectOneMenu value="#{niveauAcces.grade}" style="width: 98%">
+                                <f:selectItem itemLabel="" itemValue="0"/>
+                                <f:selectItems value="#{managedNiveauAcces.grades}" var="grd" itemLabel="[#{grd.reference}] #{grd.libelle}" itemValue="#{grd.id}"/>
+                            </h:selectOneMenu>
+                            <span>#{lab.LDB_PNA_description}</span>
+                            <p:inputTextarea value="#{niveauAcces.description}" rows="3" style="width: 98%"/>
+                            <span>#{lab.LDB_PNA_faire_heriter_droit_niveau} </span>
+                            <h:selectOneMenu value="#{managedNiveauAcces.parent.id}" disabled="#{niveauAcces.id gt 0}" style="min-width: 120px">
+                                <f:selectItem itemLabel="" itemValue="0"/>
+                                <f:selectItems value="#{managedNiveauAcces.listNiveauAcces}" var="nivp" itemLabel="#{nivp.designation}" itemValue="#{nivp.id}"/>
+                            </h:selectOneMenu>
+                            <f:facet name="footer">
+                                <p:commandButton icon="ui-icon-plus" value="Ajouter" style="float: left;background: white!important" id="data_users_niveau"
+                                                 actionListener="#{managedNiveauAcces.loadUsers()}" oncomplete="dlgAddUsers.show()"/>
+                                <p:dataTable value="#{niveauAcces.usersList}" var="usr" rowKey="#{usr.id}" rowIndexVar="nivIdx">     
+                                    <f:facet name="header">
+                                        <div style="padding: 5px;font-weight: bold">
+                                            Utilisateur(s) ayant le niveau
+                                        </div>
+                                    </f:facet>
+                                    <p:column headerText="#{lab.LDB_PU_civilite}" width="30">
+                                        <h:outputText value="#{usr.civilite}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PU_code}">
+                                        <h:outputText value="#{usr.codeUsers}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PU_nom}">
+                                        <h:outputText value="#{usr.nomUsers}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PU_agence}" width="100">
+                                        <h:outputText value="#{usr.agence.designation}"/>
+                                    </p:column>
+                                    <p:column headerText="M.A" width="20" style="text-align: center">
+                                        <h:graphicImage library="img" name="#{(usr.accesMultiAgence)?'vu.png':'erase-128.png'}" width="10" height="10"/>
+                                    </p:column>
+                                    <p:column headerText="M.S" width="20" style="text-align: center">
+                                        <h:graphicImage library="img" name="#{(usr.accesMultiSociete)?'vu.png':'erase-128.png'}" width="10" height="10"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </f:facet>
+                        </h:panelGrid>
+                    </div>
+                    <div class="yvs_list_niveauDroit">
+                        <h:inputHidden id="input_hide_niveauDroit" value="#{managedNiveauAcces.tabIds}"/>
+                        <p:dataTable value="#{managedNiveauAcces.listNiveauAcces}" var="nive" rowKey="#{nive.id}" selection="#{managedNiveauAcces.selectedNiveau}"
+                                     selectionMode="single" id="table_niveauA" style="max-height: 100%; overflow-y: auto" rowIndexVar="nivIdx">
+                            <p:ajax event="rowSelect" listener="#{managedNiveauAcces.loadOnView}" oncomplete="collapseForm('niveauDroit')" />
+                            <p:column headerText="#{lab.LDB_PNA_designation}" >
+                                <p:outputLabel value="#{nive.designation}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PNA_description}">
+                                <p:outputLabel value="#{nive.description}"/>
+                            </p:column>                            
+                            <p:column headerText="#{lab.LDB_PNA_grade}" width="50" style="text-align: center">
+                                <p:outputLabel value="#{nive.grade.reference}" title="#{nive.grade.libelle}"/>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:contextMenu for="btn_option_niveauDroi" event="left click" style="font-size: 0.8em;width: 220px">
+                                    <p:menuitem value="Copier les accès" icon="ui-icon-copy" actionListener="#{managedNiveauAcces.setSelectedNiveau(nive)}" 
+                                                update=":main-niveau_copy:select-niveau_copy" oncomplete="dlgCopyAccesFromNiveau.show()"/>
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedNiveauAcces.deleteBean(nive)}" update=":form_form_niveauA:table_niveauA"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_niveauDroi" type="button"/>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_niveauDroit" value="false"
+                                                             onclick="selectionAllLineTab(#{managedNiveauAcces.listNiveauAcces.size()}, 'niveauDroit')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="true" styleClass="chek_line_niveauDroit" 
+                                                          onclick="selectionLineTab(#{nivIdx}, 'niveauDroit')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:commandButton icon="ui-icon-arrowthick-1-s" style="width: 22px; height: 22px" title="Charger les droits correspondants sur la vue"
+                                                 actionListener="#{managedNiveauAcces.chooseOneNiveauAcces(nive)}" rendered="#{managedNiveauAcces.vueListeNiveau}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>                                       
+                <p:outputPanel autoUpdate="true">                    
+                    <div class="yvs_form_niveauDroit" align="right" style="color: #666; font-size: 0.7em; font-style: italic">
+                        <span style="float: left">Enregistré Le <h:outputText value="#{managedNiveauAcces.selectedNiveau.dateSave}" converter="LD" style="font-weight: bold"/></span>
+                        <span>#{lab.L_modifier_le}<h:outputText value="#{managedNiveauAcces.selectedNiveau.dateUpdate}" converter="LD" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedNiveauAcces.selectedNiveau.author.users.nomUsers}" style="font-weight: bold"/></span>
+                    </div>
+                </p:outputPanel>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgModule" width="40%"  closeOnEscape="true" id="dlg_niveau_module"
+                      dynamic="true" resizable="false" modal="true" header="Creation des modules">
+                <p:ajax event="close" listener="#{managedNiveauAcces.closeDlgModule()}" global="false"/>
+                <p:panelGrid columns="2" style="width: 100%" >
+                    <h:outputText value="#{lab.LDB_PNA_designation} : "/>
+                    <p:inputText value="#{managedNiveauAcces.module.libelle}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="#{lab.LDB_PNA_reference} "/>
+                    <p:inputText value="#{managedNiveauAcces.module.reference}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="#{lab.LDB_PNA_description}"/>
+                    <p:inputTextarea value="#{managedNiveauAcces.module.description}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputTextarea>
+                </p:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" style="width: 100%" oncomplete="dlgModule.hide()" 
+                                 actionListener="#{managedNiveauAcces.saveNewModule()}"/>
+                <f:facet name="footer">
+                    @Lymytz
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgPage" width="50%" closeOnEscape="true" id="dlg_niveau_page"
+                      dynamic="true" resizable="false" modal="true" header="Creation des pages">
+                <p:ajax event="close" listener="#{managedNiveauAcces.closeDlgPage()}" global="false"/>
+                <p:panelGrid columns="2" style="width: 100%">
+                    <h:outputText value="#{lab.LDB_PNA_designation} : "/>
+                    <p:inputText value="#{managedNiveauAcces.pageModule.libelle}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="#{labLDB_PNA_reference} : "/>
+                    <p:inputText value="#{managedNiveauAcces.pageModule.reference}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="#{lab.LDB_PNA_description} : "/>
+                    <p:inputTextarea value="#{managedNiveauAcces.pageModule.description}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputTextarea>
+                </p:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" style="float: right" oncomplete="dlgPage.hide()"
+                                 actionListener="#{managedNiveauAcces.saveNewPage()}"/>
+                <f:facet name="footer">
+                    @Lymytz
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgRessource" width="40%"  closeOnEscape="true" id="dlg_niveau_ressource"
+                      dynamic="true" resizable="false" modal="true" header="Creation des Ressources">
+                <p:ajax event="close" listener="#{managedNiveauAcces.closeDlgRessource()}" global="false"/>
+                <p:panelGrid columns="2" style="width: 100%">
+                    <h:outputText value="#{lab.LDB_PNA_designation} : "/>
+                    <p:inputText value="#{managedNiveauAcces.ressourcePage.libelle}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="#{lab.labLDB_PNA_reference} : "/>
+                    <p:inputText value="#{managedNiveauAcces.ressourcePage.reference}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="#{lab.LDB_PNA_description} : "/>
+                    <p:inputTextarea value="#{managedNiveauAcces.ressourcePage.description}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputTextarea>
+                </p:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" style="width: 100%" oncomplete="dlgRessource.hide()"  
+                                 actionListener="#{managedNiveauAcces.saveNewRessource()}"/>
+                <f:facet name="footer">
+                    @Lymytz
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="body_niveau_00">
+            <div class="part_fix">
+                <h:panelGrid columns="4">
+                    <p:outputLabel value="#{lab.LDB_PNA_societe}"/>
+                    <p:outputLabel value="#{lab.LDB_PNA_users}"/>
+                    <p:outputLabel value="#{lab.LDB_PNA_niveau}"/>
+                    <p:outputLabel value=""/>
+                    <h:selectOneMenu value="#{managedNiveauAcces.societe}" 
+                                     valueChangeListener="#{managedNiveauAcces.chooseSocietes}" style="min-width: 120px">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedSociete.listSociete}" var="ste" 
+                                       itemValue="#{ste.id}" itemLabel="#{ste.codeAbreviation}"/>
+                        <p:ajax event="valueChange"  process="@this" update="select_niveau_acces_niv"/>
+                    </h:selectOneMenu>
+                    <h:inputText value="#{managedNiveauAcces.oneSearch}">
+                        <p:ajax event="valueChange" listener="#{managedNiveauAcces.selectOneByUsers()}"/>
+                    </h:inputText>
+                    <h:selectOneMenu id="select_niveau_acces_niv" value="#{managedNiveauAcces.niveau.id}" valueChangeListener="#{managedNiveauAcces.chooseNiveauAcces}">
+                        <f:selectItem itemValue="0" itemLabel=""/>
+                        <f:selectItems value="#{managedNiveauAcces.listNiveauAcces}" var="niv" itemValue="#{niv.id}" itemLabel="#{niv.designation}"/>
+                        <f:selectItem itemValue="0" itemLabel=""/>
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"/>
+                        <p:ajax event="valueChange"  process="@this" update="@this"/>
+                    </h:selectOneMenu>
+                    <p:commandButton icon="ui-icon-gear" type="button" style="width: 20px; height: 20px;"  id="btn-refresh-rights"/>
+                    <p:contextMenu event="left click" for="btn-refresh-rights" >
+                        <p:menuitem value="#{lab.L_actualiser}" icon="ui-icon-refresh" actionListener="#{managedNiveauAcces.actualiseAcces()}" title="#{lab.LDB_PNA_actualiser_liste_acces}" />
+                        <p:menuitem value="#{lab.LDB_PNA_effacer_doublons}" icon="ui-icon-close"  actionListener="#{managedNiveauAcces.maintenance()}" title="#{lab.LDB_PNA_effacer_doublons}"/>
+                    </p:contextMenu>
+                </h:panelGrid>
+            </div>
+            <div class="part_scroll">
+                <p:dataGrid id="body_niveau_01" value="#{managedNiveauAcces.autorisations}" var="acc" rows="30" columns="3" style="width: 99%;" paginator="true" paginatorAlwaysVisible="false"
+                            paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" rowsPerPageTemplate="15,30,45,60,75,90">
+                    <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%" title="#{acc.description}">
+                        <f:facet name="header">
+                            <div align="left" style="width: 100%">
+                                <p:commandLink actionListener="#{managedNiveauAcces.findByClick(acc)}" style="float: left;margin-left: 5px;margin-top: 3px">
+                                    <span style="font-size: 1.1em" title="#{acc.designation}">#{managedNiveauAcces.resumeText(acc.designation, 30)}</span>
+                                </p:commandLink>
+                                <h:panelGroup style="float: right;font-weight: normal;padding: 5px">
+                                    (<h:outputText value="#{acc.reference}" style="font-weight: bold"/>)
+                                </h:panelGroup>
+                            </div>
+                        </f:facet>
+                        <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                            <span>Type :</span>
+                            <h:outputText value="#{acc.code eq 'M'?'Module':acc.code eq 'P'?'Page':'Ressource'}" style="font-style: italic"/>
+                        </h:panelGrid>
+                        <h:panelGroup style="float: right">
+                            <p:commandLink actionListener="#{managedNiveauAcces.checkAutorisation(acc, true)}" style="margin-right: 5px;margin-top: 5px" update="body_niveau_01">
+                                <h:graphicImage library="img" name="#{(acc.acces)?'switch_on.png':'switch_off.png'}" width="32" height="22"/>
+                            </p:commandLink>
+                            <h:panelGroup style="float: right;margin-top: 2px">
+                                <p:contextMenu for="btn_option_droit_res"  event="left click" style="width: 250px">
+                                    <p:menuitem value="Activer toutes les #{acc.code eq 'M'?'pages':'ressources'}" icon="ui-icon-check" update="body_niveau_01"
+                                                actionListener="#{managedNiveauAcces.checkAllAutorisation(acc, true)}" rendered="#{acc.code ne 'R'}"/>
+                                    <p:menuitem value="Désactiver toutes les #{acc.code eq 'M'?'pages':'ressources'}" icon="ui-icon-closethick" update="body_niveau_01"
+                                                actionListener="#{managedNiveauAcces.checkAllAutorisation(acc, false)}" rendered="#{acc.code ne 'R'}"/>
+                                    <p:menuitem value="Activer toutes les ressources" icon="ui-icon-check" update="body_niveau_01"
+                                                actionListener="#{managedNiveauAcces.checkAllRessourceModule(acc, true)}" rendered="#{acc.code eq 'M'}"/>
+                                    <p:menuitem value="Désactiver toutes les ressources" icon="ui-icon-closethick" update="body_niveau_01"
+                                                actionListener="#{managedNiveauAcces.checkAllRessourceModule(acc, false)}" rendered="#{acc.code eq 'M'}"/>
+                                    <p:menuitem value="Attribuer à d'autres niveaux" icon="ui-icon-note" actionListener="#{managedNiveauAcces.buildForCopyAcces(acc)}"
+                                                oncomplete="dlgListNiveauAcces.show()"/>
+                                    <p:separator />
+                                    <p:menuitem value="Propriétés #{acc.code}" icon="ui-icon-note" actionListener="#{managedNiveauAcces.loadPpteRessource(acc)}"
+                                                oncomplete="dlgPpteRessource.show()" rendered="#{acc.code eq 'R'}"
+                                                update=":fzone_edit_ppte_res:zone_edit_ppte_res"/>
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" type="button" style="width: 18px; height: 18px; background: #FFF !important" id="btn_option_droit_res"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                        <f:facet name="footer">
+                            <div align="right" style="width: 100%">
+                                <h:panelGroup style="float: left;font-size: 0.7em;font-style: italic">
+                                    <span>Modifier le <h:outputText value="#{acc.dateUpdate}" converter="DATET" style="font-weight: bold;color:blue"/> Par <span style="font-weight: bold;color:blue">#{acc.author.users.nomUsers}</span></span>
+                                </h:panelGroup>
+                                <h:panelGroup style="float: right;font-weight: normal" rendered="#{acc.code ne 'M'}">
+                                    <h:outputText value="#{acc.code eq 'P'?'Module ':'Page '} :"/>
+                                    <p:commandLink actionListener="#{managedNiveauAcces.findByClick(acc.code eq 'P'? acc.module : acc.page)}">
+                                        <h:outputText value="#{acc.code eq 'P'? acc.module.designation: acc.page.designation}" style="font-style: italic"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>
+                </p:dataGrid>
+            </div>
+        </h:form> 
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20" styleClass="img_slide" title="cacher"/>  
+            <div class="zone_find">
+                <h:panelGrid id="zone_find-niveau_acces" columns="6" style="font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:outputText value="#{lab.LDB_PNA_type}" />
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LDB_PNA_module}" />
+                        <h:selectBooleanCheckbox value="#{managedNiveauAcces.onlyModuleNiveau}" style="float: right">
+                            <p:ajax event="valueChange" listener="#{managedNiveauAcces.filterByType()}"/>
+                        </h:selectBooleanCheckbox>
+                    </h:panelGroup>
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LDB_PNA_page}" />
+                        <h:selectBooleanCheckbox value="#{managedNiveauAcces.onlyPageNiveau}" style="float: right">
+                            <p:ajax event="valueChange" listener="#{managedNiveauAcces.filterByType()}"/>
+                        </h:selectBooleanCheckbox>
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.LDB_PNA_reference}" />
+                    <h:outputText value="#{lab.LDB_PNA_acces}" />
+                    <h:outputText value="" />
+                    <h:selectOneMenu value="#{managedNiveauAcces.typeSearch}" style="min-width: 120px">
+                        <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}"/>
+                        <f:selectItem itemValue="M" itemLabel="#{lab.LDB_PNA_module}"/>
+                        <f:selectItem itemValue="P" itemLabel="#{lab.LDB_PNA_page}"/>
+                        <f:selectItem itemValue="R" itemLabel="#{lab.LDB_PNA_ressource}"/>
+                        <p:ajax event="valueChange" listener="#{managedNiveauAcces.filterByType()}"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedNiveauAcces.moduleSearch}" style="min-width: 120px">
+                        <f:selectItem itemValue="0" itemLabel=""/>
+                        <f:selectItems value="#{managedNiveauAcces.listModules}" var="mds" itemValue="#{mds.id}" itemLabel="#{mds.libelle}"/>
+                        <p:ajax event="valueChange" listener="#{managedNiveauAcces.filtreByModule()}" update="value-page_search_acces"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedNiveauAcces.pageSearch}" style="min-width: 120px" id="value-page_search_acces">
+                        <f:selectItem itemValue="0" itemLabel=""/>
+                        <f:selectItems value="#{managedNiveauAcces.listPages}" var="pgs" itemValue="#{pgs.id}" itemLabel="#{pgs.libelle}"/>
+                        <p:ajax event="valueChange" listener="#{managedNiveauAcces.filtreByPage()}"/>
+                    </h:selectOneMenu>
+                    <h:inputText value="#{managedNiveauAcces.codeSearch}">
+                        <p:ajax event="valueChange" listener="#{managedNiveauAcces.findAcces()}"  />
+                    </h:inputText>
+                    <h:selectOneMenu value="#{managedNiveauAcces.accesSearch}" style="min-width: 120px">
+                        <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}"/>
+                        <f:selectItem itemValue="#{true}" itemLabel="#{lab.L_oui}"/>
+                        <f:selectItem itemValue="#{false}" itemLabel="#{lab.L_non}"/>
+                        <p:ajax event="valueChange" listener="#{managedNiveauAcces.filterByAcces()}"/>
+                    </h:selectOneMenu>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

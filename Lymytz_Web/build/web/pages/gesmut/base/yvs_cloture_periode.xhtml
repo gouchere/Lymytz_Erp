@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Cloture Periodes', 'modMutuelle', 'smenCloturePeriode', true,managedPeriodes)}
+    </ui:define>   
+    <ui:define name="contents"> 
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('periode');
+            });
+        </script> 
+        #{managedExercice.loadAllExrecice()}     
+        #{managedPeriodes.loadAll()}     
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text3}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedPeriodes.deleteBean()}" oncomplete="dlgConfirmDelete.hide(); afterDeleteExercice()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+
+        <h:form prependId="false" id="main_periode">    
+
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_cloturer}" id="save_periode" actionListener="#{managedPeriodes.saveNew()}"
+                               disabled="#{managedPeriodes.periodeSelect.cloture}" icon="ui-icon-disk">
+                <p:menuitem value="#{lab.L_nouveau}" id="cancel_periode" global="false" icon="ui-icon-document" actionListener="#{managedPeriodes.resetFiche()}" update="blog_form_periode"/>
+                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" onclick="dlgConfirmDelete.show()" />
+                </p:splitButton>
+                <h:panelGroup style="margin-left: 35%">
+                    <span>#{lab.L_periode} : </span>
+                    <h:outputText id="txt_reference_periode" value="#{managedPeriodes.periodeSelect.referencePeriode.toUpperCase()}" style="font-weight: bold"/>
+                </h:panelGroup>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('periode');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('periode');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_periode">
+                    <p:outputPanel id="blog_form_periode" style="width: 99%; margin: auto; background: white">
+                        <div align="right">
+                            <span>#{lab.LM_PCP_montant_ttal_epargne_periode} </span>
+                            <h:outputText value="#{managedPeriodes.periodeSelect.epargneTotal}" converter="DNA" style="font-weight: bold"/>
+                            <span> Fcfa </span>
+                        </div>
+                        <div align="right">
+                            <span>#{lab.LM_PCP_montant_disponible_caisse} </span>
+                            <h:outputText value="#{managedPeriodes.soldeCaissePeriode}" converter="DNA" style="font-weight: bold"/>
+                            Fcfa
+                        </div>
+                        <p:tabView id="tab_periode">
+                            <p:tab title="#{lab.LM_PCP_interets}">
+                                <p:dataTable id="data_interet_periode" value="#{managedPeriodes.interets}" var="ints" rowKey="#{ints.id}" rowIndexVar="xIdx" style="margin-top: -18px">                                   
+                                    <p:column headerText="N°" width="15" style="text-align: center">
+                                        <span>#{xIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LRH_PF_matricule}" width="100" styleClass="#{prim.id gt 0?'line_actiftrue':'_'}">
+                                        <span>#{ints.mutualiste.employe.matricule}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PM_mutualiste}" width="400">
+                                        <span>#{ints.mutualiste.employe.nom} #{ints.mutualiste.employe.prenom}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PM_epargne}" width="150" style="text-align: right; font-weight: bold">
+                                        <h:outputText value="#{ints.mutualiste.montantTotalEpargne}" converter="DN"/>
+                                    </p:column>                                    
+                                    <p:column headerText="#{lab.L_taux}" width="100" style="text-align: right;font-weight: bold">
+                                        <h:outputText value="#{ints.taux}" converter="DNS"/>%
+                                    </p:column>                                    
+                                    <p:column headerText="#{lab.LM_PPG_interet}" width="100" style="text-align: right;font-weight: bold">
+                                        <h:outputText value="#{ints.montant}" converter="DNS"/>
+                                    </p:column>                                    
+                                    <p:column style="text-align: center" width="20">
+                                        <p:commandButton icon="ui-icon-circle-check" actionListener="#{managedPeriodes.saveInteret(ints)}"
+                                                         disabled="#{managedPeriodes.periodeSelect.cloture}" style="width: 90%;height: 90%"/>
+                                    </p:column>
+                                </p:dataTable>
+                                <div style="clear: both"/>
+                            </p:tab>
+                            <p:tab title="#{lab.LM_PCP_primes}">
+                                <p:dataTable id="data_prime_periode" value="#{managedPeriodes.primes}" var="prim" rowKey="#{prim.id}" rowIndexVar="pIdx" style="margin-top: -18px">                                    
+                                    <p:column width="20" style="text-align: center">
+                                        <p:rowToggler/>
+                                    </p:column>
+                                    <p:column width="20" headerText="N°" style="text-align: center">
+                                        <span>#{pIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LRH_PF_matricule}" width="100" styleClass="#{prim.id gt 0?'line_actiftrue':'_'}">
+                                        <span>#{prim.mutualiste.employe.matricule}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PM_mutualiste}" width="400">
+                                        <span>#{prim.mutualiste.employe.nom} #{prim.mutualiste.employe.prenom}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LRH_PF_poste}" width="150">
+                                        <span>#{prim.poste.designation}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_montant}" width="100" style="text-align: right; font-weight: bold">
+                                        <h:outputText value="#{prim.montant}" converter="DN" style="text-align: right"/>
+                                    </p:column>                                   
+                                    <p:column style="text-align: center" width="40">
+                                        <p:commandButton icon="ui-icon-circle-check"  actionListener="#{managedPeriodes.savePrime(prim)}"
+                                                         disabled="#{managedPeriodes.periodeSelect.cloture}" style="width: 90%;height: 90%"/>
+                                    </p:column>
+                                    <p:rowExpansion>
+                                        <p:dataTable id="data_sous_prime" value="#{prim.reglements}" var="reg" rowKey="#{reg.id}" rowIndexVar="sIdx">
+                                            <p:column width="20" headerText="N°" style="text-align: center">
+                                                <span>#{sIdx+1}</span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.LM_PPG_prime}" styleClass="#{reg.id gt 0?'line_actiftrue':'_'}">
+                                                <span>#{reg.prime.type.designation}</span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_montant}" width="100" style="text-align: right; font-weight: bold">
+                                                <h:outputText value="#{reg.montant}" converter="DN" style="text-align: right"/>
+                                            </p:column>                                   
+                                            <p:column style="text-align: center" width="20">
+                                                <p:commandButton icon="ui-icon-circle-check" actionListener="#{managedPeriodes.saveSousPrime(prim, reg)}"
+                                                                 disabled="#{managedPeriodes.periodeSelect.cloture}" style="width: 90%;height: 90%"/>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </p:rowExpansion>
+                                </p:dataTable>  
+                                <div style="clear: both"/>
+                            </p:tab>
+                        </p:tabView>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_periode" style="width: 99%; margin: auto; background: white">
+                    <p:dataTable id="data_periode" value="#{managedPeriodes.periodes}" var="per" rowKey="#{per.id}" rowIndexVar="pIdx" selectionMode="single">
+                        <p:ajax event="rowSelect" listener="#{managedPeriodes.loadOnView}"  oncomplete="collapseForm('periode')" update=":main_periode:blog_form_periode"/>
+                        <p:ajax event="rowUnselect" listener="#{managedPeriodes.unLoadOnView}"  oncomplete="collapseForm('periode')" update=":main_periode:blog_form_periode"/>
+                        <p:column width="40" headerText="N°" style="text-align: center">
+                            <span>#{pIdx+1}</span>
+                            <h:graphicImage library="icones" name="lock.png" width="15" height="15" rendered="#{per.cloture}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_reference}" style="text-align: left">
+                            <span>#{per.referencePeriode}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date_debut}" style="text-align: center">
+                            <h:outputText value="#{per.dateDebut}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date_fin}" style="text-align: center">
+                            <h:outputText value="#{per.dateFin}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PTBC_exercice}" style="text-align: center">
+                            <span>#{per.exercice.reference}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LM_PCP_debut_exerice}" style="text-align: center">
+                            <h:outputText value="#{per.exercice.dateDebut}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LM_PCP_fin_exerice}" style="text-align: center">
+                            <h:outputText value="#{per.exercice.dateFin}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" width="30" style="text-align: center">
+                            <h:graphicImage library="img"  name="#{(per.actif)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                        </p:column>
+                    </p:dataTable>                                                  
+                </div> 
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+                $(document).ready(function() {
+            slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" id="main_search_periode">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20" styleClass="img_slide" title="cacher"/>                    
+            <div class="zone_find">      
+                <div class="display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedPeriodes.periodeSelect.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedPeriodes.periodeSelect.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedPeriodes.periodeSelect.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>                                                        
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="3" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.LC_PTBC_exercice}" />
+                        <h:outputText value="#{lab.L_cloturer}" />                
+                        <h:outputText value="#{lab.L_actif}" />
+                        <h:selectOneMenu value="#{managedPeriodes.exerciceSearch}" style="min-width: 120px">
+                            <f:selectItem itemValue="0" itemLabel="--" /> 
+                            <f:selectItems value="#{managedExercice.exercices}" var="exo" itemValue="#{exo.id}" itemLabel="#{exo.reference}"/>  
+                            <p:ajax event="valueChange" listener="#{managedPeriodes.addParamExercice()}" update=":main_periode:data_periode" oncomplete="collapseList('periode')" />
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedPeriodes.cloturerSearch}" style="min-width: 80px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" listener="#{managedPeriodes.addParamCloturer()}" update=":main_periode:data_periode" oncomplete="collapseList('periode')"/>
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedPeriodes.actifSearch}" style="min-width: 80px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" listener="#{managedPeriodes.addParamActif()}" update=":main_periode:data_periode" oncomplete="collapseList('periode')"/>
+                        </h:selectOneMenu> 
+                    </h:panelGrid>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

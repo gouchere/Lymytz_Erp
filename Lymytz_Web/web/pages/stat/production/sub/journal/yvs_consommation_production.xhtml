@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide">
+        <span class="block_slide_title">
+            <span class="slide_title" group="PRODUCTION">#{lab.LS_PJP_consommation_production}</span>    
+            <h:panelGrid columns="2" style="float: right" cellpadding="0" cellspacing="0">
+
+            </h:panelGrid>
+        </span> 
+        <div class="zone_slide">
+            <p:dataTable id="data_prod_conso" value="#{managedBordStatistique.prodConso.lignes}" var="mp" rowIndexVar="i_mp"
+                         style="width: 100%;overflow-x: auto">
+                <p:columnGroup type="header">
+                    <p:row>
+                        <p:column headerText="#{lab.LP_PTB_matieres}" rowspan="2" style="width: 15%"/>
+                        <p:column headerText="#{lab.L_prix.toUpperCase()}" rowspan="2" style="width: 15%"/>
+                        <c:forEach items="#{managedBordStatistique.prodConso.colonnes}" var="recap">
+                            <p:column colspan="2">
+                                <f:facet name="header">
+                                    <h:outputText value="#{recap.valeur}" style="cursor: pointer"/> 
+                                    <h:panelGroup>
+                                        (<h:outputText value="#{recap.quantite}" converter="#{managedBordStatistique.converter}"/>
+                                        <h:outputText value="#{recap.libelle}" style="font-style: italic"/>) 
+                                    </h:panelGroup>
+                                </f:facet>
+                            </p:column>
+                        </c:forEach>
+                        <p:column headerText="#{lab.LP_PTB_totaux}" colspan="2" style="width: 15%"/>
+                    </p:row>
+                    <p:row>
+                        <c:forEach items="#{managedBordStatistique.prodConso.colonnes}" var="recap">
+                            <p:column headerText="#{lab.LC_PTB_quantite}" style="text-align: center"/>
+                            <p:column headerText="#{lab.LC_PTB_valeur}" style="text-align: center"/>
+                        </c:forEach>
+                        <p:column headerText="#{lab.LC_PTB_quantite}" style="text-align: center"/>
+                        <p:column headerText="#{lab.LC_PTB_valeur}" style="text-align: center"/>
+                    </p:row>
+                </p:columnGroup>
+                <p:column styleClass="ui-widget-header" style="width: 15%">
+                    <h:outputText value="#{mp.titre}" title="#{mp.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.prodConso.displayName}"/>
+                    <h:outputText value="#{mp.libelle}" title="#{mp.titre}" style="cursor: pointer" rendered="#{managedBordStatistique.prodConso.displayName}"/> 
+                </p:column>    
+                <p:column styleClass="ui-widget-header" style="width: 15%;text-align: right">
+                    <h:outputText value="#{mp.prix}" style="cursor: pointer" converter="#{managedBordStatistique.converter}"/>
+                </p:column>    
+                <c:forEach items="#{managedBordStatistique.prodConso.colonnes}" var="recap" varStatus="i_recap">
+                    <p:column style="width: 15%;text-align: right">
+                        <h:outputText value="#{managedBordStatistique.prodConso.valeur(i_mp, i_recap.index, 'qte')}" converter="#{managedBordStatistique.converterStock}"/>
+                    </p:column> 
+                    <p:column style="width: 15%;text-align: right">
+                        <h:outputText value="#{managedBordStatistique.prodConso.valeur(i_mp, i_recap.index, 'valeur')}" converter="#{managedBordStatistique.converter}"/>
+                    </p:column> 
+                </c:forEach>   
+                <p:column styleClass="ui-widget-header" style="width: 15%;text-align: right">
+                    <h:outputText value="#{managedBordStatistique.prodConso.sumRow(i_mp, 'qte')}" converter="#{managedBordStatistique.converterStock}"/>
+                </p:column> 
+                <p:column styleClass="ui-widget-header" style="width: 15%;text-align: right">
+                    <h:outputText value="#{managedBordStatistique.prodConso.sumRow(i_mp, 'valeur')}" converter="#{managedBordStatistique.converter}"/>
+                </p:column> 
+                <p:columnGroup type="footer">
+                    <p:row>
+                        <p:column footerText="#{lab.LP_PTB_totaux}" colspan="2"/>
+                        <c:forEach items="#{managedBordStatistique.prodConso.colonnes}" var="recap" varStatus="head">
+                            <p:column style="width: 15%;text-align: right"/>
+                            <p:column style="width: 15%;text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.prodConso.sumColonne(head.index, 'valeur')}" converter="#{managedBordStatistique.converter}"/>  
+                                </f:facet>
+                            </p:column>
+                        </c:forEach>
+                        <p:column style="width: 15%;text-align: right"/>
+                        <p:column style="width: 15%;text-align: right">
+                            <f:facet name="footer">
+                                <h:outputText value="#{managedBordStatistique.prodConso.sum('valeur')}" converter="#{managedBordStatistique.converter}"/>  
+                            </f:facet>
+                        </p:column>
+                    </p:row>
+                </p:columnGroup> 
+            </p:dataTable>
+        </div>
+        <div class="zone_bottom">
+            <h:panelGroup style="float: left;margin-right: 5px">
+                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_prod_conso" type="button"/>
+                <p:contextMenu for="btn_option_prod_conso" event="left click" styleClass="context_menu" style="width: 210px">
+                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadProductionConsommation()}" update="data_prod_conso"/>
+                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" actionListener="#{managedBordStatistique.downloadProductionConsommation()}" global="false" ajax="false"/>       
+                </p:contextMenu>
+                <h:panelGroup>
+                    <h:inputText value="#{managedBordStatistique.prodConso.varSearch}" id="txt_search_prod_conso">
+                        <p:ajax event="valueChange" listener="#{managedBordStatistique.prodConso.filter()}" update="data_prod_conso"/>
+                    </h:inputText>  
+                    <p:watermark for="txt_search_prod_conso" value="#{lab.L_rechercher}" />
+                </h:panelGroup>
+            </h:panelGroup>
+            <h:panelGroup style="float: right;margin-top: 5px">
+                <p:selectBooleanCheckbox value="#{managedBordStatistique.prodConso.displayName}" label="#{lab.LS_PJP_afficher_noms_produits_matieres_premieres}" itemLabel="#{lab.LS_PJP_afficher_noms_mp}">
+                    <p:ajax event="valueChange" global="false" update="data_prod_conso"/>
+                </p:selectBooleanCheckbox>  
+            </h:panelGroup>
+        </div>
+    </div>
+</ui:composition>
+

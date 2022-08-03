@@ -1,0 +1,1164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">    
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets" 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"> 
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Gammes','modProduction', 'smenDtGamme', true)}
+    </ui:define>  
+    <ui:define name="contents">
+        #{managedGamme.loadAll()}
+        #{managedUniteMesure.loadAll(constantes.UNITE_TEMPS)}
+        #{managedSiteProduction.loadAll()} 
+        #{Marticle.doNothing()}
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 120);
+                collapseForm('gamme');
+                slideZoneUp();
+            });
+            function slideZoneUp() {
+                $('.zone_editPC').slideUp();
+            }
+            function slideZoneDown() {
+                $('.zone_editPC').slideDown();
+            }
+            function slideZone() {
+                $('.zone_editPC').slideToggle("fast", function() {
+                    //legend.children("span").html(value);
+                });
+            }
+        </script>
+
+        <h:form prependId="false" id="main_fusion_gamme">
+            <p:dialog widgetVar="dlgConfirmFusion" header="Fusionner" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_gamme" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>Voulez-vous fusionner la gamme : </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedGamme.fusionneTo}"/>
+                    <span>avec le(s) gamme(s) :</span>
+                    <c:forEach items="#{managedGamme.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>Cette opération est irreversible</span>
+                </h:panelGrid>
+                <p:commandButton value="OUI" actionListener="#{managedGamme.fusionner(false)}" style="float: right"  
+                                 oncomplete="dlgConfirmFusion.hide();collapseForm('gamme')"  update=":form_gamme:data_gamme"/> 
+            </p:dialog>
+        </h:form> 
+
+        <h:form prependId="false" id="main_fusion_operation_gamme">
+            <p:dialog widgetVar="dlgConfirmFusionOperation" header="Fusionner" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_operation_gamme" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>Voulez-vous fusionner l'operation : </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedGamme.fusionneToOperation}"/>
+                    <span>avec le(s) operation(s) :</span>
+                    <c:forEach items="#{managedGamme.fusionnesByOperation}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>Cette opération est irreversible</span>
+                </h:panelGrid>
+                <p:commandButton value="OUI" actionListener="#{managedGamme.fusionnerOperation(false)}" style="float: right"  
+                                 oncomplete="dlgConfirmFusionOperation.hide()"  update=":form_gamme:data_gamme_phase"/> 
+            </p:dialog>
+        </h:form> 
+
+        <h:form prependId="false" id="main_code_acces-gamme">
+            <p:dialog widgetVar="dlgCodeAcces" dynamic="true" width="40%" resizable="false" header="Attribuer un code d'accès" closeOnEscape="true">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('code_acces_gamme');
+                    });
+                </script>
+                <div class="dlg_part_fix">
+                    <p:commandButton value="Enregistrer" id="save_code_acces_gamme" actionListener="#{managedCodeAcces.saveNew()}"  update="data_code_acces_gamme form_code_acces_gamme"
+                                     oncomplete="collapseList('code_acces_gamme')"/>
+                    <p:commandButton value="Nouveau" id="cancel_code_acces_gamme" actionListener="#{managedCodeAcces.resetFiche()}" global="false" process="@this" update="form_code_acces_gamme"/>
+                    <div style="float: right">
+                        <h:link title="mode création" onclick="collapseForm('code_acces_gamme');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <p:spacer />
+                        <h:link title="vue liste" onclick="collapseList('code_acces_gamme');
+                                return false" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>                   
+                    </div>
+                    <div style="clear: both"/>
+                </div>   
+                <div class="dlg_part_scroll">
+                    <div class="yvs_form_code_acces_gamme">
+                        <h:panelGrid columns="1" id="form_code_acces_gamme" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <h:outputText value="Code"/>
+                            <h:inputText value="#{managedCodeAcces.codeAcces.code}" style="width: 100%"/>
+                            <h:outputText value="Description"/>
+                            <h:inputTextarea value="#{managedCodeAcces.codeAcces.description}" style="width: 100%" rows="2"/>
+                        </h:panelGrid>
+                    </div>
+                    <div class="yvs_list_code_acces_gamme">
+                        <p:dataTable id="data_code_acces_gamme" value="#{managedCodeAcces.codesAcces}" var="codas" rowKey="#{codas.id}" selectionMode="single" rowIndexVar="IdxC"
+                                     selection="#{managedGamme.codeAcces}" paginator="true" paginatorAlwaysVisible="false" rows="15">
+                            <p:ajax event="rowSelect" listener="#{managedGamme.attribCodeAcces}" oncomplete="dlgCodeAcces.hide()"/>
+                            <p:column headerText="N°" width="15">
+                                <span>#{IdxC+1}</span>
+                            </p:column>
+                            <p:column headerText="Code" width="80">
+                                <span>#{codas.code}</span>
+                            </p:column>
+                            <p:column headerText="Description">
+                                <span>#{codas.description}</span>
+                            </p:column> 
+                            <p:column width="20" style="text-align: center">
+                                <p:contextMenu for="btn_option_code_acces_gamme" event="left click" style="font-size: 0.8em">
+                                    <p:menuitem value="Modifier" icon="ui-icon-pencil" global="false" actionListener="#{managedCodeAcces.onSelectObject(codas)}" 
+                                                oncomplete="collapseForm('code_acces_gamme')" update=":main_code_acces-gamme:form_code_acces_gamme"/>
+                                    <p:menuitem value="Supprimer" icon="ui-icon-trash" global="false" actionListener="#{managedCodeAcces.deleteBean(codas)}" update="data_code_acces_gamme"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_code_acces_gamme" type="button"/>
+                            </p:column> 
+                        </p:dataTable>
+                    </div>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog id="dia_edit_comp_op" header="Flux de composants ('#{managedGamme.selectedOperation.codeRef}')" width="70%" 
+                      closeOnEscape="true" footer="&copy;Lymytz 2014"  widgetVar="dlgMoidfCompOp">
+                <p:dataTable value="#{managedGamme.operation.composants}" rowIndexVar="line_cop" var="icop"
+                             id="table_edit_comp_op" editMode="cell" editable="true" selectionMode="single" rowKey="#{icop.composant.id}">
+                    <p:ajax event="cellEdit" listener="#{managedGamme.onEditQuantite}"  />
+                    <p:column headerText="N°" width="10" style="text-align: center" >
+                        #{line_cop+1}
+                        <h:graphicImage library="img" name="vu.png" width="12" height="12" rendered="#{icop.id gt 0}" />
+                    </p:column>
+                    <p:column headerText="Ref. Composant" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                        <h:outputText value="#{icop.composant.article.refArt}" style="font-weight: bold" />
+                    </p:column>
+                    <p:column headerText="Composant" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                        #{icop.composant.article.designation}
+                    </p:column>
+                    <p:column headerText="Taux perte" style="text-align: right" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                        <p:cellEditor>
+                            <f:facet name="output">
+                                <h:outputText value="#{icop.tauxPerte}" style="color: #{icop.tauxPerte gt 100?'red':'black'}" converter="DNS"/>%
+                            </f:facet>
+                            <f:facet name="input">
+                                <h:inputText  value="#{icop.tauxPerte}" style="width:70%"/>%
+                            </f:facet>
+                        </p:cellEditor>
+                    </p:column>
+                    <p:column headerText="Quantité" style="text-align: right" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                        <p:cellEditor>
+                            <f:facet name="output">
+                                <h:outputText value="#{icop.quantite}" style="color: #{icop.quantite gt 100?'red':'black'}" converter="DNS"/>%
+                            </f:facet>
+                            <f:facet name="input">
+                                <h:inputText  value="#{icop.quantite}" style="width:70%"/>%
+                            </f:facet>
+                        </p:cellEditor>
+                    </p:column>
+                    <p:column headerText="Sens flux" style="text-align: center">
+                        <h:outputText value="Consommation" rendered="#{icop.sens eq constantes.STOCK_SENS_SORTIE}" style="color: #D20005"/>
+                        <h:outputText value="Production" rendered="#{icop.sens eq constantes.STOCK_SENS_ENTREE}"  style="color: #006666" />
+                        <h:outputText value="Aucun flux" rendered="#{icop.sens eq constantes.STOCK_SENS_NEUTRE}" style="color: #000"/>
+                    </p:column>
+                    <p:column headerText=" " width="20" style="text-align: center">
+                        <f:facet name="header">
+                            <p:contextMenu for="btn_option_op_comp_head" event="left click" >
+                                <p:menuitem value="#{(icop.id gt 0)?'Supprimer':'Ajouter'}" actionListener="#{managedGamme.addOrDeleteAllComposantToOp()}"
+                                            icon="#{(icop.id gt 0)?'ui-icon-circle-minus':'ui-icon-circle-plus'}"/>
+                            </p:contextMenu>
+                            <p:commandButton title="" icon="ui-icon-gear" id="btn_option_op_comp_head"
+                                             style="background: #006666; width: 22px; height: 22px; float: right" type="button"/>
+                        </f:facet>
+                        <p:contextMenu for="btn_option_op_comp" event="left click" style="width: 250px">
+                            <p:menuitem value="Flux de consommation" actionListener="#{managedGamme.changeSensComposant(icop, constantes.STOCK_SENS_SORTIE)}" title="suivi de l'opération"  icon="ui-icon-arrowthick-1-ne"
+                                        rendered="#{icop.id gt 0}"/>
+                            <p:menuitem value="Flux de production" actionListener="#{managedGamme.changeSensComposant(icop, constantes.STOCK_SENS_ENTREE)}" title="suivi de l'opération"  icon="ui-icon-arrowthick-1-sw"
+                                        rendered="#{icop.id gt 0}"/>
+                            <p:menuitem value="Aucun flux" actionListener="#{managedGamme.changeSensComposant(icop, constantes.STOCK_SENS_NEUTRE)}" title="suivi de l'opération" icon="ui-icon-cancel"
+                                        rendered="#{icop.id gt 0}"/>
+
+                            <p:menuitem value="#{(icop.id gt 0)?'Supprimer':'Ajouter'}" actionListener="#{managedGamme.addOrDeleteComposantToOp(icop)}"
+                                        icon="#{(icop.id gt 0)?'ui-icon-circle-minus':'ui-icon-circle-plus'}"/>
+                        </p:contextMenu>
+                        <p:commandButton title="" icon="ui-icon-gear" id="btn_option_op_comp"
+                                         style="background: #006666; width: 22px; height: 22px; float: right" type="button"/>
+
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmSave" message="Le produit ne peut indiquer plus d'une gamme principal. voulez-vous conserver votre choix?" closeOnEscape="true">
+                <p:commandButton global="false" icon="ui-icon-closethick" value="Non" 
+                                 actionListener="#{managedGamme.saveNewGamme(false,false)}" oncomplete="PF('dlgConfirmSave').hide()"/>
+                <p:commandButton   icon="ui-icon-circle-check" value="Oui" 
+                                   actionListener="#{managedGamme.saveNewGamme(true,false)}" oncomplete="PF('dlgConfirmSave').hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+            formulaire de création  des phases et opérations de la gammes
+        <-->
+        <h:form prependId="false" id="form_operations">
+            <p:dialog width="80%" style="height: 700px" closeOnEscape="true" widgetVar="dlgAddPhase" modal="true" 
+                      >
+                <f:facet name="header">
+                    <h:outputText value="Gestion des opérations " id="header_dlg_phase" />
+                </f:facet>
+                <p:outputPanel id="blog_form_phase">
+                    <div>
+                        <h:inputText value="#{managedGamme.operation.id}" style="font-weight: bold; width: 70px; text-align: right; background: #CCC;" disabled="true"/> 
+                        <p:commandButton value="Nouveau" icon="ui-icon-document" style="float: right" actionListener="#{managedGamme.resetFicheOperation()}"  update="blog_form_phase"/> 
+                        <p:commandButton value="Enregsitrer" icon="ui-icon-disk" style="float: right" actionListener="#{managedGamme.saveNewOperation()}"  update="blog_gamme_refere"/>
+                    </div> 
+                    <div style="float: left; width: 60%">
+                        <h:panelGrid id="blog_gamme_refere" columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="background: #EEEEEE; width: 100%">                                                                                                           
+                            <span>Numéro </span> 
+                            <h:inputText value="#{managedGamme.operation.numero}"  style="width: 100px;text-align: center" readonly="true"/>                                
+                            <span>Code Référence </span> 
+                            <h:inputText value="#{managedGamme.operation.reference}" />                                                       
+                            <span title="Défini le type de coût des sous produits">Type de coût</span>
+                            <p:selectOneRadio value="#{managedGamme.operation.typeCout}" styleClass="yvs_noStyle">
+                                <f:selectItem itemLabel="Valeur Fixe" itemValue="#{constantes.PROD_TYPE_COUT_VALEUR}" />
+                                <f:selectItem itemLabel="Taux proportionnel" itemValue="#{constantes.PROD_TYPE_COUT_TAUX}" />
+                            </p:selectOneRadio>
+                        </h:panelGrid> 
+                    </div>
+                    <div style="margin-left: 60%"> 
+                        <fieldset style="font-size: 0.8em; padding: 3px; margin: 0px; border-bottom: 0px; margin-bottom: 5px; border-color: #CCC; display: none">
+                            <legend>Gestion</legend>
+                            <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="background: #EEEEEE; width: 100%">                                                                                                           
+                                <span>Taux d'efficience (en %) </span> 
+                                <h:inputText value="#{managedGamme.operation.tauxEfficience}"  style="width: 130px"/>                                
+                                <span>Taux de Perte (en %)</span> 
+                                <h:inputText value="#{managedGamme.operation.tauxDePerte}" style="width: 130px"/> 
+                                <span>Quantite Min. en entrée</span> 
+                                <h:inputText value="#{managedGamme.operation.quantiteMinimale}" style="width: 130px"/>                                                        
+                                <span>Type de temps</span> 
+                                <h:panelGroup id="zone_op_temps">
+                                    <h:selectOneMenu value="#{managedGamme.operation.typeDeTemps}" >
+                                        <f:selectItem itemValue="#{constantes.PROD_OP_TYPE_TEMPS_PROPORTIONNEL}" itemLabel="#{constantes.PROD_OP_TYPE_TEMPS_PROPORTIONNEL}" />
+                                        <f:selectItem itemValue="#{constantes.PROD_OP_TYPE_TEMPS_FIXE}" itemLabel="#{constantes.PROD_OP_TYPE_TEMPS_FIXE}" />
+                                        <f:selectItem itemValue="#{constantes.PROD_OP_TYPE_TEMPS_CADENCE}" itemLabel="#{constantes.PROD_OP_TYPE_TEMPS_CADENCE}" />
+                                        <p:ajax event="valueChange" update="zone_op_temps" global="false" />
+                                    </h:selectOneMenu> 
+                                    <span> Quantité de base </span>
+                                    <h:inputText value="#{managedGamme.operation.quantiteBase}" style="width: 100px" disabled="#{!managedGamme.operation.typeDeTemps.equals(constantes.PROD_OP_TYPE_TEMPS_PROPORTIONNEL)}"/>
+                                    <span> Cadence </span>
+                                    <h:inputText value="#{managedGamme.operation.cadence}" style="width: 100px" disabled="#{!managedGamme.operation.typeDeTemps.equals(constantes.PROD_OP_TYPE_TEMPS_CADENCE)}"/>
+                                    <h:panelGroup rendered="#{managedGamme.operation.typeDeTemps.equals(constantes.PROD_OP_TYPE_TEMPS_CADENCE)}" style="background: #CCC">
+                                        <h:outputText value="/" />
+                                        <h:outputText value="#{managedGamme.operation.dureeOperation}" />
+                                        <h:outputText value="#{gammeArticle.uniteTemps.reference}" />
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                            </h:panelGrid> 
+                        </fieldset>    
+                        <h:panelGrid columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <f:facet name="header"><div align="left">Temps (#{managedGamme.gamme.uniteTemps.libelle})</div></f:facet>
+                            <span>Réglage</span>
+                            <h:panelGroup>
+                                <h:inputText value="#{managedGamme.operation.dureeReglage}" style="width: 100px" />
+                            </h:panelGroup>
+                            <span>Production</span>
+                            <h:panelGroup>
+                                <h:inputText value="#{managedGamme.operation.dureeOperation}" style="width: 100px" />
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </div>
+                    <h:panelGrid columns="1" style="width: 100%">
+                        <span>Description </span>
+                        <h:inputTextarea value="#{managedGamme.operation.description}" rows="1" style="width: 100%"/> 
+                    </h:panelGrid>
+                    <p:tabView id="form_view_contenu_onglet" style="font-size: 0.8em">
+                        <p:tab title="Postes de charges">
+                            <p:outputPanel id="form_gamme_phase_poste">
+                                <h:inputHidden value="#{managedGamme.tabIds_poste}" id="input_hide_postePhase"/>
+                                <h:inputHidden value="#{managedGamme.input_reset_poste}" id="input_hide_reset_postePhase"/>
+                                <h:panelGrid columns="2" id="blog_form_phase_poste" style="width: 100%; font-size: .9em;">
+                                    <h:panelGrid columns="6" styleClass="yvs_table" style="width: 100%; font-size: .9em;background: #EEEEEE;" cellpadding="0" cellspacing="0">
+                                        <span>Poste</span>                                        
+                                        <h:selectOneMenu value="#{managedGamme.poste.poste.id}" id="gamme_poste_charge"
+                                                         onchange="choosePosteCharge('gamme_poste_charge')">
+                                            <f:selectItem itemLabel="--" itemValue="0"/>
+                                            <f:selectItems value="#{managedGamme.postes}" var="posts" 
+                                                           itemLabel="#{posts.designation}" itemValue="#{posts.id}" />
+                                            <f:selectItem itemLabel="--" itemValue="0"/>
+                                            <f:selectItem itemLabel="Plus de choix..." itemValue="-1" />
+                                        </h:selectOneMenu>   
+                                        <p:selectOneRadio value="#{managedGamme.poste.typeCharge}" styleClass="yvs_nostyle">
+                                            <f:selectItem itemValue="#{constantes.PROD_OP_TYPE_CHARGE_MACHINE}" itemLabel="#{constantes.PROD_OP_TYPE_CHARGE_MACHINE}" />
+                                            <f:selectItem itemValue="#{constantes.PROD_OP_TYPE_CHARGE_MO}" itemLabel="#{constantes.PROD_OP_TYPE_CHARGE_MO}" />
+                                        </p:selectOneRadio>
+                                        <span>Nombre Exemplaire</span> 
+                                        <pe:inputNumber value="#{managedGamme.poste.nombre}" style="width: 50px" decimalPlaces="0"/>                                                
+                                    </h:panelGrid>
+                                    <p:commandButton icon="ui-icon-circle-plus" value="Ajouter" style="float: right" 
+                                                     actionListener="#{managedGamme.saveNewPostePhase()}" update="blog_form_phase_poste data_phase_poste"/>
+                                </h:panelGrid>                                        
+                                <p:dataTable value="#{managedGamme.operation.postes}" var="post" id="data_phase_poste" rowIndexVar="postLIne" 
+                                             selectionMode="single" rowKey="#{post.id}">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedGamme.selectLinePostePhase}"/>
+                                    <p:column headerText="N°" width="25">
+                                        <span>#{postLIne+1}</span>
+                                    </p:column>
+                                    <p:column headerText="Poste de charge">   
+                                        <span>#{post.posteCharge.designation}</span>    
+                                    </p:column>
+                                    <p:column headerText="Type Poste">
+                                        <span>#{post.posteCharge.type}</span>
+                                    </p:column>
+                                    <p:column headerText="Exemplaires">
+                                        <span>#{post.nombre}</span>
+                                    </p:column>
+                                    <p:column width="15">
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btn_action_on_postOp"/>
+                                        <p:contextMenu for="btn_action_on_postOp" event="left click">
+                                            <p:menuitem value="Supprimer" actionListener="#{managedGamme.deleteBeanPostePhase(post)}"  />
+                                        </p:contextMenu>
+                                    </p:column>
+                                </p:dataTable>                                        
+                            </p:outputPanel>
+                            <div style="clear: both"/>
+                        </p:tab>
+                        <p:tab title="Documents techniques">
+                            <p:outputPanel id="form_gamme_phase_document">
+                                <h:inputHidden value="#{managedGamme.tabIds_document}" id="input_hide_documentPhase"/>
+                                <h:inputHidden value="#{managedGamme.input_reset_document}" id="input_hide_reset_documentPhase"/>
+                                <h:panelGrid id="blog_form_phase_document" columns="2" style="width: 100%">
+                                    <h:panelGrid columns="1"  style="width: 100%;background: #EEEEEE;" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                        <h:panelGroup  >
+                                            <span>Reference </span> 
+                                            <h:inputText value="#{managedGamme.document.reference}"/>
+                                            <span>Designation </span> 
+                                            <h:inputText value="#{managedGamme.document.designation}" />
+                                            <span>Fichier </span> 
+                                            <h:inputText id="txt_value_file_document" value="#{managedGamme.document.fichier}"/>
+                                            <p:commandButton icon="ui-icon-search" onclick="dlgGammeFichierDocment.show()" style="width: 20px; height: 20px; float: right"/>
+                                        </h:panelGroup>        
+                                        <h:inputTextarea value="#{managedGamme.document.description}" rows="2" style="width: 99%"/>                                            
+                                    </h:panelGrid> 
+                                    <p:commandButton value="Ajouter" style="float: right" actionListener="#{managedGamme.saveNewDocument()}"/>
+                                </h:panelGrid>
+                                <p:dataTable value="#{managedGamme.operation.documents}" var="doc" rowIndexVar="docLIne" id="data_phase_document">
+                                    <p:column headerText="N°" width="25">
+                                        <span>#{docLIne}</span>
+                                    </p:column>
+                                    <p:column headerText="Reference">    
+                                        <span>#{doc.reference}</span>    
+                                    </p:column>
+                                    <p:column headerText="Designation">
+                                        <span>#{doc.designation}</span>
+                                    </p:column>
+                                    <p:column headerText="Description">
+                                        <span>#{doc.description}</span>
+                                    </p:column>
+                                    <p:column width="25">
+                                        <f:facet name="header">
+                                            <h:selectBooleanCheckbox styleClass="chek_all_line_documentPhase" value="#{managedGamme.allDocument}" onclick="selectionAllLineTab(#{managedGamme.operation.documents.size()}, 'documentPhase')">
+                                                <p:ajax event="valueChange" global="false" listener="#{managedGamme.selectOnViewDocument()}"/>
+                                            </h:selectBooleanCheckbox>
+                                        </f:facet>
+                                        <h:selectBooleanCheckbox value="false" styleClass="chek_line_documentPhase" onclick="selectionLineTab(#{docLIne}, 'documentPhase')">
+                                            <p:ajax event="valueChange" global="false" listener="#{managedGamme.selectOnViewDocument(doc)}"/>
+                                        </h:selectBooleanCheckbox>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:outputPanel>
+                            <div style="clear: both"/>
+                        </p:tab>
+                        <p:tab title="Flux de composants">
+                            <p:dataTable value="#{managedGamme.operation.composants}" rowIndexVar="line_cop" var="icop"
+                                         id="table_edit_comp_op_" editMode="cell"  editable="true" selectionMode="single" rowKey="#{icop.composant.id}"
+                                         selection="#{managedGamme.selectedComposantOp}" style="max-height: 350px;overflow-y: auto">
+                                <p:ajax event="cellEdit" listener="#{managedGamme.onEditQuantite}" />
+                                <p:column headerText="N°" width="10" style="text-align: center" >                                   
+                                    <h:graphicImage library="icones" name="favoris.png" width="12" height="12" rendered="#{icop.indicateurs.id gt 0}"  title="La fin de l'opérations est déterminé par la valeur de ce composant"/>
+                                    #{line_cop+1}
+                                </p:column>
+                                <p:column headerText="Ref. Composant" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                                    <h:outputText value="#{icop.composant.article.refArt}" style="font-weight: bold" />
+                                </p:column>
+                                <p:column headerText="Composant" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                                    #{icop.composant.article.designation}
+                                </p:column>
+                                <p:column headerText="Unités" style="text-align: center" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                                    <p:cellEditor>
+                                        <f:facet name="output">
+                                            <h:outputText title="#{icop.unite.unite.libelle}" value="#{icop.unite.unite.reference}"  id="chp_up_ref_unite"/>
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <h:selectOneMenu value="#{icop.unite.id}">
+                                                <f:selectItem itemValue="#{0}" itemLabel="" />
+                                                <f:selectItems value="#{icop.composant.article.conditionnements}" var="icond_"
+                                                               itemValue="#{icond_.id}" itemLabel="#{icond_.unite.libelle}" />
+                                                <p:ajax event="valueChange" listener="#{managedGamme.chooseUniteComposant(icop)}" update="chp_up_ref_unite" global="false"/>
+                                            </h:selectOneMenu>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column headerText="Taux de perte (+/-)" style="text-align: right" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                                    <p:cellEditor>
+                                        <f:facet name="output">
+                                            <h:outputText value="#{icop.tauxPerte}" style="color: #{icop.tauxPerte gt 100?'red':'black'}" converter="DNS"/>%
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <h:inputText  value="#{icop.tauxPerte}" style="width:70%"/>%
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column headerText="Marge (+/-)" style="text-align: right" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                                    <p:cellEditor>
+                                        <f:facet name="output">
+                                            <h:outputText value="#{icop.margeQte}" style="color: #{icop.quantite gt 100?'red':'black'}" converter="DNS"/>%
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <h:inputText  value="#{icop.margeQte}" style="width:70%"/>%
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column headerText="Quantité" style="text-align: right" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                                    <p:cellEditor>
+                                        <f:facet name="output">
+                                            <h:outputText value="#{icop.quantite}" style="color: #{icop.quantite gt 100?'red':'black'}" converter="DNS"/>%
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <h:inputText  value="#{icop.quantite}" style="width:70%"/>%
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column headerText="Coefficient" style="text-align: right" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                                    <p:cellEditor>
+                                        <f:facet name="output">
+                                            <h:outputText value="#{icop.coeficientValeur}"  converter="DNS"/>
+                                            <h:outputText value="#{managedGamme.operation.typeCout eq constantes.PROD_TYPE_COUT_TAUX?'%':''}"  />
+                                        </f:facet>
+                                        <f:facet name="input">
+                                            <h:inputText  value="#{icop.coeficientValeur}" style="width:70%" readonly="#{icop.sens eq constantes.STOCK_SENS_SORTIE}"/>
+                                            <h:outputText value="#{managedGamme.operation.typeCout eq constantes.PROD_TYPE_COUT_TAUX?'%':''}"  />
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column headerText="Sens flux" style="text-align: center">
+                                    <h:outputText value="Consommation" rendered="#{icop.sens eq constantes.STOCK_SENS_SORTIE}" style="color: #D20005"/>
+                                    <h:outputText value="Production" rendered="#{icop.sens eq constantes.STOCK_SENS_ENTREE}"  style="color: #006666" />
+                                    <h:outputText value="Aucun flux" rendered="#{icop.sens eq constantes.STOCK_SENS_NEUTRE}" style="color: #000"/>
+                                </p:column>
+                                <p:column headerText=" " width="20" style="text-align: center">
+                                    <p:contextMenu for="btn_option_op_comp" event="left click" >
+                                        <p:menuitem value="Flux de consommation" actionListener="#{managedGamme.changeSensComposant(icop, constantes.STOCK_SENS_SORTIE)}" title="suivi de l'opération"  icon="ui-icon-arrowthick-1-ne"
+                                                    rendered="#{icop.id gt 0}"/>
+                                        <p:menuitem value="Flux de production" actionListener="#{managedGamme.changeSensComposant(icop, constantes.STOCK_SENS_ENTREE)}" title="suivi de l'opération"  icon="ui-icon-arrowthick-1-sw"
+                                                    rendered="#{icop.id gt 0}"/>
+                                        <p:menuitem value="Aucun flux" actionListener="#{managedGamme.changeSensComposant(icop, constantes.STOCK_SENS_NEUTRE)}" title="suivi de l'opération" icon="ui-icon-cancel"
+                                                    rendered="#{icop.id gt 0}"/>
+                                        <p:menuitem value="Fin de l'opération" oncomplete="dlgIndicateur.show()" update=":form_operations:form_view_contenu_onglet:table_edit_comp_op_" 
+                                                    actionListener="#{managedGamme.loadValeurIndicateurs(icop)}" title="Paramétrer le marqueur de suivi de fin de l'opération"  icon="ui-icon-bullet"/>
+                                        <p:menuitem value="Coef. coûts" oncomplete="dlgEditCoef.show()" rendered="#{icop.sens eq constantes.STOCK_SENS_ENTREE}" actionListener="#{managedGamme.openToEditCoefficientVale}"
+                                                    title="Déterminer le coefficient de côut de ce sous produits"  icon="ui-icon-calculator" update=":form_edit_coef_sp:op_comp_edit_coeff table_edit_comp_op_"/>
+                                        <p:separator />
+                                        <p:menuitem value="#{(icop.id gt 0)?'Supprimer':'Ajouter'}" actionListener="#{managedGamme.addOrDeleteComposantToOp(icop)}"
+                                                    icon="#{(icop.id gt 0)?'ui-icon-circle-minus':'ui-icon-circle-plus'}"/>
+                                    </p:contextMenu>
+                                    <p:commandButton title="" icon="ui-icon-gear" id="btn_option_op_comp"
+                                                     style="background: #006666; width: 22px; height: 22px; float: right" type="button"/>
+
+                                </p:column>
+                            </p:dataTable>
+                            <div style="clear: both"/>
+                        </p:tab>
+                    </p:tabView>                    
+                </p:outputPanel> 
+                <f:facet name="footer">&copy;Lymytz 2014</f:facet>
+            </p:dialog>
+        </h:form>  
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des indicateurs de reussite
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgGammeIndicReussite_">
+            <p:dialog id="dlgGammeIndicReussite_" header="Création des indicateurs de reussite" widgetVar="dlgIndicateur" modal="true" width="55%" 
+                      closeOnEscape="true">
+                <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0" id="zone_indicateur">
+                    <f:facet name="header">
+                        <p:selectOneRadio value="#{managedGamme.indicateur.type}" styleClass="yvs_nostyle">
+                            <f:selectItem itemValue="QUALITATIF" itemLabel="QUALITATIF" />
+                            <f:selectItem itemValue="QUANTITATIF" itemLabel="QUANTITATIF" />
+                            <p:ajax event="valueChange" update="zone_indicateur" global="false"/>
+                        </p:selectOneRadio>
+                    </f:facet>                     
+                    <span id="lbl_description">Commentaires : </span> 
+                    <h:inputTextarea id="txt_description" value="#{managedGamme.indicateur.description}" rows="3" style="width: 95%"/>
+                    <f:facet name="footer">                        
+                        <h:panelGrid columns="4" styleClass="yvs_nostyle" id="panel_valeurs_ind">
+                            <h:outputText value="Model" />
+                            <span>Valeurs</span>
+                            <h:outputText value="Code couleur" />
+                            <span>&nbsp;</span>
+                            <h:selectOneMenu value="#{managedGamme.idModel}" valueChangeListener="#{managedGamme.chooseModel}">
+                                <f:selectItem itemValue="-1" itemLabel="" />
+                                <f:selectItems value="#{managedGamme.modelsQuantitatifs}" var="imodel" itemValue="#{imodel.id}" itemLabel="#{imodel.refModel}" />
+                                <p:ajax event="valueChange" update="table_valeur_qual"/>
+                            </h:selectOneMenu>
+                            <h:inputText value="#{managedGamme.valeur.valeurQuantitative}"  style="width: 60px" rendered="#{managedGamme.indicateur.type eq constantes.PROD_TYPE_INDICATEUR_QUANTITATIF}" />
+                            <h:inputText value="#{managedGamme.valeur.codeValeur}"  style="width: 60px" rendered="#{managedGamme.indicateur.type eq constantes.PROD_TYPE_INDICATEUR_QUALITATIF}" />
+                            <p:colorPicker value="#{managedGamme.valeur.codeCouleur}" style="width: 22px; height: 22px"/>
+                            <p:commandButton icon="ui-icon-circle-plus" actionListener="#{managedGamme.saveValeurQualitative()}" 
+                                             style="width: 22px; height: 22px" update="zone_indicateur table_valeur_qual"/>
+                        </h:panelGrid>
+                    </f:facet>                        
+                </h:panelGrid>
+                <p:dataTable value="#{managedGamme.valeursQualitative}" var="v_qual" id="table_valeur_qual" rowKey="#{v_qual.id}"
+                             selectionMode="single">
+                    <p:ajax event="rowSelect" listener="#{managedGamme.loadValeurOnView}" />
+                    <p:column headerText="Valeur" width="50">
+                        <h:outputText value="#{v_qual.valeurText}" rendered="#{v_qual.indicateur.typeIndicateur eq constantes.PROD_TYPE_INDICATEUR_QUALITATIF}" />
+                        <h:outputText value="#{v_qual.valeurQuantitative}" rendered="#{v_qual.indicateur.typeIndicateur eq constantes.PROD_TYPE_INDICATEUR_QUANTITATIF}" />
+                    </p:column>
+                    <p:column headerText="Code couleur" width="50">
+                        <div align="center" style="width: 100%; height: 20px; background: ##{v_qual.codeCouleur}">&nbsp;##{v_qual.codeCouleur}</div>
+                    </p:column>
+                    <p:column headerText="" width="10" style="text-align: center">
+                        <p:commandButton icon="ui-icon-circle-close" style="width: 22px; height: 22px" actionListener="#{managedGamme.deleteLineValeurIndiCateur(v_qual)}" />
+                    </p:column>
+                </p:dataTable>
+                <p:commandButton value="Enregistrer comme model" actionListener="#{managedGamme.saveModelQuantitatif()}" 
+                                 style="float: right" update="panel_valeurs_ind"/>  
+                <h:inputText value="#{managedGamme.refModel}" style="float: right"/>                          
+                <f:facet name="footer">
+                    &copy;Lymytz 2014
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des fichiers
+        *****************************************************************************
+        <-->     
+        <h:form prependId="false" enctype="multipart/form-data" id="form_dlgGammeFichierDocment_">
+            <p:dialog id="dlgGammeFichierDocment_" header="Choisir le fichier" dynamic="true" closeOnEscape="true"
+                      widgetVar="dlgGammeFichierDocment" modal="true" width="50%">
+                <p:panelGrid columns="1" style="width: 100%">                        
+                    <p:fileUpload id="file_document" value="" mode="advanced" label="Choisir le fichier" oncomplete="fileUploadFinish()"
+                                  auto="true" fileUploadListener="#{managedGamme.fileUploadDocument}"/>
+                </p:panelGrid>
+            </p:dialog>
+        </h:form>                        
+        <h:form prependId="false"  id="form_edit_coef_sp">
+            <p:dialog  header="Coeffficient valeur"   closeOnEscape="true"
+                       widgetVar="dlgEditCoef" modal="true" width="30%">
+                <h:panelGrid columns="1" style="width: 100%" rendered="#{managedGamme.selectedComposantOp ne null}" id="op_comp_edit_coeff">                        
+                    <h:panelGroup style="width: 100%" rendered="#{managedGamme.selectedComposantOp ne null}">                        
+                        <pe:inputNumber value="#{managedGamme.selectedComposantOp.coeficientValeur}" />
+                        <p:commandButton value="Appliquer" icon="ui-icon-circle-check" actionListener="#{managedGamme.applyCoefficientValeur()}" 
+                                         update=":form_operations:form_view_contenu_onglet:table_edit_comp_op_"/>
+                    </h:panelGroup>
+                    <h:panelGroup  style="width: 100%" rendered="#{managedGamme.selectedComposantOp eq null}">                        
+                        <span style="color: red">Aucune selection n'a été trouvé !</span>
+                    </h:panelGroup>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>                        
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <--> 
+        <h:form prependId="false" id="form_gamme_dlg_art">
+            <p:dialog header="Liste des articles" widgetVar="dlgListArticle" modal="true" width="70%" closeOnEscape="true" height="500"
+                      > 
+                <p:watermark for="txt_search_article_gammes" value="Reference article..." />
+                <div style="font-size: 0.8em">
+                    <h:selectOneMenu value="#{Marticle.categorieSearch}">
+                        <f:selectItem itemLabel="--" itemValue="" noSelectionOption="true"/>
+                        <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" />
+                        <p:ajax event="valueChange" listener="#{Marticle.addParamCategorie()}"  process="@form" update="data_article_gammes" />                              
+                    </h:selectOneMenu>
+                    <h:inputText id="txt_search_article_gammes" value="#{Marticle.searchArticle}" >
+                        <p:ajax event="valueChange"  listener="#{Marticle.findArticle()}" update="data_article_gammes" />
+                    </h:inputText>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{Marticle.loadAllArticle(false, false)}"  
+                                         update="data_article_gammes" icon="ui-icon-circle-triangle-w" disabled="#{Marticle.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{Marticle.paginator.currentPage}/#{Marticle.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{Marticle.loadAllArticle(true, false)}"  
+                                         update="data_article_gammes" icon="ui-icon-circle-triangle-e" disabled="#{Marticle.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{Marticle.nbMax}" label="Nombre max Résultat" valueChangeListener="#{Marticle.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{Marticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_article_gammes"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>
+                <p:dataTable value="#{Marticle.listArticle}" var="art" rowKey="#{art.id}" rowIndexVar="artIdx"
+                             selectionMode="single" id="data_article_gammes" style="font-size: 0.9em; max-height: 460px; overflow-y: auto; width: 100%; clear: right">
+                    <p:ajax event="rowSelect"  listener="#{managedGamme.loadOnViewArticle}" oncomplete="dlgListArticle.hide()"/>
+                    <p:column headerText="N°" width="15">
+                        <span title="#{art.designation}">#{artIdx+1}</span>
+                    </p:column>
+                    <p:column width="70">
+                        <span title="#{art.designation}">#{art.refArt}</span>
+                    </p:column>
+                    <p:column headerText="Designation" width="150">
+                        <span title="#{art.designation}">#{art.designation}</span>
+                    </p:column>
+                    <p:column headerText="Categorie" width="80">
+                        <span title="#{art.designation}">#{art.categorie}</span>
+                    </p:column>
+                    <p:column headerText="Prix A." width="80" style="text-align: right">
+                        <h:outputText value="#{art.pua}" title="#{art.designation}" converter="DN" />
+                    </p:column>
+                    <p:column headerText="Prix V" width="80" style="text-align: right">
+                        <h:outputText value="#{art.puv}" title="#{art.designation}" converter="DN" />
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy;Lymytz 2014
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des gammes
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgGammeRefere_">
+            <p:dialog id="dlgGammeRefere_" header="Liste des gammes" widgetVar="dlgGammeRefere" modal="true" width="40%" 
+                      closeOnEscape="true">
+                #{managedGamme.loadAllGammeRefere()}
+                <p:outputPanel id="data_gamme_refere">  
+                    <table class="yvs_data_table" width="100%" cellpadding="0" cellspacing="0" style="background: #ffffff">
+                        <thead  style="display: block; width: 100%">
+                            <tr>
+                                <th class="ui-widget-header cellH1">N°</th>
+                                <th class="ui-widget-header cellH1">Reference</th>
+                                <th class="ui-widget-header cellH1">Article</th>
+                            </tr>
+                        </thead>
+                        <tbody style="height: 200px; overflow: auto; display: block; width: 100%">
+                            <ui:repeat value="#{managedGamme.listGamme}" var="gammR"  varStatus="gammRLIne">
+                                <h:panelGroup rendered="#{artLIne.even}">                                                    
+                                    <tr class="ui-datatable-even">
+                                        <td class="colData" style="width: 5%" onclick="chooseLineGamme('#{gammR.codeRef}', '#{gammR.id}')">
+                                            <span>#{gammRLIne.index}</span>
+                                        </td>
+                                        <td class="colData" style="width: 20%" onclick="chooseLineGamme('#{gammR.codeRef}', '#{gammR.id}')">    
+                                            <span>#{gammR.codeRef}</span>    
+                                        </td>
+                                        <td class="colData" style="width: 30%" onclick="chooseLineGamme('#{gammR.codeRef}', '#{gammR.id}')">
+                                            <span>#{gammR.article.designation}</span>
+                                        </td>
+                                    </tr>
+                                </h:panelGroup> 
+                                <h:panelGroup rendered="#{gammRLIne.odd}">
+                                    <tr class="ui-datatable-odd">
+                                        <td class="colData" style="width: 5%" onclick="chooseLineGamme('#{gammR.codeRef}', '#{gammR.id}')">
+                                            <span>#{gammRLIne.index}</span>
+                                        </td>
+                                        <td class="colData" style="width: 20%" onclick="chooseLineGamme('#{gammR.codeRef}', '#{gammR.id}')">    
+                                            <span>#{gammR.codeRef}</span>    
+                                        </td>
+                                        <td class="colData" style="width: 30%" onclick="chooseLineGamme('#{gammR.codeRef}', '#{gammR.id}')">
+                                            <span>#{gammR.article.designation}</span>
+                                        </td>
+                                    </tr>
+                                </h:panelGroup> 
+                            </ui:repeat>
+                        </tbody>  
+                    </table>    
+                </p:outputPanel>  
+            </p:dialog>
+        </h:form>                                     
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des postes de charges
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgGammePosteCharge_">
+            <p:dialog id="dlgGammePosteCharge_" header="Liste des postes de charge" widgetVar="dlgGammePosteCharge" modal="true" width="40%" 
+                      closeOnEscape="true">
+                <p:outputPanel id="data_gamme_poste_charge"> 
+                    <table class="yvs_data_table" id="table_poste_charge" width="100%" cellpadding="0" cellspacing="0" style="background: #ffffff">
+                        <thead  style="display: block; width: 100%">
+                            <tr>
+                                <th class="ui-widget-header cellH1">N°</th>
+                                <th class="ui-widget-header cellH1">Reference</th>
+                                <th class="ui-widget-header cellH1">Designation</th>
+                                <th class="ui-widget-header cellH1">Type</th>
+                                <th class="ui-widget-header cellH1">Rendement</th>
+                            </tr>
+                        </thead>
+                        <tbody style="height: 200px; overflow: auto; display: block; width: 100%">
+                            <ui:repeat value="#{managedGamme.postes}" var="post0"  varStatus="postLIne">
+                                <h:panelGroup rendered="#{postLIne.even}">                                                    
+                                    <tr class="ui-datatable-even">
+                                        <td class="colData" style="width: 10%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">
+                                            <span>#{postLIne.index}</span>
+                                        </td>
+                                        <td class="colData" style="width: 20%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">    
+                                            <span>#{post0.reference}</span>    
+                                        </td>
+                                        <td class="colData" style="width: 30%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">
+                                            <span>#{post0.designation}</span>
+                                        </td>
+                                        <td class="colData" style="width: 20%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">
+                                            <span>#{post0.type}</span>
+                                        </td>                                                
+                                        <td class="colData" style="width: 20%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">
+                                            <span>#{post0.tauxRendement}</span>
+                                        </td>
+                                    </tr>
+                                </h:panelGroup> 
+                                <h:panelGroup rendered="#{postLIne.odd}">
+                                    <tr class="ui-datatable-odd">
+                                        <td class="colData" style="width: 10%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">
+                                            <span>#{postLIne.index}</span>
+                                        </td>
+                                        <td class="colData" style="width: 20%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">    
+                                            <span>#{post0.reference}</span>    
+                                        </td>
+                                        <td class="colData" style="width: 30%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">
+                                            <span>#{post0.designation}</span>
+                                        </td>
+                                        <td class="colData" style="width: 20%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">
+                                            <span>#{post0.type}</span>
+                                        </td>                                                
+                                        <td class="colData" style="width: 20%" onclick="chooseLinePosteCharge('#{post0.designation}', '#{post0.id}')">
+                                            <span>#{post0.tauxRendement}</span>
+                                        </td>
+                                    </tr>
+                                </h:panelGroup> 
+                            </ui:repeat>
+                        </tbody>  
+                    </table>    
+                </p:outputPanel> 
+            </p:dialog>
+        </h:form>                                        
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="Êtes-vous sûr de vouloir supprimer?" header="Confirmation">
+                <p:commandButton value="Oui" actionListener="#{managedGamme.deleteBean()}" oncomplete="closeDialog('dlgConfirmDelete', true); afterDeleteGamme()"/>
+                <p:commandButton type="button" value="Non" onclick="PF('dlgConfirmDelete').hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteDocumentPhase" closeOnEscape="true"
+                             message="Êtes-vous sûr de vouloir supprimer?" header="Confirmation">
+                <p:commandButton value="Oui" actionListener="#{managedGamme.deleteBeanDocument()}" oncomplete="closeDialog('dlgConfirmDeleteDocumentPhase', true); afterDeleteDocumentPhase()"/>
+                <p:commandButton type="button" value="Non" onclick="PF('dlgConfirmDeleteDocumentPhase').hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteIndicateurPhase" closeOnEscape="true"
+                             message="Êtes-vous sûr de vouloir supprimer?" header="Confirmation">
+                <p:commandButton value="Oui" actionListener="#{managedGamme.deleteBeanIndicateur()}" oncomplete="closeDialog('dlgConfirmDeleteIndicateurPhase', true); afterDeleteIndicateurPhase()"/>
+                <p:commandButton type="button" value="Non" onclick="PF('dlgConfirmDeleteIndicateurPhase').hide()"/>
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form prependId="false" id="form_gamme">       
+            <div class="part_fix">                        
+                <p:splitButton value="Enregistrer" id="save_gamme" icon="ui-icon-disk"
+                               actionListener="#{managedGamme.saveNewGamme(gammeArticle.principal,true)}"  update="data_gamme_phase">
+                    <p:menuitem global="false" icon="ui-icon-document" process="@this" value="Nouveau" id="cancel_gamme" actionListener="#{managedGamme.resetFiche()}" update="blog_form_gamme"/>
+                    <p:menuitem value="Supprimer" onclick="PF('dlgConfirmDelete').show()" global="false" icon="ui-icon-trash"/>
+                </p:splitButton>
+                <p:splitButton value="Supprimer" global="false" icon="ui-icon-trash" id="delete_gamme" onclick="PF('dlgConfirmDelete').show()" style="font-size: 0.8em">
+                    <p:menuitem value="Fusionner" icon="ui-icon-refresh" actionListener="#{managedGamme.fusionner(true)}" global="false"
+                                oncomplete="dlgConfirmFusion.show()" update=":main_fusion_gamme:blog_fusionner_gamme"/>
+                </p:splitButton>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedGamme.parcoursInAllResult(false)}" update="txt_parc_linear_gamme" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('gamme')"/>
+                    <h:inputText value="#{managedGamme.offset}" style="width: 35px; text-align: center;"  title="Aller au N°..." id="txt_parc_linear_gamme"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedGamme.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedGamme.parcoursInAllResult(true)}" update="txt_parc_linear_gamme" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('gamme')"/>
+                </h:panelGroup>
+                <div style="float: right">
+                    <h:link title="mode création" onclick="collapseForm('gamme');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link id="b_new_chargePoste" onclick="collapseList('gamme');
+                            return false" title="vue liste" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->    
+
+                <div style="width: 22%; float: left; ">
+                    <h:panelGrid columns="1" style="width: 100%; font-size: 0.8em" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <f:facet name="header">
+                            <span style="float: left">Liste des sites</span>
+                        </f:facet>
+                        <p:dataTable id="data_gammes_site" value="#{gammeArticle.sites}" var="sits" rowKey="#{sits.id}" rowIndexVar="Idx"
+                                     scrollable="true" scrollHeight="120">
+                            <p:column headerText="N°" width="20">
+                                <span>#{Idx+1}</span>
+                            </p:column>
+                            <p:column headerText="Site">
+                                <span>#{sits.site.designation}</span>
+                            </p:column>                                                                                     
+                            <p:column  width="20" style="text-align: center">
+                                <p:commandButton icon="ui-icon-minusthick" style="width: 20px;height: 20px" actionListener="#{managedGamme.activeGammeSite(sits)}"
+                                                 title="Retirer Dépôt" rendered="#{sits.id gt 0}" update="data_gammes_site"/>
+                                <p:commandButton icon="ui-icon-plusthick" style="width: 20px;height: 20px" actionListener="#{managedGamme.activeGammeSite(sits)}"
+                                                 title="Ajouter Dépôt" rendered="#{sits.id le 0}" update="data_gammes_site"/>
+                            </p:column>  
+                        </p:dataTable>
+                    </h:panelGrid>  
+
+                </div>
+
+
+
+
+                <div class="yvs_form_gamme" style="width: 50%;float: left; margin-left: 1%">
+                    <p:outputPanel id="blog_form_gamme">
+                        <h:inputHidden value="#{managedGamme.txt_reslut}" id="txt_result"/>       
+                        <div >
+                            <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                                <f:facet name="header">
+                                    <div align="left" style="padding: 5px">
+                                        <h:inputText value="#{gammeArticle.id}" style="font-weight: bold; width: 70px; text-align: right; background: #CCC;" disabled="true"/> 
+                                        <span> Principale ? </span> 
+                                        <h:selectBooleanCheckbox value="#{gammeArticle.principal}"/>     
+                                        <h:panelGroup style="float: right">
+                                            <span> Actif ? </span> 
+                                            <h:selectBooleanCheckbox value="#{gammeArticle.actif}"/>   
+                                        </h:panelGroup>
+                                    </div>
+                                </f:facet>
+                                <!--                                <span>Articles : </span> 
+                                                                <h:panelGroup id="txt_article_gammes" style="float: left">
+                                                                    <h:inputText value="#{gammeArticle.article.refArt}" style="color: #{gammeArticle.article.error?'red':''}" disabled="#{gammeArticle.id gt 0}">
+                                                                        <p:ajax event="blur" global="false" listener="#{managedGamme.searchArticle(gammeArticle.article.refArt)}" update="txt_article_gammes :form_gamme_dlg_art:data_article_gammes"/>
+                                                                    </h:inputText>  
+                                                                    <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white;margin-top: 5px" title="Liste Articles" global="false"
+                                                                                     actionListener="#{managedGamme.initArticles(true)}" oncomplete="dlgListArticle.show()" disabled="#{gammeArticle.id gt 0}"/>
+                                                                    <p:spacer width="15"/>
+                                                                    <h:outputText value="#{gammeArticle.article.designation}" style="color: #003399"/>
+                                                                </h:panelGroup>                            -->
+                                <span>Reference : </span> 
+                                <h:inputText value="#{gammeArticle.reference}" id="txt_refence_gammes"/>
+                                <span>Unité temps : </span> 
+                                <h:selectOneMenu value="#{gammeArticle.uniteTemps.id}" style="min-width: 180px">
+                                    <f:selectItem itemValue="#{0}" itemLabel="--" />
+                                    <f:selectItems value="#{managedUniteMesure.unites}" var="tps" itemValue="#{tps.id}" itemLabel="#{tps.libelle}" />
+                                    <p:ajax event="valueChange" global="false" listener="#{managedGamme.chooseUniteTemps()}"/>
+                                </h:selectOneMenu>   
+                                <f:facet name="footer">
+                                    <span> Validité </span> 
+                                    <h:panelGroup id="fields_periode">
+                                        <p:calendar disabled="#{gammeArticle.permanant}" value="#{gammeArticle.debutValidite}"  size="8" navigator="true" pattern="dd-MM-yyy"/>
+                                        <h:outputText value="  au  " style="font-style: italic"/>
+                                        <p:calendar  disabled="#{gammeArticle.permanant}" value="#{gammeArticle.finValidite}" size="8" navigator="true" pattern="dd-MM-yyy"/>
+                                        <p:selectBooleanCheckbox itemLabel="Permanent ? " value="#{gammeArticle.permanant}" valueChangeListener="#{managedGamme.choixOptionPermanant}">
+                                            <p:ajax event="valueChange" update="fields_periode" global="false"/>
+                                        </p:selectBooleanCheckbox>
+                                    </h:panelGroup>
+
+                                </f:facet>
+                            </h:panelGrid>
+                            <h:panelGrid columns="1" styleClass="yvs_nostyle" style="width: 100%">
+                                <span>Description</span>
+                                <h:inputTextarea value="#{gammeArticle.description}" rows="3" style="width: 100%"/> 
+                            </h:panelGrid>
+                        </div>
+
+
+                    </p:outputPanel>                            
+                </div>
+
+
+                <div style=" float: left; width: 25%; margin-left: 1%">
+
+                    <span>Articles : </span> 
+                    <h:panelGroup id="txt_article_gammes">
+                        <h:inputText value="#{gammeArticle.article.refArt}" style="color: #{gammeArticle.article.error?'red':''}" disabled="#{gammeArticle.id gt 0}">
+                            <p:ajax event="blur" global="false" listener="#{managedGamme.searchArticle(gammeArticle.article.refArt)}" update="txt_article_gammes :form_gamme_dlg_art:data_article_gammes"/>
+                        </h:inputText>  
+
+                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white;margin-top: 5px" title="Liste Articles" global="false"
+                                         actionListener="#{managedGamme.initArticles(true)}" oncomplete="dlgListArticle.show()" />
+                        <p:commandButton title="Ajouter un article"  style="float: right; width: 20px; height: 20px" rendered="#{(gammeArticle.id!=0)}" 
+                                         icon="ui-icon-circle-plus" actionListener="#{managedGamme.openProprietesPhases()}" global="false"/>
+                    </h:panelGroup> 
+
+
+                    <h:panelGrid columns="1" style="width: 100%; font-size: 0.8em" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <f:facet name="header">
+                            <span style="float: left">Liste des articles</span>
+
+                        </f:facet>
+                        <p:dataTable id="data_gammes_articles" value="#{gammeArticle.gammesArticles}" var="sits" rowKey="#{sits.article}" rowIndexVar="Idx"
+                                     scrollable="true" scrollHeight="120">
+                            <p:column headerText="N°" width="20">
+                                <span>#{Idx+1}</span>
+                            </p:column>
+                            <p:column headerText="Désignation">
+                                <span>#{sits.article.designation}</span>
+                            </p:column>                                                                                     
+                            <p:column  width="20" style="text-align: center">
+                                <p:commandButton icon="ui-icon-minusthick" style="width: 20px;height: 20px" actionListener="#{managedGamme.activeGammeSite(sits)}"
+                                                 title="Retirer Dépôt" rendered="#{sits.id gt 0}" update="data_gammes_articles"/>
+                                <p:commandButton icon="ui-icon-plusthick" style="width: 20px;height: 20px" actionListener="#{managedGamme.activeGammeSite(sits)}"
+                                                 title="Ajouter Dépôt" rendered="#{sits.id le 0}" update="data_gammes_articles"/>
+                            </p:column>  
+                        </p:dataTable>
+                    </h:panelGrid>  
+
+                </div>             
+
+                <h:inputHidden value="#{managedGamme.tabIds_phase}" id="input_hide_phaseGamme"/>   
+                <p:dataTable style="clear: left" value="#{gammeArticle.operations}" var="itemOp" rowIndexVar="phasLIne" 
+                             id="data_gamme_phase" selectionMode="single" rowKey="#{itemOp.id}" selection="#{managedGamme.selectedOperation}">
+                    <f:facet name="header">
+                        <div align="left" style="width: 100%">
+                            <span>Opérations</span>
+                            <p:commandButton title="Ajouter une opération"  style="float: right; width: 22px; height: 22px" rendered="#{(gammeArticle.id!=0)}" 
+                                             icon="ui-icon-circle-plus" actionListener="#{managedGamme.openProprietesPhases()}" global="false"/>
+                        </div>
+                    </f:facet>
+                    <p:ajax event="rowSelect" listener="#{managedGamme.selectLineOperation}"/>
+                    <p:column headerText="" style="text-align: center;" width="40">
+                        <p:commandButton update="data_gamme_phase" icon="ui-icon-arrowstop-1-n" actionListener="#{managedGamme.upOperation(itemOp)}" style="width: 20px;height: 24px" disabled="#{!managedGamme.toUpOperation(itemOp)}" />
+                        <p:commandButton update="data_gamme_phase" icon="ui-icon-arrowstop-1-s" actionListener="#{managedGamme.downOperation(itemOp)}" style="width: 20px;height: 24px" disabled="#{!managedGamme.toDownOperation(itemOp)}"/>
+                    </p:column>
+                    <p:column headerText="Numero" width="60" style="text-align: center">
+                        <span >#{itemOp.numero}</span>                                                 
+                    </p:column>
+                    <p:column headerText="Référence">
+                        <span>#{itemOp.codeRef}</span>
+                    </p:column>
+                    <p:column headerText="Temps Reglage" style="text-align: right">
+                        <h:outputText value="#{itemOp.tempsReglage}" converter="DNS" />
+                        <span style="font-style: italic;color: blue;font-size: 0.8em"> #{gammeArticle.uniteTemps.reference}</span>
+                    </p:column>
+                    <p:column headerText="Temps Opératoire" style="text-align: right">
+                        <h:outputText value="#{itemOp.tempsOperation}" converter="DNS" />
+                        <span style="font-style: italic;color: blue;font-size: 0.8em"> #{gammeArticle.uniteTemps.reference}</span>
+                    </p:column>
+                    <p:column headerText="Perte" style="text-align: right">
+                        <h:outputText value="#{itemOp.tauxPerte}" converter="DNS" />
+                        <span style="font-style: italic"> %</span>
+                    </p:column>
+                    <p:column headerText="Efficience" style="text-align: right">
+                        <h:outputText value="#{itemOp.tauxEfficience}" converter="DNS" />
+                        <span style="font-style: italic"> %</span>
+                    </p:column>
+                    <p:column headerText="Machine" >
+                        <span title="#{itemOp.givePosteMachine().posteCharge.designation}">#{itemOp.givePosteMachine().posteCharge.reference}</span>
+                    </p:column>                            
+                    <p:column headerText="Main d'oeuvre" >
+                        <span title="#{itemOp.givePosteMo().posteCharge.designation}"> #{itemOp.givePosteMo().posteCharge.reference}  </span>
+                    </p:column>                            
+                    <p:column headerText="Type temps" style="text-align: center" >
+                        #{itemOp.typeTemps}                                                         
+                    </p:column> 
+                    <p:column headerText="Quantité" style="text-align: right">
+                        <h:outputText value="#{itemOp.quantiteBase}" rendered="#{!itemOp.typeTemps.equals(constantes.PROD_OP_TYPE_TEMPS_CADENCE)}" converter="DNS" />
+                        <h:outputText value="#{itemOp.cadence}" rendered="#{itemOp.typeTemps.equals(constantes.PROD_OP_TYPE_TEMPS_CADENCE)}" converter="DNS" />
+                    </p:column>
+                    <p:column headerText="" width="30" style="text-align: center">
+                        <f:facet name="header">
+                            <p:contextMenu for="btn_option_phase_gamme" event="left click" style="font-size: 0.8em">                        
+                                <p:menuitem value="Fusionner" icon="ui-icon-refresh" actionListener="#{managedGamme.fusionnerOperation(true)}"
+                                            id="option_phase_gamme" oncomplete="dlgConfirmFusionOperation.show()" update=":main_fusion_operation_gamme:blog_fusionner_operation_gamme"/>
+                            </p:contextMenu> 
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_phase_gamme" type="button"/>
+                        </f:facet>
+                        <p:contextMenu for="btn_option_op" event="left click" >
+                            <p:menuitem value="Suivi Op" title="suivi de l'opération"  icon="ui-icon-arrowthickstop-1-e" update="data_gamme_phase"
+                                        actionListener="#{managedGamme.loaAllComposantsNomenclature(itemOp,true)}"/>
+                            <p:separator />
+                            <p:menuitem value="Supprimer" icon="ui-icon-trash" actionListener="#{managedGamme.deleteBeanOperation(itemOp)}"/>
+                        </p:contextMenu>
+                        <p:commandButton title="voir les propriétés" icon="ui-icon-gear" id="btn_option_op"
+                                         style="background: #006666; width: 22px; height: 22px" type="button"/>
+                    </p:column>                                     
+                    <p:column width="25" style="text-align: center">
+                        <f:facet name="header">
+                            <h:selectBooleanCheckbox styleClass="chek_all_line_phaseGamme" value="false" onclick="selectionAllLineTab(#{gammeArticle.operations.size()}, 'phaseGamme')"/>
+                        </f:facet>
+                        <h:selectBooleanCheckbox value="false" styleClass="chek_line_phaseGamme" onclick="selectionLineTab(#{phasLIne}, 'phaseGamme')"/>
+                    </p:column>                     
+                </p:dataTable>                                              
+                <div style="margin-left: 35%; width: 65%">                                                    
+                    <h:panelGrid columns="1" styleClass="yvs_nostyle" style="width: 100%">
+                        <p:commandButton id="delete_phase_gamme" value="Supprimer" style="float: right" onclick="dlgConfirmDeletePhase.show()"/>     
+                    </h:panelGrid>  
+                </div>  
+
+                <!-->
+*****************************************************************************
+Liste des articles de la gamme
+*****************************************************************************
+<-->  
+                <!--
+                -->                       
+
+
+
+                <!-->
+                   *****************************************************************************
+                   Vue Liste
+                   *****************************************************************************
+                 <-->
+                <div class="yvs_list_gamme">
+                    <h:inputHidden value="#{managedGamme.tabIds}" id="input_hide_gamme"/>
+                    <p:dataTable id="data_gamme" value="#{managedGamme.gammes}" var="gamm"  rowIndexVar="gammLIne" rowKey="#{gamm.id}" selectionMode="single">
+                        <p:ajax event="rowSelect" listener="#{managedGamme.openGammeForUpdate}" oncomplete="collapseForm('gamme');"/>
+                        <p:column headerText="N°" width="40">
+                            <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{gamm.id eq gammeArticle.id}"/>
+                            <span>#{gammLIne + 1}</span>
+                        </p:column>
+                        <p:column headerText="Reference">  
+                            <span>#{gamm.codeRef}</span>  
+                            <h:graphicImage rendered="#{gamm.principal}" library="img" name="P.png" width="12" height="12"  style="float: right"/>
+                        </p:column>
+                        <p:column headerText="Article">
+                            [<span style="font-weight: bold">#{gamm.article.refArt}</span>]
+                            <span> #{gamm.article.designation}</span>
+                        </p:column>
+                        <p:column headerText="Validité" style="text-align: center">
+                            <h:panelGroup rendered="#{!gamm.permanant}">
+                                <h:outputText value="#{gamm.debutValidite}" converter="DATE" />
+                                <h:outputText value="  au  " style="font-style: italic"/>
+                                <h:outputText value="#{gamm.finValidite}" converter="DATE" />
+                            </h:panelGroup>
+                            <h:outputText rendered="#{gamm.permanant}" value="Permanent" style="letter-spacing: 1px; font-style: italic" />
+                        </p:column>
+                        <p:column headerText="Famille Article">
+                            <span>#{gamm.article.famille.designation}</span>
+                        </p:column>                            
+                        <p:column headerText="Actif" width="25" style="text-align: center">
+                            <h:graphicImage library="img" name="#{gamm.actif?'vu.png':'no.png'}" width="20" height="20"/>
+                        </p:column>                            
+                        <p:column headerText="Nbre. phases" width="70" style="text-align: center">
+                            <span style="width: 100px; display: inline-block; border-radius: 20px; background: #b4e391; font-size: 1.1em; font-weight: bold">#{gamm.operations.size()}</span>
+                        </p:column>                                    
+                        <p:column style="text-align: center" width="25" >
+                            <p:contextMenu for="btn_option_gamme" event="left click" style="font-size: 0.8em">
+                                <p:separator style="width: 98%;margin: auto"/>
+                                <p:menuitem value="#{gamm.actif?'Désactiver':'Activer'}" icon="#{gamm.actif?'ui-icon-circle-close':'ui-icon-circle-check'}"   actionListener="#{managedGamme.buildCodeAcces(gamm)}"/>
+                                <p:menuitem value="Attribuer accès" icon="ui-icon-key" global="false" actionListener="#{managedGamme.buildCodeAcces(gamm)}" oncomplete="dlgCodeAcces.show()"/>
+                            </p:contextMenu>
+                            <p:commandButton type="button" icon="ui-icon-gear" id="btn_option_gamme" style="width: 22px; height: 22px" />
+                        </p:column>                                    
+                        <p:column width="25" style="text-align: center">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_gamme" value="false" onclick="selectionAllLineTab(#{managedGamme.gammes.size()}, 'gamme')"/>
+                            </f:facet>
+                            <h:selectBooleanCheckbox value="false" styleClass="chek_line_gamme" onclick="selectionLineTab(#{gammLIne}, 'gamme')"/>
+                        </p:column>
+                    </p:dataTable>
+                    <span class="nbSelectgamme" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedGamme.paginer(false)}" global="false" update="data_gamme" icon="ui-icon-circle-triangle-w" disabled="#{managedGamme.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedGamme.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedGamme.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedGamme.gotoPagePaginator()}" update="data_gamme"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedGamme.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedGamme.paginer(true)}" global="false" update="data_gamme" icon="ui-icon-circle-triangle-e" disabled="#{managedGamme.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedGamme.nbMax}" label="Nombre max Résultat" valueChangeListener="#{managedGamme.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedGamme.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_gamme"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>     
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="cacher"/>  
+            <div class="zone_find">
+                <h:panelGrid id="blog_search_gamme" columns="2" style="width: 100%; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="7" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="" />
+                        <h:outputText value="Date" />
+                        <h:outputText value="#{accesRessource.prod_gamme_load_all?'Site':''}"/>
+                        <h:outputText value="Catégorie" />
+                        <h:outputText value="Article" />
+                        <h:outputText value="Actif" />
+                        <h:outputText value="Reference" />
+                        <p:commandButton icon="ui-icon-bullet" actionListener="#{managedGamme.clearParams()}" title="Reinitialiser les paramètres" style="width: 20px; height: 22px" update="blog_search_gamme :form_gamme:data_gamme"/>
+                        <h:panelGrid columns="2">
+                            <h:selectBooleanCheckbox value="#{managedGamme.dateSeacrh}">
+                                <p:ajax event="valueChange" listener="#{managedGamme.addParamDates()}" update="blog_date_search_gamme :form_gamme:data_gamme" oncomplete="collapseList('gamme')"/>
+                            </h:selectBooleanCheckbox>
+                            <h:panelGroup id="blog_date_search_gamme">
+                                <p:calendar value="#{managedGamme.dateDebutSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedGamme.dateSeacrh}" size="8" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedGamme.addParamDates()}" update=":form_gamme:data_gamme" oncomplete="collapseList('gamme')"/>
+                                </p:calendar>
+                                <p:spacer width="5px" style="background: black"/>
+                                <p:calendar value="#{managedGamme.dateFinSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedGamme.dateSeacrh}" size="8" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedGamme.addParamDates()}" update=":form_gamme:data_gamme" oncomplete="collapseList('gamme')"/>
+                                </p:calendar>
+                            </h:panelGroup>
+                        </h:panelGrid> 
+                        <h:panelGroup>
+                            <h:outputText value="" rendered="#{!accesRessource.prod_gamme_load_all}"/>
+                            <h:selectOneMenu value="#{managedGamme.siteSearch}" style="min-width: 120px" rendered="#{accesRessource.prod_gamme_load_all}">
+                                <f:selectItem itemLabel="TOUT" itemValue="0"/>
+                                <f:selectItems value="#{managedSiteProduction.sites}" var="sts" itemValue="#{sts.id}" itemLabel="#{sts.designation}" /> 
+                                <p:ajax event="valueChange" listener="#{managedGamme.addParamSite()}" oncomplete="collapseList('gamme')"
+                                        update=":form_gamme:data_gamme"/>
+                            </h:selectOneMenu>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedGamme.categorieSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="TOUT" itemValue="#{null}"/>
+                            <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" /> 
+                            <p:ajax event="valueChange" listener="#{managedGamme.addParamCategorie()}" oncomplete="collapseList('gamme')"
+                                    update=":form_gamme:data_gamme"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedGamme.artSearch}">
+                            <p:ajax event="blur" listener="#{managedGamme.addParamArticle()}" oncomplete="collapseList('gamme')" update=":form_gamme:data_gamme"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedGamme.actifSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="TOUT" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="OUI" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="NON" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" listener="#{managedGamme.addParamActif()}" oncomplete="collapseList('gamme')" update=":form_gamme:data_gamme"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedGamme.numSearch}">
+                            <p:ajax event="valueChange" listener="#{managedGamme.addParamReference()}" oncomplete="collapseList('gamme')" update=":form_gamme:data_gamme"/>
+                        </h:inputText>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right">
+
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

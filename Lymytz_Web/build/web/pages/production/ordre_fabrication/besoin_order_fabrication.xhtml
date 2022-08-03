@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">
+    <div>
+        <p:dataTable id="table_matiere" value="#{managedOrdresF.listeMatieres}" var="itemComposant" rowIndexVar="lineC"
+                     rowKey="#{itemComposant.id}" editMode="cell" editable="true">
+            <p:column  width="300" headerText="#{lab.LP_POF_composant}"  >                                        
+                <h:outputText value="[#{itemComposant.article.refArt}]"  title="#{itemComposant.commentaire}" style="font-weight: bold"/>
+                <h:outputText value=" #{itemComposant.article.designation}"  title="#{itemComposant.commentaire}"/>                                        
+            </p:column>
+            <p:column width="15" headerText="#{lab.L_unite}" style="text-align: center">
+                <h:outputText styleClass="style_unite" value="#{itemComposant.unite.unite.reference}" title="#{itemComposant.unite.unite.libelle}" />
+            </p:column>
+
+            <p:column width="100" headerText="#{lab.L_depot}" style="text-align: center" >
+                <p:cellEditor>
+                    <f:facet name="output"><h:outputText value="#{itemComposant.depotConso.designation}"  /></f:facet>
+                    <f:facet name="input">
+                        <h:selectOneMenu value="#{itemComposant.idDepot}" style="width:100%" >
+                            <f:selectItem itemValue="" itemLabel="..." />
+                            <f:selectItems  value="#{managedOrdresF.depots}" var="dep" itemLabel="#{dep.designation}" itemValue="#{dep.id}" />
+                            <p:ajax event="valueChange" update="table_matiere" oncomplete="other_depot.show()" listener="#{managedOrdresF.getDepot(itemComposant)}" />
+                        </h:selectOneMenu>
+                    </f:facet>
+                </p:cellEditor>
+
+            </p:column>
+            <p:column id="stock" width="100" headerText="#{lab.LP_PC_stock} " style="text-align: right" >  
+                <h:outputText value="#{itemComposant.stock}" converter="DNS"/>       
+            </p:column>
+            <p:column width="100" headerText="#{lab.LP_POF_qte_prevue}" style="text-align: right">
+                <h:outputText value="#{itemComposant.quantitePrevu}" style="color: #{((itemComposant.stock lt itemComposant.quantitePrevu) and (itemComposant.type eq constantes.PROD_OP_TYPE_COMPOSANT_NORMAL))?'red':'blue'}" converter="DNS"/>                                                                                                     
+            </p:column>
+
+            <p:column width="100" headerText="#{lab.LP_POF_approvisionnement}" style="text-align: right; color: #790000" >     
+                <p:cellEditor>
+                    <f:facet name="output">
+                        <h:outputText value="#{itemComposant.quantiteValide >0 ? itemComposant.quantiteValide :0}" converter="DNS"/>
+                    </f:facet>
+
+                    <f:facet name="input">
+                        <h:inputText value="#{itemComposant.quantiteValide}" />
+                    </f:facet>
+                </p:cellEditor>
+            </p:column>  
+            <p:column width="100" headerText="#{lab.LC_PMS_fournisseur} " rendered="#{managedOrdresF.ordre_achat}"  > 
+                <p:cellEditor>
+                    <f:facet name="output">
+                        <h:outputText value="#{itemComposant.principal.nom_prenom}" />
+                    </f:facet>
+                    <f:facet name="input">
+                        <h:selectOneMenu value="#{itemComposant.idFournisseur}" style="width:100%" >
+                            <f:selectItem itemValue="" itemLabel="..." />
+                            <f:selectItems  value="#{itemComposant.fournis}" var="a" itemLabel="#{a.nom_prenom}" itemValue="#{a.id}" />
+                            <p:ajax event="valueChange" update="table_matiere" listener="#{managedOrdresF.getFournPrincipal(itemComposant)}" />
+                        </h:selectOneMenu>
+                    </f:facet>
+
+                </p:cellEditor>
+
+            </p:column>
+            <p:column width="100" headerText="#{lab.LP_POF_depot_source}" style="text-align: center" rendered="#{managedOrdresF.demande_transfert}">
+                <p:cellEditor>
+                    <f:facet name="output"><h:outputText value="#{itemComposant.depot_cible.designation}"  /></f:facet>
+                    <f:facet name="input">
+                        <h:selectOneMenu value="#{itemComposant.idDepot_cible}" style="width:100%"  >
+                            <f:selectItems  value="#{managedOrdresF.depots}" var="dep" itemLabel="#{dep.designation}" itemValue="#{dep.id}" />
+                            <p:ajax event="valueChange" update="table_matiere" oncomplete="other_depot.show()" listener="#{managedOrdresF.getDepotCible(itemComposant)}" global="false" />
+                        </h:selectOneMenu>
+                    </f:facet>
+                </p:cellEditor>
+
+            </p:column>
+
+        </p:dataTable>
+
+
+        <p:commandButton icon="ui-icon-gear" type="button" id="btn_commande_article" style="width: 22px; height: 22px" />
+        <p:contextMenu for="btn_commande_article" event="left click" style="font-size: 0.8em;width: 300px" >
+            <p:menuitem value="#{lab.LP_POF_ordre_achat}" actionListener="#{managedOrdresF.afficherFournisseur()}" icon="ui-icon-transferthick-e-w" />
+            <p:menuitem value="#{lab.LP_POF_ordre_transfert} " icon="ui-icon-transferthick-e-w" actionListener="#{managedOrdresF.afficherTransfert()}" />
+            <p:menuitem value="#{lab.LP_POF_demande_approvisionnement}" icon="ui-icon-transferthick-e-w" actionListener="#{managedOrdresF.afficherAppro()}"   />
+
+        </p:contextMenu> 
+        <p:commandButton icon="ui-icon-circle-check" value="Valider" style="float: right" actionListener="#{managedOrdresF.enregistrerOrdre()}" />
+
+    </div>
+    <p:dialog widgetVar="other_depot" >
+        <h:outputText value="#{lab.LP_POF_choisir_mm_depot_pour_toute_lignes}"  />
+        <center> <h:panelGrid columns="2" style="margin-top: 20px;">
+                <p:commandButton value="#{lab.L_oui}" update="table_matiere" actionListener="#{managedOrdresF.getDepotAll()}" oncomplete="other_depot.hide()" />
+                <p:commandButton value="#{lab.L_non}" oncomplete="other_depot.hide()" />
+            </h:panelGrid></center>
+
+
+
+    </p:dialog>
+</ui:composition> 
+

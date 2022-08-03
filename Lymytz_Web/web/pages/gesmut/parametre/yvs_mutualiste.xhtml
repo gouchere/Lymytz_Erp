@@ -1,0 +1,599 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Mutualiste','modMutuelle', 'smenMutualiste', true,managedMutualiste)}
+    </ui:define>   
+    <ui:define name="contents"> 
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('mutualiste');
+                collapseForm('compte_mutualiste');
+                slideShow('zone_show_avalise_mut', 200);
+            });
+        </script>
+        #{managedMutualiste.loadAll()}
+        #{MEmps.addParamMutuelle()}
+        #{managedPoste.loadAll()}
+        #{managedTypeCompte.loadAll()}
+
+        <h:form>
+            <p:remoteCommand name="updateBeanCompte_" global="false" actionListener="#{managedMutualiste.updateBeanCompte()}"/>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmCreate" closeOnEscape="true"
+                             message="#{lab.LM_PM_text1}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" onclick="dlgConfirmCreate.hide()" oncomplete="dlgAddExercice.show()" global="false"/>
+                <p:commandButton type="button" value="#{lab.L_non}" onclick="dlgConfirmCreate.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PEX_creation_exercice}" widgetVar="dlgAddExercice" 
+                      width="25%" modal="true" closeOnEscape="true">
+                <h:panelGrid columns="1" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="2" styleClass="yvs_table" style="width: 98%;margin: auto"> 
+                        <span>#{lab.L_refernce} </span>  
+                        <h:inputText value="#{exercice.reference}"/>
+                        <span>#{lab.L_date_debut} </span> 
+                        <p:calendar value="#{exercice.dateDebut}" navigator="true" pattern="dd-MM-yyyy"/>
+                        <span>#{lab.L_date_fin} </span>
+                        <p:calendar value="#{exercice.dateFin}" navigator="true" pattern="dd-MM-yyyy"/>
+                        <span>#{lab.L_actif} </span>
+                        <h:selectBooleanCheckbox value="#{exercice.actif}"/>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_energistrer}" actionListener="#{managedExercice.saveNew()}"
+                                     oncomplete="dlgAddExercice.hide()" style="width: 100%"/> 
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014
+                </f:facet>
+            </p:dialog>
+        </h:form>  
+
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue initialisation des comptes
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgInitCompte_">
+            <p:dialog id="dlgInitCompte_" header="#{lab.LM_PM_initialiser_comptes}" widgetVar="dlgInitCompte" modal="true"
+                      width="50%"  closeOnEscape="true">
+                <h:panelGrid columns="1" styleClass="yvs_nostyle" style="width: 100%;margin: auto"
+                             cellpadding="0" cellspacing="0">
+                    <p:selectManyCheckbox value="#{managedMutualiste.choixComptes}" id="type_type_initialisation"
+                                          layout="grid" style="margin: auto">
+                        <f:selectItems value="#{managedTypeCompte.types}" var="typ_c" itemLabel="#{typ_c.libelle}" itemValue="#{typ_c.id}"/>                        
+                    </p:selectManyCheckbox>
+                </h:panelGrid>             
+                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedMutualiste.initialiserCompte()}" 
+                                 style="float: right" oncomplete="dlgInitCompte.hide()"/>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des types de comptes 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgAddTypeCompte_">
+            <p:dialog id="dlgAddTypeCompte_" header="#{lab.LM_PM_creation_types_compte}" widgetVar="dlgAddTypeCompte" modal="true" width="30%"  closeOnEscape="true">
+                <h:panelGrid columns="1" styleClass="yvs_table" style="width: 100%">
+                    <h:panelGrid columns="2" styleClass="yvs_table" style="width: 98%;margin: auto"
+                                 cellpadding="0" cellspacing="0">
+                        <span>#{lab.L_libelle} </span>
+                        <h:inputText value="#{typeCompte.libelle}"/>
+                        <span>#{lab.L_type} </span> 
+                        <h:selectOneMenu value="#{typeCompte.nature}" id="type_type_">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItem itemLabel="#{constantes.MUT_TYPE_COMPTE_COURANT}" itemValue="#{constantes.MUT_TYPE_COMPTE_COURANT}"/>
+                            <f:selectItem itemLabel="#{constantes.MUT_TYPE_COMPTE_EPARGNE}" itemValue="#{constantes.MUT_TYPE_COMPTE_EPARGNE}"/>                                    
+                            <f:selectItem itemLabel="#{constantes.MUT_TYPE_COMPTE_A_TERME}" itemValue="#{constantes.MUT_TYPE_COMPTE_A_TERME}"/>                           
+                            <f:selectItem itemLabel="#{constantes.MUT_TYPE_COMPTE_ASSURANCE}" itemValue="#{constantes.MUT_TYPE_COMPTE_ASSURANCE}"/>                           
+                        </h:selectOneMenu>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedTypeCompte.saveNew()}" 
+                                     style="width: 100%" oncomplete="dlgAddTypeCompte.hide()" update=":main_mutualiste:type_compte"/>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des postes
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgPosteMutualiste_">
+            <p:dialog id="dlgPosteMutualiste_" header="#{lab.LM_PM_creation_poste}" widgetVar="dlgPosteMutualiste" modal="true" width="30%" closeOnEscape="true">
+                <h:panelGrid id="blog_form_poste_" columns="2" styleClass="yvs_table" style="width: 100%"
+                             cellpadding="0" cellspacing="0">
+                    <span> #{lab.L_designation} </span>
+                    <h:inputText id="txt_designation_poste" value="#{poste.designation}"
+                                 style="width: 98%"/>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" id="save_poste_" actionListener="#{managedPoste.saveNew()}"
+                                 style="width: 100%" oncomplete="dlgPosteMutualiste.hide()" update=":main_mutualiste:poste_employe_mutualiste"/>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    <h:panelGrid columns="1" styleClass="yvs_nostyle" style="width: 100%">
+                        &copy; Lymytz 2014
+                    </h:panelGrid>
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des postes du mutualiste
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgListPosteMutualiste_">
+            <p:dialog id="dlgListPosteMutualiste_" header="#{lab.LM_PM_historique_poste}" widgetVar="dlgListPosteMutualiste"
+                      modal="true" width="30%" height="435" closeOnEscape="true">
+                <p:outputPanel>
+                    <p:dataTable id="data_poste_mutualiste" value="#{managedMutualiste.mutualisteSelect.postes}" var="postM"
+                                 rowKey="#{postM.id}" rowIndexVar="postMIdx"  style="max-height: 400px; overflow-y: auto">
+                        <p:column headerText="N°" style="text-align: center" width="15">
+                            <span>#{postMIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PF_poste}"  width="100">
+                            <span>#{postM.poste.designation}</span>                 
+                        </p:column>
+                        <p:column headerText="#{lab.LM_PM_date_occupation}" width="80" style="text-align: center" >
+                            <h:outputText value="#{postM.dateOccupation}" converter="DDMMYYYY"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage library="img"  name="#{(postM.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des employes 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgEmployeMutuelle_">         
+            <p:dialog id="dlgEmployeMutuelle_" header="#{lab.LDB_PCB_liste_employes_actif}" widgetVar="dlgEmployeMutuelle" width="85%" 
+                      closeOnEscape="true" resizable="false"  modal="true" style="max-height: 600px">                    
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('employe_mutuelle');
+                    });
+                </script>
+                <h:inputText value="#{MEmps.matriculeToUpdate}" >
+                    <p:ajax event="valueChange" listener="#{MEmps.findEmploye(MEmps.matriculeToUpdate)}"
+                            update="grid_employe_mutuelle tab_employe_mutuelle"/>
+                </h:inputText>
+                <div style="float: right" >
+                    <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                        <p:outputPanel  autoUpdate="true">
+                            <h:selectOneMenu value="#{managedDepartement.agence_}" valueChangeListener="#{MEmps.addParamAgence}" >
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedDepartement.currentScte.agences}" var="itemA" itemValue="#{itemA.id}" itemLabel="#{itemA.designation}" />
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.LDB_PCB_toutes_societe}" />
+                                <p:ajax event="valueChange" update="grid_employe_mutuelle tab_employe_mutuelle"/>
+                            </h:selectOneMenu>
+                            <p:commandButton actionListener="#{MEmps.pagineResult(false)}" update="grid_employe_mutuelle tab_employe_mutuelle" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{MEmps.paginator.currentPage} / #{MEmps.paginator.nbPage}" style="margin-top: 0px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton actionListener="#{MEmps.pagineResult(true)}" update="grid_employe_mutuelle tab_employe_mutuelle" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{MEmps.changeMaxResult}" style="font-size: 0.9em;min-width: 50px; position: relative; top: 10px" >
+                                <f:selectItems value="#{MEmps.paginations}"/>
+                                <p:ajax event="valueChange" update="grid_employe_mutuelle tab_employe_mutuelle"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel> 
+                        <h:panelGroup>
+                            <h:link onclick="collapseList('employe_mutuelle');
+                                    return false" title="#{lab.L_mode_liste}" >
+                                <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>
+                            <h:link  onclick="collapseGrid('employe_mutuelle');
+                                    return false" title="#{lab.L_mode_hierrachique}">
+                                <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>   
+                        </h:panelGroup>
+                    </h:panelGrid>
+                </div>         
+                <div style="clear: both"/>  
+                <div class="yvs_list_employe_mutuelle">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                 widgetVar="tabEmployes" id="tab_employe_mutuelle" selectionMode="single"
+                                 scrollable="true" scrollHeight="400" > 
+                        <p:ajax event="rowSelect" listener="#{managedMutualiste.loadOnViewEmploye}" oncomplete="dlgEmployeMutuelle.hide()"/>
+                        <p:column headerText="N°" width="15" style="text-align: center">
+                            <h:outputText value="#{line_e+1}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                            <h:outputText value="#{emp.civilite} #{emp.nom} #{emp.prenom}" />
+                        </p:column>                        
+                        <p:column headerText="#{lab.LDB_PD_matricule}" width="90" style="text-align: center">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PCB_poste} " width="200">
+                            <h:outputText value="#{emp.posteActif.intitule}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+                <div class="yvs_grid_employe_mutuelle">
+                    <p:dataGrid value="#{MEmps.listEmployes}" var="emp1" columns="3" id="grid_employe_mutuelle" >
+                        <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                            <f:facet name="header">
+                                <p:commandLink  actionListener="#{managedMutualiste.loadOneEmploye(emp1)}" oncomplete="dlgEmployeMutuelle.hide()">
+                                    <p:graphicImage library="lymytz/documents/docEmps/perso/photo" name="#{(emp1.photos==null)?'user1.png':emp1.photos}" width="100" height="100" />                                                                      
+                                </p:commandLink>
+                            </f:facet>
+                            <span>#{lab.L_noms_prenoms}</span>
+                            <h:outputText value="#{emp1.prenom} #{emp1.nom}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LDB_PD_matricule}</span>
+                            <h:outputText value="#{emp1.matricule}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LDB_PCB_poste}</span>
+                            <h:outputText value="#{emp1.posteActif.intitule}" style="font-weight: bold; font-size: 1.1em"/> 
+                        </h:panelGrid>
+                    </p:dataGrid>
+                </div>
+                <f:facet name="footer">                    
+                    <h:outputText value="&copy; Lymytz 2014" escape="true" />                    
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PPG_text7}" header="#{lab.L_confirmation}" width="40%">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMutualiste.deleteBean()}" 
+                                 oncomplete="dlgConfirmDelete.hide()" update=":main_mutualiste:data_mutualiste"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+
+
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <--> 
+        <h:form prependId="false" id="main_mutualiste">    
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_enregistrer}" id="save_mutualiste" icon="ui-icon-disk" actionListener="#{managedMutualiste.saveNew()}">
+                    <p:menuitem value="#{lab.L_nouveau}" id="cancel_mutualiste" icon="ui-icon-document" actionListener="#{managedMutualiste.resetFiche()}" update="blog_form_mutualiste"/>
+                    <p:menuitem value="#{lab.L_supprimer}" global="false" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()" />
+
+                </p:splitButton>
+                <p:splitButton value="#{lab.L_options}" id="delete_mutualiste" styleClass="context_menu">
+                    <p:menuitem value="#{lab.LM_PM_initialiser_comptes}"  onclick="dlgInitCompte.show()" icon="ui-icon-bullet"/>
+                    <p:menuitem value="#{lab.LP_POF_activer_desactiver}" actionListener="#{managedMutualiste.changeActif()}" icon="ui-icon-refresh"/>
+                    <p:menuitem value="#{lab.LM_PM_act_des_assist}" title="#{lab.LM_PM_activer_assistance}" actionListener="#{managedMutualiste.changeActifAssistance()}" icon="ui-icon-refresh"/>
+                    <p:menuitem value="#{lab.L_supprimer}" onclick="dlgConfirmDelete.show()" global="false" icon="ui-icon-trash" />
+                </p:splitButton>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedMutualiste.parcoursInAllResult(false)}" update="txt_parc_linear_mutualiste data_mutualiste"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('mutualiste')"
+                                     />
+                    <h:inputText value="#{managedMutualiste.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_mutualiste"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedMutualiste.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedMutualiste.parcoursInAllResult(true)}" update="txt_parc_linear_mutualiste data_mutualiste" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('mutualiste')"
+                                     />
+                </h:panelGroup>                
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('mutualiste');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('mutualiste');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_mutualiste" style="background: white">
+                    <h:outputText value="!! #{lab.LM_PM_text} !!" 
+                                  style="font-size: x-small; color: brown; font-style: italic; margin-left: 20%; text-decoration: blink" rendered="#{managedMutualiste.currentMutuel==null}"/>
+                    <h:inputHidden id="input_hide_reset_mu" value="#{managedMutualiste.input_reset}"/>
+                    <p:outputPanel id="blog_form_mutualiste" >
+                        <div style="width: 20%;float: left">
+                            <p:panelGrid columns="1" style="width: 100%">
+                                <f:facet name="header">
+                                    <p:graphicImage library="lymytz/documents/docEmps/perso/photo"  style="border: 0px solid #006666; max-height: 150px; max-width: 150px" 
+                                                    name="#{(mutualiste.employe.photos==null)?'user1.png':mutualiste.employe.photos}" 
+                                                    alt="#{lab.LRH_PTBE_photos_employe}" id="photos_mut"/>
+                                </f:facet>                                                                            
+                            </p:panelGrid>
+                        </div>
+                        <div style="width: 79%;float: right">
+                            <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                                <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <span>#{lab.LDB_PT_employe} </span>
+                                    <h:panelGroup id="txt_employe_mutuelle">
+                                        <h:inputText title="#{lab.LRH_PA_text1}" 
+                                                     value="#{mutualiste.employe.matricule}" style="color: #{mutualiste.employe.error?'#990000':'inherit'}">                                    
+                                            <p:ajax event="valueChange" listener="#{managedMutualiste.findOneEmploye(mutualiste.employe.matricule)}" update="txt_employe_mutuelle"/>
+                                        </h:inputText>
+                                        <p:commandButton icon="ui-icon-search" actionListener="#{managedMutualiste.update('data_employe_mutuelle')}" 
+                                                         oncomplete="dlgEmployeMutuelle.show();" style="width: 20px; height: 20px"/>
+                                        <span>#{mutualiste.employe.nom_prenom}</span>
+                                    </h:panelGroup>
+                                    <span>#{lab.LM_PM_date_adhesion} </span>
+                                    <p:calendar id="date_adhesion_mutualiste" value="#{mutualiste.dateAdhesion}" navigator="true" pattern="dd-MM-yyyy" />                                       
+                                    <span>#{lab.LM_PM_epargne} </span>
+                                    <pe:inputNumber id="txt_montant_epargne" value="#{mutualiste.montantEpargne}" decimalPlaces="0"/>
+                                    <span>#{lab.LDB_PCB_poste} </span> 
+                                    <h:selectOneMenu value="#{mutualiste.posteEmploye.poste.id}" id="poste_employe_mutualiste"
+                                                     valueChangeListener="#{managedMutualiste.chooseTypePoste}">
+                                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                        <f:selectItems value="#{managedPoste.postes}" var="post" 
+                                                       itemLabel="#{post.designation}" itemValue="#{post.id}" />
+                                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                        <f:selectItem itemLabel="#{lab.L_plus_de_choix}" itemValue="-1" />
+                                        <p:ajax event="valueChange" global="false" />
+                                    </h:selectOneMenu>
+                                    <span title="#{lab.LM_PM_souscription_assistance} ">#{lab.LM_PM_sousc_assist} </span>
+                                    <h:selectBooleanCheckbox value="#{mutualiste.assistance}" title="#{lab.LM_PM_souscription_assistance} ">
+                                        <p:ajax event="valueChange" global="false" listener="#{managedMutualiste.changeAssistance()}" update="@this"/>
+                                    </h:selectBooleanCheckbox>
+                                    <span>#{lab.L_actif} </span>
+                                    <h:selectBooleanCheckbox value="#{mutualiste.actif}"/>
+                                </h:panelGrid>
+                            </h:panelGrid>
+                        </div>
+                        <div style="clear:right"/>
+                        <div id="zone_show_compte_mut" style="width: 99%; margin: auto; border: solid 2px; height: 300px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                            <span style="display: inline-block; background: #CCC; width: 100%;cursor: pointer" onclick="slideShow('zone_show_compte_mut', 200)">
+                                <span class="button_slide">[-]</span>
+                                #{lab.L_compte} 
+                            </span>
+                            <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 250px; margin: auto;overflow-y: auto">
+                                <h:inputHidden id="input_hide_reset_compte_mutualiste" value="#{managedMutualiste.input_reset_compte}"/>
+                                <div style="width: 45%;float: left">
+                                    <h:panelGrid id="blog_form_compte_mutualiste" columns="2" styleClass="yvs_table" style="width: 98%;margin: auto"
+                                                 cellpadding="0" cellspacing="0">
+                                        <span>#{lab.L_reference} </span>
+                                        <h:inputText value="#{managedMutualiste.compte.reference}"/>
+                                        <span>#{lab.L_type} </span> 
+                                        <h:selectOneMenu value="#{managedMutualiste.compte.type.id}" id="type_compte">
+                                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                            <f:selectItems value="#{managedTypeCompte.types}" var="type_" 
+                                                           itemLabel="#{type_.libelle}" itemValue="#{type_.id}" />
+                                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                            <f:selectItem itemLabel="#{lab.L_creer}" itemValue="-1" />
+                                            <p:ajax event="valueChange" global="false" listener="#{managedMutualiste.chooseTypeCompte()}"/>
+                                        </h:selectOneMenu>
+                                        <span>#{lab.L_actif}</span>
+                                        <p:selectBooleanCheckbox value="#{managedMutualiste.compte.actif}" />
+                                        <span>#{lab.LM_PM_pour}</span>
+                                        <h:panelGrid columns="3" cellpadding="0" cellspacing="0" styleClass="yvs_nostyle" style="width: 100%">
+                                            <p:selectBooleanCheckbox value="#{managedMutualiste.compte.salaire}"  itemLabel="#{lab.LRH_PP_salaires}"/>
+                                            <p:selectBooleanCheckbox value="#{managedMutualiste.compte.primes}"  itemLabel="#{lab.LRH_PPT_primes}"/>
+                                            <p:selectBooleanCheckbox value="#{managedMutualiste.compte.interet}"  itemLabel="#{lab.LM_PPG_interet}" />
+                                        </h:panelGrid>
+                                    </h:panelGrid>
+                                    <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%">
+                                        <p:commandButton value="#{lab.L_nouveau}" actionListener="#{managedMutualiste.resetFicheCompte()}" style="float: left"
+                                                         update="blog_form_compte_mutualiste"/>
+                                        <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedMutualiste.saveNewCompte()}" style="float: right" 
+                                                         update="blog_form_compte_mutualiste data_compte_mutualiste" />
+                                    </h:panelGrid>
+                                </div>
+                                <div style="margin-left: 45%">
+                                    <h:inputHidden id="input_hide_compte_mutualiste" value="#{managedMutualiste.tabIds_compte}"/>
+                                    <p:dataTable id="data_compte_mutualiste" value="#{mutualiste.comptes}" var="compt" 
+                                                 rowKey="#{compt.id}" rowIndexVar="comptIdx" selectionMode="single">
+                                        <p:ajax event="rowSelect" global="false" listener="#{managedMutualiste.loadOnView}" oncomplete="collapseForm('compte_mutualiste')"/>
+                                        <p:ajax event="rowUnselect" global="false" listener="#{managedMutualiste.unLoadOnView}" oncomplete="collapseForm('compte_mutualiste')"/>
+                                        <p:column width="30" headerText="N°" styleClass="alerte_solde_#{(compt.soldeAlerte gt compt.solde)}">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{compt.new_}"/>
+                                            <span>#{comptIdx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_reference}" styleClass="alerte_solde_#{(compt.soldeAlerte gt compt.solde)}">
+                                            <span>#{compt.reference}</span>                 
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_type}" styleClass="alerte_solde_#{(compt.soldeAlerte gt compt.solde)}">
+                                            <span>#{compt.typeCompte.libelle}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="15">
+                                            <h:graphicImage library="img" name="#{compt.actif?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PM_solde}" style="text-align: right" styleClass="alerte_solde_#{(compt.soldeAlerte gt compt.solde)}">
+                                            <h:outputText value="#{managedMutualiste.findSoldeCompte(compt.id)}" converter="DN" />
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center" >
+                                            <p:contextMenu for="option_compte_mutualiste" event="left click" style="font-size: 0.8em"  styleClass="context_menu">
+                                                <p:menuitem value="#{compt.actif?'Désactiver':'Activer'}" actionListener="#{managedMutualiste.toogleActiveCompte(compt)}" icon="#{compt.actif?'ui-icon-circle-close':'ui-icon-circle-check'}"
+                                                            update="data_compte_mutualiste"/> 
+                                                <p:separator />
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedMutualiste.deleteBeanCompte(compt)}" update="data_compte_mutualiste"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="option_compte_mutualiste" type="button"/>  
+                                        </p:column>
+                                    </p:dataTable>
+                                    <p:commandButton id="delete_compte_mutualiste" value="#{lab.L_supprimer}" actionListener="#{managedMutualiste.deleteBeanCompte()}" 
+                                                     style="float: right" global="false" oncomplete="collapseForm('compte_mutualiste')">                                                             
+                                        <!--<p:confirm message="Voulez-vous vraiment supprimer?" header="Supprimer les comptes" />-->
+                                    </p:commandButton>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="zone_show_avalise_mut" style="width: 99%; margin: auto; border: solid 2px; max-height: 400px; padding: 2px; border-radius: 5px;margin-top: 5px;overflow-y: auto; display: #{(managedMutualiste.avalises.size() gt 0)?'block':'none'}">
+                            <span style="display: inline-block; background: #CCC; width: 100%;cursor: pointer" onclick="slideShow('zone_show_avalise_mut', 200)">
+                                <span class="button_slide">[-]</span>
+                                #{lab.LM_PM_liste_avalises}  
+                            </span>
+                            <div class="zone_slide" style="width: 99.5%; border: solid 1px; max-height: 95%; margin: auto;overflow-y: auto">
+                                <p:dataTable id="data_avalise" value="#{managedMutualiste.avalises}" var="aval" rowKey="#{aval.id}">
+                                    <p:column headerText="#{lab.LM_PM_mutualiste_lier}">
+                                        <span>#{aval.credit.compte.proprietaire}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PM_date_credit}" style="text-align: center">
+                                        <h:outputText value="#{aval.credit.dateCredit}" converter="DATE"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PM_montant_credit}" >
+                                        <h:outputText value="#{aval.credit.montant}" converter="DN" style="text-align: right"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PM_montant_avalise}" >
+                                        <h:outputText value="#{aval.montant}" converter="DN" style="text-align: right"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PM_etat_credit}" style="text-align: center">
+                                        <span>#{aval.credit.etat}</span>
+                                    </p:column>
+                                </p:dataTable> 
+                            </div>
+                        </div>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_mutualiste">
+                    <h:inputHidden id="input_hide_mutualiste" value="#{managedMutualiste.tabIds}"/>
+                    <p:outputPanel id="blog_list_mutualiste" style="width: 99%; margin: auto; background: white">
+                        <p:contextMenu for="data_mutualiste">
+                            <p:menuitem icon="ui-icon-note" value="#{lab.LM_PM_historique_postes}" actionListener="#{managedMutualiste.update('data_poste_mutualiste')}"
+                                        global="false" oncomplete="dlgListPosteMutualiste.show()"/>
+                        </p:contextMenu>
+                        <p:dataTable id="data_mutualiste" value="#{managedMutualiste.mutualistes}" var="mut" rowKey="#{mut.id}" rowIndexVar="mutIdx"
+                                     selectionMode="single" selection="#{managedMutualiste.mutualisteSelect}">
+                            <p:ajax event="rowSelect" global="false" listener="#{managedMutualiste.loadOnViewMutualiste}" update=":main_mutualiste:input_hide_mutualiste"
+                                    oncomplete="collapseForm('mutualiste');"/>
+                            <p:column width="30" headerText="N°">
+                                <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{mut.id eq mutualiste.id}"/>
+                                <span>#{mutIdx+1}</span>
+                            </p:column>
+                            <p:column width="30" headerText="Id ">
+                                <span>#{mut.id}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PD_matricule}" width="80">
+                                <span>#{mut.employe.matricule}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LM_PM_mutualiste}" width="200">
+                                <span>#{mut.employe.nom_prenom}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LM_PM_date_adhesion}" style="text-align: center" width="80">
+                                <h:outputText value="#{mut.dateAdhesion}" converter="DATE"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PCB_poste}" width="100">
+                                <span>#{mut.posteEmploye.poste.designation}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LM_PM_montant_epargne}" style="text-align: right" width="80">
+                                <h:outputText value="#{mut.montantEpargne}" converter="DN" />
+                            </p:column>
+                            <p:column headerText="#{lab.LM_PM_assistance}" style="width: 8%;text-align: center">
+                                <p:commandLink global="false" actionListener="#{managedMutualiste.assistanceMutualiste(mut)}" update="data_mutualiste">
+                                    <h:graphicImage library="img"  name="#{(mut.assistance)?'yes.png':'no.png'}" width="15" height="15"/>
+                                </p:commandLink>
+                            </p:column>
+                            <p:column width="35" headerText="#{lab.L_actif}" style="text-align: center">
+                                <p:commandLink global="false" actionListener="#{managedMutualiste.activeMutualiste(mut)}" update="data_mutualiste">
+                                    <h:graphicImage library="img"  name="#{(mut.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                </p:commandLink>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:contextMenu for="option_mutualiste" event="left click" style="font-size: 0.8em" styleClass="context_menu">
+                                    <p:menuitem value="#{lab.LM_PM_voir_situation}" icon="ui-icon-arrowthick-1-e" actionListener="#{managedMutualiste.onSelectSituationCompte(mut)}" global="false" />
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" oncomplete="dlgConfirmDelete.show()" actionListener="#{managedMutualiste.openTodeleteBean(mut)}" update="data_mutualiste"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="option_mutualiste" type="button"/>  
+                            </p:column> 
+                            <p:column width="25" style="text-align: center">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_mutualiste" value="false"
+                                                             onclick="selectionAllLineTab(#{managedMutualiste.mutualistes.size()}, 'mutualiste')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="#{mut.selectActif }" styleClass="chek_line_mutualiste" 
+                                                          onclick="selectionLineTab(#{mutIdx}, 'mutualiste')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                        </p:dataTable>                          
+                        <span class="nbSelectmutualiste" style="font-size: .8em; font-style: italic; color: #828c95;"></span>                   
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block" >
+                            <p:commandButton actionListener="#{managedMutualiste.paginer(false)}" update=":main_mutualiste:data_mutualiste" icon="ui-icon-circle-triangle-w"  disabled="#{managedMutualiste.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{managedMutualiste.paginator.currentPage}/#{managedMutualiste.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton action="#{managedMutualiste.paginer(true)}" update=":main_mutualiste:data_mutualiste" icon="ui-icon-circle-triangle-e"  disabled="#{managedMutualiste.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{managedMutualiste.imax}" label="#{lab.L_nombre_max_resultat}" style="float: right; font-size: 0.9em; width: 70px" 
+                                             valueChangeListener="#{managedMutualiste.choosePaginator}">
+                                <f:selectItems value="#{managedMutualiste.paginations}" />
+                                <p:ajax event="valueChange"  update=":main_mutualiste:data_mutualiste" />
+                            </p:selectOneMenu>
+                        </p:outputPanel>        
+                    </p:outputPanel>                                                     
+                </div> 
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find" style="font-size:0.8em">   
+                <div class="yvs_form_facture_vente display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedFactureVente.selectDoc.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedFactureVente.selectDoc.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedFactureVente.selectDoc.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="font-size: 0.9em; width: 100%">
+                    <h:panelGrid columns="3" style="font-size: 0.9em; float: left">
+                        <h:outputText value="#{lab.L_reference}" />
+                        <h:outputText value="#{lab.L_actif} " />  
+                        <span>&nbsp;</span>
+                        <h:inputText value="#{managedMutualiste.numSearch}" >
+                            <p:ajax event="keyup" listener="#{managedMutualiste.addParamReference()}" 
+                                    update=":main_mutualiste:data_mutualiste" oncomplete="collapseList('mutualiste')" />
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedMutualiste.actifSearch}">
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}" /> 
+                            <f:selectItem itemValue="#{true}" itemLabel="#{lab.L_oui.toUpperCase()}" /> 
+                            <f:selectItem itemValue="#{false}" itemLabel="#{lab.L_non.toUpperCase()}" /> 
+                            <p:ajax event="valueChange" listener="#{managedMutualiste.addParamActif()}" 
+                                    update=":main_mutualiste:data_mutualiste" oncomplete="collapseList('mutualiste')"/>
+                        </h:selectOneMenu>
+                    </h:panelGrid>
+                    <h:panelGrid columns="2" style="font-size: 0.9em; float: right">
+                        <p:commandLink global="false" actionListener="#{managedMutualiste.print()}" ajax="false">
+                            <span style="border: 2px solid #666; border-radius: 5px;margin-top: 5px;padding: 3px">
+                                #{lab.L_telecharger}
+                            </span> 
+                        </p:commandLink>
+                    </h:panelGrid>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

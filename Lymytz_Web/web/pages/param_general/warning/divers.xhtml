@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <p:dataTable value="#{managedWarning.divers}" var="oth" rowKey="#{oth.id}" rowIndexVar="othIdx"  selectionMode="single"
+                     paginator="true" rows="50" paginatorAlwaysVisible="false">
+            <f:facet name="header">
+                <div align="left" style="font-weight: bold">
+                    #{managedWarning.warning.description}
+                </div>
+            </f:facet>
+            <p:ajax event="rowSelect"  listener="#{managedWarning.loadOnView}"/>                                
+            <p:column width="40" styleClass="statut_#{oth.statutDoc}">                            
+                <span title="#{oth.description}">#{othIdx+1}</span>
+                <h:graphicImage title="#{lab.L_nouveau}" library="img" name="redo.png" width="15" height="15" rendered="#{oth.new_}"/>  
+                <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{oth.id eq docCaissesDivers.id}"/>                                          
+            </p:column>                            
+            <p:column headerText="#{lab.LCF_POD_numero_piece}" styleClass="statut_#{oth.statutDoc}" width="100">
+                <span title="#{oth.description}">#{oth.numPiece}</span>   
+                <h:panelGroup style="float: right">
+                    <h:outputText title="#{lab.LCF_POD_comptabiliser}" value="C" rendered="#{managedDocDivers.isComptabilise(oth)}" styleClass="style_statut"/>
+                </h:panelGroup>  
+            </p:column> 
+            <p:column headerText="#{lab.LCF_POD_numero_ref}" styleClass="statut_#{oth.statutDoc}" width="100">
+                <span title="#{oth.description}" style="float: left">#{managedDocDivers.resumeText(oth.referenceExterne, 30)}</span>
+                <h:panelGroup style="float: right;margin-top: 4px">
+                    <h:graphicImage library="img" name="P.png" width="12" height="12" rendered="#{oth.statutRegle eq constantes.ETAT_REGLE}" title="#{lab.LCF_POD_operation_regler}"/>
+                </h:panelGroup>
+            </p:column>
+            <p:column headerText="#{lab.L_tiers}" styleClass="statut_#{oth.statutDoc}" width="100">
+                <span title="#{oth.description}">#{managedDocDivers.findNameTiers(oth.idTiers, oth.tableTiers)}</span>
+            </p:column>
+            <p:column headerText="#{lab.LCF_POD_compte_g}." styleClass="statut_#{oth.statutDoc}" width="100">
+                <span title="#{oth.compteGeneral.intitule}">#{oth.compteGeneral.numCompte}</span>
+            </p:column>
+            <p:column headerText="#{lab.L_date}" width="80" styleClass="statut_#{oth.statutDoc}">
+                <h:outputText value="#{oth.dateDoc}" converter="DDMMYYYY" title="#{oth.description}"/>
+            </p:column>
+            <p:column headerText="#{lab.L_montant}" style="text-align: right;" width="100" styleClass="statut_#{oth.statutDoc}">
+                <h:outputText value="#{oth.montant}" converter="DN" style="padding-right: 2px" title="#{oth.description}"/>
+            </p:column>
+            <p:column headerText="#{lab.L_description}" style="text-align: right;" width="100" styleClass="statut_#{oth.statutDoc}">
+                <h:outputText value="#{managedDocDivers.resumeText(oth.description)}" style="padding-left: 2px" title="#{oth.description}"/>
+            </p:column>
+            <p:column headerText="#{lab.L_agence}" style="text-align: center" width="40" styleClass="statut_#{oth.statutDoc}">
+                <span>#{oth.agence.designation}</span>
+            </p:column>
+            <p:column headerText="#{lab.LCF_POD_nature}" style="text-align: center" width="40" styleClass="statut_#{oth.statutDoc}">
+                <span>#{oth.typeDoc.libelle}</span>
+            </p:column>
+            <p:column headerText="#{lab.LC_PA_etapes}" width="60" styleClass="statut_#{oth.statutDoc}" style="font-size: 0.8em; text-align: center">
+                <h:outputText value="#{oth.libEtapes}" />
+            </p:column>
+            <p:column width="20" style="text-align: center" styleClass="statut_#{oth.statutDoc}"> 
+                <h:graphicImage library="img/icones" name="#{(oth.mouvement eq constantes.COMPTA_RECETTE )?'in.png':'out.png'}"
+                                width="15" height="15" title="#{(oth.mouvement eq constantes.COMPTA_RECETTE )?lab.LDB_PCB_recettes:lab.LDB_PCB_depenses}"/>
+            </p:column>
+        </p:dataTable>   
+    </div>
+</ui:composition>
+

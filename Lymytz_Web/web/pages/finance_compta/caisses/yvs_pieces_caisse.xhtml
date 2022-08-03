@@ -1,0 +1,971 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">  
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Pièces de caisse','modCompta', 'smenPieceCaiss', true)}
+    </ui:define>        
+    <ui:define name="content" id="main_all_form_pc">
+        <style type="text/css">
+            .zone_find{
+                min-height: 130px !important;
+            }
+        </style>
+        #{managedBonProvisoire.doNothing()}          
+        #{managedSaisiePiece.doNothing()}           
+        #{managedOperationClient.doNothing()}   
+        #{managedOperationFournisseur.doNothing()}  
+        #{managedReglementVente.doNothing()}  
+        #{managedReglementAchat.doNothing()}  
+        #{managedVirement.doNothing()}  
+        #{managedFactureVente.doNothing()}        
+        #{managedReglementMission.doNothing()}
+        #{managedCommission.doNothing()}
+        #{managedModeReglement.loadAll()} 
+
+        #{managedDocDivers.initViewPc()}
+        #{managedAgence.loadAgence()}
+        #{managedFactureAchat.load(null)}
+        #{managedMission.setAgence_(0)}
+
+        #{managedPieceCaisse.setOrderDesc(true)}
+        #{managedPieceCaisse.loadAllWaiting()}
+        #{managedCaisses.loadAllCaisseActif(true)}       
+        #{managedPieceCaisse.setColDate('datePaimentPrevu')}
+        #{managedPieceCaisse.setColOrder('datePaimentPrevu')}
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('piceCaiss');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 135);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LCF_PLC_choisir_profil}"  widgetVar="dlgProfilTiers" width="70%" closeOnEscape="true" footer="&copy; Lymytz 2014">
+                <p:dataTable value="#{managedDocDivers.docDivers.tiers.profils}" var="ipro" rowIndexVar="line_p" rowKey="#{ipro.numero}" selectionMode="single"
+                             id="table_profils_tiers">
+                    <p:ajax event="rowSelect" listener="#{managedDocDivers.choisirProfils}" update=":formOD:chmp_ct_dd" />
+                    <p:column headerText="N°" width="20">
+                        <span >#{line_p+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_type}" width="100" style="font-weight: bold">
+                        <span>#{ipro.type}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" width="100">
+                        <span >#{ipro.code}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PSL_matricule}" width="100">
+                        <span >#{ipro.matricule}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_noms_prenoms}">
+                        <span >#{ipro.nomPrenom}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_compte}">
+                        <span title="#{ipro.compte.intitule}">#{ipro.compte.numCompte}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_actif}" style="width: 5%;text-align: center">
+                        <h:graphicImage library="img"  name="#{(ipro.actif)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                    </p:column>                    
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LDB_PTT_liste_comptes}" widgetVar="dlgCmpteG" width="55%" closeOnEscape="true"
+                      footer="&copy; Lymytz" >
+                <div class="dlg_part_fixe">
+                    <p:watermark for="txt_cmpte_fin_by_numC" value="#{lab.L_rechercher}..." />
+                    <h:inputText value="#{managedCompte.numCompteF}" style="font-size: 0.7em" id="txt_cmpte_fin_by_numC">
+                        <p:ajax event="valueChange" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="table_cpt_G_dd"/>
+                    </h:inputText>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="table_cpt_G_dd" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="table_cpt_G_dd" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="table_cpt_G_dd"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>
+                <p:dataTable value="#{managedCompte.listComptes}" var="cptG" emptyMessage="#{lab.LDB_PTT_aucun_compte}" 
+                             rowIndexVar="line_cg" rowKey="#{cptG.id}" selectionMode="single" id="table_cpt_G_dd">
+                    <p:ajax event="rowSelect" listener="#{managedDocDivers.choisirCompteG}" 
+                            oncomplete="dlgCmpteG.hide()"/>
+                    <p:column headerText="N°" width="20" style="text-align: center">
+                        #{line_cg+1}
+                    </p:column>
+                    <p:column headerText="#{lab.L_numero}" width="100" >
+                        #{cptG.numCompte}
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}" width="200" >
+                        #{cptG.intitule}
+                    </p:column>
+                    <p:column headerText="#{lab.L_type}" width="100" >
+                        #{cptG.typeCompte}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PPC_repport}" width="100" >
+                        #{cptG.typeReport}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PPC_compte_general}" width="100" >
+                        #{cptG.compteGeneral.numCompte}
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgTiers"  width="70%" closeOnEscape="true" footer="&copy; Lymytz" header="Liste des Tiers">
+                <div class="dlg_part_fixe">
+                    <h:selectOneMenu value="true"  style="font-size: 0.7em">
+                        <f:selectItem itemLabel="#{lab.L_actif}" itemValue="#{true}" />
+                        <f:selectItem itemLabel="#{lab.L_inactif}" itemValue="#{false}" />
+                    </h:selectOneMenu>
+                    <p:watermark for="txt_cmpte_fin_by_numT" value="#{lab.L_rechercher}..." />
+                    <h:inputText value="#{managedTiers.numSearch_}" style="font-size: 0.7em" id="txt_cmpte_fin_by_numT">
+                        <p:ajax event="valueChange" listener="#{managedTiers.searchByNum()}" update="data_tiers_dd" />
+                    </h:inputText>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedTiers.init(false)}" global="false" update="data_tiers_dd" icon="ui-icon-circle-triangle-w" disabled="#{managedTiers.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedTiers.paginator.currentPage}/#{managedTiers.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedTiers.init(true)}" global="false" update="data_tiers_dd" icon="ui-icon-circle-triangle-e" disabled="#{managedTiers.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedTiers.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedTiers.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedTiers.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_tiers_dd"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </div>
+                <p:dataTable id="data_tiers_dd" value="#{managedTiers.listTiers}" var="clt" rowKey="#{clt.id}" 
+                             rowIndexVar="cltIdx" style="max-height: 500px; overflow-y: auto; clear: right"
+                             selectionMode="single" emptyMessage="#{lab.LCF_PPC_aucun_tiers}">
+                    <p:ajax event="rowSelect"  listener="#{managedDocDivers.choisirCompteTiers}" oncomplete="dlgTiers.hide()"
+                            update=":formOD:chmp_ct_dd"/>
+                    <p:column width="30"  headerText="N°" style="text-align: center">
+                        <span>#{cltIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" width="90">
+                        <span>#{clt.codeTiers}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_nom}" width="120">
+                        <span>#{clt.nom_prenom}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PPC_groupes}" width="80">
+                        <span>#{(clt.client)?'Client':''}</span>
+                        <span>#{(clt.fournisseur and clt.client)?', Fournisseur':(clt.fournisseur)?'Fournisseurs':''}</span>
+                        <span>#{(clt.employe and (clt.client or clt.fournisseur))?', Employé':(clt.employe)?'Employé':''}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_region}" width="80">
+                        <span>#{clt.region}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_actif}" width="25" style="text-align: center">
+                        <h:graphicImage library="img"  name="#{(clt.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                    </p:column>
+                </p:dataTable>   
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgConfirmEditDoc" message="#{lab.MCF_PC_dlgConfirmEditDoc}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedDocDivers.confirmCancelDocDiver(false, false)}"
+                                 update=":formOD:etapes_valide_dcd" oncomplete="dlgConfirmEditDoc.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgConfirmEditDoc.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.L_confirmation}" width="40%" widgetVar="dlgValidDoc" message="#{lab.MCF_PC_dlgValidDoc}">
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-check" actionListener="#{managedPieceCaisse.validerAndPayer()}"
+                                 update=":formOD:etapes_valide_dcd" oncomplete="dlgValidDoc.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgValidDoc.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="formOD">
+            <p:dialog header="#{lab.MCF_PC_dlgCreateOD}" height="500" width="80%" 
+                      closeOnEscape="true" widgetVar="dlgCreateOD" >
+                <p:outputPanel autoUpdate="true" id="etapes_valide_dcd" >
+                    <h:outputText value="#{docCaissesDivers.numPiece}" style="float: left;background: black;color: white; padding: 4px" rendered="#{docCaissesDivers.id gt 0}"/>                   
+                    <h:panelGroup style="float: right" rendered="#{docCaissesDivers.id gt 0}">    
+                        <p:outputPanel id="etapes_valide_doc_divers" styleClass="yvs_form_of">                                
+                            <p:commandLink value="#{managedDocDivers.writeEtape(((docCaissesDivers.statutDoc==constantes.ETAT_EDITABLE)?lab.L_en_edition:lab.L_editable ), docCaissesDivers.firstEtape)}" type="button"
+                                           styleClass="#{(docCaissesDivers.statutDoc==constantes.STATUT_DOC_EDITABLE)?'statut_valide':'etat_formation_true'}" onclick="dlgConfirmEditDoc.show()" global="false"  style="float: left"/>                                    
+                            <ui:repeat value="#{docCaissesDivers.etapesValidations}" var="etapeM"  >
+                                <p:contextMenu for="etape_valide_doc_divers" style="font-size: 0.7em" rendered="#{etapeM.etapeValid or etapeM.motif != null}">                                    
+                                    <p:menuitem icon="ui-icon-circle-arrow-w" value="#{lab.annuler}" rendered="#{etapeM.etapeValid}" 
+                                                actionListener="#{managedDocDivers.annulEtapeOrdre(etapeM, false)}"/>
+                                </p:contextMenu>
+                                <p:commandLink id="etape_valide_doc_divers" value="#{etapeM.etape.labelStatut} " disabled="#{(!etapeM.etapeActive or etapeM.etapeValid)}" title="#{etapeM.etape.titreEtape}" 
+                                               styleClass="#{(etapeM.etapeValid)?'statu_valide':'etat_formation_true'}" 
+                                               actionListener="#{managedDocDivers.validEtapeOrdre(etapeM, false)}"
+                                               update=":formOD:etapes_valide_doc_divers :formOD:data_mensualite_others"/>  
+                                <h:outputText value=" A " rendered="#{!etapeM.etapeValid and etapeM.motif ne null}" title="#{lab.L_annuler_pour} : #{etapeM.motif}" style="position: relative;left: -10px; top: 5px; font-size: 0.7em; color: #FFF; background: red; border-radius: 5px;"/>
+                            </ui:repeat>
+                            <h:panelGroup style="float: right">
+                                <p:commandLink value="#{(docCaissesDivers.statutDoc==constantes.STATUT_DOC_VALIDE)?lab.L_valide:lab.LCF_PC_valider_encaisser}" 
+                                               disabled="#{(docCaissesDivers.statutDoc == constantes.STATUT_DOC_VALIDE)}"
+                                               styleClass="#{(docCaissesDivers.statutDoc==constantes.STATUT_DOC_VALIDE)?'statut_valide':'etat_formation_true'}" onclick="dlgValidDoc.show()" global="false"
+                                               rendered="#{(docCaissesDivers.etapesValidations.size() le 0) and docCaissesDivers.id gt 0}" type="button"/>
+                                <p:commandLink value="#{managedDocDivers.writeEtape((docCaissesDivers.comptabilise?lab.lab.L_comptabilise:lab.L_comptabiliser), docCaissesDivers.firstEtape)}"
+                                               type="button" styleClass="#{docCaissesDivers.comptabilise?'statut_valide':'etat_formation_true'}"
+                                               onclick="dlgComptabiliseDoc.show()" rendered="#{docCaissesDivers.statutDoc==constantes.STATUT_DOC_VALIDE}" global="false" id="btn_comptabilised_divers"/>
+                                <p:contextMenu for="btn_comptabilised_divers" style="font-size: 0.7em">
+                                    <p:menuitem icon="ui-icon-circle-arrow-w" value="#{lab.L_annuler}" onclick="dlgUnComptabiliseDoc.show()" disabled="#{!docCaissesDivers.comptabilise}" global="false"
+                                                />
+                                </p:contextMenu>
+                            </h:panelGroup>
+                        </p:outputPanel>                      
+                    </h:panelGroup>
+                </p:outputPanel>
+                <h:panelGrid columns="4" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%"
+                             id="form_edit_od">
+                    <f:facet name="header">
+                        <h:panelGrid columns="3">
+                            <p:selectOneRadio value="#{docCaissesDivers.mouvement}" styleClass="yvs_noStyle">
+                                <f:selectItem itemLabel="#{lab.L_depense}" itemValue="#{constantes.COMPTA_DEPENSE}" />
+                                <f:selectItem itemLabel="#{lab.L_recette}" itemValue="#{constantes.COMPTA_RECETTE}" />
+                            </p:selectOneRadio>
+                            <span style="text-transform: uppercase">#{lab.LCF_PC_a_l_ordre_de}</span>
+                            <h:inputText value="#{docCaissesDivers.beneficiaire}" >     
+                                <p:ajax event="valueChange" global="false"/>     
+                            </h:inputText>
+                        </h:panelGrid>
+                    </f:facet>
+                    <f:facet name="footer">
+                        <h:inputTextarea rows="3"  value="#{docCaissesDivers.description}" id="txt_des_dd" style="width: 100%;margin-bottom: 10px"/>  
+                    </f:facet>
+                    <span>#{lab.LCF_PC_montant}</span>
+                    <pe:inputNumber id="chmp_montant_ct_dd" value="#{docCaissesDivers.montant}" style="text-align: right; width: 200px" decimalPlaces="0" autocomplete="false" 
+                                    maxValue="999999999999999999" tabindex="50">
+                        <p:ajax event="blur" global="false" />
+                    </pe:inputNumber>
+                    <span>#{lab.L_date}</span>
+                    <p:calendar value="#{docCaissesDivers.datePaiementPrevu}" navigator="true" pattern="dd-MM-yyyy" size="10"  tabindex="90">
+                        <p:ajax event="dateSelect" listener="#{docCaissesDivers.setDateDebutPlan(docCaissesDivers.datePaiementPrevu)}" 
+                                />
+                    </p:calendar>
+                    <span>#{lab.L_agence}</span>
+                    <h:selectOneMenu value="#{docCaissesDivers.agence.id}" disabled="#{!accesRessource.compta_od_view_all}" tabindex="30">
+                        <f:selectItem itemLabel="--" itemValue="#{0}" />
+                        <f:selectItems value="#{managedAgence.agences}" var="id_ag" itemValue="#{id_ag.id}" itemLabel="#{id_ag.designation}" />
+                    </h:selectOneMenu>
+                    <span>#{lab.LCF_PPC_type_od}</span>
+                    <h:selectOneMenu value="#{docCaissesDivers.typeDocDiv.id}" style="min-width: 120px" tabindex="30">
+                        <f:selectItem itemLabel="--" itemValue="#{0}" />
+                        <f:selectItems value="#{managedTypeDocDivers.typesDocDivers}" var="id_ty" itemValue="#{id_ty.id}" itemLabel="#{id_ty.libelle}" />
+                    </h:selectOneMenu> 
+                    <span>#{lab.LCF_PPC_compte_tiers}</span>
+                    <h:panelGroup id="chmp_ct_dd">
+                        <h:inputText value="#{docCaissesDivers.tiers.selectProfil.code}" style="color: #{docCaissesDivers.tiers.error?'red':'normal'};width: 150px" tabindex="40">
+                            <p:ajax event="valueChange" listener="#{managedDocDivers.ecouteSaisieTiers()}" update="chmp_ct_dd"/>
+                        </h:inputText>
+                        <p:outputPanel autoUpdate="true">
+                            <span>#{docCaissesDivers.tiers.selectProfil.idTiers}</span>
+                        </p:outputPanel>
+                        <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 5px; display: inline" actionListener="#{managedDocDivers.openListTiers('')}"/>
+                        <h:outputText value="#{docCaissesDivers.tiers.selectProfil.nomPrenom}" style="font-size: 0.9em;margin-left: 5px"/>
+                    </h:panelGroup>
+                    <span>#{lab.LCF_PPC_compte_gen}</span>
+                    <h:panelGroup id="chmp_cg_dd">
+                        <h:inputText value="#{docCaissesDivers.compte.numCompte}"  style="color: #{docCaissesDivers.compte.error?'red':'normal'};" tabindex="60"> 
+                            <p:ajax event="valueChange" global="false" listener="#{managedDocDivers.ecouteSaisieCG()}" update="chmp_cg_dd" />
+                        </h:inputText> 
+                        <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 5px" type="button" onclick="dlgCmpteG.show()"/>   
+                    </h:panelGroup>
+                    <span>#{lab.LCF_PC_caisse} </span>
+                    <h:selectOneMenu id="chmp_caisse_piece_divers" title="#{docCaissesDivers.caisse.intitule}" value="#{docCaissesDivers.caisse.id}" style="max-width: 170px"  tabindex="1000">
+                        <f:selectItem itemLabel=" " itemValue="0" />
+                        <f:selectItems value="#{managedCaisses.caisses}" var="dCaiss" itemLabel="#{dCaiss.intitule}" itemValue="#{dCaiss.id}" />       
+                        <p:ajax event="valueChange" global="false" listener="#{managedDocDivers.chooseCaisse()}" update="@this"/>             
+                    </h:selectOneMenu>
+                    <span class="upper">#{lab.LCF_PC_plan_de_paiement}</span>
+                    <h:selectOneMenu value="#{docCaissesDivers.planReglement.id}" 
+                                     valueChangeListener="#{managedDocDivers.choixPlanReglemet}" style="min-width: 140px">
+                        <f:selectItem itemValue="0" itemLabel="#{lab.LCF_PC_plan_de_paiement}" />
+                        <f:selectItems itemValue="#{imdr.id}" itemLabel="#{imdr.reference}" value="#{managedModeReglement.models}" var="imdr" />
+                        <f:selectItem itemValue="0" itemLabel="" />
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_gerer}..." itemEscaped="false"/>
+                        <p:ajax event="valueChange"   update="data_mensualite_others"/>
+                    </h:selectOneMenu>
+                </h:panelGrid>
+                <p:dataTable id="data_mensualite_others" value="#{docCaissesDivers.reglements}" var="pc_d"
+                             rowKey="#{pc_d.id}" rowIndexVar="mensIdx" selectionMode="single">                                
+                    <p:column headerText="N°" style="width: 5%" styleClass="statut_#{pc_d.statutPiece}">
+                        <span>#{mensIdx+1}</span>
+                        <h:panelGroup style="float: right">
+                            <h:outputText title="#{lab.L_comptabilise}" value="C" rendered="#{pc_d.comptabilise}" styleClass="style_statut capitalize"/>
+                        </h:panelGroup>
+                    </p:column>
+                    <p:column headerText="Id" style="width: 5%" styleClass="statut_#{pc_d.statutPiece}" rendered="#{docCaissesDivers.reglements.size() gt 0 ? docCaissesDivers.reglements.get(0).id gt 0 : false}">
+                        <span>#{pc_d.id}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PC_date_paiement}" style="text-align: center;width: 10%" styleClass="statut_#{pc_d.statutPiece}">
+                        <h:outputText value="#{pc_d.statutPiece==constantes.STATUT_DOC_PAYER ? pc_d.dateValider : pc_d.datePaimentPrevu}" converter="DDMMYYYY"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PC_numero}"  styleClass="statut_#{pc_d.statutPiece}">
+                        <h:outputText value="#{pc_d.numPiece}" />
+                        <span style="display: #{(pc_d.phasesReglement.size() gt 0)?'inline-block':'none'}; width: 10px; height: 10px; background: #99ccff" title="Phases de règlement générée(s)"></span>
+                        <h:panelGroup style="float: right">
+                            <h:graphicImage library="img" name="P.png" width="12" height="12" rendered="#{pc_d.statutPiece=='P'}"/>
+                            <h:panelGroup rendered="#{pc_d.justificatif}">
+                                <span title="#{lab.LCF_PPC_bp_ordonne_par} : #{pc_d.justify.bon.ordonnateur.nomUsers}" style="font-style: italic; font-size: 0.8em;font-weight: bold">BP</span>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PC_montant}" style="text-align: right;width: 10%" styleClass="statut_#{pc_d.statutPiece}">
+                        <h:outputText value="#{pc_d.montant}" converter="DNS"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PC_mode}" style="text-align: right;width: 15%" styleClass="statut_#{pc_d.statutPiece}">
+                        <h:outputText value="#{pc_d.modePaiement.designation}" />
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PC_caisse}" style="text-align: right;width: 20%" styleClass="statut_#{pc_d.statutPiece}">
+                        <h:outputText value="#{pc_d.caisse.intitule}" />
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PC_a_l_ordre_de}"  styleClass="statut_#{pc_d.statutPiece}" style="text-align: right;">
+                        <h:outputText value="#{managedDocDivers.resumeText(pc_d.beneficiaire, 20)}" title="#{pc_d.beneficiaire}"/>
+                    </p:column>                     
+                </p:dataTable>
+                <p:commandButton value="#{lab.L_nouveau}" process="@this" actionListener="#{managedDocDivers.resetFiche()}"
+                                 icon="ui-icon-document" style="float: left" update=":formOD:data_mensualite_others :formOD:form_edit_od"/>
+                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedDocDivers.saveAllPieceCaisse(true,true)}" style="float: right"
+                                 update="etapes_valide_doc_divers"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main-notif_reg_achat">
+            <p:dialog header="#{lab.L_confirmation}" widgetVar="dlgConfirNotifRegAchat" width="30%" footer="#{lab.L_copy}" >
+                <div style="margin-bottom: 15px">
+                    <span>#{lab.MCF_PC_text1}</span><br/><br/>
+                    <b>Selectionner l'agence : </b><br/>
+                    <h:selectOneMenu disabled="#{!accesRessource.compta_ope_fsseur_change_agence_equilibre}" value="#{managedOperationFournisseur.agenceRegle}"
+                                     style="min-width: 200px; max-width: 400px">
+                        <f:selectItem itemLabel="---" itemValue="0"/>
+                        <f:selectItems value="#{managedAgence.agences}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectOneMenu>  
+                </div>                                     
+                <div style="float: left">
+                    <p:selectBooleanCheckbox value="#{managedOperationFournisseur.displayConfirm}" 
+                                             itemLabel="#{lab.MCF_PC_text2}" style="font-size: 0.8em"/>
+                </div>
+                <div style="float: right">
+                    <p:commandButton icon="ui-icon-circle-close" value="#{lab.L_annuler}" onclick="dlgConfirNotifRegAchat.hide()"/>
+                    <p:commandButton icon="ui-icon-circle-check" value="#{lab.L_continuer}" actionListener="#{managedOperationFournisseur.findAndRegleFacture()}"
+                                     oncomplete="dlgConfirNotifRegAchat.hide()"/>                    
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main-notif_reg_vente">
+            <p:dialog header="#{lab.L_confirmation} !" widgetVar="dlgConfirNotifRegVente" width="30%" footer="#{lab.L_copy}" >
+                <div style="margin-bottom: 15px">
+                    <span>#{lab.LCF_PPC_text}</span><br/><br/>
+                    <b>Selectionner l'agence : </b><br/>
+                    <h:selectOneMenu disabled="#{!accesRessource.compta_ope_client_change_agence_equilibre}" value="#{managedOperationClient.agenceRegle}"
+                                     style="min-width: 200px; max-width: 400px">
+                        <f:selectItem itemLabel="---" itemValue="0"/>
+                        <f:selectItems value="#{managedAgence.agences}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectOneMenu>  
+                </div>                                     
+                <div style="float: left">
+                    <p:selectBooleanCheckbox value="#{managedOperationClient.displayConfirm}" itemLabel="#{lab.LCF_PPC_ne_plus_rappeler}" style="font-size: 0.8em"/>
+                </div>
+                <div style="float: right">
+                    <p:commandButton icon="ui-icon-circle-close" value="#{lab.L_annuler}" onclick="dlgConfirNotifRegVente.hide()"/>
+                    <p:commandButton icon="ui-icon-circle-check" value="#{lab.L_continuer}" actionListener="#{managedOperationClient.findAndRegleFacture()}"
+                                     oncomplete="dlgConfirNotifRegVente.hide()"/>                    
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="Note" widgetVar="dlgAddNote" modal="true" width="26%"  closeOnEscape="true"> 
+                <h:inputTextarea value="#{managedPieceCaisse.note}" style="width: 99%" rows="5" id="txt_note_piece_caisse"/>
+                <p:commandButton actionListener="#{managedPieceCaisse.addNotePieceCaisse()}" style="width: 99%"
+                                 oncomplete="dlgAddNote.hide()" value="#{lab.L_enregistrer}"/>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_dlg_billetage">
+            <p:dialog header="#{lab.MCF_PC_dlgViewBilletage}" widgetVar="dlgViewBilletage" width="50%" closeOnEscape="true" footer="#{lab.L_copy}"> 
+                <h:panelGrid style="width: 100%" columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" id="blog_bielletage">
+                    <f:facet name="header">
+                        <p:commandButton value="#{lab.L_enregistrer}" style="float: right" actionListener="#{managedVirement.saveBielletage(managedPieceCaisse.pieceCaisse)}"/>
+                    </f:facet>
+                    <h:panelGrid columns="2" cellpadding="0" cellspacing="0" style="float: left; width: 100%" styleClass="yvs_table" >
+                        <f:facet name="header">#{lab.LCF_PC_billets}</f:facet>
+                        <ui:repeat value="#{managedPieceCaisse.pieceCaisse.bielletageBillet}" var="bil_" >
+                            <dir>
+                                <span  style="font-weight: bold">#{bil_.formatMonai} >> </span>
+                                <h:inputText value="#{bil_.quantite}" style="float: right; text-align: right" >
+                                    <p:ajax event="valueChange" update=":main_dlg_billetage:txt_somme_billet_caisse :main_dlg_billetage:txt_somme_virement_caisse" global="false"/>
+                                </h:inputText>
+                            </dir>
+                        </ui:repeat>
+                        <f:facet name="footer">
+                            <div style="background: #828c95" align="center">
+                                Total: 
+                                <h:outputText value="#{managedPieceCaisse.pieceCaisse.sommeBillet}"  converter="DN"
+                                              style="font-weight: bold; text-align: center; width: 100%" id="txt_somme_billet_caisse"/>
+                                Fcfa
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>
+                    <h:panelGrid columns="2"  cellpadding="0" style="float: right; width: 100%" cellspacing="0" styleClass="yvs_table" >
+                        <f:facet name="header">#{lab.LCF_PC_pieces}</f:facet>
+                        <ui:repeat value="#{managedPieceCaisse.pieceCaisse.bielletagePiece}" var="piec_" >
+                            <dir>
+                                <span >#{piec_.formatMonai} >> </span>
+                                <h:inputText value="#{piec_.quantite}" style="float: right; text-align: right">
+                                    <p:ajax event="valueChange" update=":main_dlg_billetage:txt_somme_piece_caisse :main_dlg_billetage:txt_somme_virement_caisse" global="false"/>
+                                </h:inputText>
+                            </dir>
+                        </ui:repeat>
+                        <f:facet name="footer">
+                            <div style="background: #828c95" align="center">
+                                #{lab.L_total}: 
+                                <h:outputText value="#{managedPieceCaisse.pieceCaisse.sommePiece}"  converter="DN"
+                                              style="font-weight: bold; text-align: center; width: 100%" id="txt_somme_piece_caisse"/>
+                                Fcfa
+                            </div>
+                        </f:facet>
+                    </h:panelGrid> 
+                    <f:facet name="footer">
+                        <div style="background: #828c95" align="center">
+                            Total:#{lab.LCF_PC_total} 
+                            <h:outputText value="#{managedPieceCaisse.pieceCaisse.sommeBillet + managedPieceCaisse.pieceCaisse.sommePiece}"  converter="DN"
+                                          style="font-weight: bold; text-align: center; width: 100%" id="txt_somme_virement_caisse" />
+                            Fcfa
+                        </div>
+                    </f:facet>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des entetes de vente
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_plus_d_options}" width="40%"  closeOnEscape="true" widgetVar="dlgPlusOption" resizable="false"> 
+                <h:panelGrid id="blog_plus_option_pc" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <h:outputText value="#{lab.LCF_PC_caissier}" />
+                    <h:inputText value="#{managedPieceCaisse.caissierF}" style="width: 100%">
+                        <p:ajax event="valueChange" update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc" oncomplete="collapseList('piceCaiss');"  listener="#{managedPieceCaisse.addParamCaissier()}"/>
+                    </h:inputText>
+                    <h:outputText value="#{lab.LCF_PC_tiers}" />
+                    <h:inputText value="#{managedPieceCaisse.tiersF}" style="width: 100%">
+                        <p:ajax event="valueChange" update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc" oncomplete="collapseList('piceCaiss');"  listener="#{managedPieceCaisse.addParamTiers()}"/>
+                    </h:inputText>
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LCF_PC_montant}"/>    
+                        <h:selectBooleanCheckbox value="#{managedPieceCaisse.addPrix}">
+                            <p:ajax event="valueChange" listener="#{managedPieceCaisse.addParamMontant()}" oncomplete="collapseList('piceCaiss')" update="blog_montant_search_piece_caisse_"/>
+                        </h:selectBooleanCheckbox> 
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_montant_search_piece_caisse_">
+                        <h:selectOneMenu value="#{managedPieceCaisse.comparer}" disabled="#{!managedPieceCaisse.addPrix}">
+                            <f:selectItem itemLabel="#{constantes.SYMBOLE_INF_EGALE}" itemValue="#{constantes.SYMBOLE_INF_EGALE}"/>
+                            <f:selectItem itemLabel="#{constantes.SYMBOLE_SUP_EGALE}" itemValue="#{constantes.SYMBOLE_SUP_EGALE}"/> 
+                            <f:selectItem itemLabel="#{constantes.SYMBOLE_BETWEEN}" itemValue="BETWEEN"/>
+                            <p:ajax event="valueChange" listener="#{managedPieceCaisse.addParamMontant()}" oncomplete="collapseList('piceCaiss')" update="blog_montant_search_piece_caisse_ :main_PC:table_all_pieceCaisse"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedPieceCaisse.montantDF}" style="width: 100px; display: inline" disabled="#{!managedPieceCaisse.addPrix}" rendered="#{!(managedPieceCaisse.comparer eq constantes.SYMBOLE_INF_EGALE)}" >
+                            <p:ajax event="valueChange" listener="#{managedPieceCaisse.addParamMontant()}" update=":main_PC:table_all_pieceCaisse" oncomplete="collapseList('piceCaiss');"  />
+                        </h:inputText>
+                        <h:inputText value="#{managedPieceCaisse.montantFF}" style="width: 100px;display: inline" disabled="#{!managedPieceCaisse.addPrix}" rendered="#{!(managedPieceCaisse.comparer eq constantes.SYMBOLE_SUP_EGALE)}">
+                            <p:ajax event="valueChange" listener="#{managedPieceCaisse.addParamMontant()}" update=":main_PC:table_all_pieceCaisse" oncomplete="collapseList('piceCaiss');"  />
+                        </h:inputText>
+                    </h:panelGroup>
+
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LDB_PC_dates}"  />
+                        <h:selectBooleanCheckbox value="#{managedPieceCaisse.date_up}" title="#{lab.LDB_PC_dates_last_modif}" style="float: right">
+                            <p:ajax event="valueChange" global="false" update="blog_date_search_client"  listener="#{managedPieceCaisse.addParamDates()}" oncomplete="collapseList('piceCaiss');"  />
+                        </h:selectBooleanCheckbox>
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_client">
+                        <p:calendar value="#{managedPieceCaisse.dateDebut_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedPieceCaisse.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedPieceCaisse.addParamDates}" oncomplete="collapseList('piceCaiss');" update=":main_PC:table_all_pieceCaisse" />
+                        </p:calendar>
+                        <p:spacer style="width: 5px;background: black"/>
+                        <p:calendar value="#{managedPieceCaisse.dateFin_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedPieceCaisse.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedPieceCaisse.addParamDates}" oncomplete="collapseList('piceCaiss');" update=":main_PC:table_all_pieceCaisse" />
+                        </p:calendar>
+                    </h:panelGroup>
+                    <h:outputText value="Ids"/>
+                    <h:inputText value="#{managedPieceCaisse.idsSearch}" style="width: 100%" title="#{lab.L_entrer_id_separer_virgules}">
+                        <p:ajax event="valueChange" listener="#{managedPieceCaisse.addParamIds()}" update=":main_PC:table_all_pieceCaisse" oncomplete="collapseList('piceCaiss');"/>
+                    </h:inputText>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.MCF_PC_text3}" 
+                             widgetVar="dlgConfirmCancel" closeOnEscape="true" >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedPieceCaisse.cofirmCancelPaiement()}" oncomplete="dlgConfirmCancel.hide()"
+                                 update=":main_PC:table_all_pieceCaisse :main_PC:form_edit_pieceCaiss"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" type="button" onclick="dlgConfirmCancel.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.MCF_PC_text4}" 
+                             widgetVar="dlgConfirmDelPC" closeOnEscape="true" >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedPieceCaisse.deleteOnePieceCaisse()}" oncomplete="dlgConfirmDelPC.hide()" update=":main_PC:table_all_pieceCaisse"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" type="button" onclick="dlgConfirmDelPC.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgComptabilisePiece" message="Voulez-vous comptabiliser ce reglement?">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedPieceCaisse.actionComptabiliser(true)}"
+                                 update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc :main_PC:table_PCLie" oncomplete="dlgComptabilisePiece.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgComptabilisePiece.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgUnComptabilisePiece" message="Voulez-vous annuler la comptabilisation ce reglement?">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedPieceCaisse.actionComptabiliser(false)}"
+                                 update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc :main_PC:table_PCLie" oncomplete="dlgUnComptabilisePiece.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgUnComptabilisePiece.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="main_PC">  
+            <h:inputHidden id="input_hide_piceCaiss" value="#{managedPieceCaisse.tabIds}"/>
+            <div class="part_fix">
+                <div style="float: left">   
+                    <p:outputPanel autoUpdate="true" style="float: left; " layout="block">                    
+                        <p:commandButton id="save_piceCaiss" value="#{(managedPieceCaisse.forBonProvisoire(managedPieceCaisse.selectPiece))?'Confirmer':(managedPieceCaisse.pieceCaisse.mouvement=='D')?'Payer':'Encaisser'}" update="form_edit_pieceCaiss :main_PC:table_all_pieceCaisse"
+                                         actionListener="#{managedPieceCaisse.changeStaturPayePieceCaisse()}" disabled="#{!((managedPieceCaisse.pieceCaisse.statutPiece!='P') and (managedPieceCaisse.pieceCaisse.caisse.id gt 0))}"/>
+                        <p:commandButton id="justify_piceCaiss" value="#{lab.L_justifier}" update="form_edit_pieceCaiss :main_PC:table_all_pieceCaisse" rendered="#{((managedPieceCaisse.pieceCaisse.tableExterne eq constantes.SCR_BON_PROVISOIRE) and (managedPieceCaisse.pieceCaisse.caisse.id gt 0))}"
+                                         actionListener="#{managedPieceCaisse.justfierBonProvisoire()}" disabled="#{!(managedPieceCaisse.pieceCaisse.statutPiece=='P')}"/>
+                        <h:panelGroup id="etapes_valide_pc_mission" style="position: relative; left: 15%">                         
+                            <ui:repeat value="#{managedPieceCaisse.pieceCaisse.etapesValidation}" var="etapeM" >
+                                <p:commandLink value="#{etapeM.etape.labelStatut}" disabled="#{(!etapeM.etapeActive or etapeM.etapeValid)}" title="#{etapeM.etape.titreEtape}" 
+                                               styleClass="#{(etapeM.etapeValid)?'statu_valide':'etat_formation_true'}" actionListener="#{managedPieceCaisse.validEtapePieceCaisseMission(etapeM)}" />                        
+                            </ui:repeat>
+                        </h:panelGroup> 
+                        <p:splitButton type="button" value="#{lab.L_options}" id="option_piceCaiss" style="font-size: 0.8em">
+                            <p:menuitem value="Encaisser / Payer" icon="ui-icon-check" actionListener="#{managedPieceCaisse.payerPieceCaisseAll()}"/>
+                        </p:splitButton> 
+                    </p:outputPanel>  
+                </div>     
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedPieceCaisse.parcoursInAllResult(false)}" icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('piceCaiss')"
+                                     update=":main_PC:table_PCLie :main_PC:form_edit_pieceCaiss :main_PC:select_source_pieces txt_parc_linear_piceCaiss table_all_pieceCaisse tab_recent_pc"/>
+                    <h:inputText value="#{managedPieceCaisse.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_piceCaiss"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedPieceCaisse.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                    </p:outputPanel>
+                    <p:commandButton actionListener="#{managedPieceCaisse.parcoursInAllResult(true)}" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('piceCaiss')"
+                                     update=":main_PC:table_PCLie :main_PC:form_edit_pieceCaiss :main_PC:select_source_pieces txt_parc_linear_piceCaiss table_all_pieceCaisse tab_recent_pc"/>
+                </h:panelGroup>  
+                <div style="float: right">                     
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('piceCaiss');
+                            return false;">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>          
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('piceCaiss');
+                            return false;" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                   
+                </div> 
+                <div style="clear: right"/>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_piceCaiss" style="margin: auto; background: white;">
+                    <h:panelGrid columns="4" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%" id="form_edit_pieceCaiss">
+                        <f:facet name="header" >
+                            <div align="left" style="width: 100%; background: #{(managedPieceCaisse.pieceCaisse.statutPiece=='S')?'#ec3c05':'inherit'}; font-size: 1em">
+                                <h:outputText value="#{managedPieceCaisse.pieceCaisse.numPiece}" styleClass="style_reference"/>                               
+                                <h:outputText value="#{managedPieceCaisse.pieceCaisse.idExterne}" styleClass="style_identifiant"/>                               
+                                <p:commandButton icon="ui-icon-circle-plus" onclick="dlgCreateOD.show()" title="#{lab.LCF_PPC_creer_nouvelle_operation}" type="button"/>
+                                <h:panelGroup style="float: right;font-size: 0.8em">
+                                    <h:outputText rendered="#{(managedPieceCaisse.pieceCaisse.statutPiece=='W' or managedPieceCaisse.pieceCaisse.statutPiece=='E')}" value="#{lab.LCF_PPC_en_attente}" styleClass="file_true"/>
+                                    <h:outputText rendered="#{managedPieceCaisse.pieceCaisse.statutPiece=='U'}" value="#{lab.LCF_PPC_soumis}" styleClass="file_true"/>
+                                    <h:outputText rendered="#{managedPieceCaisse.pieceCaisse.statutPiece=='V'}" value="#{lab.LCF_PPC_valider}" styleClass="file_true"/>
+                                    <h:outputText rendered="#{managedPieceCaisse.pieceCaisse.statutPiece=='P'}" value="#{managedPieceCaisse.forBonProvisoire(managedPieceCaisse.selectPiece)?lab.LCF_PPC_confirmer:lab.LCF_PPC_payer}" styleClass="file_true"/>
+                                    <h:outputText rendered="#{managedPieceCaisse.pieceCaisse.statutPiece=='A'}" value="#{lab.LCF_PPC_annuler}" styleClass="file_true"/>
+                                </h:panelGroup>
+                                <div style="clear: both" />
+                            </div>
+                        </f:facet>
+                        <span>#{lab.LCF_PC_date_paiement}</span> 
+                        <p:calendar pattern="dd-MM-yyyy" value="#{managedPieceCaisse.pieceCaisse.datePaiement}" size="10" disabled="#{managedPieceCaisse.pieceCaisse.statutPiece=='P'}"/>                            
+                        <h:outputText value="#{lab.LCF_PPC_paiement_prevu_le}" rendered="#{managedPieceCaisse.pieceCaisse.statutPiece!=constantes.STATUT_DOC_PAYER}"/>                        
+                        <h:outputText value=" "  rendered="#{managedPieceCaisse.pieceCaisse.statutPiece ==constantes.STATUT_DOC_PAYER}"/>                                                                                     
+                        <h:panelGroup >
+                            <p:calendar pattern="dd-MM-yyyy" value="#{managedPieceCaisse.pieceCaisse.datePaiementPrevu}" size="8" disabled="true" rendered="#{managedPieceCaisse.pieceCaisse.statutPiece!=constantes.STATUT_DOC_PAYER}"
+                                        style="float: left"/>                            
+                            <h:selectOneMenu value="#{managedPieceCaisse.pieceCaisse.caisse.id}"  style="float: right;margin-top: 3px;width: 180px" >
+                                <f:selectItem itemLabel="" itemValue="0" />
+                                <f:selectItems value="#{managedCaisses.caisses}" var="itemCaiss" itemLabel="#{itemCaiss.intitule}" itemValue="#{itemCaiss.id}" />        
+                                <f:selectItem itemLabel="----" itemValue="0" itemDisabled=""/>
+                                <f:selectItem itemLabel="--Tout afficher--" itemValue="-1" />
+                                <p:ajax event="valueChange" listener="#{managedPieceCaisse.chooseCaisse()}" update="@this"/> 
+                            </h:selectOneMenu>   
+                            <span style="float: right">#{lab.LCF_PC_caisse}</span>  
+                        </h:panelGroup>
+                        <span>#{lab.LCF_PC_source}</span>
+                        <h:inputText value="#{managedPieceCaisse.pieceCaisse.source}" title="#{lab.LCF_PPC_documet_ayant_declenche_piece}" disabled="true"/>
+                        <span>#{lab.LCF_PC_reference}</span>
+                        <h:panelGroup style="cursor: pointer">
+                            <p:contextMenu for="txt_reference_externe_caisse" rendered="#{managedPieceCaisse.pieceCaisse.tableExterne == constantes.SCR_VIREMENT}">
+                                <p:menuitem icon="ui-icon-tag" value="Billetage" onclick="dlgViewBilletage.show()" global="false" update=":main_dlg_billetage:blog_bielletage"/>
+                            </p:contextMenu>
+                            <p:commandLink styleClass="num_" value="#{managedPieceCaisse.pieceCaisse.numRef}" actionListener="#{managedPieceCaisse.onCallObjectDistant()}"
+                                           title="#{lab.L_statut} : #{managedPieceCaisse.giveNameStatut(managedPieceCaisse.pieceCaisse.statutExterne)}" id="txt_reference_externe_caisse"/>
+                            <p:spacer width="10px" style="margin-left: 5px" styleClass="#{managedPieceCaisse.pieceCaisse.statutExterne}" title="#{lab.L_statut} : #{managedPieceCaisse.giveNameStatut(managedPieceCaisse.pieceCaisse.statutExterne)}"/>  
+                            <h:panelGroup style="float: right;margin-top: 3px">
+                                <span>#{lab.LCF_PC_tiers} </span>  
+                                <h:inputText value="#{managedPieceCaisse.pieceCaisse.nameTiers}" disabled="true"/>                                
+                            </h:panelGroup>
+                        </h:panelGroup>
+                        <span>#{lab.LCF_PC_montant}</span>
+                        <h:inputText value="#{managedPieceCaisse.pieceCaisse.montant}" style="text-align: center; font-weight: bold; color: #FFF; background: #333"
+                                     converter="DN"  disabled="true" />
+                        <span>#{lab.LCF_PC_reste}</span>
+                        <h:panelGroup>
+                            <h:inputText value="#{managedPieceCaisse.pieceCaisse.montantTotal-managedPieceCaisse.pieceCaisse.montantAvance}" style="text-align: right; font-weight: bold; color: #000" converter="DN"  disabled="true" />
+                            <h:panelGroup style="float: right;margin-top: 3px">
+                                <span>#{lab.LCF_PPC_beneficiaire} </span>  
+                                <h:inputText value="#{managedPieceCaisse.pieceCaisse.beneficiaire}" disabled="true"/>                                
+                            </h:panelGroup>
+                        </h:panelGroup>
+                        <span>#{lab.LCF_PC_total_a_payer}</span>
+                        <h:inputText value="#{managedPieceCaisse.pieceCaisse.montantTotal}" style="text-align: right; font-weight: bold; color: #000" converter="DN"  disabled="true" />
+                        <span>#{lab.LCF_PC_total_avance}</span>
+                        <h:panelGroup>
+                            <h:inputText value="#{managedPieceCaisse.pieceCaisse.montantAvance}" style="text-align: right; font-weight: bold; color: #000" converter="DNS"  disabled="true" />
+                            <h:panelGroup style="float: right">
+                                <h:panelGroup rendered="#{managedPieceCaisse.pieceCaisse.bonProvisoire.id lt 1}">
+                                    <span>#{lab.LCF_PPC_reste_planifier} </span>
+                                    <h:inputText value="#{managedPieceCaisse.pieceCaisse.montantTotal-managedPieceCaisse.pieceCaisse.montantPlanifie}" style="text-align: right; font-weight: bold; color: #000" converter="DNS"  disabled="true"/>
+                                </h:panelGroup>
+                                <h:panelGroup rendered="#{managedPieceCaisse.pieceCaisse.enteteDoc.id gt 0}">
+                                    <span>#{lab.LC_PCC_versement_attendu} </span>
+                                    <h:inputText value="#{managedPieceCaisse.pieceCaisse.enteteDoc.versementAttendu}" style="text-align: right; font-weight: bold; color: #000" converter="DNS"  disabled="true"/>
+                                </h:panelGroup>
+                                <h:panelGroup rendered="#{managedPieceCaisse.pieceCaisse.bonProvisoire.id gt 0}">
+                                    <span>#{lab.LCF_PPC_reste_justifier}</span>
+                                    <h:inputText value="#{managedPieceCaisse.pieceCaisse.bonProvisoire.reste}" style="text-align: right; font-weight: bold; color: #000" converter="DNS"  disabled="true"/>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                        <f:facet name="footer">
+                            <div style="border-radius: 5px; border:  1px solid #666; height: 50px; font-size: 0.9em">
+                                #{managedPieceCaisse.pieceCaisse.description}
+                            </div>
+                            <div style="background: #CCC; font-weight: bold">
+                                <span style="font-style: italic; font-size: 0.8em; color: #000">#{lab.L_enregistrer_le} <h:outputText value="#{managedPieceCaisse.pieceCaisse.dateSave}" converter="DTL" /></span>
+                                <span style="font-style: italic; font-size: 0.8em; color: #000;float: right">&nbsp; #{lab.L_par} <h:outputText value=" #{managedPieceCaisse.pieceCaisse.author.users.nomUsers}"/></span>
+                                <span style="font-style: italic; font-size: 0.8em; color: #000;float: right"> #{lab.L_modifier_le} <h:outputText value="#{managedPieceCaisse.pieceCaisse.dateUpdate}" converter="DTL"/></span>                            
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>                    
+                    <div align="left">                        
+                        <div style="width: 60%; float: left; background: #000">
+                            <div style="color: #FFF; padding: 3px; font-size: 0.8em" align="left">                                 
+                                <h:selectOneMenu value="#{managedPieceCaisse.table}" id="select_source_pieces" valueChangeListener="#{managedPieceCaisse.addParamSource}">
+                                    <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}" />
+                                    <f:selectItems value="#{managedPieceCaisse.tables}" var="tabl" itemValue="#{tabl}" itemLabel="#{tabl}" />
+                                    <p:ajax event="valueChange" update=":main_PC:table_all_pieceCaisse tab_recent_pc" />
+                                </h:selectOneMenu>
+                            </div>
+                            <p:dataTable selectionMode="single" value="#{managedPieceCaisse.mouvements.subList(0, (managedPieceCaisse.mouvements.size() ge 10)?10:managedPieceCaisse.mouvements.size())}" var="mvtCh"
+                                         rowKey="#{mvtCh.id}" rowIndexVar="line_M" style="background: #FFF" id="tab_recent_pc">
+                                <p:ajax event="rowSelect" listener="#{managedPieceCaisse.loadOnView}" 
+                                        update=":main_PC:table_PCLie :main_PC:form_edit_pieceCaiss :main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc"/>
+                                <p:ajax event="rowUnselect" listener="#{managedPieceCaisse.unLoadOnView}" update=":main_PC:table_PCLie :main_PC:form_edit_pieceCaiss :main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc"/>
+                                <p:column headerText="N°" width="40" styleClass="etat_#{mvtCh.statutPiece}">
+                                    <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{mvtCh.id eq managedPieceCaisse.pieceCaisse.id}"/>
+                                    #{line_M+1}
+                                    <h:panelGroup style="float: right">
+                                        <h:outputText title="#{lab.LCF_PVC_comptabiliser}" value="C" rendered="#{managedPieceCaisse.isComptabilised(mvtCh)}" styleClass="style_statut"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column headerText="#{lab.LCF_PC_numero}" width="100" styleClass="etat_#{mvtCh.statutPiece}">
+                                    #{mvtCh.numero}
+                                    <h:graphicImage library="img" name="comment.png" width="15" height="15" rendered="#{mvtCh.onComment}" style="margin-left: 5px;position: relative;margin-top: 3px;margin-bottom: -3px" title="a été commenté"/>
+                                </p:column>                                                
+                                <p:column headerText="#{lab.LCF_PPC_a_ordre_de} " width="100" styleClass="etat_#{mvtCh.statutPiece}" >
+                                    <h:outputText value="#{mvtCh.nameTiers}" />
+                                </p:column>
+                                <p:column headerText="#{lab.L_montant}" width="100" style="text-align: right" styleClass="etat_#{mvtCh.statutPiece}">
+                                    <h:graphicImage library="img" name="P.png" width="10" height="10" rendered="#{mvtCh.statutPiece=='P'}" style="float: left"/>
+                                    <h:outputText value="#{mvtCh.montant}" converter="DN" />
+                                </p:column>
+                                <p:column headerText="#{lab.LCF_PC_a_l_ordre_de}" width="10" style="text-align: center" styleClass="etat_#{mvtCh.statutPiece}">
+                                    <h:outputText value="#{mvtCh.datePaimentPrevu}" converter="DATE" rendered="#{mvtCh.statutPiece!='P'}" title="#{lab.LCF_PPC_date_paiement_prevu}"/>
+                                    <h:outputText value="#{mvtCh.datePaye}" converter="DATE" rendered="#{mvtCh.statutPiece=='P'}" title="#{lab.LC_PFA_date_paiment}"/>
+                                </p:column>
+                                <p:column width="20" style="text-align: center" styleClass="etat_#{mvtCh.statutPiece}">
+                                    <h:graphicImage library="img/icones" name="#{mvtCh.mouvement=='R'?'in.png':'out.png'}" width="15" height="15"/>
+                                </p:column>
+                                <p:column width="20" style="text-align: center"  >
+                                    <p:commandLink global="false" actionListener="#{managedPieceCaisse.print(mvtCh)}" ajax="false" style="margin-top: 5px" >
+                                        <h:graphicImage title="#{lab.L_telecharger}" library="img" name="pdf.png" width="15" height="15"/>                                        
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column headerText="" width="20" style="text-align: center" >
+                                    <p:contextMenu for="btn_option_pcm" event="left click" styleClass="context_menu" >
+                                        <p:menuitem value="#{!mvtCh.comptabilise?'Comptabiliser':'Annuler Comptabilité'}" actionListener="#{managedPieceCaisse.setSelectPiece(mvtCh)}" 
+                                                    oncomplete="#{!mvtCh.comptabilise?'dlgComptabilisePiece.show()':'dlgUnComptabilisePiece.show()'}" icon="ui-icon-arrowthick-2-e-w" 
+                                                    rendered="#{mvtCh.id gt 0 and (mvtCh.statutPiece==constantes.STATUT_DOC_PAYER)}"/>  
+                                        <p:menuitem value="#{lab.LCF_PPC_ajouter_note}" icon="ui-icon-note" global="false" actionListener="#{managedPieceCaisse.addNotePieceCaisse(mvtCh)}" oncomplete="dlgAddNote.show()"/>
+                                        <p:separator />
+                                        <p:menuitem value="#{(mvtCh.statutPiece!='P')?((mvtCh.mouvement=='D')?'Payer':'Encaisser'):((mvtCh.mouvement=='D')?'Annuler le paiement':'Annuler l\'encaissement')}"  icon="#{(mvtCh.statutPiece!='P')?'ui-icon-circle-check':'ui-icon-circle-close'}" 
+                                                    actionListener="#{managedPieceCaisse.tooglePayePieceCaisse(mvtCh)}" rendered="#{mvtCh.caisse.id gt 0 and !managedPieceCaisse.forBonProvisoire(mvtCh)}"
+                                                    update=":main_PC:table_PCLie :main_PC:form_edit_pieceCaiss :main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc"/>
+                                        <p:menuitem value="#{(mvtCh.statutPiece!='P')?'Confirmer':'Annuler la confirmation'}"  icon="#{(mvtCh.statutPiece!='P')?'ui-icon-circle-check':'ui-icon-circle-close'}" 
+                                                    actionListener="#{managedPieceCaisse.tooglePayePieceCaisse(mvtCh)}" rendered="#{mvtCh.caisse.id gt 0 and managedPieceCaisse.forBonProvisoire(mvtCh)}"
+                                                    update=":main_PC:table_PCLie :main_PC:form_edit_pieceCaiss :main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc"/>
+                                        <p:menuitem value="#{lab.L_telecharger}" title="#{lab.LCF_PPC_telecharger_piece}" action="#{managedPieceCaisse.print(mvtCh)}" ajax="false" icon="ui-icon-print"/> 
+                                        <p:separator />
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" rendered="#{mvtCh.statutPiece!='P'}" actionListener="#{managedPieceCaisse.openConfirmDelete(mvtCh)}"/>
+                                    </p:contextMenu>
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_pcm" type="button"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                        <div style="margin-left: 61%; background: #000"> 
+                            <div  align="center" style="color: #FFF; padding: 4px; font-size: 0.8em">
+                                #{lab.LCF_PC_pieces_liees}
+                            </div> 
+                            <p:dataTable value="#{managedPieceCaisse.pieceCaisse.listOthersPiece}" var="mvtPl" rowKey="#{mvtPl.id}" 
+                                         rowIndexVar="line_M" id="table_PCLie"  selectionMode="single">
+                                <p:column headerText="N°" width="15" styleClass="etat_#{mvtPl.statutPiece}">
+                                    <span style="float: left">#{line_M+1}</span>
+                                    <h:panelGroup style="float: right">
+                                        <h:outputText title="#{lab.LCF_PVC_comptabiliser}" value="C" rendered="#{managedPieceCaisse.isComptabilised(mvtPl)}" styleClass="style_statut"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column headerText="#{lab.L_numero}" width="120" styleClass="etat_#{mvtPl.statutPiece}">
+                                    <span title="#{mvtPl.model.designation}" style="float: left">#{mvtPl.numero}</span>
+                                    <h:panelGroup style="float: right">
+                                        <h:outputText value="B.P" class="indice_statut" rendered="#{mvtPl.tableExterne==constantes.SCR_BON_PROVISOIRE}" title="#{lab.LCF_PPC_bon_provisoire}"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column headerText="#{lab.L_montant}" width="80" style="text-align: right" styleClass="etat_#{mvtPl.statutPiece}">
+                                    <h:graphicImage library="img" name="P.png" width="10" height="10" rendered="#{mvtPl.statutPiece=='P'}" style="float: left"/>
+                                    <h:outputText value="#{mvtPl.montant}" converter="DN" />
+                                </p:column>   
+                                <p:column headerText="#{lab.L_date}" width="50"  style="text-align: center" styleClass="etat_#{mvtPl.statutPiece}">
+                                    <h:outputText value="#{mvtPl.datePaimentPrevu}" converter="DDMMYYYY"  rendered="#{mvtPl.statutPiece!='P'}" title="#{lab.LCF_PPC_date_paiement_prevu}"/>
+                                    <h:outputText value="#{mvtPl.datePaye}" converter="DDMMYYYY"  rendered="#{mvtPl.statutPiece=='P'}" title="#{lab.LCF_PPC_date_paiement_effectif}"/>
+                                </p:column>
+                                <p:column width="20" style="text-align: center" styleClass="etat_#{mvtPl.statutPiece}">
+                                    <h:graphicImage library="img/icones" name="#{mvtPl.mouvement=='R'?'in.png':'out.png'}" width="15" height="15"/>
+                                </p:column>
+                                <p:column headerText="" width="20" style="text-align: center" >
+                                    <p:contextMenu for="btn_option_pcm" event="left click" styleClass="context_menu" >
+                                        <p:menuitem value="#{!mvtPl.comptabilise?lab.LC_PFV_comptabiliser:lab.LC_PJV_annuler_comptabilise}" actionListener="#{managedPieceCaisse.setSelectPiece(mvtPl)}" 
+                                                    oncomplete="#{!mvtPl.comptabilise?'dlgComptabilisePiece.show()':'dlgUnComptabilisePiece.show()'}" icon="ui-icon-arrowthick-2-e-w" 
+                                                    rendered="#{mvtPl.id gt 0 and (mvtPl.statutPiece==constantes.STATUT_DOC_PAYER)}"/> 
+                                        <p:menuitem value="#{lab.LCF_PPC_ajouter_note}" icon="ui-icon-note" global="false" actionListener="#{managedPieceCaisse.addNotePieceCaisse(mvtPl)}" oncomplete="dlgAddNote.show()"/>
+                                        <p:separator />
+                                        <p:menuitem value="#{(mvtPl.statutPiece!='P')?((mvtPl.mouvement=='D')?lab.LCF_PGG_payer:lab.LCF_PC_encaisser):((mvtPl.mouvement=='D')?lab.LCF_PPC_annuler_paiement:lab.LCF_PPC_annuler_encaissement)}" 
+                                                    icon="#{(mvtPl.statutPiece!='P')?'ui-icon-circle-check':'ui-icon-circle-close'}" 
+                                                    actionListener="#{managedPieceCaisse.tooglePayePieceCaisse(mvtPl)}" rendered="#{mvtPl.caisse.id gt 0 and !managedPieceCaisse.forBonProvisoire(mvtPl)}"/>
+                                        <p:menuitem value="#{(mvtPl.statutPiece!='P')?lab.L_confirmer:lab.LCF_PPC_annuler_confirmation}"  icon="#{(mvtPl.statutPiece!='P')?'ui-icon-circle-check':'ui-icon-circle-close'}" 
+                                                    actionListener="#{managedPieceCaisse.tooglePayePieceCaisse(mvtPl)}" rendered="#{mvtPl.caisse.id gt 0 and managedPieceCaisse.forBonProvisoire(mvtPl)}"/>
+                                        <p:menuitem value="#{lab.L_telecharger}" title="#{lab.LCF_PRV_telecharger_piece}" action="#{managedPieceCaisse.print(mvtPl)}" ajax="false" icon="ui-icon-print"/> 
+                                        <p:separator />
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" rendered="#{mvtPl.statutPiece!='P'}" actionListener="#{managedPieceCaisse.openConfirmDelete(mvtPl)}"/>
+                                    </p:contextMenu>
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_pcm" type="button"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                    </div>                    
+                </div>
+                <div class="yvs_list_piceCaiss" style="background: white;">
+                    <p:dataTable value="#{managedPieceCaisse.mouvements}" var="mvtC" style="font-size: 0.5em !important"
+                                 rowKey="#{mvtC.id}" rowIndexVar="line_M" id="table_all_pieceCaisse" selectionMode="single">
+                        <p:ajax event="rowSelect" listener="#{managedPieceCaisse.loadOnView}" oncomplete="collapseForm('piceCaiss')" 
+                                update=":main_PC:table_PCLie :main_PC:form_edit_pieceCaiss :main_PC:select_source_pieces :main_PC:tab_recent_pc :main_PC:table_all_pieceCaisse"/>
+                        <p:column width="40" styleClass="etat_#{mvtC.statutPiece}">
+                            <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{mvtC.id eq managedPieceCaisse.pieceCaisse.id}"/>
+                            #{line_M+1}
+                            <h:panelGroup style="float: right">
+                                <h:outputText title="#{lab.LCF_PVC_comptabiliser}" value="C" rendered="#{managedPieceCaisse.isComptabilised(mvtC)}" styleClass="style_statut"/>
+                            </h:panelGroup>
+                        </p:column>                                                                         
+                        <p:column headerText="#{lab.LCF_PPC_tiers} " styleClass="etat_#{mvtC.statutPiece}" width="110">
+                            <h:outputText value="#{managedPieceCaisse.nomTiers(mvtC)}" title="#{mvtC.note}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}" styleClass="etat_#{mvtC.statutPiece}" width="100" style="text-align: right">
+                            <h:graphicImage library="img" name="P.png" width="10" height="10" rendered="#{mvtC.statutPiece=='P'}" style="float: left"/>
+                            <h:outputText value="#{mvtC.montant}" converter="DN" title="#{mvtC.note}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_numero}" width="130" styleClass="etat_#{mvtC.statutPiece}">
+                            <h:outputText value="#{mvtC.numero}" title="#{mvtC.note}" />
+                            <h:graphicImage library="img" name="comment.png" width="15" height="15" rendered="#{mvtC.onComment}" style="margin-left: 5px;position: relative;margin-top: 3px;margin-bottom: -3px" title="a été commenté"/>                            
+                        </p:column>                           
+                        <p:column headerText="#{lab.LCF_PPC_source}" styleClass="etat_#{mvtC.statutPiece}" width="100">
+                            <h:outputText value="#{mvtC.referenceExterne}" title="#{mvtC.note}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date}" styleClass="etat_#{mvtC.statutPiece}" width="80">
+                            <h:outputText value="#{mvtC.datePaimentPrevu}" converter="DATE" rendered="#{mvtC.statutPiece!='P'}" title="#{lab.LCF_PPC_date_paiement_prevu}"/>
+                            <h:outputText value="#{mvtC.datePaye}" converter="DATE" rendered="#{mvtC.statutPiece=='P'}" title="#{lab.LCF_PVC_date_paiement}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PPC_caissier}" styleClass="etat_#{mvtC.statutPiece}" width="100">
+                            <h:outputText value="#{mvtC.caissier.nomUsers}" title="#{mvtC.note}"/>
+                        </p:column>                        
+                        <p:column headerText="#{lab.LCF_PPC_caisse}" styleClass="etat_#{mvtC.statutPiece}" width="100">
+                            <h:outputText value=" #{mvtC.caisse.intitule}" title="#{mvtC.note}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PPC_mode}" style="text-align: center" styleClass="etat_#{mvtC.statutPiece}" width="80">
+                            <h:outputText value=" #{mvtC.model.designation}" title="#{mvtC.note}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PPC_beneficiaire}" styleClass="etat_#{mvtC.statutPiece}" width="100">
+                            <h:outputText value="#{mvtC.nameTiers}" title="#{mvtC.note}"/>
+                        </p:column>
+                        <p:column width="20" style="text-align: center" styleClass="etat_#{mvtC.statutPiece}">
+                            <h:graphicImage library="img/icones" name="#{mvtC.mouvement=='R'?'in.png':'out.png'}" width="15" height="15"/>
+                        </p:column>
+                        <p:column width="20" style="text-align: center"  >
+                            <p:commandLink global="false" actionListener="#{managedPieceCaisse.print(mvtC)}" ajax="false" style="margin-top: 5px" >
+                                <h:graphicImage title="#{lab.L_telecharger}" library="img" name="pdf.png" width="15" height="15"/>                                        
+                            </p:commandLink>
+                        </p:column>
+                        <p:column headerText="" width="20" style="text-align: center" >
+                            <p:contextMenu for="btn_option_pcm1" event="left click" styleClass="context_menu" >
+                                <p:menuitem value="#{!mvtC.comptabilise?'Comptabiliser':'Annuler Comptabilité'}" actionListener="#{managedPieceCaisse.setSelectPiece(mvtC)}" 
+                                            oncomplete="#{!mvtC.comptabilise?'dlgComptabilisePiece.show()':'dlgUnComptabilisePiece.show()'}" icon="ui-icon-arrowthick-2-e-w" 
+                                            rendered="#{mvtC.id gt 0 and (mvtC.statutPiece==constantes.STATUT_DOC_PAYER)}"/> 
+                                <p:menuitem value="#{lab.LCF_PC_ajouter_une_note}" icon="ui-icon-note" global="false" actionListener="#{managedPieceCaisse.addNotePieceCaisse(mvtC)}" oncomplete="dlgAddNote.show()"/>
+                                <p:separator />
+                                <p:menuitem  value="#{(mvtC.statutPiece!='P')?((mvtC.mouvement=='D')?'Payer':'Encaisser'):((mvtC.mouvement=='D')?'Annuler le paiement':'Annuler l\'encaissement')}" icon="#{(mvtC.statutPiece!='P')?'ui-icon-circle-check':'ui-icon-circle-close'}" 
+                                             actionListener="#{managedPieceCaisse.tooglePayePieceCaisse(mvtC)}" update=":main_PC:table_all_pieceCaisse :main_PC:table_PCLie :main_PC:form_edit_pieceCaiss :main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc"/>
+                                <p:menuitem value="#{lab.L_telecharger}" title="#{lab.LCF_PRV_telecharger_piece}" action="#{managedPieceCaisse.print(mvtC)}" ajax="false" icon="ui-icon-print"/> 
+                                <p:separator />
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" rendered="#{mvtC.statutPiece!='P'}" actionListener="#{managedPieceCaisse.openConfirmDelete(mvtC)}"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_pcm1" type="button"/>
+                        </p:column>
+                        <p:column width="25" style="text-align: center" styleClass="etat_#{mvtC.statutPiece}">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_piceCaiss" value="false"
+                                                         onclick="selectionAllLineTab(#{managedPieceCaisse.mouvements.size()}, 'piceCaiss')">
+                                </h:selectBooleanCheckbox>
+                            </f:facet>
+                            <h:selectBooleanCheckbox styleClass="chek_line_piceCaiss" onclick="selectionLineTab(#{line_M}, 'piceCaiss')">
+                            </h:selectBooleanCheckbox>
+                        </p:column> 
+                    </p:dataTable>
+                    <span class="nbSelectmission" style="font-size: .8em; font-style: italic; color: #828c95;"></span>                   
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block" >
+                        <p:commandButton actionListener="#{managedPieceCaisse.paginer(false)}" update=":main_PC:table_all_pieceCaisse" icon="ui-icon-circle-triangle-w" disabled="#{managedPieceCaisse.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedPieceCaisse.paginator.currentPage}/#{managedPieceCaisse.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedPieceCaisse.paginer(true)}" update=":main_PC:table_all_pieceCaisse" icon="ui-icon-circle-triangle-e" disabled="#{managedPieceCaisse.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedPieceCaisse.imax}" label="#{lab.L_nombre_max_resultat}" style="float: right; font-size: 0.9em;
+                                         width: 50px" >
+                            <f:selectItems value="#{managedPieceCaisse.paginations}" />
+                            <p:ajax event="valueChange" update=":main_PC:table_all_pieceCaisse" listener="#{managedPieceCaisse.paginer(false)}"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>
+                <div style="clear: left" />                
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" >
+            <div class="zone_find" style="font-size: 0.8em"> 
+                <div style="overflow-x: auto"> 
+                    <p:dataTable value="#{managedPieceCaisse.soldesCaisse}" var="iSolde" style=" width: 100%;margin: auto"
+                                 >
+                        <p:columnGroup type="header">
+                            <p:row>
+                                <c:forEach items="#{managedCaisses.caisses}" var="column">
+                                    <p:column headerText="#{column.intitule}" colspan="2" />
+                                </c:forEach>
+                            </p:row>
+                            <p:row>
+                                <c:forEach items="#{managedCaisses.caisses}" var="column">
+                                    <p:column headerText="#{constantes.MODE_PAIEMENT_ESPECE}" style="width: 15%"/>
+                                    <p:column headerText="#{lab.LCF_PPC_autres}" style="width: 15%"/>
+                                </c:forEach>
+                            </p:row>
+                        </p:columnGroup>
+                        <c:forEach items="#{managedCaisses.caisses}" var="column">                        
+                            <p:column style="width: 15%;text-align: right">
+                                <h:outputText style="float: right; font-weight: bold" value="#{managedPieceCaisse.findSoldeCaisse(column.id, constantes.MODE_PAIEMENT_ESPECE)}" converter="DN"/>                                
+                            </p:column>
+                            <p:column style="width: 15%;text-align: right">
+                                <h:outputText style="float: right; font-weight: bold" value="#{managedPieceCaisse.findSoldeCaisse(column.id, 'AUTRES')}" converter="DN"/>
+                            </p:column>
+                        </c:forEach>
+                    </p:dataTable>
+                </div>
+                <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px;display: none" width="20" height="20"
+                                styleClass="img_slide" title="cacher"/>                    
+                <h:panelGrid columns="2" style="font-size: 0.9em" cellpadding="0" cellspacing="0" id="form_search_pcc">
+                    <h:panelGrid columns="8" style="font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <span>&nbsp;</span>
+                        <h:outputText value="#{lab.LCF_PPC_date_payer}" />
+                        <h:outputText value="#{lab.L_statut}" />
+                        <h:outputText value="#{lab.LCF_PPC_source}" />
+                        <h:outputText value="#{lab.LCF_PPC_caisses}" />
+                        <h:outputText value="#{lab.LCF_PPC_mode}" />
+                        <h:outputText value="#{lab.L_reference}" />
+                        <span>&nbsp;</span>
+                        <p:commandButton update="form_search_pcc" icon="ui-icon-bullet" actionListener="#{managedPieceCaisse.clearParams()}" title="#{lab.L_reset_param}" style="width: 20px; height: 22px"/>                        
+                        <h:panelGroup id="zone_pc_search_date">
+                            <h:selectBooleanCheckbox value="#{managedPieceCaisse.addDateF}">
+                                <p:ajax event="valueChange" listener="#{managedPieceCaisse.addParamDate()}" update="zone_pc_search_date :main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc" oncomplete="collapseList('piceCaiss');"  />
+                            </h:selectBooleanCheckbox>
+                            <p:calendar value="#{managedPieceCaisse.debutF}" pattern="dd-MM-yyyy" navigator="true" disabled="#{!managedPieceCaisse.addDateF}" size="8">
+                                <p:ajax event="dateSelect" listener="#{managedPieceCaisse.addParamDate()}" update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc" oncomplete="collapseList('piceCaiss');"  />
+                            </p:calendar>
+                            <p:calendar value="#{managedPieceCaisse.finF}" pattern="dd-MM-yyyy" navigator="true" disabled="#{!managedPieceCaisse.addDateF}" size="8">
+                                <p:ajax event="dateSelect" listener="#{managedPieceCaisse.addParamDate()}" update=":main_PC:table_all_pieceCaisse" oncomplete="collapseList('piceCaiss');"  />
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedPieceCaisse.statutF}" valueChangeListener="#{managedPieceCaisse.addParamStatut}">
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}" />
+                            <f:selectItem itemValue="#{'W'}" itemLabel="#{lab.L_en_attente}" />
+                            <f:selectItem itemValue="#{'P'}" itemLabel="#{lab.LCF_PPC_paye}" />
+                            <f:selectItem itemValue="#{'U'}" itemLabel="#{lab.LCF_PVC_soumis.toUpperCase()}" />
+                            <f:selectItem itemValue="#{'V'}" itemLabel="#{lab.L_valide}" />
+                            <f:selectItem itemValue="#{'S'}" itemLabel="#{lab.L_suspendu}" />
+                            <p:ajax event="valueChange" update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc" oncomplete="collapseList('piceCaiss');"  />
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedPieceCaisse.sourceF}" valueChangeListener="#{managedPieceCaisse.addParamSource}">
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}" />
+                            <f:selectItems value="#{managedPieceCaisse.tables}" var="tabl" itemValue="#{tabl}" itemLabel="#{tabl}" />
+                            <p:ajax event="valueChange" update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc" oncomplete="collapseList('piceCaiss');"  />
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedPieceCaisse.caisseF}" valueChangeListener="#{managedPieceCaisse.addParamCaisse}" style="width:160px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0" />
+                            <f:selectItems value="#{managedCaisses.caisses}" var="itemCaiss" itemLabel="#{itemCaiss.intitule}" itemValue="#{itemCaiss.id}" />
+                            <p:ajax event="valueChange" update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc" oncomplete="collapseList('piceCaiss');"  />
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedPieceCaisse.typeModeF}" >
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}" />
+                            <f:selectItem itemValue="#{constantes.MODE_PAIEMENT_ESPECE}" itemLabel="#{constantes.MODE_PAIEMENT_ESPECE}" />
+                            <f:selectItem itemValue="#{constantes.MODE_PAIEMENT_BANQUE}" itemLabel="#{constantes.MODE_PAIEMENT_BANQUE}" />
+                            <f:selectItem itemValue="#{constantes.MODE_PAIEMENT_SALAIRE}" itemLabel="#{constantes.MODE_PAIEMENT_SALAIRE}" />
+                            <f:selectItem itemValue="#{constantes.MODE_PAIEMENT_COMPENSATION}" itemLabel="#{constantes.MODE_PAIEMENT_COMPENSATION}" />
+                            <p:ajax event="valueChange" update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc" oncomplete="collapseList('piceCaiss');" listener="#{managedPieceCaisse.addParamTypeModePaiement()}" />
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedPieceCaisse.numRefF}">
+                            <p:ajax event="valueChange" update=":main_PC:table_all_pieceCaisse :main_PC:tab_recent_pc" 
+                                    oncomplete="collapseList('piceCaiss');"  listener="#{managedPieceCaisse.addParamReference()}"/>
+                        </h:inputText>                        
+                        <p:commandLink style="border: 2px solid black; border-radius: 5px;padding: 2px; " 
+                                       onclick="dlgPlusOption.show()" global="false" value="#{lab.L_avancees}"/>
+                    </h:panelGrid>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

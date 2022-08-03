@@ -1,0 +1,1 @@
+SELECT c.id, com_update_all_data_for_client(c.id) FROM yvs_com_client c;

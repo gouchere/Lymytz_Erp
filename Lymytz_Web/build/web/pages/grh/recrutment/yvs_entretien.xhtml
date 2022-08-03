@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Entretiens d\'Embauche','modRh', 'smenEntretien', true,managedEntretien)}
+    </ui:define> 
+    <ui:define name="contents"> 
+        <script type="text/javascript">
+            $(function() {
+                $('.displayCV').css('display', 'none');
+                collapseForm('entretien');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            }); 
+        </script> 
+        #{managedEntretien.loadAll()}
+        <h:form prependId="false" id="formEntretien">
+            <div class="part_fix">
+                <div style="float: left">
+                    <p:commandButton value="Enregistrer" actionListener="#{managedPosteDeTravail.saveNew()}" 
+                                     update=":form-poste-000:poste-poste"/>                        
+                    <p:commandButton value="Nouveau" actionListener="#{managedPosteDeTravail.resetFiche()}"
+                                     global="false" process="@this"
+                                     update=":form-poste-000:form_poste" />
+                    <h:inputHidden value="#{managedPosteDeTravail.chaineSelectPoste}"  />
+                </div>
+                <div style="float: right">                        
+                    <h:link title="mode création" onclick="collapseForm('entretien');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('entretien');
+                            return false" title="vue liste" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>                      
+                <div style="clear: both"/>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_entretien">
+                    <div style="width: 40%; float: left">
+                        <p:dataTable value="#{managedEntretien.candidats}" var="candida" rowKey="#{candida.id}" 
+                                     rowIndexVar="lineCandidat" selectionMode="single"
+                                     id="table_candidat_entretien">                      
+                            <p:ajax event="rowSelect" update=":formEntretien:formulaire_entretien"
+                                    listener="#{managedEntretien.loadFormulaire}" />
+                            <p:column  width="40" headerText="N°">
+                                <h:graphicImage style="float: right" library="icones" name="#{(candida.civilite=='M')?'male.png':'femelle.png'}"  width="18" height="18" />
+                                #{lineCandidat+1}
+                            </p:column>
+                            <p:column headerText="Poste" filterBy="#{candida.poste.intitule}">
+                                <h:outputText value="#{candida.poste.intitule}" />
+                            </p:column>
+                            <p:column headerText="code" filterBy="#{candida.code}">
+                                <h:outputText value="#{candida.code}" />
+                            </p:column>
+                            <p:column headerText="Noms &amp; Prénoms" filterBy="#{candida.nom}">
+                                <h:outputText value="#{candida.nom} #{candida.prenom}" />
+                            </p:column>                                                                                                                    
+                        </p:dataTable> 
+                    </div> 
+                    <div style="margin-left: 41%; width: 59%;  overflow-y: auto">    
+                        <h:panelGrid columns="6" style="width: 100%">
+                            <span>Date</span>
+                            <p:calendar value="#{managedEntretien.dateEntretien}" pattern="dd-MM-yyyy" size="8"/>
+                            <span>Lieu</span>
+                            <h:inputText value="#{managedEntretien.lieuEntretien}" />
+                            <span>Par </span>
+                            <h:inputText value="#{managedEntretien.examinateur.codeEmploye}" />
+                        </h:panelGrid>
+                        <p:tabView value="#{managedEntretien.sessionsEntretien}" var="sess" id="formulaire_entretien">
+                            <p:ajax event="tabClose" listener="#{managedEntretien.closeTabEntretien(sess)}"/>
+                            <p:tab title="Sess. - #{sess.candidat.code}"  closable="true" >                            
+                                <pe:dynaForm id="dynaForm" value="#{sess}" var="data" style="max-height: 200px; overflow-y: auto">
+                                    <pe:dynaFormControl type="separator" styleClass="separator ui-state-disabled">  
+                                        <h:panelGrid columns="2" style="width:100%;" columnClasses="separatorText">  
+                                            <h:outputText value="#{data}" />  
+                                            <p:separator  style="width: 200px"/>  
+                                        </h:panelGrid>  
+                                    </pe:dynaFormControl>  
+                                    <pe:dynaFormControl type="selectMany" for="selectMany">  
+                                        <h:panelGrid columns="2">
+                                            <p:selectManyMenu id="selectMany" value="#{data.values}" >
+                                                <f:selectItems value="#{data.items}"/>                                 
+                                            </p:selectManyMenu>
+                                            <p:rating value="#{data.note}"  style="float: right"/>
+                                        </h:panelGrid>
+                                    </pe:dynaFormControl>
+                                    <pe:dynaFormControl type="input" for="txt">  
+                                        <p:inputText id="txt" value="#{data.value}" required="#{data.required}"/>  
+                                    </pe:dynaFormControl>  
+                                    <pe:dynaFormControl type="calendar" for="cal" styleClass="calendar">  
+                                        <p:calendar id="cal" value="#{data.value}" required="#{data.required}" showOn="button"/>  
+                                    </pe:dynaFormControl>  
+                                    <pe:dynaFormControl type="textarea" for="tarea">  
+                                        <h:panelGrid columns="2">
+                                            <p:inputTextarea id="tarea" value="#{data.value}" required="#{data.required}" />  
+                                            <p:rating value="#{data.note}"  style="margin-left: 10px"/>
+                                        </h:panelGrid>
+                                    </pe:dynaFormControl>  
+                                    <pe:dynaFormControl type="rating" for="rat">  
+                                        <p:rating id="rat" value="#{data.value}" required="#{data.required}"/>  
+                                    </pe:dynaFormControl>  
+                                    <pe:dynaFormControl type="radiochoice" for="radioB">  
+                                        <h:panelGrid columns="2">
+                                            <p:selectOneRadio id="radioB" value="#{data.value}" required="#{data.required}" layout="pageDirection" style="padding: 2px; width: 50px">
+                                                <f:selectItems value="#{data.items}"/>  
+                                            </p:selectOneRadio>
+                                            <p:rating value="#{data.note}"  style="float: right"/>
+                                        </h:panelGrid>
+                                    </pe:dynaFormControl>  
+                                    <pe:dynaFormControl type="booleanchoice" for="booleanC">                             
+                                        <h:panelGroup>
+                                            <p:selectBooleanCheckbox id="booleanC" value="#{data.value}" required="#{data.required}" />
+                                            <p:rating value="#{data.note}"  style="float: right"/>
+                                        </h:panelGroup>
+                                    </pe:dynaFormControl>  
+                                    <pe:dynaFormControl type="text" for="outText">  
+                                        <h:outputText id="outText" value="#{data}"  style="color: #054dca; font-weight: bold"/>
+                                    </pe:dynaFormControl> 
+                                    <f:facet name="buttonBar"> 
+                                        <p:commandButton value="Ajouter une Question libre" actionListener="#{managedEntretien.OpenToAddNewQuestion(sess)}" global="false"
+                                                         process="@this" oncomplete="dlgNewQuestion.show()" icon="ui-icon-circle-plus" style="float: left; font-size: 0.8em" />
+                                        <div>
+                                            <p:commandButton value="Submit" actionListener="#{managedEntretien.submitForm(sess)}"                                                                   
+                                                             oncomplete="handleComplete(xhr, status, args)"/>  
+                                            <p:commandButton type="reset" value="Reset" style="margin-left: 5px;"/>
+                                        </div>  
+                                    </f:facet>
+                                </pe:dynaForm>
+                            </p:tab>
+                        </p:tabView>
+                    </div>
+                </div>
+                <div class="yvs_list_entretien">
+                    #{managedEntretien.loadAll()}
+                    <p:dataTable value="#{managedEntretien.listEntretiens}" var="itemEn"
+                                 rowKey="#{itemEn.id}" selectionMode="single" id="tab_entretiens"
+                                 rowIndexVar="line_q" style="max-height: 450px; overflow-y: auto; width: 100%">                        
+                        <p:column  headerText="N°" width="20">
+                            #{line_q +1}
+                        </p:column>
+                        <p:column  headerText="Candidat">
+                            <h:outputText value="#{itemEn.candidat.nom}"  style="text-align: center;"/>
+                        </p:column>
+                        <p:column  headerText="Poste">
+                            <h:outputText value="#{itemEn.candidat.poste.intitule}"  style="text-align: center;"/>
+                        </p:column>
+                        <p:column  headerText="Date">
+                            <h:outputText value="#{itemEn.date}" converter="DATE"/>
+                        </p:column>                            
+                    </p:dataTable>
+                </div>
+            </div>
+
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="Nouvelle Question ouverte" widgetVar="dlgNewQuestion">
+                <h:panelGrid columns="3">
+                    <span>Libellé de la question</span>
+                    <h:inputText value="#{managedEntretien.newQuestion}" /> 
+                    <p:commandButton  icon="ui-icon-circle-plus" actionListener="#{managedEntretien.addNewQuestionModel()}" />
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:outputScript id="dynaFormScript" target="body">  
+            /* <![CDATA[ */ 
+            function handleComplete(xhr, status, args) { 
+            if(args && args.isValid) { 
+
+            } else { 
+
+            } 
+            } 
+            /* ]]> */  
+        </h:outputScript> 
+    </ui:define>
+</ui:composition>

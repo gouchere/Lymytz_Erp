@@ -1,0 +1,223 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide">
+        <span class="block_slide_title">
+            <span class="slide_title" group="MARGE">#{lab.LS_PMA_marges_famille}</span>  
+            <div style="float: right;font-size: 1.0em;" align="center">
+                <p:selectBooleanCheckbox value="#{managedBordStatistique.tabMargeFamille.displayQte}" itemLabel="#{lab.L_qte}" label="#{lab.LP_PTB_afficher_quantite}">
+                    <p:ajax event="valueChange" global="false" update="data_marge_by_famille"/>
+                </p:selectBooleanCheckbox> 
+                <p:selectBooleanCheckbox value="#{managedBordStatistique.tabMargeFamille.displayCA}" itemLabel="#{lab.LC_PTB_ca}" label="#{lab.LS_PMA_afficher_ca}">
+                    <p:ajax event="valueChange" global="false" update="data_marge_by_famille"/>
+                </p:selectBooleanCheckbox> 
+                <p:selectBooleanCheckbox value="#{managedBordStatistique.tabMargeFamille.displayRevient}" itemLabel="#{lab.LS_PMA_prix_r}" label="#{lab.LS_PMA_afficher_prix_revient}">
+                    <p:ajax event="valueChange" global="false" update="data_marge_by_famille"/>
+                </p:selectBooleanCheckbox> 
+                <p:selectBooleanCheckbox value="#{managedBordStatistique.tabMargeFamille.displayMarge}" itemLabel="#{lab.LRH_PNF_marge.toUpperCase()}" label="#{lab.LS_PMA_afficher_marge}">
+                    <p:ajax event="valueChange" global="false" update="data_marge_by_famille"/>
+                </p:selectBooleanCheckbox> 
+                <p:selectBooleanCheckbox value="#{managedBordStatistique.tabMargeFamille.displayTaux}" itemLabel="#{lab.LC_PTB_taux}" label="#{lab.LS_PMA_afficher_marge_pourcentage}">
+                    <p:ajax event="valueChange" global="false" update="data_marge_by_famille"/>
+                </p:selectBooleanCheckbox> 
+            </div>
+        </span> 
+        <div class="zone_slide">
+            <p:dataTable id="data_marge_by_famille" value="#{managedBordStatistique.tabMargeFamille.lignes}" var="row_3" rowIndexVar="iRow_3"
+                         style="width: 100%;overflow-x: auto" widgetVar="myTableWidget">
+                <p:columnGroup type="header">
+                    <p:row>
+                        <p:column headerText="#{lab.L_famille.toUpperCase()}" style="width: 15%" rowspan="2"/>
+                        <c:forEach items="#{managedBordStatistique.tabMargeFamille.colonnes}" var="head_01" varStatus="_head">
+                            <p:column headerText="#{head_01.valeur}" style="width: 45%" colspan="#{managedBordStatistique.tabMargeFamille.nombreColonneMarge()}"/>
+                        </c:forEach>
+                        <p:column headerText="#{lab.LC_PTB_totaux}" style="width: 15%" colspan="#{managedBordStatistique.tabMargeFamille.nombreColonneMarge()}"
+                                  rendered="#{managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}"/>
+                    </p:row>
+                    <p:row>
+                        <c:forEach items="#{managedBordStatistique.tabMargeFamille.colonnes}" var="col" varStatus="iHead_01">
+                            <p:column headerText="#{lab.L_qte}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayQte}"/>
+                            <p:column headerText="#{lab.LC_PTB_ca}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayCA}"/>
+                            <p:column headerText="#{lab.LC_PTB_pr}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayRevient}"/>
+                            <p:column headerText="#{lab.LRH_PNF_marge.toUpperCase()}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayMarge}"/>
+                            <p:column headerText="#{lab.LC_PTB_taux}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayTaux}"/>
+                        </c:forEach>
+                        <p:column headerText="#{lab.L_qte}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayQte and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}"/>
+                        <p:column headerText="#{lab.LC_PTB_ca}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayCA and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}"/>
+                        <p:column headerText="#{lab.LC_PTB_pr}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayRevient and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}"/>
+                        <p:column headerText="#{lab.LRH_PNF_marge.toUpperCase()}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayMarge and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}"/>
+                        <p:column headerText="#{lab.LC_PTB_taux}" style="width: 15%" rendered="#{managedBordStatistique.tabMargeFamille.displayTaux and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}"/>
+                    </p:row>
+                </p:columnGroup>   
+                <p:column styleClass="ui-widget-header" style="width: 15%">
+                    <h:outputText value="#{row_3.titre}" title="#{row_3.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.tabMargeFamille.displayName}"/>
+                    <h:outputText value="#{row_3.libelle}" title="#{row_3.titre}" style="cursor: pointer" rendered="#{managedBordStatistique.tabMargeFamille.displayName}"/>
+                </p:column>
+                <c:forEach items="#{managedBordStatistique.tabMargeFamille.colonnes}" var="col" varStatus="iHead_01">
+                    <p:column style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayQte}">
+                        <h:outputText value="#{managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'qte')}" converter="#{managedBordStatistique.converterStock}"/> 
+                    </p:column>
+                    <p:column style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayCA}">
+                        <h:outputText value="#{managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'ca')}" converter="#{managedBordStatistique.converter}" style="color: blue"/> 
+                    </p:column>
+                    <p:column style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayRevient}">
+                        <h:outputText value="#{managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'pr')}" converter="#{managedBordStatistique.converter}"/>  
+                    </p:column>
+                    <p:column style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayMarge}">
+                        <h:outputText value="#{managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'marge')}" converter="#{managedBordStatistique.converter}"
+                                      style="color:#{(managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'marge') le 0 or managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'attente') lt managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'marge_min')) ? 'red':'green'}"/>  
+                    </p:column>
+                    <p:column style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayTaux}">
+                        <p:graphicImage library="icones" name="alert_info.png" width="16" height="16" style="float: left" title="#{lab.LS_PMA_marge_inferieur_marge_minimale} (#{managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'marge_min')})%"
+                                        rendered="#{managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'attente') lt managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'marge_min')}" />     
+                        <h:outputText value="#{managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'attente')}" converter="DNS"
+                                      style="color:#{(managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'marge') le 0 or managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'attente') lt managedBordStatistique.tabMargeFamille.valeur(iRow_3, iHead_01.index, 'marge_min')) ? 'red':'green'}"/>%
+                    </p:column>
+                </c:forEach>
+                <p:column styleClass="ui-widget-header" style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayQte and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}">
+                    <h:outputText value="#{managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'qte')}" converter="#{managedBordStatistique.converterStock}"/> 
+                </p:column>
+                <p:column styleClass="ui-widget-header" style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayCA and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}">
+                    <h:outputText value="#{managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'ca')}" converter="#{managedBordStatistique.converter}" style="color: blue"/> 
+                </p:column>
+                <p:column styleClass="ui-widget-header" style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayRevient and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}">
+                    <h:outputText value="#{managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'pr')}" converter="#{managedBordStatistique.converter}"/>  
+                </p:column>
+                <p:column styleClass="ui-widget-header" style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayMarge and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}">
+                    <h:outputText value="#{managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'marge')}" converter="#{managedBordStatistique.converter}"
+                                  style="color:#{(managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'marge') le 0 or managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'attente') lt managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'marge_min')) ? 'red':'green'}"/>  
+                </p:column>
+                <p:column styleClass="ui-widget-header" style="text-align: right" rendered="#{managedBordStatistique.tabMargeFamille.displayTaux and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}">
+                    <p:graphicImage library="icones" name="alert_info.png" width="16" height="16" style="float: left" title="#{lab.LS_PMA_marge_inferieur_marge_minimale}(#{managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'marge_min') / managedBordStatistique.tabMargeFamille.colonnes.size()})%"
+                                    rendered="#{managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'attente') lt managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'marge_min')}" />  
+                    <div style="color:#{(managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'marge') le 0 or managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'attente') lt managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'marge_min')) ? 'red':'green'}">                                
+                        <h:outputText value="#{(((managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'ca') - managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'pr')) / managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'pr')) * 100)}" 
+                                      converter="DNS" rendered="#{managedBordStatistique.tabMargeFamille.parametreCom.tauxMargeSur eq 'A'}"/>
+                        <h:outputText value="#{(((managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'ca') - managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'pr')) / managedBordStatistique.tabMargeFamille.totalRow(iRow_3, 'ca')) * 100)}" 
+                                      converter="DNS" rendered="#{managedBordStatistique.tabMargeFamille.parametreCom.tauxMargeSur ne 'A'}"/>%
+                    </div>
+                </p:column>
+                <p:columnGroup type="footer">
+                    <p:row>
+                        <p:column footerText="#{lab.LP_PTB_totaux}"/> 
+                        <c:forEach items="#{managedBordStatistique.tabMargeFamille.colonnes}" var="head" varStatus="iHead_01">
+                            <p:column rendered="#{managedBordStatistique.tabMargeFamille.displayQte}" /> 
+                            <p:column style="text-align: right;font-weight: bold" rendered="#{managedBordStatistique.tabMargeFamille.displayCA}">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'ca')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>                                
+                            </p:column> 
+                            <p:column style="text-align: right;font-weight: bold" rendered="#{managedBordStatistique.tabMargeFamille.displayRevient}">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'pr')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>                                
+                            </p:column> 
+                            <p:column style="text-align: right;font-weight: bold" rendered="#{managedBordStatistique.tabMargeFamille.displayMarge}">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'marge')}" converter="#{managedBordStatistique.converterStock}"
+                                                  style="color:#{(managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'marge') le 0 or managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'attente') lt managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'marge_min')) ? 'red':'green'}"/> 
+                                </f:facet>                                
+                            </p:column> 
+                            <p:column style="text-align: right;font-weight: bold" rendered="#{managedBordStatistique.tabMargeFamille.displayTaux}">
+                                <f:facet name="footer">
+                                    <p:graphicImage library="icones" name="alert_info.png" width="16" height="16" style="float: left" title="#{lab.LS_PMA_marge_inferieur_marge_minimale} (#{managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'marge_min') / managedBordStatistique.tabMargeFamille.lignes.size()})%"
+                                                    rendered="#{managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'attente') lt managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'marge_min')}" /> 
+                                    <div style="color:#{(managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'marge') le 0 or managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'attente') lt managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'marge_min')) ? 'red':'green'}">                                
+                                        <h:outputText value="#{(((managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'ca') - managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'pr')) / managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'pr')) * 100)}" 
+                                                      converter="DNS" rendered="#{managedBordStatistique.tabMargeFamille.parametreCom.tauxMargeSur eq 'A'}"/>
+                                        <h:outputText value="#{(((managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'ca') - managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'pr')) / managedBordStatistique.tabMargeFamille.totalColonne(iHead_01.index, 'ca')) * 100)}" 
+                                                      converter="DNS" rendered="#{managedBordStatistique.tabMargeFamille.parametreCom.tauxMargeSur ne 'A'}"/>%
+                                    </div>
+                                </f:facet>                                 
+                            </p:column>
+                        </c:forEach>
+                        <p:column rendered="#{managedBordStatistique.tabMargeFamille.displayQte and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}" /> 
+                        <p:column style="text-align: right;font-weight: bold" rendered="#{managedBordStatistique.tabMargeFamille.displayCA and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}">
+                            <f:facet name="footer">
+                                <h:outputText value="#{managedBordStatistique.tabMargeFamille.total('ca')}" converter="#{managedBordStatistique.converterStock}"/> 
+                            </f:facet>                                
+                        </p:column> 
+                        <p:column style="text-align: right;font-weight: bold" rendered="#{managedBordStatistique.tabMargeFamille.displayRevient and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}">
+                            <f:facet name="footer">
+                                <h:outputText value="#{managedBordStatistique.tabMargeFamille.total('pr')}" converter="#{managedBordStatistique.converterStock}"/> 
+                            </f:facet>                                
+                        </p:column> 
+                        <p:column style="text-align: right;font-weight: bold" rendered="#{managedBordStatistique.tabMargeFamille.displayMarge and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}">
+                            <f:facet name="footer">
+                                <h:outputText value="#{managedBordStatistique.tabMargeFamille.total('marge')}" converter="#{managedBordStatistique.converterStock}"
+                                              style="color:#{(managedBordStatistique.tabMargeFamille.total('marge') le 0 or managedBordStatistique.tabMargeFamille.total('attente') lt managedBordStatistique.tabMargeFamille.total('marge_min')) ? 'red':'green'}"/> 
+                            </f:facet>                                
+                        </p:column> 
+                        <p:column style="text-align: right;font-weight: bold" rendered="#{managedBordStatistique.tabMargeFamille.displayTaux and managedBordStatistique.tabMargeFamille.colonnes.size() gt 1}">
+                            <f:facet name="footer">
+                                <p:graphicImage library="icones" name="alert_info.png" width="16" height="16" style="float: left" title="#{lab.LS_PMA_marge_inferieur_marge_minimale} (#{managedBordStatistique.tabMargeFamille.total('marge_min') / managedBordStatistique.tabMargeFamille.lignes.size()})%"
+                                                rendered="#{managedBordStatistique.tabMargeFamille.total('attente') lt managedBordStatistique.tabMargeFamille.total('marge_min')}" /> 
+                                <div style="color:#{(managedBordStatistique.tabMargeFamille.total('marge') le 0 or managedBordStatistique.tabMargeFamille.total('attente') lt managedBordStatistique.tabMargeFamille.total('marge_min')) ? 'red':'green'}">                                
+                                    <h:outputText value="#{(((managedBordStatistique.tabMargeFamille.total('ca') - managedBordStatistique.tabMargeFamille.total('pr')) / managedBordStatistique.tabMargeFamille.total('pr')) * 100)}" 
+                                                  converter="#{managedBordStatistique.converterStock}" rendered="#{managedBordStatistique.tabMargeFamille.parametreCom.tauxMargeSur eq 'A'}"/>
+                                    <h:outputText value="#{(((managedBordStatistique.tabMargeFamille.total('ca') - managedBordStatistique.tabMargeFamille.total('pr')) / managedBordStatistique.tabMargeFamille.total('ca')) * 100)}" 
+                                                  converter="#{managedBordStatistique.converterStock}" rendered="#{managedBordStatistique.tabMargeFamille.parametreCom.tauxMargeSur ne 'A'}"/>%
+                                </div>
+                            </f:facet>                                 
+                        </p:column>
+                    </p:row>
+                </p:columnGroup>
+            </p:dataTable>
+        </div>
+        <div class="zone_bottom">
+            <h:panelGroup style="float: left">
+                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px;float: left;margin-right: 5px" id="btn_option_marge_by_famille" type="button"/>
+                <p:contextMenu for="btn_option_marge_by_famille" event="left click" styleClass="context_menu" style="width: 210px">
+                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadDataMarge(managedBordStatistique.tabMargeFamille)}" update="data_marge_by_famille"/>
+                    <p:menuitem value="#{lab.LS_PMA_rafraichir}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.reLoadDataMarge(managedBordStatistique.tabMargeFamille)}" update="data_marge_by_famille"/>
+                    <p:separator/>
+                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.downloadMarge(managedBordStatistique.tabMargeFamille)}" ajax="false"/>    
+                    <p:menuitem value="#{lab.L_exporter}" icon="ui-icon-print" actionListener="#{managedBordStatistique.downloadMarge(managedBordStatistique.tabMargeFamille, 'xls')}" global="false" ajax="false"/>                                      
+                    <p:menuitem id="menu-search_tab_article_marge_by_famille" value="#{lab.L_recherche}" icon="ui-icon-search" global="false"/>                                 
+                </p:contextMenu>
+                <p:overlayPanel for="menu-search_tab_article_marge_by_famille" hideEffect="fade" style="width: 200px;background: black;color: white">
+                    <h:inputText value="#{managedBordStatistique.tabMargeFamille.comptes}" style="width:100%">
+                        <p:ajax event="blur" global="false"/>
+                    </h:inputText>
+                </p:overlayPanel>
+                <h:panelGroup>   
+                    <h:inputText value="#{managedBordStatistique.tabMargeFamille.varSearch}" id="txt_search_marge_by_famille">
+                        <p:ajax event="valueChange" listener="#{managedBordStatistique.tabMargeFamille.filter()}" update="data_marge_by_famille"/>
+                    </h:inputText>     
+                    <p:watermark for="txt_search_marge_by_famille" value="#{lab.L_rechercher}" />                       
+                </h:panelGroup>      
+                <p:selectBooleanCheckbox style="float: right;margin-top: 5px" value="#{managedBordStatistique.tabMargeFamille.displayName}" itemLabel="#{lab.LS_PJP_afficher_nom}">
+                    <p:ajax event="valueChange" global="false" update="data_marge_by_famille"/>
+                </p:selectBooleanCheckbox>                     
+            </h:panelGroup> 
+            <h:panelGrid columns="2" cellpadding="0" cellspacing="0" style="float: right">
+                <h:outputText value="#{lab.LC_PTB_trier_par} "/> 
+                <h:panelGroup>
+                    <h:selectOneMenu value="#{managedBordStatistique.tabMargeFamille.ordres}">
+                        <f:selectItem itemValue="default" itemLabel="--"/>
+                        <f:selectItem itemValue="row_5" itemLabel="#{lab.L_reference.toUpperCase()}"/>
+                        <f:selectItem itemValue="row_3" itemLabel="#{lab.L_designation.toUpperCase()}"/>
+                        <f:selectItem itemValue="qte" itemLabel="#{lab.L_quantite.toUpperCase()}"/>
+                        <f:selectItem itemValue="ca" itemLabel="#{lab.LC_PTB_ca}"/>
+                        <f:selectItem itemValue="pr" itemLabel="#{lab.LC_PES_prix_revient}"/>
+                        <f:selectItem itemValue="marge" itemLabel="#{lab.LRH_PNF_marge.toUpperCase()}"/>
+                        <f:selectItem itemValue="attente" itemLabel="#{lab.LC_PTB_taux}"/>
+                        <p:ajax event="valueChange" listener="#{managedBordStatistique.tabMargeFamille.sort()}" update="data_marge_by_famille"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedBordStatistique.tabMargeFamille.descOrdre}">
+                        <f:selectItem itemValue="asc" itemLabel="ASC"/>
+                        <f:selectItem itemValue="desc" itemLabel="DESC"/>
+                        <p:ajax event="valueChange" listener="#{managedBordStatistique.tabMargeFamille.sort()}" update="data_marge_by_famille"/>
+                    </h:selectOneMenu>
+                </h:panelGroup>
+            </h:panelGrid>  
+        </div>
+    </div>
+</ui:composition>
+

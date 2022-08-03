@@ -1,0 +1,435 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Créneaux Personnels','modGescom', 'smenCreneauPersonnel', true,managedCreneauEmploye)}
+    </ui:define> 
+    <ui:define name="contents">
+        #{managedOrdresF.doNothing()}
+        #{managedPointVente.load()}
+        #{managedDepot.load()}
+        #{managedTypeCreneau.loadAll()}     
+        #{managedAgence.loadAgence()}     
+        #{managedUser.loadActif(true)}
+        #{managedEquipeProduction.loadAllEqFromPlanif()}
+        #{managedCreneauEmploye.loadAll()}   
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('creneau_employe');
+//                collapseGrid('creneau_employe');
+                //event();
+            });
+        </script>
+        <h:form>
+            <p:remoteCommand name="updateBeanCaisse_" actionListener="#{managedCreneauEmploye.updateBean()}"/>
+        </h:form>
+        <h:form prependId="false" id="main_fusionn_creneau_employe">
+            <p:dialog widgetVar="dlgConfirmFusion" header="#{lab.L_fusionner}" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_creneau_employe" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LC_PCP_text1} </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedCreneauEmploye.fusionneTo}"/>
+                    <span>#{lab.LC_PCP_text2}</span>
+                    <c:forEach items="#{managedCreneauEmploye.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LC_PCP_text3}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedCreneauEmploye.fusionner(false)}" style="float: right"  
+                                 oncomplete="dlgConfirmFusion.hide();collapseList('creneau_employe')"  update=":main_creneau_employe:data_creneau_employe"/> 
+            </p:dialog>
+        </h:form> 
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des creneaux 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgViewCreneau_">
+            <p:dialog id="dlgViewCreneau_" header="#{lab.LC_PCP_detail_creneau}" widgetVar="dlgViewCreneau"
+                      modal="true" width="35%" closeOnEscape="true" footer="#{lab.L_copy}">
+                <h:panelGrid id="view_detail_creneau" columns="2" style="width: 98%;margin: auto" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LC_PCP_personnel} </span>
+                    <h:inputText value="#{creneauUsers.personnel.nomUsers}" style="width: 98%" readonly="true"/>
+                    <span>#{lab.LC_PCP_depot} </span>
+                    <h:inputText value="#{creneauUsers.creneauDepot.depot.designation}" style="width: 98%" readonly="true"/>
+                    <span>#{lab.LC_PCP_point_vente} </span>
+                    <h:inputText value="#{creneauUsers.creneauPoint.point.libelle}" style="width: 98%" readonly="true"/>
+                    <span>#{lab.LC_PCP_date_debut} </span>
+                    <h:inputText value="#{creneauUsers.startDate}" style="width: 98%" readonly="true" converter="DTL"/>
+                    <span>#{lab.LC_PCP_date_fin} </span>
+                    <h:inputText value="#{creneauUsers.endDate}" style="width: 98%" readonly="true" converter="DTL"/>
+                    <span>#{lab.L_actif} </span>
+                    <h:graphicImage library="img" title="#{creneauUsers.actif}" name="#{(creneauUsers.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des livreurs
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PCP_liste_users}" widgetVar="dlgListUsers" modal="true" width="50%"  closeOnEscape="true"> 
+                <p:dataTable id="data_employe_creneau" value="#{managedUser.listUser}" var="art" rowKey="#{art.id}"
+                             selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false" >
+                    <p:ajax event="rowSelect" global="false" listener="#{managedCreneauEmploye.loadOnViewUsers}" oncomplete="dlgListUsers.hide()"/>
+                    <p:column  style="width: 2%">
+                        <span>#{art.codeUsers}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PCP_noms}" style="width: 6%">
+                        <span>#{art.nomUsers}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PCP_groupe}" style="width: 4%">
+                        <span>#{art.categorie.libelle}</span>
+                    </p:column>
+                </p:dataTable>
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:inputText value="#{managedUser.numSearch}" style="margin-left: -10px">
+                            <p:ajax event="valueChange" global="false" update="data_employe_creneau" listener="#{managedUser.searchUsersActif(false)}"/>
+                        </h:inputText>
+                    </h:panelGroup>                    
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedUser.loadAll(false,false)}" global="false" update="data_employe_creneau" icon="ui-icon-circle-triangle-w" disabled="#{managedUser.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedUser.paginator.currentPage}/#{managedUser.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedUser.loadAll(true,false)}" global="false" update="data_employe_creneau" icon="ui-icon-circle-triangle-e" disabled="#{managedUser.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedUser.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedUser.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedUser.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_employe_creneau"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>  
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PCP_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedCreneauEmploye.deleteBean()}" oncomplete="dlgConfirmDelete.hide();collapseList('creneau_employe')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LC_PCP_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedCreneauEmploye.deleteBean_()}" oncomplete="dlgConfirmDelete_.hide();collapseList('creneau_employe')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_creneau_employe">    
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_enregistrer}" id="save_creneau_employe" actionListener="#{managedCreneauEmploye.saveNew()}" icon="ui-icon-disk">
+                    <p:menuitem value="#{lab.L_nouveau}" id="cancel_creneau_employe" icon="ui-icon-document" actionListener="#{managedCreneauEmploye.resetFiche()}" update="blog_form_creneau_employe txt_agence" oncomplete="collapseForm('creneau_employe')"/>
+                    <p:menuitem value="#{lab.L_supprimer}" onclick="dlgConfirmDelete.show()" global="false" icon="ui-icon-trash"/>
+                </p:splitButton>
+                <p:splitButton value="#{lab.L_supprimer}" id="delete_creneau_employe" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()" global="false">
+                    <p:menuitem value="#{lab.L_fusionner}" icon="ui-icon-refresh" actionListener="#{managedCreneauEmploye.fusionner(true)}" global="false"
+                                oncomplete="dlgConfirmFusion.show()" update=":main_fusionn_creneau_employe:blog_fusionner_creneau_employe"/>                    
+                </p:splitButton>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedCreneauEmploye.parcoursInAllResult(false)}" update="txt_parc_linear_creneau_employe" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('creneau_employe')"/>
+                    <h:inputText value="#{managedCreneauEmploye.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_a}" id="txt_parc_linear_creneau_employe"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedCreneauEmploye.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedCreneauEmploye.parcoursInAllResult(true)}" update="txt_parc_linear_creneau_employe" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('creneau_employe')"/>
+                </h:panelGroup>  
+                <div style="float: right">
+                    <h:panelGrid columns="2">
+                        <h:panelGroup style="margin-right: 15px" id="txt_agence">
+                            <h:selectOneMenu value="#{managedCreneauEmploye.agence}" disabled="#{managedCreneauEmploye.updateCreneau}">
+                                <f:selectItems value="#{managedAgence.agences}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                                <p:ajax event="valueChange" listener="#{managedCreneauEmploye.chooseAgence()}"/>
+                            </h:selectOneMenu>
+                        </h:panelGroup>
+                        <h:panelGroup>
+                            <h:link title="#{lab.L_mode_calendrier}" onclick="collapseGrid('creneau_employe');
+                                    return false">
+                                <p:graphicImage library="icones" name="ico_calendar.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>       
+                            <p:spacer width="2"/>
+                            <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('creneau_employe');
+                                    return false">
+                                <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>      
+                            <p:spacer width="2"/>         
+                            <h:link title="#{lab.L_mode_liste}" onclick="collapseList('creneau_employe');
+                                    return false" >
+                                <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>      
+                        </h:panelGroup>
+                    </h:panelGrid>
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_creneau_employe" style="width: 99%; margin: auto; background: white">                    
+                    <p:outputPanel id="blog_form_creneau_employe">
+                        <ui:include src="creneau_horaire/form.xhtml"/>
+                        <br/>
+                        <p:outputPanel id="blog_employe_creneau" autoUpdate="true">
+                            <div style="background: #666;color: white;width: 100%;font-size: 1.2em">
+                                <h:panelGroup id="txt_legend">
+                                    #{lab.LC_PCP_calendrier_employe} (#{lab.L_du}
+                                    <h:outputText value="#{managedCreneauEmploye.dateDebut}" converter="DDMMYYYY"/>
+                                    #{lab.L_au} 
+                                    <h:outputText value="#{managedCreneauEmploye.dateFin}" converter="DDMMYYYY"/>
+                                    )
+                                </h:panelGroup>
+                            </div>
+                            <p:dataTable id="data_planing_employe" value="#{managedCreneauEmploye.calendriers}" var="caln" selectionMode="single"
+                                         rowKey="#{caln.id}" rowIndexVar="calnIdx_" scrollable="true" scrollHeight="400">
+                                <p:ajax event="rowSelect" global="false" listener="#{managedCreneauEmploye.loadOnView_}" oncomplete="collapseForm('creneau_employe')"/>
+                                <p:ajax event="rowUnselect" global="false" listener="#{managedCreneauEmploye.unLoadOnView}" oncomplete="collapseForm('creneau_employe')"/>
+                                <p:column headerText="N°" style="width: 5%">
+                                    <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{caln.new_}"/>
+                                    <span>#{calnIdx_+1}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PCP_date_travail}" style="text-align: center">
+                                    <h:outputText value="#{caln.dateTravail}" converter="LD" rendered="#{!caln.permanent}"/>
+                                    <h:outputText value="--(#{lab.LC_PCP_permanents})--" rendered="#{caln.permanent}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PCP_depot}">
+                                    <span style="font-weight: bold; font-size: 0.9em">#{caln.creneauDepot.depot.designation}</span> 
+                                    <h:panelGroup rendered="#{caln.creneauDepot.id gt 0}" style="float: right">
+                                        <span> #{lab.L_de} </span>
+                                        <h:outputText value="#{caln.creneauDepot.tranche.heureDebut}" converter="TIME" style="font-weight: bold;font-style: italic"/>
+                                        <span> #{lab.L_a} </span>
+                                        <h:outputText value="#{caln.creneauDepot.tranche.heureFin}" converter="TIME" style="font-weight: bold;font-style: italic"/>
+                                    </h:panelGroup>     
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PCP_point}" >
+                                    <span style="font-weight: bold; font-size: 0.9em">#{caln.creneauPoint.point.libelle}</span>
+                                    <h:panelGroup rendered="#{caln.creneauPoint.id gt 0}" style="float: right">
+                                        <span> #{lab.L_de} </span>
+                                        <h:outputText value="#{caln.creneauPoint.tranche.heureDebut}" converter="TIME" style="font-weight: bold;font-style: italic"/>
+                                        <span> #{lab.L_a} </span>
+                                        <h:outputText value="#{caln.creneauPoint.tranche.heureFin}" converter="TIME" style="font-weight: bold;font-style: italic"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PCP_equipe}" style="text-align: center">
+                                    <span>#{caln.equipe.reference}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_actif}" style="text-align: center;width: 10%">
+                                    <p:commandLink title="#{lab.LC_PCP_activer_desactiver}" global="false" actionListener="#{managedCreneauEmploye.activeCreneau(caln)}" update="data_planing_employe">
+                                        <h:graphicImage library="img"  name="#{(caln.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column style="text-align: center;width: 5%">
+                                    <p:contextMenu for="btn_option_calendrier_employe" event="left click" style="font-size: 0.8em">
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedCreneauEmploye.deleteBean_(caln)}" oncomplete="dlgConfirmDelete_.show()"/>
+                                    </p:contextMenu>                           
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_calendrier_employe" type="button"/>
+                                </p:column> 
+                            </p:dataTable>  
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_creneau_employe" style="width: 99%; margin: auto; background: white">
+                    <h:inputHidden id="input_hide_creneau_employe" value="#{managedCreneauEmploye.tabIds}"/>
+                    <p:dataTable id="data_creneau_employe" value="#{managedCreneauEmploye.creneauxEmpls}" var="cren"
+                                 rowKey="#{cren.id}" rowIndexVar="crenIdx" selectionMode="single">
+                        <p:ajax event="rowSelect" listener="#{managedCreneauEmploye.loadOnView}"  update=":main_creneau_employe:input_hide_creneau_employe"
+                                oncomplete="collapseForm('creneau_employe')"/>
+                        <p:column headerText="N°" style="text-align: center" width="15">
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{cren.new_}"/>
+                            <span>#{crenIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="ID" style="text-align: center" width="15">
+                            <span>#{cren.id}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCP_personnel}" width="100">
+                            <span>#{cren.users.nomUsers}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCP_date_travail}" style="text-align: left" width="100">
+                            <h:outputText value="#{cren.dateTravail}" converter="LD" rendered="#{!cren.permanent}"/>
+                            <h:outputText value="--(#{lab.LC_PCP_permanents})--" rendered="#{cren.permanent}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCP_depot}">
+                            <span style="font-weight: bold; font-size: 0.9em">#{cren.creneauDepot.depot.designation}</span> 
+                            <h:panelGroup rendered="#{cren.creneauDepot.id gt 0}" style="float: right">
+                                <span> #{lab.L_de} </span>
+                                <h:outputText value="#{cren.creneauDepot.tranche.heureDebut}" converter="TIME" style="font-weight: bold;font-style: italic"/>
+                                <span> #{lab.L_a} </span>
+                                <h:outputText value="#{cren.creneauDepot.tranche.heureFin}" converter="TIME" style="font-weight: bold;font-style: italic"/>
+                            </h:panelGroup>     
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCP_point}" >
+                            <span style="font-weight: bold; font-size: 0.9em">#{cren.creneauPoint.point.libelle}</span>
+                            <h:panelGroup rendered="#{cren.creneauPoint.id gt 0}" style="float: right">
+                                <span> #{lab.L_de} </span>
+                                <h:outputText value="#{cren.creneauPoint.tranche.heureDebut}" converter="TIME" style="font-weight: bold;font-style: italic"/>
+                                <span> #{lab.L_a} </span>
+                                <h:outputText value="#{cren.creneauPoint.tranche.heureFin}" converter="TIME" style="font-weight: bold;font-style: italic"/>
+                            </h:panelGroup>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCP_equipe}">
+                            <span>#{cren.equipe.reference}</span>
+                        </p:column>
+                        <p:column width="20" headerText="#{lab.L_actif}" style="text-align: center">
+                            <p:commandLink title="#{lab.LC_PCP_activer_desactiver}" global="false" actionListener="#{managedCreneauEmploye.activeCreneau(cren)}" update="data_creneau_employe">
+                                <h:graphicImage library="img"  name="#{(cren.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                            </p:commandLink>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <p:contextMenu for="btn_option_creneau_employe" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="Génerer Planning" icon="ui-icon-calendar" actionListener="#{managedCreneauEmploye.buildPlanning(cren, true)}"/>
+                                <p:separator/>
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedCreneauEmploye.deleteBean_(cren)}" oncomplete="dlgConfirmDelete_.show()"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_creneau_employe" type="button"/>
+                        </p:column> 
+                        <p:column width="20" style="text-align: center">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_creneau_employe" value="false"
+                                                         onclick="selectionAllLineTab(#{managedCreneauEmploye.creneauxEmpls.size()}, 'creneau_employe')">
+                                </h:selectBooleanCheckbox>
+                            </f:facet>
+                            <h:selectBooleanCheckbox  value="#{cren.selectActif}" styleClass="chek_line_creneau_employe" 
+                                                      onclick="selectionLineTab(#{crenIdx}, 'creneau_employe')">
+                            </h:selectBooleanCheckbox>
+                        </p:column>
+                    </p:dataTable>       
+                    <span class="nbSelectcreneau_employe" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedCreneauEmploye.init(false)}" global="false" update="data_creneau_employe" icon="ui-icon-circle-triangle-w" disabled="#{managedCreneauEmploye.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedCreneauEmploye.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedCreneauEmploye.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedCreneauEmploye.gotoPagePaginator()}" update="data_creneau_employe"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedCreneauEmploye.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedCreneauEmploye.init(true)}" global="false" update="data_creneau_employe" icon="ui-icon-circle-triangle-e" disabled="#{managedCreneauEmploye.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCreneauEmploye.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCreneauEmploye.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCreneauEmploye.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_creneau_employe"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>                                               
+                </div> 
+                <!-->
+                 *****************************************************************************
+                 Vue Calendrier
+                 *****************************************************************************
+                <-->
+                <div class="yvs_grid_creneau_employe">
+                    <p:outputPanel id="grid_creneau_employe">
+                        <p:schedule id="schedule" value="#{managedCreneauEmploye.eventModel}" widgetVar="myschedule" timeFormat="HH:mm" 
+                                    locale="fr"  aspectRatio="1.5" timeZone="GMT+1" resizable="true"> 
+                            <p:ajax event="eventSelect" listener="#{managedCreneauEmploye.onEventSelect}"
+                                    oncomplete="dlgViewCreneau.show();"  global="false"/>
+                        </p:schedule>
+                    </p:outputPanel>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_creneau_employe display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedCreneauEmploye.selectCreneauUser.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedCreneauEmploye.selectCreneauUser.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedCreneauEmploye.selectCreneauUser.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="10" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value=" " />
+                        <h:panelGroup>
+                            <h:selectBooleanCheckbox value="#{managedCreneauEmploye.addDateSearch}">
+                                <p:ajax event="valueChange" global="false" listener="#{managedCreneauEmploye.addParamDate()}" oncomplete="collapseList('creneau_employe')"
+                                        update=":main_creneau_employe:data_creneau_employe date-date_travail_search"/>
+                            </h:selectBooleanCheckbox>
+                            <h:outputText value="#{lab.L_date}" />
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.LC_PCP_depots}"/>
+                        <h:outputText value="#{lab.LC_PCP_point}"/>                                
+                        <h:outputText value="#{lab.LC_PCP_equipe}"/>                                
+                        <h:outputText value="#{lab.LC_PCP_user}" />
+                        <h:outputText value="#{lab.LC_PCP_tranches}" />
+                        <h:outputText value="#{lab.L_actif}" />
+                        <h:outputText value="#{lab.LC_PCP_permanent}" />
+                        <span>&nbsp;</span>
+                        <p:commandButton icon="ui-icon-bullet" style="width: 22px; height: 22px" title="#{lab.LC_PCP_initialiser_filtres}" 
+                                         actionListener="#{managedCreneauEmploye.clearParam()}" oncomplete="collapseList('creneau_employe')"
+                                         update=":main_creneau_employe:data_creneau_employe"/>
+                        <p:calendar id="date-date_travail_search" value="#{managedCreneauEmploye.dateSearch}" pattern="dd-MM-yyyy" size="10" navigator="true" disabled="#{!managedCreneauEmploye.addDateSearch}">
+                            <p:ajax event="dateSelect" listener="#{managedCreneauEmploye.addParamDate()}" oncomplete="collapseList('creneau_employe')"
+                                    update=":main_creneau_employe:data_creneau_employe"/>
+                        </p:calendar>
+                        <h:selectOneMenu value="#{managedCreneauEmploye.depotSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="" itemValue="0"/>
+                            <f:selectItems value="#{managedDepot.depots}" var="de" itemLabel="#{de.designation}" itemValue="#{de.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedCreneauEmploye.addParamDepot()}" update=":main_creneau_employe:data_creneau_employe" oncomplete="collapseList('creneau_employe')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedCreneauEmploye.pointSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="" itemValue="0"/>
+                            <f:selectItems value="#{managedPointVente.pointsvente}" var="pt" itemLabel="#{pt.libelle}" itemValue="#{pt.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedCreneauEmploye.addParamPoint()}" update=":main_creneau_employe:data_creneau_employe" oncomplete="collapseList('creneau_employe')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedCreneauEmploye.equipeSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="" itemValue="0"/>
+                            <f:selectItems value="#{managedEquipeProduction.equipes}" var="eqp" itemLabel="#{eqp.reference}" itemValue="#{eqp.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedCreneauEmploye.addParamEquipe()}" update=":main_creneau_employe:data_creneau_employe" oncomplete="collapseList('creneau_employe')"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedCreneauEmploye.vendeurSearch}" style="min-width: 120px">
+                            <p:ajax event="valueChange" listener="#{managedCreneauEmploye.addParamUsers()}" update=":main_creneau_employe:data_creneau_employe" oncomplete="collapseList('creneau_employe')"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedCreneauEmploye.trancheSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="" itemValue="0"/>
+                            <f:selectItems value="#{managedTypeCreneau.tranches}" var="tr" itemLabel="#{tr.titre}" itemValue="#{tr.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedCreneauEmploye.addParamTranche()}" update=":main_creneau_employe:data_creneau_employe" oncomplete="collapseList('creneau_employe')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedCreneauEmploye.actifSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" listener="#{managedCreneauEmploye.addParamActif()}" update=":main_creneau_employe:data_creneau_employe" oncomplete="collapseList('creneau_employe')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedCreneauEmploye.permanentSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" listener="#{managedCreneauEmploye.addParamPermanent()}" update=":main_creneau_employe:data_creneau_employe" oncomplete="collapseList('creneau_employe')"/>
+                        </h:selectOneMenu>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right">
+
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

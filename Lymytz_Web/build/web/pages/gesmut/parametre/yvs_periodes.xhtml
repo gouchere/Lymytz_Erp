@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Clôturer Périodes','modMutuelle', 'smenCloturePer', true,managedPeriodes)}
+    </ui:define>   
+    <ui:define name="contents"> 
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('cloturePeriod');
+            });
+        </script>
+
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="form_clotureP"> 
+            #{managedPeriodes.loadAll()}
+            <div  class="part_fix" >
+
+                <div style="float: right">
+                    <h:link title="mode création" onclick="collapseForm('cloturePeriod');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="vue liste" onclick="collapseList('cloturePeriod');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div  class="part_scroll" style="width: 99%; margin: auto; background: white">
+                <div class="yvs_form_cloturePeriod">
+                    <p:outputPanel id="form_grid_cloture" styleClass="yvs_table" 
+                                   style="width: 100%">
+                        <fieldset>
+                            <legend>Exercie <span style="font-size: 1.1em; color: #054dca;">#{managedPeriodes.exercice.reference}</span></legend>
+                            <h:panelGrid columns="2"  styleClass="yvs_table" 
+                                         cellpadding="0" cellspacing="0" style="width: 100%">
+                                <span>Periode </span> 
+                                <h:panelGroup>
+                                    <p:calendar size="8" navigator="true" pattern="dd-MM-yyyy" value="#{managedPeriodes.exercice.dateDebut}" />
+                                    <span style="margin-left: -5px;display: inline-block; height: 10px;width: 15px; background: brown"></span>
+                                    <p:calendar size="8" navigator="true" pattern="dd-MM-yyyy" value="#{managedPeriodes.exercice.dateFin}" />
+                                    <h:graphicImage library="img" name="menBg1.png" style="float: right"  height="22" title="clôturer l'exercice"/>
+                                </h:panelGroup>                                        
+                            </h:panelGrid>
+                            <p:dataTable value="#{managedPeriodes.periodes}" var="pe" rowIndexVar="line"
+                                         selectionMode="single" rowKey="#{pe.id}" id="periode_a_cloture">
+                                <p:column headerText="N°" width="15" styleClass="activeP_#{pe.id==managedPeriodes.selectedPeriode.id}">
+                                    #{line+1}
+                                </p:column>
+                                <p:column headerText="Debut" style="text-align: left" styleClass="activeP_#{pe.id==managedPeriodes.selectedPeriode.id}">
+                                    <h:outputText value="#{pe.dateDebut}" converter="DDMMYYYY" />                                          
+                                </p:column>
+                                <p:column headerText="Fin" styleClass="activeP_#{pe.id==managedPeriodes.selectedPeriode.id}">
+                                    <h:outputText value="#{pe.dateFin}" converter="DDMMYYYY" />
+                                </p:column>
+                                <p:column headerText="Cloturé" style="text-align: right" width="45" styleClass="activeP_#{pe.id==managedPeriodes.selectedPeriode.id}">
+                                    <p:commandLink actionListener="#{managedPeriodes.cloturePeriode(pe)}" update=":form_clotureP:part2_cloture periode_a_cloture">
+                                        <h:graphicImage library="img"  name="#{(pe.cloture)?'vu.png':'menBg1.png'}"   
+                                                        title="#{(pe.cloture)?'':'cliquer ici pour clôturer cette période'}"  width="100%" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                            </p:dataTable>                                   
+                        </fieldset>
+                    </p:outputPanel>
+                    <h:panelGrid id="part2_cloture"  columns="1"
+                                 style="width: 100%">      
+                        <h:panelGroup>
+                            <div style="background: #CCC; height: 23px">
+                                <span>Clôture de la période du </span>
+                                <h:panelGroup style="font-weight: bold; font-size: 1.1em; color: #054dca">
+                                    <h:outputText  value="#{managedPeriodes.selectedPeriode.dateDebut}" converter="DDMMYYYY" />
+                                    à
+                                    <h:outputText value="#{managedPeriodes.selectedPeriode.dateFin}" converter="DDMMYYYY" />
+                                </h:panelGroup>
+                                <h:panelGroup style="float: right">
+                                    <span>Période RH: </span>
+                                    <h:selectOneMenu value="#{managedPeriodes.periodeRh.id}" rendered="#{managedPeriodes.periodeRh.id==0}"
+                                                     valueChangeListener="#{managedPeriodes.choixPeriodeSalaire}" >
+                                        <f:selectItem itemValue="0" itemLabel=" " />
+                                        <f:selectItems value="#{managedPeriodes.listPeriodeSalaire}" var="iPe" itemValue="#{iPe.id}" itemLabel="#{iPe.reference}" />
+                                        <p:ajax event="valueChange" update="part2_cloture" />
+                                    </h:selectOneMenu>
+                                    <h:outputText value="#{managedPeriodes.periodeRreferencece}"  rendered="#{managedPeriodes.periodeRh.id!=0}"
+                                                  style="color: #006666"/>
+                                </h:panelGroup>
+                            </div>
+                            <div style="float: left; width: 70%; border-bottom: 2px solid #666">
+                                <h:panelGrid columns="1" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                    <h:panelGroup style="width: 100%">
+                                        <p:commandLink actionListener="#{managedPeriodes.navigue(-1)}" update="part2_cloture" global="false" >
+                                            <h:graphicImage style="border:none; margin-left: .5em; cursor: pointer;"  alt="img" library="img" 
+                                                            name="dnavigation.png" width="30" height="25"/>                        
+                                        </p:commandLink>
+                                        <p:outputLabel value="#{(managedPeriodes.page+1)}/#{managedPeriodes.mutualistes.size()}"  style="display: inline-block; position: relative; top: -7px; left: 3px"/>
+                                        <p:commandLink actionListener="#{managedPeriodes.navigue(1)}" update="part2_cloture" global="false" >
+                                            <h:graphicImage style="border:none; margin-left: 1em; cursor: pointer; "  alt="img" library="img"  name="gnavigation.png" width="30" height="25"/>                                                        
+                                        </p:commandLink>                                            
+                                    </h:panelGroup>
+                                    <h:panelGrid columns="2"  cellpadding="0" cellspacing="0" rendered="#{!managedPeriodes.currentMut.salaire.payer}"
+                                                 style="width: 92%; ">
+                                        <span>Montant du Salaires</span>
+                                        <h:outputText  value="#{managedPeriodes.currentMut.salaire.montantPaye}" converter="DN" styleClass="span_montant_salaire_"
+                                                       style="float: right; font-weight: bold; color: #{(managedPeriodes.currentMut.salaire.montantAPayer>0)?'inherit':'red'}"/> 
+                                        <span>Montant de Acomptes</span>
+                                        <h:outputText  value="#{managedPeriodes.currentMut.salaire.soeAcompte}" converter="DN" styleClass="span_montant_salaire_"
+                                                       style="float: right; font-weight: bold; color: #{(managedPeriodes.currentMut.salaire.montantAPayer>0)?'inherit':'red'}"/> 
+                                    </h:panelGrid>
+                                    <h:panelGrid columns="3" rendered="#{!managedPeriodes.currentMut.salaire.payer}" style="width: 100%; font-size: x-large;"> 
+                                        <span>Salaire Net à payer</span>
+                                        <h:outputText id="txt_montant_salaire_pe" value="#{managedPeriodes.currentMut.salaire.montantAPayer}" converter="DN" styleClass="span_montant_salaire_"
+                                                      style="margin-left: 50%; font-weight: bold; color: #{(managedPeriodes.currentMut.salaire.montantAPayer>0)?'inherit':'red'}"/>
+                                        <h:graphicImage library="img" name="vu.png" width="18" height="20" style="float: right" rendered="#{managedPeriodes.currentMut.salaire.payer}"/>
+                                    </h:panelGrid>
+                                </h:panelGrid>
+                            </div>
+                            <h:panelGrid style=" float: right">
+                                <p:graphicImage library="lymytz/documents/docEmps/perso/photo" style="max-height: 100px"
+                                                name="#{(managedPeriodes.currentMut.employeMutuelle.employe.photos==null)?'user1.png':managedPeriodes.currentMut.employeMutuelle.employe.photos}" />
+                                <h:outputText value="#{managedPeriodes.currentMut.employeMutuelle.employe.nom} #{managedPeriodes.currentMut.employeMutuelle.employe.prenom}" 
+                                              styleClass="texte"/>
+                                <h:outputText styleClass="texte" value="#{managedPeriodes.currentMut.employeMutuelle.employe.matricule}" />
+                            </h:panelGrid>
+                        </h:panelGroup> 
+                        <p:outputPanel >
+                            <div style="width: 49.5%; float: left">
+                                <div id="zone_show_acompte_per" style="width: 100%; border: solid 2px; height: 200px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                    <span style="display: inline-block; background: #CCC; width: 100%;cursor: pointer" onclick="slideShow('zone_show_acompte_per', 200)">
+                                        <span class="button_slide">[-]</span>
+                                        Acomptes 
+                                        <div style="float: right">Total:<h:outputText value="#{(!managedPeriodes.currentMut.salaire.payer)?managedPeriodes.currentMut.salaire.soeAcompte:0}" converter="DN" styleClass="montantTotal"/> Fcfa</div>
+                                    </span>
+                                    <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 150px; margin: auto;overflow-y: auto">
+                                        <p:dataTable id="data_avance_mutualiste_pe" value="#{managedPeriodes.currentMut.salaire.avances}" rendered="#{!managedPeriodes.currentMut.salaire.payer}"
+                                                     var="avan" rowKey="#{avan.id}" rowIndexVar="avanIdx">
+                                            <p:column headerText="N°" style="width: 12%;text-align: center"  >
+                                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{avan.new_}"/>
+                                                <span>#{avanIdx+1}</span>
+                                            </p:column>
+                                            <p:column headerText="Date" width="100" style="text-align: center">
+                                                <h:outputText value="#{avan.dateAvance}" style="text-align: right" converter="DDMMYYYY"/>
+                                            </p:column>                                                                                               
+                                            <p:column headerText="Montant">
+                                                <h:outputText value="#{avan.montantReste}" converter="DN" style="text-align: right"/>
+                                            </p:column>
+                                            <p:column headerText="Etat">
+                                                <span>#{avan.etat}</span>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </div>  
+                                    <div class="zone_bottom">
+                                        <h:selectOneRadio value="#{managedPeriodes.choixAction}" style="float: left;clear: right">
+                                            <f:selectItem itemLabel="Régler" itemValue="1" />
+                                            <f:selectItem itemLabel="Transférer" itemValue="2" />
+                                        </h:selectOneRadio>
+                                        <p:commandButton value="Continuer" style="float: right; font-size: 0.9em;" icon="ui-icon-seek-next"/>                                        
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-left: 50.5%; width: 49.5%">
+                                <div id="zone_show_mensualite_per" style="width: 100%; border: solid 2px; height: 200px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                    <span style="display: inline-block; background: #CCC; width: 100%;cursor: pointer" onclick="slideShow('zone_show_mensualite_per', 200)">
+                                        <span class="button_slide">[-]</span>
+                                        Mensualités 
+                                    </span>
+                                    <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 150px; margin: auto;overflow-y: auto">
+                                        <p:dataTable value="#{managedPeriodes.currentMut.mensualites}" var="mens_"
+                                                     rowIndexVar="line_m" rowKey="#{mens_.id}" selectionMode="single">
+                                            <p:column headerText="N°" style="width: 12px;text-align: center; font-size: 0.9em">
+                                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{mens_.new_}"/>
+                                                <span>#{line_m  +1}</span>
+                                            </p:column>  
+                                            <p:column headerText="Date Mensualité" style="text-align: center">
+                                                <h:outputText value="#{mens_.dateMensualite}" converter="DATE"/>
+                                            </p:column>                                               
+                                            <p:column headerText="Montant " style="width: 17.5%;text-align: center">
+                                                <h:outputText value="#{mens_.montantReste}" converter="DN"/>
+                                            </p:column>
+                                            <p:column headerText="Etat" style="width: 15%;text-align: center">
+                                                <span>#{mens_.etat}</span>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </div>
+                                    <div class="zone_bottom">
+                                        <h:selectOneRadio value="#{managedPeriodes.choixAction}" style="float: left;">
+                                            <f:selectItem itemLabel="Régler" itemValue="1" />
+                                            <f:selectItem itemLabel="Transférer" itemValue="2" />
+                                        </h:selectOneRadio>
+                                        <p:commandButton value="Continuer" style="float: right; font-size: 0.9em;" icon="ui-icon-seek-next"/>
+                                    </div>                                      
+                                </div>                                      
+                            </div>
+                        </p:outputPanel>                                
+                    </h:panelGrid>
+                </div>
+                <div class="yvs_list_cloturePeriod">
+                    <p:dataTable value="#{managedPeriodes.exercices}" var="exo_" rowKey="#{exo_.id}" selectionMode="single"
+                                 rowIndexVar="line_exo">
+                        <p:ajax event="rowSelect" listener="#{managedPeriodes.selectPeriode}" oncomplete="collapseForm('cloturePeriod')"
+                                update=":form_clotureP:form_grid_cloture" />
+                        <p:column width="15" headerText="N°" styleClass="clotue_#{exo_.cloturer}">
+                            #{line_exo+1}
+                        </p:column>
+                        <p:column headerText="Référence" styleClass="clotue_#{exo_.cloturer}">
+                            #{exo_.reference}
+                        </p:column>
+                        <p:column headerText="Début" styleClass="clotue_#{exo_.cloturer}">
+                            <h:outputText value="#{exo_.dateDebut}" converter="DDMMYYYY" />
+                        </p:column>
+                        <p:column headerText="Fin" styleClass="clotue_#{exo_.cloturer}">
+                            <h:outputText value="#{exo_.dateFin}" converter="DDMMYYYY" />
+                        </p:column>
+                        <p:column headerText="Actif" width="30" style="text-align: center" styleClass="clotue_#{exo_.cloturer}">
+                            <h:graphicImage library="img"  name="#{(exo_.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:column>
+                        <p:column width="20" style="text-align: center" styleClass="clotue_#{exo_.cloturer}">
+                            <h:graphicImage library="img"  name="#{(exo_.cloturer)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

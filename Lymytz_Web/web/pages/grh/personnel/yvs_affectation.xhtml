@@ -1,0 +1,418 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:pe="http://primefaces.org/ui/extensions">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Affectations','modRh', 'smenAffectation', true,managedAffectations)}
+    </ui:define> 
+    <ui:define name="contents">        
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('affectationPoste');
+            });
+        </script>         
+        #{managedAffectations.loadAllAffectation(true)} 
+        #{MEmps.loadAllEmployesByAgence(true, true)}
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgConfirmAff" header="#{lab.LRH_PA_confirmer_affectation}" width="30%" closeOnEscape="true"
+                      footer="&copy;Lymytz 2014" modal="true" >
+                <h:panelGrid columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>Date effective d'affectation</span>
+                    <p:calendar value="#{managedAffectations.dateConfirm}" size="8" pattern="dd-MM-yyyy" />
+                </h:panelGrid>
+                <p:commandButton value="#{lab.LRH_PA_abandonner}" style="float: right" type="button" onclick="dlgConfirmAff.hide()"/>
+                <p:commandButton value="#{lab.LRH_PA_confirmer}" style="float: right" update=":main_form_affectation:bloc_state_affectation"
+                                 actionListener="#{managedAffectations.chageStateAffectation('C')}" oncomplete="dlgConfirmAff.hide()"/>                    
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgConfirmInterim" header="#{lab.LRH_PA_confirmer_interim}" width="40%" closeOnEscape="true"
+                      footer="&copy;Lymytz 2014" modal="true" >
+                <h:panelGrid columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PA_date_fin_interim}</span>
+                    <p:calendar value="#{managedAffectations.dateFinInterim}" size="8" pattern="dd-MM-yyyy" />
+                    <span>#{lab.LRH_PA_indemnisable}</span>
+                    <p:selectBooleanCheckbox value="#{managedAffectations.indemnisable}" />
+                </h:panelGrid>
+                <p:commandButton value="#{lab.LRH_PA_abandonner}" style="float: right" type="button" onclick="dlgConfirmInterim.hide()"/>
+                <p:commandButton value="#{lab.LRH_PA_confirmer}" style="float: right" update=":main_form_affectation:bloc_state_affectation"
+                                 actionListener="#{managedAffectations.chageStateAffectation('I')}" oncomplete="dlgConfirmInterim.hide()"/>                    
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgDelPE" message="#{lab.LRH_PA_text}"
+                             closeOnEscape="true" >
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedAffectations.deleteBean()}" update=":main_form_affectation:tab-Af-01" 
+                                 oncomplete="dlgDelPE.hide()" icon="ui-icon-circle-check" />
+                <p:commandButton value="#{lab.L_non}" type="button" onclick="dlgDelPE.hide()" icon="ui-icon-circle-check" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            #{managedPosteDeTravail.createTree()}
+            <p:dialog header="#{lab.LRH_PA_poste_travail_actif}" widgetVar="dlgPosteTravail" width="50%" height="500"
+                      modal="true" closeOnEscape="true" >
+                <p:tree value="#{managedPosteDeTravail.root}" var="post"
+                        selectionMode="single" style="width: 100%"
+                        selection="#{managedAffectations.selectedNodePoste}">
+                    <p:ajax event="select" listener="#{managedAffectations.choixNodePoste}" oncomplete="dlgPosteTravail.hide()"
+                            update=":main_form_affectation:txtAffectationPoste"/>
+                    <p:treeNode expandedIcon="ui-icon-circle-triangle-e" collapsedIcon="ui-icon-circle-triangle-e">
+                        <h:outputText value="#{post.intitule}"/>
+                    </p:treeNode>
+                    <p:treeNode type="document" icon="ui-icon-document">
+                        <h:outputText value="#{post.intitule}" />
+                    </p:treeNode>
+                    <p:treeNode type="picture" icon="ui-icon-image">
+                        <h:outputText value="#{post.intitule}" />
+                    </p:treeNode>
+                    <p:treeNode type="mp3" icon="ui-icon-video">
+                        <h:outputText value="#{post.intitule}" />
+                    </p:treeNode>
+                </p:tree>
+                <f:facet name="footer">
+                    <span>&copy;Lymytz 2014</span>                    
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-affection-01">         
+            <p:dialog header="#{lab.LRH_PA_liste_employe_actif}" widgetVar="dlgEmploye" width="85%" height="600"
+                      closeOnEscape="true"   modal="true" >                    
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('employe_mission');
+                    });
+                </script>
+                <h:inputText value="#{MEmps.matriculeToUpdate}" style="font-size: 0.9em">
+                    <p:ajax event="keyup" listener="#{MEmps.findEmploye(MEmps.matriculeToUpdate)}"
+                            update="tabEmployes_Affectation"/>
+                </h:inputText>
+                <div style="float: right; font-size: 0.9em" >
+                    <p:outputPanel  autoUpdate="true">
+                        <h:selectOneMenu value="#{managedDepartement.agence_}" valueChangeListener="#{MEmps.addParamAgence}" >
+                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedDepartement.currentScte.agences}" var="itemA" itemValue="#{itemA.id}" itemLabel="#{itemA.designation}" />
+                            <f:selectItem itemValue="-1" itemLabel="#{lab.LRH_PPT_toutes_agences}" />
+                            <p:ajax event="valueChange" update="tabEmployes_Affectation"/>
+                        </h:selectOneMenu>
+                        <p:commandButton actionListener="#{MEmps.pagineResult(false)}" update="tabEmployes_Affectation" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{MEmps.paginator.currentPage} / #{MEmps.paginator.nbPage}" style="margin-top: 0px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{MEmps.pagineResult(true)}" update="tabEmployes_Affectation" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{MEmps.changeMaxResult}" style="font-size: 0.9em;min-width: 50px; position: relative; top: 10px" >
+                            <f:selectItems value="#{MEmps.paginations}"/>
+                            <p:ajax event="valueChange" update="tabEmployes_Affectation"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                    <h:link onclick="collapseList('employe_mission');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link  onclick="collapseGrid('employe_mission');
+                            return false" title="#{lab.L_mode_hierrachique}">
+                        <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                                               
+                </div>         
+                <div style="clear: both"/>  
+                <div class="yvs_list_employe_mission">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                 widgetVar="tabEmployes" id="tabEmployes_Affectation" selectionMode="single"
+                                 scrollable="true" scrollHeight="500" > 
+                        <p:ajax event="rowSelect" listener="#{managedAffectations.loadViewEmploye}" oncomplete="dlgEmploye.hide()"
+                                update=":main_form_affectation:panel_employe_affectation"/>
+                        <p:column headerText="N°" width="15" style="text-align: center">
+                            <h:outputText value="#{line_e+1}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                            <h:outputText value="#{emp.civilite} #{emp.nom} #{emp.prenom}" />
+                        </p:column>                        
+                        <p:column headerText="#{lab.LDB_PD_matricule}" width="90" style="text-align: center">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PCB_poste} " width="200">
+                            <h:outputText value="#{emp.posteActif.intitule}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+                <f:facet name="footer">                    
+                    <h:outputText value="&copy; Lymytz 2014" escape="true" />                    
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_form_affectation"> 
+            <div class="part_fix">
+                <div columns="4" style="float: left" >
+                    <p:splitButton value="#{lab.L_enregistrer}" actionListener="#{managedAffectations.savePoste()}" 
+                                   id="save_affectationPoste" update=":main_form_affectation:table_all_affectation tab-Af-01">
+                        <p:menuitem value="#{lab.L_nouveau}" actionListener="#{managedAffectations.resetFiche()}" id="cancel_affectationPoste" 
+                                    update=":main_form_affectation:panel_employe_affectation"/>
+                        <p:menuitem value="#{lab.L_supprimer}" global="false" onclick="dlgDelPE.show()" 
+                                    update=":main_form_affectation:table_all_affectation" />
+                    </p:splitButton>
+
+                    <p:commandButton value="#{lab.L_supprimer}" id="delete_affectationPoste" type="button" onclick="dlgDelPE.show()" 
+                                     update=":main_form_affectation:table_all_affectation" />
+
+                </div>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedAffectations.parcoursInAllResult(false)}" update="txt_parc_linear_affectationPoste" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('affectationPoste')"/>
+                    <h:inputText value="#{managedAffectations.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_affectationPoste"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedAffectations.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedAffectations.parcoursInAllResult(true)}" update="txt_parc_linear_affectationPoste" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('affectationPoste')"/>
+                </h:panelGroup>                
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('affectationPoste');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                     
+                    <h:link  onclick="collapseList('affectationPoste');
+                            return false" title="#{lab.L_mode_hierrachique}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                           
+                </div>                  
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_affectationPoste">        
+                    <p:outputPanel id="panel_employe_affectation" >
+                        <h:panelGroup style="float: right; margin-top: 2px; margin-bottom: 8px" id="bloc_state_affectation">
+                            <p:commandLink  styleClass="etat_formation_#{affectation.statut=='E'}" actionListener="#{managedAffectations.chageStateAffectation('E')}" update="bloc_state_affectation"
+                                            disabled="#{(affectation.statut=='E')}" process="@this">
+                                <span>#{lab.LC_PFA_en_attente}</span>
+                            </p:commandLink>
+                            <p:commandLink styleClass="etat_formation_#{affectation.statut=='I'}" type="button" onclick="dlgConfirmInterim.show()"
+                                           disabled="#{(affectation.statut=='I')}">
+                                <span>#{lab.LRH_PA_interim}</span>
+                            </p:commandLink>
+                            <p:commandLink styleClass="etat_formation_#{affectation.statut=='C'}" type="button" onclick="dlgConfirmAff.show()"
+                                           disabled="#{(affectation.statut=='C') or (affectation.statut=='A') or (affectation.statut=='C')}" >
+                                <span>Confirm#{(affectation.statut=='C')?'é':'er'}</span>
+                            </p:commandLink>
+                            <p:commandLink styleClass="etat_formation_#{affectation.statut=='A'}" actionListener="#{managedAffectations.chageStateAffectation('A')}" update="bloc_state_affectation"
+                                           disabled="#{(affectation.statut=='A') or (affectation.statut=='C') or (affectation.statut=='I')}" process="@this">
+                                <span>#{lab.LRH_PA_abandonne}</span>
+                            </p:commandLink>
+                        </h:panelGroup>
+                        <div style="clear: right; margin-top: 55px; width: 100%; background: #006666; height: 2px"></div>
+                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <f:facet name="header">
+                                <div align="left" style="padding: 2px; font-size: 0.9em">Motif de l'affectation</div>
+                                <h:inputTextarea rows="4" style="width: 100%" value="#{affectation.motifAffectation}"/>
+                            </f:facet>
+                            <span>#{lab.LRH_PM_employe}</span>
+                            <h:panelGroup id="chEmploye">
+                                <h:inputText  title="#{lab.LRH_PA_text1}" 
+                                              value="#{affectation.employe.matricule}" >
+                                    <p:ajax event="blur" listener="#{managedAffectations.saisirEmploye(affectation.employe.matricule)}" update="chEmploye" />
+                                </h:inputText>
+                                &nbsp;#{affectation.employe.nom_prenom}
+                                <p:commandButton icon="ui-icon-search"  onclick="openDlgEmploye_affectation()" 
+                                                 type="button" global="false" style="width: 20px; height: 20px"/>
+                                <h:panelGroup style="float: right; font-size: 0.8em" id="aff_zone_change_ag">
+                                    <span>#{lab.LRH_PA_affecter_autre_agence}?</span>
+                                    <p:selectBooleanCheckbox value="#{affectation.changeAgence}" >
+                                        <p:ajax event="valueChange" update="aff_zone_change_ag" />
+                                    </p:selectBooleanCheckbox>
+                                    <h:selectOneMenu value="#{affectation.agence.id}" disabled="#{!affectation.changeAgence}">
+                                        <f:selectItem itemValue="0" itemLabel="" />
+                                        <f:selectItems value="#{managedAffectations.currentScte.agences}" var="ag_" itemValue="#{ag_.id}" itemLabel="#{ag_.designation}" />
+                                    </h:selectOneMenu>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            <span>#{lab.LRH_PA_nouveau_poste}</span>
+                            <h:panelGroup >
+                                <h:inputText id="txtAffectationPoste" title="#{lab.LRH_PA_text1}" 
+                                             value="#{affectation.poste.intitule}" />&nbsp;
+                                <p:commandButton icon="ui-icon-search"  onclick="dlgPosteTravail.show()" 
+                                                 type="button" global="false" style="width: 20px; height: 20px"/>
+                            </h:panelGroup>                                
+                            <span>#{lab.L_date}</span>
+                            <h:panelGroup styleClass="yvs_nostyle">
+                                <span>#{lab.LRH_PA_affectation}</span>
+                                <p:calendar navigator="true" value="#{affectation.date}" pattern="dd-MM-yyyy" size="10"  />
+                                <span>#{lab.LRH_PA_prise_effet}</span>
+                                <p:calendar navigator="true" value="#{affectation.dateDebut}" pattern="dd-MM-yyyy" size="10"/>
+                            </h:panelGroup>
+                            <h:outputLabel id="labelScte" rendered="#{(affectation.statut=='I') or (affectation.statut=='C')}">
+                                <span>#{lab.LRH_PA_fin_interim}</span>
+                            </h:outputLabel>
+                            <h:panelGroup id="LSociete"  rendered="#{(affectation.statut=='I') or (affectation.statut=='C')}">
+                                <p:calendar navigator="true" value="#{affectation.dateFinInterim}" pattern="dd-MM-yyyy" size="10"/>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                        <p:dataTable value="#{affectation.historiques}" var="af" rowKey="#{af.id}" id="tab-Af-01" selectionMode="single" style="font-size: 0.8em">
+                            <f:facet name="header"><div align="left" style="color: #eee">#{lab.LRH_PA_historique}</div></f:facet>
+                            <p:column headerText="#{lab.L_date}" width="100" styleClass="line_actif#{af.poste.id eq af.employe.posteActif.id}">
+                                <h:outputText value="#{af.dateDebut}" converter="DATE" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_agence}" styleClass="line_actif#{af.poste.id eq af.employe.posteActif.id}">
+                                <h:outputText value="#{af.agence ne null?af.agence.designation:af.employe.agence.designation}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PA_departements}" styleClass="line_actif#{af.poste.id eq af.employe.posteActif.id}">
+                                #{af.poste.departement.intitule}
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PF_poste}" styleClass="line_actif#{af.poste.id eq af.employe.posteActif.id}">
+                                #{af.poste.intitule}
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PA_poste_precedent}" styleClass="line_actif#{af.poste.id eq af.employe.posteActif.id}">
+                                #{af.postePrecedent.intitule}
+                            </p:column>                                
+                            <p:column headerText="#{lab.L_statut}" style="text-align: center">
+                                <h:outputText value="#{managedAffectations.giveStatut(af.statut)}" styleClass="statut" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_actif}" width="25" style="text-align: center">
+                                <h:graphicImage library="img"  name="#{(af.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                            </p:column>
+                            <p:column headerText="" width="25" style="text-align: center">
+                                <p:contextMenu event="left click" for="btn_option_aff_emps" style="font-size: 0.9em">
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedAffectations.opentTodelete(af)}" />
+                                </p:contextMenu>
+                                <p:commandButton type="button" icon="ui-icon-gear" id="btn_option_aff_emps" style="width: 22px; height: 22px" />
+                            </p:column>
+                        </p:dataTable> 
+                        <h:panelGrid columns="4"  style="width: 98%; margin: auto;font-size: 0.8em; position: absolute; bottom: 70px" id="PREVPOSTE"  
+                                     styleClass="yvs_table" cellpadding="0" cellspacing="0" rendered="#{affectation.id gt 0}">
+                            <f:facet name="header"><span style="color: #006666">#{lab.LRH_PA_poste_precedent}</span></f:facet>                    
+                            <h:outputText value="#{lab.L_agence}" />
+                            <h:outputText value="#{lab.LRH_PA_departement}" />
+                            <h:outputText value="#{lab.LRH_PP_au_poste_travail}" />
+                            <h:outputText value="#{lab.L_date}" />
+                            <h:outputText value="#{affectation.employe.agence.designation}" style="color: #006666; font-weight: bold"/>
+                            <h:outputText value="#{affectation.postePrecedent.departement.intitule}" style="color: #006666; font-weight: bold"/>
+                            <h:outputText value="#{affectation.postePrecedent.intitule}" style="color: #006666; font-weight: bold"/>
+                            <h:outputText value="#{affectation.date}" id="h_outputTextid"  converter="DATE" style="color: #006666; font-weight: bold"/>
+                        </h:panelGrid>
+                    </p:outputPanel>
+                </div>
+                <div class="yvs_list_affectationPoste">                        
+                    <p:dataTable value="#{managedAffectations.listeAffectations}" var="item1" rowIndexVar="lineAff"
+                                 id="table_all_affectation"  rowKey="#{item1.id}" selection="#{managedAffectations.selectedAffectations}"
+                                 >
+                        <p:ajax event="rowSelectCheckbox" update=":main_form_affectation:delete_affectationPoste" process="@this"/>
+                        <p:ajax event="rowUnselectCheckbox" update=":main_form_affectation:delete_affectationPoste" process="@this" />
+                        <p:ajax event="rowSelect" listener="#{managedAffectations.loadOnView}" update=":main_form_affectation:panel_employe_affectation" process="@this" 
+                                />
+                        <p:column headerText="N°" width="15" style="text-align: center">#{lineAff+1}</p:column>
+                        <p:column headerText="#{lab.LRH_PE_matricule}" width="80">
+                            #{item1.employe.matricule}
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}">
+                            #{item1.employe.nom} #{item1.employe.prenom}
+                        </p:column>         
+                        <p:column headerText="#{lab.L_agence}">
+                            <h:outputText value="#{item1.agence ne null?item1.agence.designation:item1.employe.agence.designation}" />
+                        </p:column>                   
+                        <p:column headerText="#{lab.LRH_PPT_poste}">
+                            #{item1.poste.intitule}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PA_poste_precedent}">
+                            #{item1.postePrecedent.intitule}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PA_date_aff}" width="90"  style="text-align: center">
+                            <h:outputText value="#{item1.dateAcquisition}" converter="DATE" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_statut}" style="text-align: center" width="25">
+                            <h:outputText value="#{managedAffectations.giveStatut(item1.statut)}" styleClass="statut" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" width="25" style="text-align: center">
+                            <h:graphicImage library="img"  name="#{(item1.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:column>
+                        <p:column headerText=" " width="25" style="text-align: center">
+                            <p:contextMenu event="left click" for="btn_opt_affct" styleClass="context_menu">
+                                <p:menuitem value="#{lab.L_ativer}" icon="ui-icon-trash" actionListener="#{managedAffectations.activeLineAffectation(item1)}"/>
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedAffectations.opentTodelete(item1)}"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btn_opt_affct" />
+                        </p:column>
+                        <p:column selectionMode="multiple" style="text-align: center" />
+                    </p:dataTable>                                           
+                    <span class="nbSelectmission" style="font-size: .8em; font-style: italic; color: #828c95;"></span>                   
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block" >
+                        <p:commandButton actionListener="#{managedAffectations.pagineResult_(false)}" update=":main_form_affectation:table_all_affectation" icon="ui-icon-circle-triangle-w"  disabled="#{managedAffectations.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedAffectations.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedAffectations.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedAffectations.gotoPagePaginator()}" update=":main_form_affectation:table_all_affectation"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedAffectations.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton action="#{managedAffectations.pagineResult_(true)}" update=":main_form_affectation:table_all_affectation" icon="ui-icon-circle-triangle-e"  disabled="#{managedAffectations.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedAffectations.imax}" label="#{lab.L_nombre_max_resultat}" style="float: right; font-size: 0.9em;" 
+                                         valueChangeListener="#{managedAffectations.changePage}">
+                            <f:selectItems value="#{managedAffectations.paginations}" />
+                            <p:ajax event="valueChange"  update=":main_form_affectation:table_all_affectation" />
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>
+            </div>
+        </h:form>                      
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: absolute; cursor: pointer; margin-right: -20px;" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">
+                <div class="yvs_form_affectationPoste display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedAffectations.selectAffectation.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedAffectations.selectAffectation.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedAffectations.selectAffectation.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div> 
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="5" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.L_date_debut}" />
+                        <h:outputText value="#{lab.LRH_PM_employe}" />
+                        <h:outputText value="#{lab.LRH_PE_poste_travail}" />
+                        <h:outputText value="#{lab.L_statut}" />
+                        <h:outputText value="#{lab.L_actif}" />
+                        <h:panelGroup id="blog_dates_search_affectation">
+                            <h:selectBooleanCheckbox value="#{managedAffectations.paramDate}" valueChangeListener="#{managedAffectations.addParamDate(managedMission.paramDate)}">
+                                <p:ajax event="valueChange" update=":main_form_affectation:table_all_affectation blog_dates_search_affectation" oncomplete="collapseList('employeAffectation');"/>
+                            </h:selectBooleanCheckbox>
+                            <p:calendar value="#{managedAffectations.dateDF}" pattern="dd-MM-yyyy" size="8" disabled="#{!managedAffectations.paramDate}">
+                                <p:ajax event="dateSelect" listener="#{managedAffectations.addParamDate1}" update=":main_form_affectation:table_all_affectation" oncomplete="collapseList('affectationPoste');"/>
+                            </p:calendar>
+                            <p:calendar value="#{managedAffectations.dateFF}" pattern="dd-MM-yyyy" size="8" disabled="#{!managedAffectations.paramDate}" >
+                                <p:ajax event="dateSelect" listener="#{managedAffectations.addParamDate1}" update=":main_form_affectation:table_all_affectation" oncomplete="collapseList('affectationPoste');"/>
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:inputText value="#{managedAffectations.employeF}" >
+                            <p:ajax event="valueChange" listener="#{managedAffectations.findByEmploye(managedAffectations.employeF)}" update=":main_form_affectation:table_all_affectation" oncomplete="collapseList('affectationPoste');"/>
+                        </h:inputText>
+                        <h:inputText value="#{managedAffectations.posteF}" >
+                            <p:ajax event="valueChange" listener="#{managedAffectations.findByPoste(managedAffectations.posteF)}" update=":main_form_affectation:table_all_affectation" oncomplete="collapseList('affectationPoste');"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedAffectations.selectionStatu}" valueChangeListener="#{managedAffectations.findByStatut}">
+                            <f:selectItem itemValue="#{null}" itemLabel="" />
+                            <f:selectItem itemValue="#{'E'}" itemLabel="#{lab.LC_PFA_en_attente}" />
+                            <f:selectItem itemValue="#{'I'}" itemLabel="#{lab.LRH_PA_interim}" />
+                            <f:selectItem itemValue="#{'C'}" itemLabel="#{lab.LCF_PPC_confirmer}" />
+                            <f:selectItem itemValue="#{'A'}" itemLabel="#{lab.LRH_PA_abandonne}" />
+                            <p:ajax event="valueChange" update=":main_form_affectation:table_all_affectation" oncomplete="collapseList('affectationPoste');"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedAffectations.actifF}" valueChangeListener="#{managedAffectations.findByStatutActif}">
+                            <f:selectItem itemValue="#{null}" itemLabel="" />
+                            <f:selectItem itemValue="#{true}" itemLabel="#{lab.L_actif}" />
+                            <f:selectItem itemValue="#{false}" itemLabel="#{lab.L_inactif}" />
+                            <p:ajax event="valueChange" update=":main_form_affectation:table_all_affectation" oncomplete="collapseList('affectationPoste');"/>
+                        </h:selectOneMenu>
+                    </h:panelGrid>                                    
+                </h:panelGrid>                                    
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

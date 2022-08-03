@@ -1,0 +1,1 @@
+ALTER TABLE yvs_com_doc_ventes RENAME prefixe TO nom_client;

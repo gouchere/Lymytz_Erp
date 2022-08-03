@@ -1,0 +1,828 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets"> 
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Commissions','modGescom', 'smenCommission', true,managedCommission)}
+    </ui:define> 
+    <ui:define name="contents">
+        #{Marticle.doNothing()}
+
+        #{managedFamilleArticle.loadAllActif()}
+        #{managedCategorieClt.loadAll()}
+
+        #{managedCommission.loadAll()}
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('commission');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+
+        <h:form>
+            <p:remoteCommand name="updateBeanCaisse_" actionListener="#{managedCommission.updateBean()}"/>
+        </h:form>
+        <h:form>
+            <p:dialog header="Recherche" widgetVar="dlgSearch" hideEffect="fade" style="width: 200px;background: black;color: white" resizable="false">
+                <h:inputText value="#{managedCommission.articleSearch}" style="width:100%">
+                    <p:ajax event="valueChange" update=":main_commission:blog_cible_facture_taux" listener="#{managedCommission.findFacteurByArticle()}"/>
+                </h:inputText>
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des plans de commission
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PCOM_plan_commission}" widgetVar="dlgPlan" width="50%" closeOnEscape="true"
+                      minHeight="400">
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:panelGrid id="form_plan_commission" columns="4" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                        <span>#{lab.L_reference}</span>
+                        <h:inputText value="#{managedCommission.plan.reference}"/>
+                        <span>#{lab.L_libelle}</span>
+                        <h:inputText value="#{managedCommission.plan.intitule}"/>
+                    </h:panelGrid>        
+                    <p:commandButton icon="ui-icon-circle-plus" title="#{lab.LC_PCOM_ajouter_plan}" style="width: 22px; height: 22px;float: right" actionListener="#{managedCommission.saveNew()}" />
+                </h:panelGrid>
+                <p:dataTable id="data_plan_commission" value="#{managedCommission.plans}" var="com" rowKey="#{com.id}" rowIndexVar="comIdx" selectionMode="single">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedCommission.loadOnView}"/>
+                    <p:ajax event="rowUnselect" global="false" listener="#{managedCommission.unLoadOnView}"/>
+                    <p:column headerText="N°" style="text-align: center" width="30">
+                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{com.new_}"/>
+                        <span>#{comIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference}">
+                        <span>#{com.reference}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}">
+                        <span>#{com.intitule}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_actif}" width="30" style="text-align: center">
+                        <p:commandLink style="margin-top: 10px" title="#{(com.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedCommission.activePlanCommission(com)}" update="data_plan_commission">
+                            <h:graphicImage library="img"  name="#{(com.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:commandLink>
+                    </p:column>  
+                    <p:column width="20" style="text-align: center">
+                        <p:contextMenu for="btn_option_plan_commission" event="left click" style="font-size: 0.8em">
+                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedCommission.deleteBean_(com)}" oncomplete="dlgConfirmDeletePlan_.show()"/>
+                        </p:contextMenu>                           
+                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_plan_commission" type="button"/>
+                    </p:column> 
+                </p:dataTable> 
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy;#{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des tranches de taux
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PCOM_tranches_taux}" widgetVar="dlgGrille" modal="true" width="50%" closeOnEscape="true"> 
+                <p:outputPanel autoUpdate="true" id="blog_type_grille">
+                    <script type="text/javascript">
+                        $(function() {
+                            collapseForm('type_grille_com');
+                        });
+                    </script>
+                    <div class="part_fix">
+                        <p:commandButton value="#{lab.L_enregistrer}" id="save_type_grille_com" actionListener="#{managedCommission.saveNewTranche()}" oncomplete="collapseForm('type_grille_com')"/>
+                        <p:commandButton value="#{lab.L_nouveau}" id="cancel_type_grille_com" global="false" actionListener="#{managedCommission.resetFicheTranche()}" oncomplete="collapseForm('type_grille_com')"/>
+                        <p:commandButton value="#{lab.L_supprimer}" id="delete_type_grille_com" onclick="dlgConfirmDelete.show()"/>                
+                        <div style="float: right;" >
+                            <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('type_grille_com');
+                                    return false">
+                                <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>               
+                            <p:spacer />
+                            <h:link title="#{lab.L_mode_liste}" onclick="collapseList('type_grille_com');
+                                    return false" >
+                                <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>   
+                        </div>
+                    </div>
+                    <div class="part_scroll">
+                        <div class="yvs_form_type_grille_com">
+                            <h:panelGrid id="form_type_grille_com" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                <f:facet name="header">
+                                    <h:panelGroup>
+                                        <h:panelGrid columns="4" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="float: left">
+                                            <span>#{lab.L_reference}</span>
+                                            <h:inputText value="#{managedCommission.type.reference}">
+                                                <p:ajax event="valueChange" global="false"/>                                            
+                                            </h:inputText>
+                                            <span>#{lab.LC_PCOM_cible}</span>
+                                            <h:selectOneMenu value="#{managedCommission.type.cible}" styleClass="yvs_nostyle" style="width: 100%">
+                                                <f:selectItems value="#{constantes.CIBLES_TRANCHE}" var="ci" itemLabel="#{ci.label}" itemValue="#{ci.value}" />  
+                                                <p:ajax event="valueChange" global="false"/>
+                                            </h:selectOneMenu>
+                                        </h:panelGrid>
+                                        <h:panelGroup style="float: right">
+                                            <p:commandButton title="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedCommission.saveNewType(true)}"
+                                                             style="height: 26px" oncomplete="collapseForm('type_grille_com')"/>
+                                            <p:commandButton title="#{lab.L_nouveau}" icon="ui-icon-document" actionListener="#{managedCommission.resetFicheType()}"
+                                                             style="height: 26px" global="false" oncomplete="collapseForm('type_grille_com')"/>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                </f:facet>
+                                <span>#{lab.LC_PCOM_taux}</span>
+                                <h:panelGroup>
+                                    <h:panelGroup>
+                                        <h:inputText value="#{managedCommission.tranche.montantRabais}" style="width: 30%">
+                                            <p:ajax event="valueChange" global="false"/>
+                                        </h:inputText>
+                                        <span> %</span>
+                                    </h:panelGroup>
+                                    <h:panelGroup style="float: right;margin-top: 3px">
+                                        <span>#{lab.LC_PCOM_unique} ? </span>
+                                        <h:selectBooleanCheckbox value="#{managedCommission.tranche.unique}">
+                                            <p:ajax event="valueChange" global="false" listener="#{managedCommission.activeUnique()}"
+                                                    update="txt_tranche_max_taux txt_tranche_min_taux"/>
+                                        </h:selectBooleanCheckbox>
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                                <span>#{lab.LC_PCOM_tranche_min}</span>
+                                <h:inputText id="txt_tranche_min_taux" value="#{managedCommission.tranche.montantMinimal}" 
+                                             disabled="#{managedCommission.tranche.unique}">
+                                    <p:ajax event="valueChange" global="false"/>
+                                </h:inputText>
+                                <span>#{lab.LC_PCOM_tranche_max}</span>
+                                <h:inputText id="txt_tranche_max_taux" value="#{managedCommission.tranche.montantMaximal}" 
+                                             disabled="#{managedCommission.tranche.unique}">
+                                    <p:ajax event="valueChange" global="false"/>
+                                </h:inputText>
+                                <f:facet name="footer">
+                                    <p:dataTable id="data_tranche_taux" value="#{managedCommission.type.tranches}" var="tra"
+                                                 rowKey="#{tra.id}" rowIndexVar="Idx" selectionMode="single">
+                                        <p:ajax event="rowSelect" global="false" listener="#{managedCommission.loadOnViewTranche}"/>
+                                        <p:ajax event="rowUnselect" global="false" listener="#{managedCommission.unLoadOnViewTranche}"/>
+                                        <p:column headerText="N°" style="text-align: center" width="30">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{tra.new_}"/>
+                                            <span>#{Idx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LC_PCOM_taux}" width="50" style="text-align: right">
+                                            <h:outputText value="#{tra.taux}" converter="DNA"/> 
+                                            %
+                                        </p:column>  
+                                        <p:column headerText="#{lab.LC_PCOM_tranche_min}" style="text-align: right">
+                                            <h:outputText value="#{tra.trancheMinimal}" converter="DNA" rendered="#{!tra.unique}"/>
+                                            <h:outputText value="MIN" rendered="#{tra.unique}"/>
+                                        </p:column>  
+                                        <p:column headerText="#{lab.LC_PCOM_tranche_max}" style="text-align: right">
+                                            <h:outputText value="#{tra.trancheMaximal}" converter="DNA" rendered="#{!tra.unique}"/>
+                                            <h:outputText value="MAX" rendered="#{tra.unique}"/>
+                                        </p:column>  
+                                        <p:column width="20" style="text-align: center">
+                                            <p:contextMenu for="btn_option_tranche_taux" event="left click" style="font-size: 0.8em">
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedCommission.deleteBeanTranche(tra)}"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_tranche_taux" type="button"/>
+                                        </p:column> 
+                                    </p:dataTable> 
+                                </f:facet>
+                            </h:panelGrid>
+                        </div>
+                        <div class="yvs_list_type_grille_com">
+                            <p:dataTable id="data_type_grille_com" value="#{managedCommission.types}" var="typ"
+                                         rowKey="#{typ.id}" rowIndexVar="Idx" selectionMode="single">
+                                <p:ajax event="rowSelect" global="false" listener="#{managedCommission.loadOnViewType}" oncomplete="collapseForm('type_grille_com')"/>
+                                <p:column headerText="N°" style="text-align: center" width="30">
+                                    <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typ.new_}"/>
+                                    <span>#{Idx+1}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_reference}">
+                                    <span>#{typ.reference}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PCOM_cible}">
+                                    <span>#{managedCommission.giveNameCible(typ.cible)}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PCOM_tranches}" width="30" style="text-align: center">
+                                    <h:outputText value="#{typ.tranches.size()}" converter="DNA"/>
+                                </p:column>  
+                                <p:column width="20" style="text-align: center">
+                                    <p:contextMenu for="btn_option_type_grille_com" event="left click" style="font-size: 0.8em">
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedCommission.deleteBeanType(typ)}"/>
+                                    </p:contextMenu>                           
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_type_grille_com" type="button"/>
+                                </p:column> 
+                            </p:dataTable> 
+                        </div>
+                    </div>
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PCOM_liste_articles}" widgetVar="dlgListArticle" modal="true" width="70%" height="450" closeOnEscape="true">  
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('articles_commission');
+                    });
+                </script>
+                <p:watermark for="txt_search_facteur_commision" value="#{lab.LC_PCOM_reference_article}" />
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="4" styleClass="size-08 yvs_table">                        
+                        <h:outputText value="Référence" />
+                        <h:outputText value="Catégorie" />
+                        <h:outputText value="Famille" />
+                        <h:outputText value="" />
+                        <h:inputText id="txt_search_facteur_commision" value="#{Marticle.searchArticle}">
+                            <p:ajax event="keyup" global="false" listener="#{Marticle.findArticle()}" update="data_articles_commission"/>
+                        </h:inputText> 
+                        <h:selectOneMenu value="#{Marticle.categorieSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="" noSelectionOption="true"/>
+                            <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" />
+                            <p:ajax event="valueChange" listener="#{Marticle.addParamCategorie()}" process="@form" update="data_articles_commission"/>                              
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{Marticle.familleSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedFamilleArticle.familles}" var="fam" itemLabel="#{fam.designation}" itemValue="#{fam.id}" />
+                            <p:ajax event="valueChange" listener="#{Marticle.addParamFamille()}"  process="@form" update="data_articles_commission"/>                              
+                        </h:selectOneMenu> 
+                        <p:commandButton value="#{lab.L_ajouter}" id="delete_articles_commission" actionListener="#{managedCommission.addCiblesArticle()}"
+                                         oncomplete="dlgListArticle.hide()" icon="ui-icon-plus"/>
+                    </h:panelGrid>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{Marticle.loadAllArticle(false,false)}" global="false" update="data_articles_commission" icon="ui-icon-circle-triangle-w" disabled="#{Marticle.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{Marticle.paginator.currentPage}/#{Marticle.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{Marticle.loadAllArticle(true,false)}" global="false" update="data_articles_commission" icon="ui-icon-circle-triangle-e" disabled="#{Marticle.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{Marticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{Marticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_articles_commission"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>
+                <h:inputHidden id="input_hide_articles_commission" value="#{managedCommission.tabIds_article}"/>
+                <p:dataTable id="data_articles_commission" value="#{Marticle.listArticle}" var="art" rowKey="#{art.id}"
+                             rowIndexVar="line_art" selectionMode="single">  
+                    <p:ajax event="rowSelect" global="false" listener="#{managedCommission.loadOnViewArticle}" oncomplete="dlgListArticle.hide()"/>
+                    <p:column headerText="N°" width="20">
+                        <span title="#{art.designation}">#{line_art+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference}" width="80">
+                        <span title="#{art.designation}">#{art.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}" width="150">
+                        <span title="#{art.designation}">#{art.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" width="80">
+                        <span title="#{art.designation}">#{art.categorie}</span>
+                    </p:column> 
+                    <p:column width="30" style="text-align: center">
+                        <f:facet name="header">
+                            <h:selectBooleanCheckbox styleClass="chek_all_line_articles_commission" value="false"
+                                                     onclick="selectionAllLineTab(#{Marticle.listArticle.size()}, 'articles_commission')">
+                            </h:selectBooleanCheckbox>
+                        </f:facet>
+                        <h:selectBooleanCheckbox  value="#{point.select}" styleClass="chek_line_articles_commission" 
+                                                  onclick="selectionLineTab(#{line_art}, 'articles_commission')">
+                        </h:selectBooleanCheckbox>
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des catégories
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PCOM_liste_categories}" widgetVar="dlgListCategorie" modal="true" width="70%" height="450" closeOnEscape="true"> 
+                <p:dataTable id="data_categorie_commission" value="#{managedCategorieClt.categories}" var="cate" rowKey="#{cate.id}"
+                             rowIndexVar="Idx" selectionMode="single">      
+                    <p:ajax event="rowSelect" global="false" listener="#{managedCommission.loadOnViewCategorie}" oncomplete="dlgListCategorie.hide()"/>              
+                    <p:column headerText="N°" width="20">
+                        <span>#{Idx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference}" width="80">
+                        <span>#{cate.code}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}" width="150">
+                        <span>#{cate.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PCOM_superieur}" width="80">
+                        <span>#{cate.parent.designation}</span>
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des zones
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PCOM_liste_villes_secteurs}" widgetVar="dlgListZone" modal="true" width="70%" height="450" closeOnEscape="true"> 
+                <p:watermark for="txt_search_zone_commision" value="Reference zone..." />
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_zone_commision" value="#{Mdico.search}" style="text-align: center">
+                        <p:ajax event="keyup" global="false" listener="#{Mdico.findZoneActif(managedCommission.cible.zone.titre, Mdico.search, false)}" update="data_zone_commission"/>
+                    </h:inputText> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{Mdico.loadAllDicoActif(false, false)}" global="false" update="data_zone_commission" icon="ui-icon-circle-triangle-w" disabled="#{Mdico.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{Mdico.paginator.currentPage}/#{Mdico.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{Mdico.loadAllDicoActif(true, false)}" global="false" update="data_zone_commission" icon="ui-icon-circle-triangle-e" disabled="#{Mdico.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{Mdico.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Mdico._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{Mdico.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_zone_commission"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>
+                <p:dataTable id="data_zone_commission" value="#{Mdico.dictionnaires}" var="idico" rowKey="#{idico.id}"
+                             selectionMode="single" rowIndexVar="line_dico"  >
+                    <p:ajax event="rowSelect" global="false" listener="#{managedCommission.loadOnViewZone}" oncomplete="dlgListZone.hide()"/>
+                    <p:column headerText="N°" width="20"  style="text-align: center">
+                        <span>#{line_dico+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PCOM_abbreviation}" width="100">
+                        <span>#{idico.abreviation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_libelle}" >
+                        <span>#{idico.libele}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PCOM_titres}" width="80">
+                        <span>#{idico.titre}</span>
+                    </p:column>
+                    <p:column headerText=" "   style="text-align: right">
+                        <h:outputText value="#{idico.parent.libele}" />
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des clients
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">                    
+            <p:dialog header="#{lab.LC_PCOM_listes_clients}" widgetVar="dlgListClients" closeOnEscape="true" width="50%" height="450" modal="true" dynamic="true">   
+                <p:watermark for="txt_search_client_commision" value="Code Client..." />
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_client_commision" value="#{managedClient.numSearch_}" style="float: left;text-align: center;margin-left: -10px">
+                        <p:ajax event="keyup" global="false" listener="#{managedClient.searchByNum()}" update="data_client_commission"/>
+                    </h:inputText>   
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedClient.init(false)}" global="false" update="data_client_commission" icon="ui-icon-circle-triangle-w" disabled="#{managedClient.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedClient.paginator.currentPage}/#{managedClient.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedClient.init(true)}" global="false" update="data_client_commission" icon="ui-icon-circle-triangle-e" disabled="#{managedClient.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedClient.max}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedClient.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedClient.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_client_commission"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </h:panelGrid>                               
+                <p:dataTable id="data_client_commission"  value="#{managedClient.clients}" var="clt_" rowKey="#{clt_.id}"
+                             selectionMode="single" rowIndexVar="cltIdx" scrollable="true" scrollHeight="385">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedCommission.loadOnViewClient}" oncomplete="dlgListClients.hide()"/>
+                    <p:column headerText="N°" style="width: 10%;text-align: center">
+                        <span>#{cltIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" style="width: 20%">
+                        <span>#{clt_.codeClient}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PCOM_nom}">
+                        <span>#{clt_.nom_prenom}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PCOM_zone}">
+                        <span>#{clt_.tiers.region}</span>
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des cibles des facture
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PCOM_cibles_facture_taux}" widgetVar="dlgCibleFacteur" width="35%" closeOnEscape="true">
+                <h:panelGrid id="form_cible_facteur_taux" columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="float: left;margin-bottom: -5px">
+                    <h:panelGroup id="label_cible_facteur">
+                        <h:outputText value="#{lab.LC_PCOM_article}" rendered="#{managedCommission.cible.tableExterne == constantes.SCR_ARTICLES}"/>
+                        <h:outputText value="#{lab.LC_PCOM_zone}" rendered="#{managedCommission.cible.tableExterne == constantes.SCR_DICTIONNAIRE}"/>
+                        <h:outputText value="#{lab.LC_PCOM_ajouter_client}" rendered="#{managedCommission.cible.tableExterne == constantes.SCR_CLIENTS}"/>
+                        <h:outputText value="#{lab.L_categorie}" rendered="#{managedCommission.cible.tableExterne == constantes.SCR_CATEGORIE}"/>
+                    </h:panelGroup>
+                    <h:panelGroup id="valeur_cible_facteur">
+                        <h:panelGrid columns="3" rendered="#{managedCommission.cible.tableExterne == constantes.SCR_ARTICLES}">
+                            <h:inputText value="#{managedCommission.cible.article.refArt}" title="#{lab.LC_PCOM_reference_article}" style="color: #{managedCommission.cible.article.error?'red':''};">
+                                <p:ajax event="valueChange" global="false" listener="#{managedCommission.searchArticle()}" update="valeur_cible_facteur"/>
+                            </h:inputText>                             
+                            <p:commandButton icon="ui-icon-note" title="#{lab.LC_PCOM_liste_articles}" style="width: 22px; height: 22px" 
+                                             actionListener="#{managedCommission.initArticles()}" oncomplete="dlgListArticle.show()"/>
+                            <f:facet name="header" ><div align="left">#{managedCommission.cible.article.designation}</div></f:facet>
+                        </h:panelGrid>
+                        <h:panelGrid columns="3" rendered="#{managedCommission.cible.tableExterne == constantes.SCR_DICTIONNAIRE}">
+                            <h:selectOneMenu value="#{managedCommission.cible.zone.titre}">
+                                <f:selectItem itemValue="#{constantes.t_PAYS}" itemLabel="#{constantes.t_PAYS}" />
+                                <f:selectItem itemValue="#{constantes.t_VILLES}" itemLabel="#{constantes.t_VILLES}" />
+                                <f:selectItem itemValue="#{constantes.t_SECTEURS}" itemLabel="#{constantes.t_SECTEURS}" />
+                                <p:ajax event="valueChange" global="false"/>
+                            </h:selectOneMenu>
+                            <h:inputText value="#{managedCommission.cible.zone.abreviation}" title="#{lab.LC_PCOM_reference_zone}" style="color: #{managedCommission.cible.zone.error?'red':''};">
+                                <p:ajax event="valueChange" global="false" listener="#{managedCommission.searchZone()}" update="valeur_cible_facteur"/>
+                            </h:inputText>                             
+                            <p:commandButton icon="ui-icon-note" title="#{lab.LC_PCOM_liste_zone}" style="width: 22px; height: 22px" 
+                                             actionListener="#{managedCommission.initZones()}" oncomplete="dlgListZone.show()"/>
+                            <f:facet name="header" ><div align="left"><span>#{managedCommission.cible.zone.libelle}</span></div></f:facet>
+                        </h:panelGrid>
+                        <h:panelGrid columns="3" rendered="#{managedCommission.cible.tableExterne == constantes.SCR_CLIENTS}">
+                            <h:inputText value="#{managedCommission.cible.client.codeClient}" title="#{lab.LC_PCOM_reference_client}" style="color: #{managedCommission.cible.client.error?'red':''};">
+                                <p:ajax event="valueChange" global="false" listener="#{managedCommission.searchClient()}" update="valeur_cible_facteur"/>
+                            </h:inputText>                             
+                            <p:commandButton icon="ui-icon-note" title="#{lab.LC_PCOM_liste_client}" style="width: 22px; height: 22px" 
+                                             actionListener="#{managedCommission.initZones()}" oncomplete="dlgListClients.show()"/>
+                            <f:facet name="header" ><div align="left">#{managedCommission.cible.client.nom_prenom}</div></f:facet>
+                        </h:panelGrid>
+                        <h:panelGroup rendered="#{managedCommission.cible.tableExterne == constantes.SCR_CATEGORIE}">
+                            <h:inputText value="#{managedCommission.cible.categorie.code}" title="#{lab.LC_PCOM_reference_categorie}" readonly="true"/> 
+                            <span>#{managedCommission.cible.categorie.libelle}</span>
+                            <p:commandButton icon="ui-icon-note" title="#{lab.LC_PCOM_liste_categories}" style="width: 22px; height: 22px" onclick="dlgListCategorie.show()"/>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </h:panelGrid>                          
+                <p:commandButton icon="ui-icon-circle-plus" value="#{lab.L_ajouter}" title="#{lab.LC_PCOM_ajouter_cible}" 
+                                 styleClass="right" actionListener="#{managedCommission.saveNewCible()}" />
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeletePlan" closeOnEscape="true"
+                             message="#{lab.LC_PCOM_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedCommission.deleteBean()}" oncomplete="dlgConfirmDeletePlan.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeletePlan.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeletePlan_" closeOnEscape="true"
+                             message="#{lab.LC_PCOM_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedCommission.deleteBean_()}" oncomplete="dlgConfirmDeletePlan_.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeletePlan_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PCOM_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedCommission.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LC_PCOM_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedCommission.deleteBeanFacteur_()}" oncomplete="dlgConfirmDelete_.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_commission">    
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_enregistrer}" id="save_commission" actionListener="#{managedCommission.saveNewFacteur()}"
+                               icon="ui-icon-disk">
+                    <p:menuitem value="#{lab.L_nouveau}" id="cancel_commission" global="false" actionListener="#{managedCommission.resetFicheFacteur()}" oncomplete="collapseForm('commission')"
+                                icon="ui-icon-document"/>
+                    <p:separator />
+                    <p:menuitem value="#{lab.L_supprimer}" global="false" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()"/>
+                </p:splitButton>
+                <p:commandButton value="#{lab.L_supprimer}" id="delete_commission" global="false" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()"/>                
+                <h:panelGroup style="margin-left: 35%">
+                    <p:commandButton actionListener="#{managedCommission.parcoursInAllResult(false)}" update="txt_parc_linear_commission" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('commission')"/>
+                    <h:inputText value="#{managedCommission.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_a}" id="txt_parc_linear_commission"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedCommission.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedCommission.parcoursInAllResult(true)}" update="txt_parc_linear_commission" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('commission')"/>
+                </h:panelGroup> 
+                <div style="float: right;" >
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('commission');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_liste}" onclick="collapseList('commission');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_commission">
+                    <p:outputPanel style="width: 100%; margin: auto; background: white" id="blog_plan_commission">
+                        <h:panelGrid id="form_facteurs_commission" columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <f:facet name="header">
+                                <div style="float: left">
+                                    <span>#{lab.LC_PCOM_plan} : </span>
+                                    <h:selectOneMenu value="#{managedCommission.facteur.plan.id}" styleClass="yvs_nostyle" 
+                                                     title="#{lab.LC_PCOM_selectionner_plan_commission}" id="select_plan_commission">
+                                        <f:selectItem itemLabel="--" itemValue="0"/>
+                                        <f:selectItems value="#{managedCommission.plans}" var="plan" itemLabel="#{plan.intitule}" itemValue="#{plan.id}" />  
+                                        <f:selectItem itemLabel="--" itemValue="0"/>
+                                        <f:selectItem itemLabel="#{lab.L_plus_option}" itemValue="-1"/>
+                                        <p:ajax event="valueChange" global="false" listener="#{managedCommission.choosePlan()}"/>
+                                    </h:selectOneMenu>
+                                </div>
+                                <div style="float: right">
+                                    <span>#{lab.LC_PCOM_non_restrictif}  </span>
+                                    <p:selectBooleanCheckbox value="#{managedCommission.facteur.general}" style="float: right;margin-top: 3px; margin-left: 5px">
+                                        <p:ajax event="valueChange" global="false" update="blog_cible_facture_taux"/>
+                                    </p:selectBooleanCheckbox>
+                                </div>
+                            </f:facet>
+                            <span>#{lab.LC_PCOM_base}</span>
+                            <h:selectOneMenu value="#{managedCommission.facteur.base}" styleClass="yvs_nostyle" style="width: 100%">
+                                <f:selectItems value="#{constantes.BASES_COMMISSION}" var="pe" itemLabel="#{pe.label}" itemValue="#{pe.value}" />  
+                                <p:ajax event="valueChange" global="false"/>
+                            </h:selectOneMenu>
+                            <span title="#{lab.LC_PCOM_champ_application}">#{lab.LC_PCOM_champ}</span>
+                            <h:selectOneMenu value="#{managedCommission.facteur.champApplication}" styleClass="yvs_nostyle" style="width: 100%" title="#{lab.LC_PCOM_selectionner_champ_application}">
+                                <f:selectItems value="#{constantes.APPICATIONS_COMMISSION}" var="pe" itemLabel="#{pe.label}" itemValue="#{pe.value}" />  
+                                <p:ajax event="valueChange" global="false"/>
+                            </h:selectOneMenu>
+                            <span>#{lab.LC_PCOM_taux}</span>
+                            <h:panelGroup>
+                                <h:panelGroup id="value_taux_facteur_com">
+                                    <h:inputText value="#{managedCommission.facteur.taux}" style="width: 15%;text-align: right" disabled="#{managedCommission.facteur.byGrille}"/>
+                                    <span> %</span>
+                                </h:panelGroup>                                                
+                                <h:panelGroup style="float: right">
+                                    <span title="#{lab.LC_PCOM_type_grille}">#{lab.LC_PCOM_par_grille} ?</span>
+                                    <h:selectBooleanCheckbox value="#{managedCommission.facteur.byGrille}">
+                                        <p:ajax event="valueChange" global="false" update="value_type_grille_com value_taux_facteur_com"/>
+                                    </h:selectBooleanCheckbox>
+                                    <h:selectOneMenu value="#{managedCommission.facteur.typeGrille.id}" styleClass="yvs_nostyle" disabled="#{!managedCommission.facteur.byGrille}" 
+                                                     title="#{lab.LC_PCOM_selectionner_type_grille}" id="value_type_grille_com">
+                                        <f:selectItem itemLabel="--" itemValue="0"/>
+                                        <f:selectItems value="#{managedCommission.types}" var="ty" itemLabel="#{ty.reference}" itemValue="#{ty.id}" />  
+                                        <f:selectItem itemLabel="--" itemValue="0"/>
+                                        <f:selectItem itemLabel="#{lab.L_plus_d_options}" itemValue="-1"/>
+                                        <p:ajax event="valueChange" global="false" listener="#{managedCommission.chooseType()}"/>
+                                    </h:selectOneMenu>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            <span>#{lab.LC_PCOM_nouveau_client}  </span>
+                            <p:selectBooleanCheckbox value="#{managedCommission.facteur.nouveauClient}" style="float: left"/>
+                            <f:facet name="footer">
+                                <h:panelGrid id="form_periodicite_commission" columns="6" style="width: 100%;background: #E9FBF9" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                    <f:facet name="header">
+                                        <div style="width: 100%;margin-bottom: 5px">
+                                            <div style="float: left">                                                    
+                                                <p:selectBooleanCheckbox value="#{managedCommission.facteur.permanent}" style="float: left;margin-top: 3px; margin-right: 2px">
+                                                    <p:ajax event="valueChange" update="form_periodicite_commission" global="false"/>
+                                                </p:selectBooleanCheckbox>
+                                                <span style="font-weight: bold"> #{lab.LC_PCOM_permanent}</span>
+                                            </div>
+                                            <div style="float: right">
+
+                                            </div>
+                                        </div>
+                                    </f:facet>
+                                    <span>#{lab.LC_PCOM_periodicite} </span>
+                                    <h:selectOneMenu value="#{managedCommission.periode.periodicite}" disabled="#{managedCommission.facteur.permanent}">
+                                        <f:selectItems value="#{constantes.PERIODICITES}" var="pe" itemLabel="#{pe.label}" itemValue="#{pe.value}" />  
+                                        <p:ajax event="valueChange" update="form_periodicite_commission" global="false"/>
+                                    </h:selectOneMenu>
+                                    <span>#{lab.LC_PCOM_date_debut}</span>
+                                    <p:calendar value="#{managedCommission.periode.dateDebut}" pattern="dd-MM-yyyy" size="10"
+                                                disabled="#{!(managedCommission.periode.periodicite == constantes.PERIODICITE_A_PARTIR or managedCommission.periode.periodicite == constantes.PERIODICITE_DETERMINER)}"/>
+                                    <span>#{lab.LC_PCOM_date_fin}</span>
+                                    <p:calendar value="#{managedCommission.periode.dateFin}" pattern="dd-MM-yyyy" size="10" 
+                                                disabled="#{!(managedCommission.periode.periodicite == constantes.PERIODICITE_JUSQUA or managedCommission.periode.periodicite == constantes.PERIODICITE_DETERMINER)}"/>
+                                </h:panelGrid>
+                            </f:facet>
+                        </h:panelGrid>
+                        <div style="clear: both"/>
+                        <p:outputPanel id="blog_cible_facture_taux" autoUpdate="true">
+                            <div style="width: 33%;float: left; border: solid 1px; height: 365px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                <span style="display: inline-block; background: #CCC; width: 100%">
+                                    #{lab.LC_PCOM_article}        
+                                    <p:contextMenu for="btn_option_cible_article" event="left click" style="font-size: 0.8em;width: 220px">
+                                        <p:menuitem value="#{lab.LC_PCOM_ajouter_article}" icon="ui-icon-plus" actionListener="#{managedCommission.onOpenManagedCible(constantes.SCR_ARTICLES)}"/>
+                                        <p:menuitem value="Ajouter plusieurs articles" icon="ui-icon-circle-plus" oncomplete="dlgListArticle.show()" global="false"/>
+                                    </p:contextMenu> 
+                                    <p:commandButton icon="ui-icon-circle-plus" style="width: 20px; height: 20px;float: right;margin-top: -2px;background: white!important" id="btn_option_cible_article" type="button"
+                                                     disabled="#{managedCommission.facteur.general or managedCommission.facteur.champApplication eq constantes.APPICATION_COMMISSION_FACTURE_ENCOURS}"/>
+                                </span>
+                                <div style="width: 99.5%; border: solid 1px; height: 345px; margin: auto;overflow-y: auto">
+                                    <p:dataTable value="#{managedCommission.facteur.articles}" var="art" rowKey="#{art.id}" rowIndexVar="Idx">
+                                        <p:column headerText="N°" width="20">
+                                            <span >#{Idx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_code}" width="100">
+                                            <span >#{art.refArt}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_libelle}">
+                                            <span >#{art.designation}</span>
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center">
+                                            <f:facet name="header">
+                                                <p:contextMenu for="btn_option_head_cible_article" event="left click" style="font-size: 0.8em;width: 220px">
+                                                    <p:menuitem id="menu-search_commission" value="#{lab.L_recherche}" icon="ui-icon-search" global="false" onclick="dlgSearch.show()"/>
+                                                </p:contextMenu> 
+                                                <p:commandButton icon="ui-icon-gear" style="width: 20px; height: 20px;float: right;margin-top: -2px;background: white!important" id="btn_option_head_cible_article" type="button"/>
+                                            </f:facet>
+                                            <p:commandButton icon="ui-icon-minusthick" style="width: 20px;height: 20px" update=":main_commission:blog_cible_facture_taux"
+                                                             actionListener="#{managedCommission.deleteBeanCible(art.id)}"/>
+                                        </p:column> 
+                                    </p:dataTable>
+                                </div>
+                            </div>
+                            <div style="width: 33%;float: left; border: solid 1px; height: 365px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                <span style="display: inline-block; background: #CCC; width: 100%">
+                                    #{lab.LC_PCOM_zone}                 
+                                    <p:commandButton icon="ui-icon-circle-plus" title="#{lab.LC_PCOM_ajouter_zone}" disabled="#{managedCommission.facteur.general}"
+                                                     style="width: 20px; height: 20px;float: right;margin-top: -2px;background: white!important" 
+                                                     actionListener="#{managedCommission.onOpenManagedCible(constantes.SCR_DICTIONNAIRE)}" />
+                                </span>
+                                <div style="width: 99.5%; border: solid 1px; height: 345px; margin: auto;overflow-y: auto">
+                                    <p:dataTable value="#{managedCommission.facteur.zones}" var="zone" rowKey="#{zone.id}" rowIndexVar="Idx">
+                                        <p:column headerText="N°" width="20">
+                                            <span >#{Idx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_code}" width="100">
+                                            <span >#{zone.abreviation}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_libelle}">
+                                            <span >#{zone.libele}</span>
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center">
+                                            <p:commandButton icon="ui-icon-minusthick" style="width: 20px;height: 20px" update=":main_commission:blog_cible_facture_taux"
+                                                             actionListener="#{managedCommission.deleteBeanCible(zone.id)}"/>
+                                        </p:column> 
+                                    </p:dataTable>
+                                </div>
+                            </div>
+                            <div style="width: 32.5%;margin-left: 67%; border: solid 1px; border-right: 2px; height: 365px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                <span style="display: inline-block; background: #CCC; width: 100%">
+                                    #{lab.LC_PCOM_ajouter_client}                 
+                                    <p:commandButton icon="ui-icon-circle-plus" title="#{lab.LC_PCOM_ajouter_client}" disabled="#{managedCommission.facteur.general}" 
+                                                     style="width: 20px; height: 20px;float: right;margin-top: -2px;background: white!important" 
+                                                     actionListener="#{managedCommission.onOpenManagedCible(constantes.SCR_CLIENTS)}" />
+                                </span>
+                                <div style="width: 99.5%; border: solid 1px; height: 345px; margin: auto;overflow-y: auto">
+                                    <p:dataTable value="#{managedCommission.facteur.clients}" var="clt" rowKey="#{clt.id}" rowIndexVar="Idx">
+                                        <p:column headerText="N°" width="20">
+                                            <span >#{Idx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_code}" width="100">
+                                            <span >#{clt.codeClient}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_libelle}">
+                                            <span >#{clt.nom_prenom}</span>
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center">
+                                            <p:commandButton icon="ui-icon-minusthick" style="width: 20px;height: 20px" update=":main_commission:blog_cible_facture_taux"
+                                                             actionListener="#{managedCommission.deleteBeanCible(clt.id)}"/>
+                                        </p:column> 
+                                    </p:dataTable>
+                                </div>
+                            </div>
+                        </p:outputPanel>  
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_commission" style="width: 99%; margin: auto; background: white">
+                    <h:inputHidden id="input_hide_plan_commission" value="#{managedCommission.tabIds}"/>
+                    <p:dataTable id="data_facteurs_commission" value="#{managedCommission.facteurs}" var="fact"
+                                 rowKey="#{fact.id}" rowIndexVar="Idx" selectionMode="single">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedCommission.loadOnViewFacteur}" update=":main_commission:input_hide_plan_commission"
+                                oncomplete="collapseForm('commission')"/>
+                        <p:column headerText="N°" width="20">
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{fact.new_}"/>
+                            <span >#{Idx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCOM_plan}">
+                            <span >#{fact.plan.intitule}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCOM_base}" width="80">
+                            <span >#{managedCommission.giveNameBase(fact.base)}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCOM_application}">
+                            <span >#{managedCommission.giveNamePorte(fact.champApplication)}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCOM_valeur}" width="80" style="text-align: center">
+                            <h:panelGroup rendered="#{!fact.byGrille}">
+                                <h:outputText value="#{fact.taux}" converter="DNA" />
+                                %
+                            </h:panelGroup>
+                            <h:outputText value="#{fact.typeGrille.reference}" rendered="#{fact.byGrille}" />
+                        </p:column>                        
+                        <p:column headerText="#{lab.LC_PCOM_date_debut}" style="text-align: center">
+                            <h:panelGroup rendered="#{!(fact.permanent or fact.periodicite == constantes.PERIODICITE_PERMANENT)}">
+                                <h:outputText value="#{fact.dateDebut}" converter="DATE" rendered="#{fact.periodicite != constantes.PERIODICITE_JUSQUA}"/>
+                                <h:outputText value="--#{lab.LC_PCOM_jusqua}-" rendered="#{fact.periodicite == constantes.PERIODICITE_JUSQUA}"/>
+                            </h:panelGroup>
+                            <h:outputText value="--#{lab.LC_PCOM_permanents}--" rendered="#{fact.permanent or fact.periodicite == constantes.PERIODICITE_PERMANENT}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCOM_date_fin}" style="text-align: center">
+                            <h:panelGroup rendered="#{!(fact.permanent or fact.periodicite == constantes.PERIODICITE_PERMANENT)}">
+                                <h:outputText value="#{fact.dateFin}" converter="DATE" rendered="#{fact.periodicite != constantes.PERIODICITE_A_PARTIR}"/>
+                                <h:outputText value="--#{lab.LC_PCOM_indefiniment}--" rendered="#{fact.periodicite == constantes.PERIODICITE_A_PARTIR}"/>
+                            </h:panelGroup>
+                            <h:outputText value="--#{lab.LC_PCOM_permanents}--" rendered="#{fact.permanent or fact.periodicite == constantes.PERIODICITE_PERMANENT}"/>
+                        </p:column> 
+                        <p:column headerText="#{lab.LC_PCOM_gen}." style="text-align: center;width: 2%">
+                            <h:graphicImage library="img"  name="#{(fact.general)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:column>  
+                        <p:column headerText="#{lab.LC_PCOM_new}" style="text-align: center;width: 2%">
+                            <h:graphicImage library="img"  name="#{(fact.nouveauClient)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:column>  
+                        <p:column headerText="#{lab.L_actif}" width="30" style="text-align: center">
+                            <p:commandLink style="margin-top: 10px" title="#{(fact.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedCommission.activeFacteur(fact)}" update="data_facteurs_commission">
+                                <h:graphicImage library="img"  name="#{(fact.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                            </p:commandLink>
+                        </p:column> 
+                        <p:column width="20" style="text-align: center">
+                            <p:contextMenu for="btn_option_facteurs_commission" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedCommission.deleteBeanFacteur(fact)}" oncomplete="dlgConfirmDelete_.show()"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_facteurs_commission" type="button"/>
+                        </p:column> 
+                    </p:dataTable> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedCommission.loadAll(false,false)}" global="false" update="data_facteurs_commission" icon="ui-icon-circle-triangle-w" disabled="#{managedUser.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedCommission.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedCommission.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="valueChange" listener="#{managedCommission.gotoPagePaginator()}" update="data_facteurs_commission"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedCommission.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedCommission.loadAll(true,false)}" global="false" update="data_facteurs_commission" icon="ui-icon-circle-triangle-e" disabled="#{managedUser.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCommission.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCommission.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedCommission.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_facteurs_commission"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>  
+                </div> 
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_commission display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedCommission.selectFacteur.dateSave}" converter="LD" styleClass="valeur" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le}<h:outputText value="#{managedCommission.selectFacteur.dateUpdate}" converter="LD" styleClass="valeur" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedCommission.selectFacteur.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="8" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+
+                    </h:panelGrid>
+
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

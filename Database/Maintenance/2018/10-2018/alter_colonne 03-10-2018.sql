@@ -1,0 +1,1 @@
+ALTER TABLE yvs_com_doc_ventes ADD COLUMN numero_externe character varying;

@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>  
+        <h:panelGrid id="form_creneau_employe" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+            <span>#{lab.LC_PCP_date_travail} </span>
+            <h:panelGroup>
+                <h:panelGroup>
+                    <p:calendar id="dd_date_travail_creneau" value="#{creneauUsers.dateTravail}" pattern="dd-MM-yyyy" size="8" disabled="#{creneauUsers.permanent}"
+                                navigator="true">
+                        <p:ajax event="dateSelect" global="false" listener="#{managedCreneauEmploye.chooseDate()}"/>
+                    </p:calendar>
+                    <span> ou cocher ici pour rendre permanent </span>
+                    <h:selectBooleanCheckbox value="#{creneauUsers.permanent}" title="#{lab.LC_PCP_creneau_permanent}">
+                        <p:ajax event="valueChange" global="false" update="dd_date_travail_creneau"/>
+                    </h:selectBooleanCheckbox>
+                </h:panelGroup>
+                <h:panelGroup style="float: right;margin-top: 5px">
+                    <span>#{lab.L_actif} </span>
+                    <h:selectBooleanCheckbox value="#{creneauUsers.actif}"/>
+                </h:panelGroup>
+            </h:panelGroup>
+            <span>#{lab.LC_PCP_personnel} </span>
+            <h:panelGroup id="txt_employe_creneau">
+                <h:inputText value="#{creneauUsers.personnel.codeUsers}" style="color: #{creneauUsers.personnel.error?'red':''};width: 200px" disabled="#{managedCreneauEmploye.updateCreneau}">
+                    <p:ajax event="blur"  listener="#{managedCreneauEmploye.searchPersonnel()}" update="txt_employe_creneau"/>
+                </h:inputText>    
+                <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white" title="#{lab.LC_PCP_liste_personnel}" global="false"
+                                 actionListener="#{managedCreneauEmploye.initPersonnels()}" oncomplete="dlgListUsers.show()"/>
+                <h:outputText value="#{creneauUsers.personnel.nomUsers}" style="color: #006666;margin-left: 10px"/>
+            </h:panelGroup> 
+            <f:facet name="footer">
+                <h:panelGrid columns="6" style="width: 100%;background: #CCC" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LC_PCP_depot}</span>
+                    <h:panelGroup>
+                        <h:selectOneMenu id="txt_depot_creneau" value="#{managedCreneauEmploye.depot.id}" style="width: 85%">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedDepot.depots}" var="dep" 
+                                           itemLabel="#{dep.designation}" itemValue="#{dep.id}" />                                 
+                            <p:ajax event="valueChange" listener="#{managedCreneauEmploye.chooseDepot()}" update="select_creneau_depot txt_point_vente_creneau"/>
+                        </h:selectOneMenu>
+                        <p:commandButton icon="ui-icon-refresh" style="width: 22px; height: 22px" title="Actualiser" 
+                                         actionListener="#{managedCreneauEmploye.loadDepotsByPoint()}" update="select_creneau_depot txt_depot_creneau"/>
+                    </h:panelGroup>
+                    <span>#{lab.LC_PCP_point_vente}</span>
+                    <h:panelGroup>
+                        <h:selectOneMenu id="txt_point_vente_creneau" value="#{managedCreneauEmploye.point.id}" style="width: 85%">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedPointVente.pointsvente}" var="pts" 
+                                           itemLabel="#{pts.libelle}" itemValue="#{pts.id}" />       
+                            <p:ajax event="valueChange" listener="#{managedCreneauEmploye.choosePoint()}" update="select_creneau_point txt_depot_creneau"/>                          
+                        </h:selectOneMenu>
+                        <p:commandButton icon="ui-icon-refresh" style="width: 22px; height: 22px" title="Actualiser" 
+                                         actionListener="#{managedCreneauEmploye.loadPointsByDepot()}" update="select_creneau_point txt_point_vente_creneau"/>
+                    </h:panelGroup>
+                    <span>#{lab.LC_PCP_equipes}</span>
+                    <h:panelGroup>
+                        <h:selectOneMenu id="txt_equipe_prod_creneau" value="#{managedCreneauEmploye.equipe.id}" style="width: 85%">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedEquipeProduction.equipes}" var="equ" itemLabel="#{equ.nom}" itemValue="#{equ.id}" />       
+                            <p:ajax event="valueChange" update="select_creneau_equipe txt_depot_creneau"/>                          
+                        </h:selectOneMenu> 
+                        <p:commandButton icon="ui-icon-refresh" style="width: 22px; height: 22px" title="Actualiser" 
+                                         update="select_creneau_equipe heures_creneau_equipe"/>
+                    </h:panelGroup>   
+                    <span>#{lab.LC_PCP_tranches} </span>
+                    <h:panelGroup>
+                        <h:selectOneMenu id="select_creneau_depot" value="#{creneauUsers.creneauDepot.id}" style="width: 85%" >
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedCreneauEmploye.creneauxDepot}" var="crenD_" 
+                                           itemLabel="#{crenD_.tranche.titre}" itemValue="#{crenD_.id}" />                                   
+                            <p:ajax event="valueChange" global="false" listener="#{managedCreneauEmploye.chooseCreneauDepot()}" update="heures_creneau_depot"/>
+                        </h:selectOneMenu>
+                        <p:commandButton icon="ui-icon-refresh" style="width: 22px; height: 22px" title="Actualiser" 
+                                         actionListener="#{managedCreneauEmploye.loadCreneauByDepot()}" update="select_creneau_depot heures_creneau_depot"/>
+                    </h:panelGroup>
+                    <span>#{lab.LC_PCP_tranches}</span>
+                    <h:panelGroup>
+                        <h:selectOneMenu id="select_creneau_point" value="#{creneauUsers.creneauPoint.id}" style="width: 85%" >
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedCreneauEmploye.creneauxPoint}" var="crenP_" 
+                                           itemLabel="#{crenP_.tranche.titre}" itemValue="#{crenP_.id}" />                                   
+                            <p:ajax event="valueChange" global="false" listener="#{managedCreneauEmploye.chooseCreneauPoint()}" update="heures_creneau_point"/>
+                        </h:selectOneMenu>
+                        <p:commandButton icon="ui-icon-refresh" style="width: 22px; height: 22px" title="Actualiser" 
+                                         actionListener="#{managedCreneauEmploye.loadCreneauByPoint()}" update="select_creneau_point heures_creneau_point"/>
+                    </h:panelGroup>
+                    <span>#{lab.LC_PCP_tranches}</span>
+                    <h:panelGroup>
+                        <h:selectOneMenu id="select_creneau_equipe" value="#{creneauUsers.creneauPoint.id}" style="width: 85%" disabled="true">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedCreneauEmploye.creneauxPoint}" var="crenP_" 
+                                           itemLabel="#{crenP_.tranche.titre}" itemValue="#{crenP_.id}" />                                   
+                            <p:ajax event="valueChange" global="false" listener="#{managedCreneauEmploye.chooseCreneauPoint()}" update="heures_creneau_equipe"/>
+                        </h:selectOneMenu>   
+                        <p:commandButton icon="ui-icon-refresh" style="width: 22px; height: 22px" title="Actualiser" 
+                                         update="select_creneau_equipe heures_creneau_equipe"/>
+                    </h:panelGroup>                                 
+                    <span>#{lab.LC_PCP_periodes}</span>
+                    <h:panelGroup id="heures_creneau_depot">
+                        <span>#{lab.L_de} </span>
+                        <h:inputText value="#{creneauUsers.creneauDepot.tranche.heureDebut}" converter="TIME" readonly="true" style="width: 50px;text-align: center"/>
+                        <span> #{lab.L_a} </span>
+                        <h:inputText value="#{creneauUsers.creneauDepot.tranche.heureFin}" converter="TIME" readonly="true" style="width: 50px;text-align: center"/>
+                    </h:panelGroup>
+                    <span>#{lab.LC_PCP_periodes}</span>
+                    <h:panelGroup id="heures_creneau_point">
+                        <span>#{lab.L_de}  </span>
+                        <h:inputText value="#{creneauUsers.creneauPoint.tranche.heureDebut}" converter="TIME" readonly="true" style="width: 50px;text-align: center"/>
+                        <span> #{lab.L_a} </span>
+                        <h:inputText value="#{creneauUsers.creneauPoint.tranche.heureFin}" converter="TIME" readonly="true" style="width: 50px;text-align: center"/>
+                    </h:panelGroup>
+                    <span>#{lab.LC_PCP_periodes}</span>
+                    <h:panelGroup id="heures_creneau_equipe">
+                        <span>#{lab.L_de}  </span>
+                        <h:inputText value="#{creneauUsers.creneauPoint.tranche.heureDebut}" converter="TIME" readonly="true" style="width: 50px;text-align: center"/>
+                        <span> #{lab.L_a}  </span>
+                        <h:inputText value="#{creneauUsers.creneauPoint.tranche.heureFin}" converter="TIME" readonly="true" style="width: 50px;text-align: center"/>
+                    </h:panelGroup>
+                </h:panelGrid>
+            </f:facet>
+        </h:panelGrid>
+    </div>
+</ui:composition>

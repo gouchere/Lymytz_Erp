@@ -1,0 +1,1128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"      
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Présences','modRh', 'smenPresence', true,managedPresences)}
+    </ui:define>    
+    <ui:define name="content" >
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('presenceEmps');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 125);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+
+            });
+        </script>
+        #{managedPresences.loadAllTypeValidation()}
+        #{managedDepartement.loadAllDepartementByDroit()}
+        #{managedAgence.loadAgence()}
+        #{managedTableauBord.load(false)}
+        #{managedTableauBord.initPresence()}
+        #{managedUser.loadAllUserSociete()}        
+        #{managedPresences.loadAllTrancheHoraire()}        
+        #{managedPresences.loadAll()} 
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PP_confirmer_reecriture_fiche}" 
+                             widgetVar="dlgConfirmSaveFiche" closeOnEscape="true" header="#{lab.L_fusionner}" >
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" />
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form_my_fiche">
+            <p:dialog header="#{lab.LRH_PP_mes_fiches}" widgetVar="dlgMyFiches" width="60%" modal="true">
+                <div style="float: left; width: 70%">
+                    <p:dataTable value="#{managedPresences.presences}" var="ipres" selectionMode="single" rowKey="#{ipres.id}" 
+                                 id="table_my_fiches">
+                        <p:ajax event="rowSelect" listener="#{managedPresences.selectionFiches}"
+                                update=":form_my_fiche:table_my_fiches_pointage" />
+                        <p:ajax event="rowUnselect" listener="#{managedPresences.unselectionFiches}"
+                                update=":form_my_fiche:table_my_fiches_pointage" />
+                        <p:column headerText="#{lab.LRH_PP_date_fiche}" >
+                            <h:outputText value="#{ipres.dateDebut}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_heure_debut}" >
+                            <h:outputText value="#{ipres.dateDebut}" converter="DATE"/>-
+                            <h:outputText value="#{ipres.heureDebut}" converter="TIME"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_heure_fin}" >
+                            <h:outputText value="#{ipres.dateFin}" converter="DATE"/>-
+                            <h:outputText value="#{ipres.heureFin}" converter="TIME"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <div style="margin-left: 71%">
+                    <div >#{lab.LRH_PP_pointages}</div>
+                    <p:dataTable value="#{managedPresences.pointagesFiche}" var="ipoi" selection="single" rowKey="#{ipoi.id}" 
+                                 id="table_my_fiches_pointage">                        
+                        <p:column headerText="#{lab.LRH_PP_heure_pointage}" style="background: #{ipoi.id lt 0?'#99ccff':'inherit'}; color: #{ipoi.id lt 0?'red':'inherit'}">
+                            <h:outputText value="#{ipoi.heure}" converter="DATET"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <p:commandButton value="#{lab.L_appliquer}" style="float: right" actionListener="#{managedPresences.reinserePointageOnFiche()}"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_confimer} !" widgetVar="dlgConfirmValid" width="30%" modal="true">
+
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PP_filtrage_avancee}" width="25%" widgetVar="dlgOtherSearch" >
+                <h:panelGrid columns="2" cellpadding="0" cellspacing="0" id="form_param_duree"
+                             style="width: 100%">                                                            
+                    <h:panelGroup>
+                        <p:selectBooleanCheckbox value="#{managedPresences.paramDuree}" valueChangeListener="#{managedPresences.toogleParamDuree}">
+                            <p:ajax event="valueChange" global="false" update="form_param_duree :form_presence_02:tab_recap_presence_list"
+                                    oncomplete="collapseList('presenceEmps')" />
+                        </p:selectBooleanCheckbox>
+                        <span>#{lab.LRH_PP_total_presence}</span>
+                    </h:panelGroup>
+                    <span>&nbsp;</span>
+                    <h:selectOneMenu value="#{managedPresences.operateurDuree}" disabled="#{!managedPresences.paramDuree}">
+                        <f:selectItem itemLabel="#{lab.LC_PFV_egale_a}" itemValue="=" />
+                        <f:selectItem itemLabel="#{lab.LRH_PP_superieur_a}" itemValue="gt" />
+                        <f:selectItem itemLabel="#{lab.LRH_PP_inferieur_a}" itemValue="lt" />
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>
+                    <h:inputText value="#{managedPresences.searchDuree}" disabled="#{!managedPresences.paramDuree}"
+                                 style="width: 100px">
+                        <p:ajax event="blur" listener="#{managedPresences.addParamDuree()}" 
+                                update=":form_presence_02:tab_recap_presence_list" oncomplete="collapseList('presenceEmps')"/>
+                    </h:inputText>
+                    <h:outputText value="#{lab.LRH_PP_debut_journee}:" />
+                    <pe:timePicker value="#{managedPresences.searchTimeDebut}" style="width: 80px">
+                        <p:ajax event="timeSelect" listener="#{managedPresences.addParamHeureDebutFiche}" 
+                                update=":form_presence_02:tab_recap_presence_list" oncomplete="collapseList('presenceEmps')"/>
+                    </pe:timePicker>
+                    <h:outputText value="#{lab.LRH_PP_fin_journee}: " />                   
+                    <pe:timePicker value="#{managedPresences.searchTimeFin}" style="width: 80px">
+                        <p:ajax event="timeSelect" listener="#{managedPresences.addParamHeureFinFiche}" 
+                                update=":form_presence_02:tab_recap_presence_list" oncomplete="collapseList('presenceEmps')"/>
+                    </pe:timePicker>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" enctype="multipart/form-data" id="main-upload-presence">
+            <p:dialog widgetVar="dlgUploadFiles" width="70%" closeOnEscape="true" header="#{lab.LRH_PP_importer_presences}" resizable="false">
+                <h:panelGrid id="blog_fliter_upload_presence" columns="1" style="width: 30%;float: left" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <f:facet name="header">
+                        <h:panelGroup style="float: right">
+                            <span>#{lab.LRH_PP_ajouter_filtre} </span>
+                            <h:selectBooleanCheckbox value="#{managedPresences.filterUpload}">
+                                <p:ajax event="valueChange"  update="blog_fliter_upload_presence"/>
+                            </h:selectBooleanCheckbox>
+                        </h:panelGroup>
+                    </f:facet>
+                    <h:outputText value="#{lab.LCF_PBP_employe}"/>
+                    <h:panelGroup id="employe_upload_presence">
+                        <h:inputText value="#{managedPresences.searchEmployeUpload}" disabled="#{!managedPresences.filterUpload}" style="width: 30%">
+                            <p:ajax event="valueChange" update="employe_upload_presence"  listener="#{managedPresences.searchEmploye(managedPresences.searchEmployeUpload)}"/>
+                        </h:inputText>
+                        <h:outputText value="#{managedPresences.filterEmployeUpload.nom_prenom}" style="font-weight: bold;margin-left: 5px"/>
+                    </h:panelGroup>
+                    <h:panelGroup>
+                        <h:selectBooleanCheckbox value="#{managedPresences.addFilterDateUpload}" disabled="#{!managedPresences.filterUpload}">
+                            <p:ajax event="valueChange"  update="date_filter_upload_presence"/>
+                        </h:selectBooleanCheckbox>
+                        <h:outputText value=" #{lab.L_dates}"/>
+                    </h:panelGroup>
+                    <h:panelGroup id="date_filter_upload_presence">
+                        <p:calendar value="#{managedPresences.filterDateDebutUpload}" disabled="#{!managedPresences.filterUpload or !managedPresences.addFilterDateUpload}"
+                                    pattern="dd-MM-yyyy" navigator="true" size="10"/>
+                        <p:spacer width="5" style="background: black"/>
+                        <p:calendar value="#{managedPresences.filterDateFinUpload}" disabled="#{!managedPresences.filterUpload or !managedPresences.addFilterDateUpload}"
+                                    pattern="dd-MM-yyyy" navigator="true" size="10"/>
+                    </h:panelGroup>
+                    <h:panelGroup>
+                        <h:selectBooleanCheckbox value="#{managedPresences.deleteAllFiche}"/>
+                        <h:outputText value=" #{lab.LRH_PP_effacer_fiche}"/>
+                    </h:panelGroup>
+                    <f:facet name="footer">
+                        <p:fileUpload fileUploadListener="#{managedPresences.handleFileUpload}" mode="advanced" dragDropSupport="false"
+                                      update="pointage-upload" sizeLimit="100000" allowTypes="/(\.|\/)(csv)$/" />                      
+                    </f:facet>
+                </h:panelGrid>
+                <div style="margin-left: 31%">
+                    <p:dataTable value="#{managedPresences.pointagesUpload}" var="upload" rowKey="#{upload.id}" id="pointage-upload" rowIndexVar="idxP"
+                                 rows="15" paginatorAlwaysVisible="false" paginator="true">
+                        <p:column headerText="N°" width="20" style="text-align: center">  
+                            <h:outputText value="#{idxP + 1}"/>                                                      
+                        </p:column>
+                        <p:column width="20" style="text-align: center">      
+                            <p:graphicImage library="img" name="#{upload.upload?'vu.png':'vu_non.png'}" width="17" height="17" />
+                        </p:column>
+                        <p:column headerText="ID" width="50" style="text-align: center">  
+                            <h:outputText value="#{upload.presence.employe.id}"/>                                                      
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}">                                  
+                            <h:outputText value="#{upload.presence.employe.nom_prenom}"/>                                                               
+                        </p:column>
+                        <p:column headerText="#{lab.L_date}" width="100" sortBy="#{upload.presence.dateDebut}" style="text-align: center">                                     
+                            <h:outputText value="#{upload.presence.dateDebut}" converter="DATE" />                                      
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PB_heure}" width="100" sortBy="#{upload.heureEntree}" style="text-align: center">                                     
+                            <h:outputText value="#{upload.heureEntree}" converter="TIME" />                               
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                    <p:commandButton style="float: right;margin-top: -5px" value="#{lab.L_enregistrer}" actionListener="#{managedPresences.saveUploadPointage()}"
+                                     />
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">            
+            <p:dialog header="#{lab.LDB_PCB_liste_employes_actif}" widgetVar="dlgEmploye" width="80%" height="600" closeOnEscape="true" resizable="false" dynamic="true" modal="true">                         
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('uploadEmp');
+                    });
+                </script>
+                <div class="dlg_part_fixe" >
+                    <h:inputText value="#{MEmps.matriculeToUpdate}" >
+                        <p:ajax event="valueChange" listener="#{MEmps.findSimpleEmploye(MEmps.matriculeToUpdate)}" global="false" update="tabEmployes-uploadEmps"/>
+                    </h:inputText>
+                    <div style="float: right" >                        
+                        <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                            <h:selectOneMenu value="#{managedDepartement.agence_}" valueChangeListener="#{MEmps.addSimpleParamAgence}" >
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedDepartement.currentScte.agences}" var="itemA" itemValue="#{itemA.id}" itemLabel="#{itemA.designation}" />
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.LDB_PCB_toutes_societe}" />
+                                <p:ajax event="valueChange" update="tabEmployes-uploadEmps"/>
+                            </h:selectOneMenu>
+                            <p:commandButton actionListener="#{MEmps.pagineSimpleResult(false)}" update="tabEmployes-uploadEmps" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{MEmps.paginator.currentPage} / #{MEmps.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton actionListener="#{MEmps.pagineSimpleResult(true)}" update="tabEmployes-uploadEmps" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{MEmps.changeSimpleMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{MEmps.paginations}"/>
+                                <p:ajax event="valueChange" update="tabEmployes-uploadEmps"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel>                                                               
+                    </div> 
+                </div>
+                <div style="clear: right" ></div>
+                <div class="dlg_part_scroll"  >
+                    <div class="yvs_list_uploadEmp">
+                        <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="idxE" id="tabEmployes-uploadEmps" selectionMode="single">  
+                            <p:ajax event="rowSelect" listener="#{managedPresences.loadViewEmploye}" oncomplete="dlgEmploye.hide()" global="false" 
+                                    update=":main-upload-presence:employe_upload_presence" process="@this"/>
+                            <p:column headerText="N°" width="25">
+                                <h:outputText value="#{idxE+1}" />
+                                <h:graphicImage library="img" name="vu.png" rendered="#{emp.contrat!=null}" width="15" height="15" style="float: right"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                                <h:outputText value="#{emp.nom} #{emp.prenom}" />
+                            </p:column>                        
+                            <p:column headerText="#{lab.LCF_PSL_matricule}" width="80" style="text-align: center">
+                                <h:outputText value="#{emp.matricule}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PRS_contrat}" width="80" style="text-align: center">
+                                <h:outputText value="#{emp.contrat.referenceContrat}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PCB_poste} " width="100">
+                                <h:outputText value="#{emp.posteActif.intitule}" />
+                            </p:column>
+                        </p:dataTable> 
+                    </div>
+                </div>
+                <f:facet name="footer">
+                    <span>&copy;Lymytz 2014</span>                    
+                    <p:selectOneRadio value="#{MEmps.optionSearch}" style="float: right; font-size: 0.8em" 
+                                      valueChangeListener="#{MEmps.loadEmployeWithoutContrat}">
+                        <f:selectItem itemValue="1" itemLabel="#{lab.LRH_PE_tous}" />
+                        <f:selectItem itemValue="2" itemLabel="#{lab.LRH_PC_employe_sans_contrat}" />      
+                        <p:ajax event="valueChange" process="@this" update="tabEmployes-uploadEmps" />
+                    </p:selectOneRadio>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_recap_employe">
+            <p:dialog header="#{lab.LRH_PP_recapitulatif_presence} #{managedPresences.currentEmploye.employe.nom_prenom}" width="90%" dynamic="true" widgetVar="dlgRecapPresence" style="max-height: 600px"
+                      closeOnEscape="true" resizable="false">
+                <p:dataTable value="#{managedTableauBord.recapitulatifs}" var="pres" rowIndexVar="_Idx"
+                             style="max-height: 500px; overflow-y: auto" id="table-recap-period">
+                    <p:column width="30" headerText="N°" style="text-align: center" styleClass="presence_#{pres[1]}">
+                        <span>#{_Idx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_date_presence}" style="text-align: center" styleClass="presence_#{pres[1]}">
+                        <h:outputText value="#{pres[0]}" converter="DATE"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_observation}" styleClass="presence_#{pres[1]}">
+                        <h:outputText value="#{managedPresences.giveMotif(pres[1])}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_heure_debut}" style="text-align: center">
+                        <h:outputText value="#{pres[4]}" converter="TIME"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_heure_fin}" style="text-align: center">
+                        <h:outputText value="#{pres[5]}" converter="TIME"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_duree_pause}" style="text-align: center">
+                        <h:outputText value="#{pres[15]}" converter="TIME"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_duree_service}" style="text-align: right">
+                        <h:outputText value="#{pres[6]}" converter="DN"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_duree_retard}" style="text-align: right">
+                        <h:outputText value="#{pres[14]}" converter="DN"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_total_sup}." style="text-align: right">
+                        <h:outputText value="#{pres[7]}" converter="DN"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_validation}" style="text-align: center">
+                        <h:outputText value="#{pres[8]}"/>
+                    </p:column>
+                </p:dataTable>  
+                <f:facet name="footer">         
+                    <h:panelGroup>
+                        <h:panelGroup>
+                            <p:calendar value="#{managedPresences.debutRecapPeriod}" pattern="dd-MM-yyyy" size="10"/>
+                            <p:spacer width="5" style="background: black"/>
+                            <p:calendar value="#{managedPresences.finRecapPeriod}" pattern="dd-MM-yyyy" size="10"/>                            
+                        </h:panelGroup> 
+                        <p:commandButton icon="ui-icon-gear" type="button" id="action_fp_periode" style="width: 20px; height: 20px;margin-left: 5px"/>
+                        <p:contextMenu for="action_fp_periode" event="click" styleClass="context_menu">
+                            <p:menuitem value="#{lab.LRH_PP_afficher}" icon="ui-icon-refresh" actionListener="#{managedPresences.getPresenceEmploye()}" update="table-recap-period"/>
+                            <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" ajax="false" action="#{managedPresences.callReportPresencePeriode()}"/>
+                        </p:contextMenu>
+                    </h:panelGroup>
+                </f:facet>
+            </p:dialog>           
+            <p:dialog header="#{lab.LRH_PP_recapitulatif_hebdomadaire} #{managedPresences.currentEmploye.employe.nom_prenom}" width="90%" dynamic="true" widgetVar="dlgRecapHebdo" style="max-height: 600px"
+                      closeOnEscape="true" resizable="false">
+                <p:dataTable value="#{managedTableauBord.hebdomadaires}" var="hebd" rowIndexVar="_Idx"
+                             style="max-height: 500px; overflow-y: auto" id="table-recap-hebdo">
+                    <p:column width="30" headerText="N°" style="text-align: center">
+                        <span>#{_Idx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_jour}">
+                        <h:outputText value="#{hebd[0]}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_date}" style="text-align: center">
+                        <h:outputText value="#{hebd[5]}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_presences}" style="text-align: center">
+                        <h:outputText value="#{hebd[4]}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_heure_sup}" style="text-align: center">
+                        <h:outputText value="#{hebd[3]}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_heure_comp}" style="text-align: center">
+                        <h:outputText value="#{hebd[2]}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_appreciation}" style="text-align: center">
+                        <h:outputText value="#{hebd[8]}"/>
+                    </p:column>
+                </p:dataTable>  
+                <f:facet name="footer"> 
+                    <h:panelGroup>
+                        <h:panelGroup>
+                            <p:calendar value="#{managedPresences.debutRecapHebdo}" pattern="dd-MM-yyyy" size="10"/>
+                            <p:spacer width="5" style="background: black"/>
+                            <p:calendar value="#{managedPresences.finRecapHebdo}" pattern="dd-MM-yyyy" size="10"/>                            
+                        </h:panelGroup>  
+                        <p:commandButton icon="ui-icon-gear" type="button" id="action_fp_hebdo" style="width: 20px; height: 20px;margin-left: 5px"/>
+                        <p:contextMenu for="action_fp_hebdo" event="click" styleClass="context_menu">
+                            <p:menuitem value="#{lab.LRH_PP_afficher}" icon="ui-icon-refresh" actionListener="#{managedPresences.getRecapHebdoEmploye()}" update="table-recap-hebdo"/>
+                            <p:menuitem value="#{lab.L_telecharger}"  icon="ui-icon-print" ajax="false" action="#{managedPresences.callReportPresenceHebdo()}"/>
+                        </p:contextMenu>
+                    </h:panelGroup>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PP_liste_tranches_travail}" width="40%" dynamic="true"
+                      widgetVar="dlgTrancheHoraire_" >
+                <p:dataTable value="#{managedPresences.tranchesHoraire}" var="itr" 
+                             selectionMode="single" rowKey="#{itr.id}">
+                    <p:ajax event="rowSelect" listener="#{managedPresences.selectTrancheAndCreateFiche}" oncomplete="dlgTrancheHoraire_.hide()"
+                            update=":form_presence_02:zone_header_fiche_P"/>
+                    <p:column headerText="#{lab.L_reference}" width="100">
+                        #{itr.titre}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_type_j}." width="50" style="text-align: center">
+                        #{itr.typeJournee}
+                    </p:column>
+                    <p:column headerText="#{lab.L_debut}"  width="80" style="text-align: center">
+                        <h:outputText value="#{itr.heureDebut}" converter="TIME" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_fin}"  width="80" style="text-align: center">
+                        <h:outputText value="#{itr.heureFin}" converter="TIME" />
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmDelF" message="#{lab.LRH_PP_text}"
+                             header="#{lab.LRH_PP_supprimer_fiche}" closeOnEscape="true">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedPresences.deleteOtherFicheP()}"
+                                 update=":form_fiche_emps:listeFicheEmp" oncomplete="dlgConfirmDelF.hide()"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" onclick="dlgConfirmDelF.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form_fiche_emps">
+            <p:dialog header="#{lab.LRH_PP_fiches_presence}"  width="70%" closeOnEscape="true"
+                      widgetVar="dlgFicheP" footer="&copy; Lymytz 2014" >
+                <div class="dlg_part_fixe" >
+                    <p:calendar value="#{managedPresences.debutFiche}" pattern="dd-MM-yyyy" size="8"/>
+                    <p:calendar value="#{managedPresences.finFiche}" pattern="dd-MM-yyyy" size="8"/>
+                    <p:commandButton value="#{lab.L_charger}" icon="ui-icon-circle-arrow-e" iconPos="rigth" update="listeFicheEmp"
+                                     actionListener="#{managedPresences.openAllFicheEmps()}"/>
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable value="#{managedPresences.fichesPresences}" var="fp" id="listeFicheEmp"
+                                 rowIndexVar="line_fp" rowKey="#{fp.id}" selectionMode="single" scrollable="true" scrollHeight="500">
+                        <p:ajax event="rowSelect" listener="#{managedPresences.loadDataFicheP}"
+                                update=":form_presence_02:AllPointage_form :form_editF:form_edit_headerP :form_valide_fiche:grid_valid_tv" />
+                        <p:column headerText="N°" width="15">
+                            #{line_fp +1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_debut}" width="100" >
+                            <h:outputText value="#{fp.dateDebut}" converter="DATE"/>&nbsp;
+                            <h:outputText value="#{fp.heureDebut}" converter="TIME"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_fin}" >
+                            <h:outputText value="#{fp.dateFin}" converter="DATE"/>&nbsp;
+                            <h:outputText value="#{fp.heureFin}" converter="TIME"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PP_d_presence}" style="text-align: center">
+                            <h:outputText value="#{fp.totalPresence}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PP_d_supp}" style="text-align: center">
+                            <h:outputText value="#{fp.totalHeureSup}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PM_valide}" width="80" style="text-align: center">
+                            <h:outputText value="#{fp.typeValidation.code}" />
+                        </p:column>
+                        <p:column headerText="" width="20" style="text-align: center">
+                            <p:commandButton icon="ui-icon-trash" style="width: 20px; height: 20px" 
+                                             actionListener="#{managedPresences.openDeleteOtherFicheP(fp)}"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog showEffect="fade" hideEffect="explode" closeOnEscape="true" severity="alert" >
+                <p:commandButton value="#{lab.L_oui}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PP_text1}" 
+                             header="#{lab.LRH_PP_erreur_validation}"
+                             closeOnEscape="true" widgetVar="dlgConfirmChange" >
+                <h:outputFormat value="#{lab.LRH_PP_text2}" />
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedPresences.validHs(true)}" 
+                                 global="false"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-check" type="button" 
+                                 onclick="dlgConfirmChange.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PP_text3}" 
+                             header="#{lab.LRH_PP_erreur_validation}"
+                             closeOnEscape="true" widgetVar="dlgConfirmChange1" >
+                <h:outputFormat value="#{lab.LRH_PP_text4}" />
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedPresences.validHc(true)}" 
+                                 global="false"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-check" type="button" 
+                                 onclick="dlgConfirmChange1.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PP_model_quart}" width="40%" dynamic="true"
+                      widgetVar="dlgTrancheHoraire" >
+                <p:dataTable value="#{managedPresences.tranchesHoraire}" var="itr" 
+                             selectionMode="single" rowKey="#{itr.id}">
+                    <p:ajax event="rowSelect" listener="#{managedPresences.applyNewTypeTranche}" oncomplete="dlgTrancheHoraire.hide()"
+                            update=":form_presence_02:zone_header_fiche_P"/>
+                    <p:column headerText="#{lab.L_reference}" width="100">
+                        #{itr.titre}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PP_type_j}." width="50" style="text-align: center">
+                        #{itr.typeJournee}
+                    </p:column>
+                    <p:column headerText="#{lab.L_debut}"  width="80" style="text-align: center">
+                        <h:outputText value="#{itr.heureDebut}" converter="TIME" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_fin}"  width="80" style="text-align: center">
+                        <h:outputText value="#{itr.heureFin}" converter="TIME" />
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_Typev">
+            <p:dialog header="#{lab.LRH_PP_creer_type_validation}" widgetVar="dlgAddTV" closeOnEscape="true"
+                      resizable="false" width="55%" footer="&copy;Lymytz 2014">  
+                <script type="text/javascript">
+                    $(function() {
+                        collapseForm('presModV');
+                    });
+                </script>
+                <div align="right">
+                    <h:link onclick="collapseForm('presModV');
+                            return false" title="#{lab.LRH_PP_formulaire}" style="display: #{(accesRessource.point_viewFormMode)?'inline':'none'}">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link onclick="collapseList('presModV');
+                            return false" title="#{lab.LRH_PM_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div class="yvs_form_presModV">
+                    <h:panelGrid columns="2" style="width: 95%; margin: auto" styleClass="yvs_table" 
+                                 cellpadding="0" cellspacing="0" id="form_editTV">
+                        <span title="#{lab.LRH_PP_text15} " >#{lab.L_code}</span>
+                        <h:inputText value="#{managedPresences.newTypeV.code}" id="txt_code_validP" title="#{lab.LRH_PP_text15} "/>
+                        <pan>#{lab.L_libelle}</pan>
+                        <h:inputText value="#{managedPresences.newTypeV.libelle}" />
+                        <span>#{lab.LRH_PP_taux_validation} (%)</span>
+                        <h:panelGroup>
+                            <pe:inputNumber value="#{managedPresences.newTypeV.taux}" maxValue="900" minValue="0"
+                                            symbol="%"  symbolPosition="suffix" style="width: 90px"/>
+                            <span>#{lab.LRH_PP_temps_minimal_autoriser}</span>
+                            <pe:inputNumber value="#{managedPresences.newTypeV.tempsMinimal}" maxValue="900" minValue="0"
+                                            symbol="h"  symbolPosition="suffix" style="width: 90px"/>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" style="float: right" update=":form_Typev:table_typeVal form_editTV"
+                                     actionListener="#{managedPresences.addNewTypeV()}" id="df-bt-add-tv"/>
+                    <p:defaultCommand target="df-bt-add-tv" />
+                </div>
+                <div class="yvs_list_presModV">
+                    <p:dataTable value="#{managedPresences.typesValidation}" var="itv" selectionMode="single"
+                                 rowKey="#{itv.id}" rowIndexVar="line_tv" id="table_typeVal">
+                        <p:ajax event="rowSelect" update=":form_Typev:form_editTV" 
+                                oncomplete="collapseForm('presModV')" listener="#{managedPresences.selectionTypeV}" />
+                        <p:column headerText="N°" width="20" style="text-align: center">#{line_tv+1}</p:column>
+                        <p:column headerText="#{lab.L_code}" width="80">#{itv.code}</p:column>
+                        <p:column headerText="#{lab.L_designation}" width="120" >#{itv.libelle}</p:column>
+                        <p:column headerText="#{lab.L_taux}" width="50" style="text-align: left">#{itv.tauxJournee} %</p:column>
+                        <p:column headerText="#{lab.LRH_PP_temps_min}" width="50" style="text-align: left">#{itv.tempsMinimal}</p:column>
+                        <p:column headerText="#{lab.L_actif}" width="20" style="text-align: center">
+                            <h:graphicImage library="img" name="#{(itv.actif)?'yes.png':'no.png'}" />
+                        </p:column>                        
+                        <p:column headerText="" width="20" style="text-align: center">
+                            <p:commandButton icon="ui-icon-trash" style="width: 20px; height: 20px" actionListener="#{managedPresences.deleteTypeV(itv)}"
+                                             update=":form_Typev:table_typeVal" />
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_valide_fiche">
+            <p:dialog width="40%" widgetVar="dlgConfirmValid" modal="true" closeOnEscape="true"
+                      header="#{lab.LRH_PP_valider_fiche_presence}" resizable="false" 
+                      footer="&copy;Lymytz 2014">
+                <script type="text/javascript">
+                    $(function() {
+                        displayChampUpdateHs();
+                        displayChampUpdateMarge();
+                    });
+                </script>
+                <h:panelGrid columns="2" id="grid_valid_tv" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                    <f:facet name="header"> #{lab.LRH_PP_terminer_validation_fiche_pointage}</f:facet>
+                    <span>#{lab.LRH_PP_mode_validation}</span>
+                    <h:selectOneMenu value="#{managedPresences.currentEmploye.typeValidation.id}"
+                                     onchange="openDialog(dlgAddTV, $(this))">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                        <f:selectItems value="#{managedPresences.typesValidation}" var="tv" 
+                                       itemValue="#{tv.id}" itemLabel="#{tv.libelle}" />
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" rendered="#{accesRessource.point_cr_mode_validation}"/>
+                    </h:selectOneMenu>
+                    <span  >#{lab.LRH_PP_marge_approuvee}</span>                       
+                    <pe:timePicker value="#{managedPresences.currentEmploye.margeApprouve}" style="width: 100px"/>
+                    <span  >#{lab.LRH_PP_heure_sup}.</span>                                              
+                    <h:panelGroup>
+                        <pe:inputNumber value="#{managedPresences.currentEmploye.totalHs}" style="width: 100px" >
+                            <p:ajax event="valueChange" global="false" update="txt_add_hs txt_add_hs1"/>
+                        </pe:inputNumber>                        
+                    </h:panelGroup>
+                    <h:panelGroup id="txt_add_hs1">
+                        <h:outputText value="#{lab.LRH_PP_soumettre_a}" rendered="#{managedPresences.currentEmploye.totalHs gt 0}"/>
+                    </h:panelGroup>
+                    <h:panelGroup id="txt_add_hs">                        
+                        <h:selectOneMenu value="#{managedPresences.submitTo}" style="width: 100%" 
+                                         rendered="#{managedPresences.currentEmploye.totalHs gt 0}">
+                            <f:selectItem itemValue="-1" itemLabel="" />
+                            <f:selectItems value="#{managedUser.listUser}" itemValue="#{iu.id}" itemLabel="#{iu.nomUsers}" var="iu" />
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    <f:facet name="footer">
+                        <div style="font-size: 0.9em; color: #333" align="center">
+                            #{lab.LRH_PP_duree_total_service}
+                            <h:outputText value="#{constantes.doubleToTime(managedPresences.currentEmploye.totalPresence)}" converter="TIME" 
+                                          style="font-style: italic; font-weight: bold; color: #333"/>
+                        </div>
+                    </f:facet>
+                </h:panelGrid>                    
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" global="false" onclick="dlgConfirmValid.hide()" style="float: right" />
+                <p:commandButton value="#{lab.LC_PMS_valider}" id="bnt-cnfirm-presence" style="float: right" icon="ui-icon-circle-check"  global="false"
+                                 actionListener="#{managedPresences.valideFiche()}" update=":form_presence_02:img_valid_fiche :form_presence_02:zone_valid_fiche"/>
+                <p:defaultCommand target="bnt-cnfirm-presence" />
+                <f:facet name="footer">
+                    &copy;Lymytz 2014
+                </f:facet>
+            </p:dialog>        
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog  widgetVar="dlgConfirmInValid"  closeOnEscape="true"
+                              header="#{lab.LRH_PP_invalider_fiche_presence}"  message="#{lab.LRH_PP_text5}"
+                              >                
+                <p:commandButton value="#{lab.L_oui}" oncomplete="dlgConfirmInValid.hide();" process="@this" 
+                                 icon="ui-icon-circle-check" actionListener="#{managedPresences.inValideFiche()}" />
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmInValid.hide();" type="button" icon="ui-icon-circle-close"/>
+            </p:confirmDialog>        
+        </h:form>                     
+        <h:form prependId="false">
+            <p:dialog  widgetVar="dlgConfirmInValidHs"  closeOnEscape="true" 
+                       header="#{lab.LRH_PP_valider_heure_sup}."  width="40%" modal="true">                
+                <div style="font-size: 0.9em">
+                    <h:outputText value="#{lab.LRH_PP_text6}" />
+                    <br />
+                    <h:panelGrid columns="2" id="zone_edit_valid_hs">
+                        <span>#{lab.LRH_PP_mode_validation}</span>
+                        <h:selectOneMenu value="#{managedPresences.currentEmploye.typeValidation.id}">
+                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                            <f:selectItems value="#{managedPresences.typesValidation}" var="tv" 
+                                           itemValue="#{tv.id}" itemLabel="#{tv.libelle}" />
+                        </h:selectOneMenu>
+                        <span>#{lab.LRH_PP_marge_approuvee}</span>                       
+                        <pe:timePicker value="#{managedPresences.currentEmploye.margeApprouve}" style="width: 100px"/>
+                        <span >#{lab.LRH_PP_heure_sup}.</span>                                              
+                        <pe:inputNumber value="#{managedPresences.currentEmploye.totalHs}" style="width: 100px" >
+                            <p:ajax event="valueChange" global="false" />
+                        </pe:inputNumber>
+                    </h:panelGrid>
+                </div>
+                <f:facet name="footer">
+                    <div align="center">
+                        <p:commandButton value="#{lab.L_oui}" oncomplete="dlgConfirmInValidHs.hide();" process="@this" 
+                                         icon="ui-icon-circle-check" actionListener="#{managedPresences.confirmValidHs()}" />
+                        <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmInValidHs.hide();" type="button" icon="ui-icon-circle-close"/>
+                    </div>                    
+                    <span style="float: left; font-size: 0.7em">&copy; Lymytz 2014</span>
+                </f:facet>
+            </p:dialog>        
+        </h:form>                     
+        <h:form prependId="false" id="form-presence-01">                             
+            <p:dialog header="#{lab.LRH_PP_enregistrer_pointage}" widgetVar="dlgvalidpointage" width="40%" 
+                      closeOnEscape="true" resizable="false" modal="true" footer="&copy;Lymytz 2014" >                                
+                <h:panelGrid columns="4" style="background: white; width: 100%" styleClass="yvs_table" cellpadding="0" 
+                             cellspacing="0" id="form_saisieM">
+                    <f:facet name="header">
+                        <span>#{lab.LRH_PP_fiche_du}</span><br />
+                        <h:outputText value="#{managedPresences.currentEmploye.debut}" converter="DATE" />&nbsp;
+                        <h:outputText value="#{managedPresences.currentEmploye.heureDebut}" converter="TIME" />
+                        #{lab.L_au} <h:outputText value="#{managedPresences.currentEmploye.fin}" converter="DATE" />&nbsp;
+                        <h:outputText value="#{managedPresences.currentEmploye.heureFin}" converter="TIME" />
+                    </f:facet>
+                    <p:outputLabel value="#{lab.LDB_PA_entree}" rendered="false" />
+                    <pe:timePicker value="#{managedPresences.pointageM.entree}"  rendered="false"   />
+                    <p:outputLabel value="#{lab.LRH_PP_pointage}:" />
+                    <p:calendar value="#{managedPresences.pointageM.dateDebut}" pattern="dd-MM-yyyy" size="8" navigator="true"/>
+                    <pe:timePicker value="#{managedPresences.pointageM.sortie}" style="width: 100%"/>
+                    <p:commandButton value="#{lab.LRH_PP_inserer}" icon="ui-icon-circle-plus" update=":form_presence_02:zone_header_fiche_P"
+                                     actionListener="#{managedPresences.insertionManuelle()}" />
+                </h:panelGrid>                                  
+            </p:dialog> 
+        </h:form>
+        <h:form prependId="false" id="form_editF">
+            <p:dialog header="#{lab.LRH_PP_modifier_temps}" footer="#{lab_Lcopy}" width="40%" modal="true"
+                      closeOnEscape="true" widgetVar="editFicheP" resizable="false">
+                <h:panelGrid columns="4" id="form_edit_headerP">
+                    <span>#{lab.L_heure_debut}</span>
+                    <h:panelGroup >
+                        <p:calendar value="#{managedPresences.currentEmploye.debut}" pattern="dd-MM-yyyy" size="8"/>
+                        <p:calendar value="#{managedPresences.currentEmploye.heureDebut}" pattern="HH:mm" size="8"/>
+                    </h:panelGroup>
+                    <span>#{lab.L_heure_fin}</span>
+                    <h:panelGroup>
+                        <p:calendar value="#{managedPresences.currentEmploye.fin}" pattern="dd-MM-yyyy" size="8"/>
+                        <p:calendar value="#{managedPresences.currentEmploye.heureFin}" pattern="HH:mm" size="8"/>
+                    </h:panelGroup>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_modifier}" icon="ui-icon-refresh" style="float: right" 
+                                 actionListener="#{managedPresences.updateFichePresence()}"
+                                 update=":form_presence_02:AllPointage_form"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.L_supprimer} !" message="#{lab.LRH_PP_text7}" widgetVar="dlgDeleteFicheP"
+                             closeOnEscape="true" >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-check" oncomplete="dlgDeleteFicheP.hide()"  update=":form_presence_02:zone_header_fiche_P"
+                                 actionListener="#{managedPresences.deleteFichePresence()}"/>
+                <p:commandButton type="button" global="false" onclick="dlgDeleteFicheP.hide()" icon="ui-icon-circle-close" value="#{lab.L_non}" />
+
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form_presence_02" > 
+            <div class="part_fix" >
+                <p:outputPanel autoUpdate="true">
+                    <h:outputText value="#{managedPresences.currentEmploye.id}" styleClass="style_identifiant" id="Date_day"/>                         
+                </p:outputPanel>
+                <p:calendar value="#{managedPresences.dateFiche}"  pattern="dd-MM-yyyy" size="8" navigator="true"
+                            id="txt_dat_find" style="float: left; margin-top: -0px; margin-left: 1px; font-size: 0.8em">
+                    <p:ajax event="dateSelect" listener="#{managedPresences.loadFicheDate}"
+                            update="Date_day AllPointage_form :form_editF:form_edit_headerP"/> 
+                </p:calendar>
+                <h:panelGroup rendered="false">
+                    <p:commandButton actionListener="#{managedPresences.loadFichePresenceAllEmps()}" value="#{lab.LRH_PP_recap_journalier}" icon="ui-icon-note" rendered="#{accesRessource.point_viewRecapPointage}"
+                                     oncomplete="collapseList('presenceEmps')" update=":form_presence_02:tab_recap_presence_list" style="float: left; margin-left: 10%;font-size: 0.7em;"/>
+                    <p:commandLink style="display: inline-block; margin-left: 2%; padding: 4px; border-radius: 15px; 
+                                   background: #0099ff; text-decoration: none" update=":form_presence_02:tab_recap_presence_list" actionListener="#{managedPresences.addParamNotification()}" oncomplete="collapseList('presenceEmps')">
+                        <h:outputText value="#{managedPresences.countNotif}" style="color: #ffffff; font-weight: bold; font-size: 0.9em"/>
+                    </p:commandLink>
+                </h:panelGroup>
+                <div style="float: right">                                                           
+                    <div style="float: right">
+                        <h:link onclick="collapseForm('presenceEmps');
+                                hideHistorique();
+                                return false" title="#{lab.LRH_PP_vue_employe}" style="display: #{(accesRessource.point_viewFormMode)?'inline':'none'}">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>    
+                        <h:link onclick="collapseList('presenceEmps');
+                                hideHistorique();
+                                return false" title="#{lab.LRH_PP_vue_employe}" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>    
+                        <h:link  onclick="collapseGrid('presenceEmps');
+                                return false;" title="#{lab.LRH_PP_vue_recapitulative}" style="display: none">
+                            <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>     
+                    </div>                                                           
+                    <h:panelGroup style="float: right">
+                        <p:commandButton actionListener="#{managedPresences.parcoursInAllResult(false)}" update="txt_parc_linear_presenceEmps tab_recap_presence_list AllPointage_form :form_editF:form_edit_headerP :form_valide_fiche:grid_valid_tv" icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('presenceEmps')"/>
+                        <h:inputText value="#{managedPresences.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_presenceEmps"/>
+                        <p:outputPanel autoUpdate="true">                        
+                            <p:outputLabel value="/#{managedPresences.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedPresences.parcoursInAllResult(true)}" update="txt_parc_linear_presenceEmps tab_recap_presence_list AllPointage_form :form_editF:form_edit_headerP :form_valide_fiche:grid_valid_tv" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('presenceEmps')"/>
+                    </h:panelGroup>               
+
+                </div>
+                <div style="clear: both"></div>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_presenceEmps">
+                    <p:watermark for="zone_find_emps_P" value="#{lab.LRH_PP_chercher_employer}..."  />
+                    <div style="margin: auto; width: 98%;background: #CCCCCC " title="#{lab.LRH_PP_trouver_employer}" >
+                        <p:inputText value="#{managedPresences.codeEmploye}" style="width: 100%" styleClass="hide_date_" 
+                                     id="zone_find_emps_P">
+                            <p:ajax event="valueChange" listener="#{managedPresences.findOneEmploye()}" process="@this" update="AllPointage_form :form_editF:form_edit_headerP :form_valide_fiche:grid_valid_tv" />                            
+                        </p:inputText>
+                    </div>    
+                    <p:contextMenu for="img_user_presence">
+                        <p:menuitem value="#{lab.LRH_PP_type_tranche}" icon="ui-icon-arrowthickstop-1-e" onclick="dlgTrancheHoraire.show()" global="false"/>
+                        <p:menuitem value="#{lab.LRH_PP_mes_fiches}" icon="ui-icon-arrowthick-1-ne" actionListener="#{managedPresences.openFicheEmploye()}" 
+                                    update=":form_fiche_emps:listeFicheEmp"/>
+                        <p:menuitem value="#{lab.LRH_PP_inserer_pointage}" icon="ui-icon-clock" onclick="dlgvalidpointage.show()" global="false"/>
+                        <p:menuitem value="#{lab.LRH_PP_rapport_hebdo}." icon="ui-icon-calendar" oncomplete="dlgRecapHebdo.show()"  rendered="false"
+                                    actionListener="#{managedPresences.loadRecapHebdoEmploye()}" update=":main_recap_employe"/>
+                        <p:menuitem value="#{lab.LRH_PP_rap_periodique}" icon="ui-icon-calendar" oncomplete="dlgRecapPresence.show()" 
+                                    actionListener="#{managedPresences.loadPresenceEmploye()}" update=":main_recap_employe"/>
+                        <p:menuitem value="#{lab.LRH_PP_modifier_fiche}" icon="ui-icon-refresh" onclick="editFicheP.show()" global="false" rendered="#{accesRessource.point_update_fiche_presence}"/>
+                        <p:menuitem value="#{lab.LRH_PP_supprimer_fiche}" icon="ui-icon-circle-close" onclick="dlgDeleteFicheP.show()"  global="false" rendered="#{accesRessource.point_delete_fiche_presence}"/>
+                    </p:contextMenu>                    
+                    <h:panelGrid columns="1" style="width: 98%; margin: auto; clear: both" id="AllPointage_form"
+                                 rendered="#{accesRessource.point_viewFormMode}" styleClass="yvs_table" cellpadding="0" cellspacing="0">                             
+                        <h:panelGrid columns="3" style="float: left; width: 100%" styleClass="yvs_nostyle">
+                            <h:panelGroup >
+                                <p:commandLink title="#{lab.LRH_PP_pointer_sortie}"
+                                               actionListener="#{managedPresences.addLinePointageEmps('S')}">
+                                    <h:graphicImage library="icones" name="out.png" style="width: 15px; height: 15px" />
+                                </p:commandLink>
+                                <p:commandLink title="#{lab.LRH_PP_pointer_entree}" 
+                                               actionListener="#{managedPresences.addLinePointageEmps('E')}">
+                                    <h:graphicImage library="icones" name="in.png" style="width: 15px; height: 15px" />
+                                </p:commandLink> 
+                                <p:commandButton icon="ui-icon-clock" title="#{lab.LRH_PP_inserer_pointage_manuel}"
+                                                 style="width: 22px; height: 22px" type="button" onclick="dlgvalidpointage.show()" />
+                            </h:panelGroup>
+                            <h:panelGroup id="img_valid_fiche">
+                                <h:graphicImage library="icones" name="bien.png" style="margin-left: 60%" width="30" height="30" rendered="#{managedPresences.currentEmploye.valider}"/> 
+                            </h:panelGroup>
+                            <h:panelGrid columns="2" style="float: right" styleClass="yvs_nostyle" id="zone_valid_fiche">
+                                <p:outputLabel value="#{lab.LRH_PP_valider_fiche_de} :#{managedPresences.currentEmploye.employe.nom} #{managedPresences.currentEmploye.employe.prenom}" />
+                                <h:selectBooleanCheckbox value="#{managedPresences.currentEmploye.valider}" valueChangeListener="#{managedPresences.toogleOpenValidFiche}" >
+                                    <p:ajax event="valueChange" global="false"/>
+                                </h:selectBooleanCheckbox>
+                            </h:panelGrid>
+                        </h:panelGrid>                        
+                        <h:panelGroup>
+                            <h:panelGrid columns="2" style="float: left; font-size: 1em; font-style: italic; font-weight: bold; " styleClass="yvs_table"
+                                         cellpadding="0" cellspacing="0" id="zone_header_fiche_P">
+                                <span>#{lab.LRH_PP_feuille_presence_du}: </span>
+                                <h:outputText value="#{managedPresences.currentEmploye.debut}" converter="DTL" style="color: #003333"/>
+                                <span>#{lab.LDB_PC_periode}</span>                                
+                                <h:panelGrid columns="3" cellpadding="0" cellspacing="0" style="width: 100%" styleClass="yvs_table">
+                                    <h:outputText value="#{managedPresences.currentEmploye.employe.contrat.typeTranche}" /> 
+                                    <h:panelGroup>
+                                        <h:outputText value="#{managedPresences.currentEmploye.heureDebut}" converter="TIME" style="color: #003333"/>
+                                        -.-
+                                        <h:outputText value="#{managedPresences.currentEmploye.heureFin}" converter="TIME" style="color: #003333"/>
+                                    </h:panelGroup>
+                                    <p:commandButton icon="ui-icon-pencil" title="#{lab.LRH_PPT_modifier_tranche}" actionListener="#{managedPresences.openListTrancheToChange()}"/>
+                                </h:panelGrid>
+                                <h:outputText value="#{(managedPresences.currentEmploye.valider)?lab.LC_PA_valide_par:''}" 
+                                              />
+                                <h:outputText value="#{(managedPresences.currentEmploye.valider)?managedPresences.currentEmploye.auteur:''}" 
+                                              style="font-size: 0.9em; color: #003333"/>
+                            </h:panelGrid>
+                            <h:panelGrid columns="8" style="float: right" id="grid-btn-presence" cellpadding="10" cellspacing="10" styleClass="yvs_nostyle_without_padding">
+                                <p:commandLink title="#{lab.LC_PCV_valider}"  rendered="#{managedPresences.displayBtnvalid}" 
+                                               actionListener="#{managedPresences.validePointage()}" update="AllPointage-tab-e form_recap_dureep">
+                                    <h:graphicImage library="img/icones" name="vu.png" width="25" height="25 "/>
+                                    <!--<p:confirm header="Valider le pointage!" message="Confirmez-vous la validation de ce pointage?" />-->
+                                </p:commandLink>
+                                <p:commandLink title="#{lab.LRH_PP_compensation}" rendered="#{managedPresences.displayBtnCompens}" 
+                                               actionListener="#{managedPresences.validHc(true)}">                                        
+                                    <h:graphicImage library="icones" name="heure_sup.png" width="35" height="35 "/> 
+                                </p:commandLink>
+                                <p:commandLink title="#{lab.LRH_PP_heure_supplementaire}" 
+                                               rendered="#{managedPresences.displayBtnCompens}" actionListener="#{managedPresences.validHs(true)}"
+                                               update="form_recap_dureep">
+                                    <h:graphicImage library="icones" name="heure_compens_.png" width="25" height="25 "/> 
+                                </p:commandLink>
+                                <p:commandLink title="#{lab.LRH_PP_invalider_pointage}" update="AllPointage-tab-e form_recap_dureep"
+                                               rendered="#{!managedPresences.displayBtnvalid}" actionListener="#{managedPresences.inValiderPointage()}"
+                                               >
+                                    <h:graphicImage library="img/icones" name="cancel.png" width="25" height="25 "/> 
+                                </p:commandLink>
+                                <h:panelGroup>
+                                    <p:commandButton icon="ui-icon-circle-triangle-w" actionListener="#{managedPresences.navigue(-1)}" update="AllPointage_form :form_editF:form_edit_headerP :form_valide_fiche:grid_valid_tv" 
+                                                     />
+                                    <p:outputLabel value="#{managedPresences.currentPage}/#{MEmps.countAllEmploye(managedPresences.idDepartementFiter)}" id="chp_paginEmpsPres" />
+                                    <p:commandButton icon="ui-icon-circle-triangle-e" actionListener="#{managedPresences.navigue(1)}" update="AllPointage_form :form_editF:form_edit_headerP :form_valide_fiche:grid_valid_tv" 
+                                                     />
+                                </h:panelGroup>
+                                <p:inplace label="#{lab.LRH_PP_aller_page}..." style="border-radius: 8px; background: #99ccff; padding: 3px; margin-left: 2px">
+                                    <pe:inputNumber value="#{managedPresences.numberPage}" style="width: 50px" decimalPlaces="0" styleClass="hide_date_" >
+                                        <p:ajax event="valueChange" listener="#{managedPresences.goTo(managedPresences.numberPage)}" update="AllPointage_form :form_editF:form_edit_headerP" />
+                                    </pe:inputNumber>
+                                </p:inplace>
+                            </h:panelGrid>
+                        </h:panelGroup>         
+                        <h:outputText value="#{managedPresences.currentEmploye.motifAbsence}" rendered="#{managedPresences.currentEmploye.requisit}" style="width: 100%; background: #ccffcc; display: inline-block; text-align: center; font-weight: bold"/>
+                        <h:panelGrid columns="2" style="width: 100%; margin: auto" id="AllPointage-tab1-e" styleClass="yvs_table"
+                                     cellpadding="0" cellspacing="0">                            
+                            <f:facet name="header" >
+                                <div style="width: 100%" class="prensent_#{managedPresences.currentEmploye.requisit}">
+                                    <p:graphicImage library="lymytz/documents/docEmps/perso/photo" id="img_user_presence" ondblclick="dlgvalidpointage.show()"
+                                                    name="#{managedPlaning.photoEmployes(managedPresences.currentEmploye.employe)}" 
+                                                    style="max-height: 100px; width: auto"/>
+                                </div>
+                            </f:facet>                            
+                            <span>#{lab.LDB_PD_matricule}</span>
+                            <p:outputLabel value="#{managedPresences.currentEmploye.employe.matricule}"
+                                           style="font-size: 1.1em; font-weight: bold"/>
+                            <span>#{lab.L_nom_prenom}</span>
+                            <p:outputLabel value="#{managedPresences.currentEmploye.employe.nom}  #{managedPresences.currentEmploye.employe.prenom}"
+                                           style="font-size: 1.1em; font-weight: bold"/>
+                            <span>#{lab.LDB_PCB_poste}</span>
+                            <p:outputLabel value="#{managedPresences.currentEmploye.employe.posteActif.intitule}" 
+                                           style="font-size: 1.1em; font-weight: bold"/>
+                            <span>#{lab.LRH_PP_temps}</span>
+                            <h:panelGrid columns="12" style="width: 100%" styleClass="yvs_nostyle" id="form_recap_dureep">
+                                <span>#{lab.LRH_PP_presence}</span>
+                                <h:outputText value="#{(managedPresences.currentEmploye.requisit2)?managedPresences.currentEmploye.motifAbsence:managedPresences.currentEmploye.tpresence}"  
+                                              styleClass="texte_abs_#{managedPresences.currentEmploye.requisit}"
+                                              style="font-size: 1.1em; font-weight: bold"/>                                          
+                                <span>#{lab.LRH_PP_pause} </span>
+                                <h:outputText value="#{managedPresences.currentEmploye.pause}" style="font-size: 1.1em; font-weight: bold" converter="TIME"/>
+                                <span>#{lab.LRH_PP_heure_sup}.: </span>
+                                <h:outputText value="#{managedPresences.currentEmploye.ths}" style="font-size: 1.1em; font-weight: bold"/>
+                                <span>#{lab.LRH_PP_compensation} </span>
+                                <h:outputText value="#{managedPresences.currentEmploye.thc}" style="font-size: 1.1em; font-weight: bold"/>
+                                <span>#{lab.LRH_PP_marge} </span>
+                                <h:outputText value="#{managedPresences.currentEmploye.margeApprouve}" style="font-size: 1.1em; font-weight: bold" converter="TIME"/>
+                                <span>#{lab.LRH_PP_retard}:</span>
+                                <h:outputText value="#{managedPresences.currentEmploye.tretards}" style="font-size: 1.1em; font-weight: bold" />
+                            </h:panelGrid>
+                        </h:panelGrid>
+                        <p:dataTable value="#{managedPresences.currentEmploye.pointages}"  var="poin_" rowKey="#{poin_.id}" 
+                                     selectionMode="single" id="AllPointage-tab-e" >
+                            <p:ajax event="rowSelect" listener="#{managedPresences.selectLinePointage}" 
+                                    update=":form_presence_02:grid-btn-presence" global="false" process="@this"  />                           
+                            <p:column headerText="#{lab.LDB_PA_entree}"  styleClass="#{poin_.generateur}_style #{poin_.valider}_style transient_#{poin_.lineTransient}"
+                                      width="80">  
+                                <h:outputText value="#{poin_.entree}" converter="TIME" />
+                                <h:outputText value="#{poin_.heurePonitageIn}" converter="DATESMALL"
+                                              style="font-size: 0.7em; font-style: italic; float: right; margin-top: 10px; color: #333"/>                                                         
+                            </p:column>
+                            <p:column headerText="#{lab.L_par}"  styleClass="#{poin_.generateur}_style #{poin_.valider}_style transient_#{poin_.lineTransient}" 
+                                      style="text-align: center" width="100">                                  
+                                <h:outputText value="#{poin_.operateurIn.nomUsers}" style="font-size: 0.8em" />                                                               
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PA_sortie}"  styleClass="#{poin_.valider}_style transient_#{poin_.lineTransient}" width="80">                                     
+                                <h:outputText value="#{poin_.sortie}" converter="TIME" />
+                                <h:outputText value="#{poin_.heurePointageOut}" converter="DATESMALL" 
+                                              style="font-size: 0.7em; font-style: italic;float: right; margin-top: 10px; color: #333" />                                        
+                            </p:column>
+                            <p:column headerText="#{lab.L_par}"  styleClass="#{poin_.generateur}_style #{poin_.valider}_style transient_#{poin_.lineTransient}" style="text-align: center"
+                                      width="100">                                  
+                                <h:outputText value="#{poin_.operateurOut.nomUsers}" style="font-size: 0.8em" />                                                               
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PA_motif}"  styleClass="#{poin_.valider}_style transient_#{poin_.lineTransient}"
+                                      width="120">
+                                <p:outputLabel value="#{poin_.motif}" />
+                            </p:column>
+                            <p:column styleClass="#{poin_.generateur}_style #{poin_.valider}_style transient_#{poin_.lineTransient}" width="30" style="text-align: center">
+                                <p:commandLink rendered="#{!poin_.lineTransient}" disabled="#{!poin_.valider}" actionListener="#{managedPresences.invalideLine(poin)}" title="#{(poin_.valider)?'Cliquer pour invalider la ligne':'Cliquer pour valider la ligne'}">
+                                    <h:graphicImage  library="img" name="#{(poin_.valider)?'vu.png':'vu_non.png'}"  width="25" height="25"/>
+                                </p:commandLink>
+                            </p:column>
+                            <p:column width="25" headerText="mode" styleClass="transient_#{poin_.lineTransient}" style="text-align: center">
+                                <h:graphicImage  library="img/icones" name="#{(poin_.pointageAuto)?'chrono.png':'mail_contact.png'}" width="17" height="17" />
+                            </p:column>                                                           
+                            <p:column width="19" style="text-align: center">
+                                <p:contextMenu for="btn-pointage-option" event="left click">
+                                    <p:menuitem value="#{lab.LRH_PP_deplacer_entre_vers}" title="#{lab.LRH_PP_deplacer_pointages_vers_autre_fiche}" icon="ui-icon-transferthick-e-w"
+                                                actionListener="#{managedPresences.loadFichesToMove(poin_,true)}"/>
+                                    <p:menuitem value="#{lab.LRH_PP_deplacer_sortie_vers}" title="#{lab.LRH_PP_deplacer_pointages_vers_autre_fiche}" icon="ui-icon-transferthick-e-w"
+                                                actionListener="#{managedPresences.loadFichesToMove(poin_,false)}"/>
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_supprimer}" rendered="#{!poin_.lineTransient}" icon="ui-icon-trash" actionListener="#{managedPresences.deleteLine(poin_)}"  />
+                                </p:contextMenu>                                
+                                <p:commandButton id="btn-pointage-option" icon="ui-icon-gear" type="button" styleClass="button_gear"/>
+                            </p:column>
+                        </p:dataTable>
+                    </h:panelGrid>
+                </div>
+                <div class="yvs_list_presenceEmps">
+                    <h:inputHidden id="input_hide_presenceEmps" value="#{managedPresences.tabIds}"/>
+                    <p:dataTable value="#{managedPresences.fichesPresences}" var="iirecap"
+                                 id="tab_recap_presence_list" rowIndexVar="line_p" widgetVar="tabRecapPresence" 
+                                 rowKey="#{iirecap.id}" selectionMode="single" >   
+                        <p:ajax event="rowSelect" listener="#{managedPresences.loadDataFicheP}" oncomplete="collapseForm('presenceEmps')"
+                                update=":form_presence_02:AllPointage_form :form_editF:form_edit_headerP :form_valide_fiche:grid_valid_tv"  />
+                        <p:column headerText="N°" width="15" styleClass="line_valide_#{iirecap.valider}" >
+                            <h:graphicImage library="img" name="pointe.png" rendered="#{iirecap.id eq managedPresences.currentEmploye.id}" width="12" height="12"/>
+                            <h:outputText value="#{line_p+1}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.LDB_PD_matricule}" width="50" style="text-align: center" >
+                            <h:outputText value="#{iirecap.employe.matricule}" />
+                        </p:column> 
+                        <p:column width="250" >
+                            <f:facet name="header">
+                                #{lab.LCF_PBP_employe}
+                                <p:selectBooleanCheckbox value="#{managedPresences.displayPhotos}" itemLabel="#{lab.LRH_PP_afficher_photo}" style="font-size: 0.7em; float: right">
+                                    <p:ajax event="valueChange" update="tab_recap_presence_list"/>
+                                </p:selectBooleanCheckbox>
+                            </f:facet>
+                            <p:graphicImage library="lymytz/documents/docEmps/perso/photo"  id="img_presence_emps_"
+                                            name="#{(iirecap.employe.photos==null)?'user1.png':iirecap.employe.photos}" 
+                                            style="max-height: 50px; max-width: 50px; float: left; cursor: pointer" rendered="#{managedPresences.displayPhotos}"/>                        
+                            #{iirecap.employe.nom} #{iirecap.employe.prenom} <br />
+                            <p:contextMenu for="img_presence_emps_" event="click">
+                                <p:menuitem value="#{lab.LRH_PP_rapport_hebdo}" icon="ui-icon-calendar" oncomplete="dlgRecapHebdo.show()" rendered="#{accesRessource.point_print_rapp_hebdo}" 
+                                            actionListener="#{managedPresences.loadRecapHebdoEmploye(iirecap)}" update=":main_recap_employe"/>
+                                <p:menuitem value="#{lab.LRH_PP_rap_periodique}" icon="ui-icon-calendar" oncomplete="dlgRecapPresence.show()" rendered="#{accesRessource.point_print_rappport_periodique}"
+                                            actionListener="#{managedPresences.loadPresenceEmploye(iirecap)}" update=":main_recap_employe"/>
+                            </p:contextMenu>
+                        </p:column>              
+                        <p:column headerText="#{lab.LRH_PP_duree_service}" width="50" styleClass="line_valide_#{iirecap.valider}" >
+                            <h:outputText value="#{managedPresences.giveTime(iirecap.totalPresence)}" />
+                            <h:outputText value="#{iirecap.pointages.size()}" styleClass="numero" style="float: right; font-size: 0.7em; padding: 1px !important; height: 15px; width: 15px"/>
+                        </p:column> 
+                        <p:column headerText="#{lab.LRH_PP_duree_abs}." width="50" styleClass="line_valide_#{iirecap.valider}">
+
+                        </p:column> 
+                        <p:column headerText="#{lab.LRH_PP_h_sup}." width="50" styleClass="line_valide_#{iirecap.valider}">
+                            <h:outputText value="#{managedPresences.giveTime(iirecap.totalHeureSup)}" />
+                            <h:graphicImage library="img" name="#{iirecap.validerHs?'vu.png':'vu_non.png'}" rendered="#{iirecap.totalHeureSup gt 0}" width="15" height="15" style="float: right"/>
+                        </p:column> 
+                        <p:column headerText="#{lab.LRH_PP_h_comps}." width="50" styleClass="line_valide_#{iirecap.valider}">
+                            <h:outputText value="#{managedPresences.giveTime(iirecap.totalHeureCompensation)}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.L_date}" width="70" styleClass="line_valide_#{iirecap.valider}">
+                            <h:outputText value="#{iirecap.dateDebut}" converter="DATE"/>                            
+                        </p:column> 
+                        <p:column headerText="#{lab.LRH_PP_taux_validation}" width="50" styleClass="line_valide_#{iirecap.valider}" style="text-align: left; vertical-align: middle">
+                            <h:outputText value="#{iirecap.typeValidation.tauxJournee}" converter="DN"/>
+                            <h:outputText value="#{(iirecap.typeValidation.tauxJournee!=null)?'%':''}"/>
+                            <h:outputText value=" (#{lab.L_par} #{iirecap.author.users.nomUsers})" rendered="#{iirecap.valider}" style="font-size: 0.8em; color: #003333; float: right"/>
+                        </p:column>
+                        <p:column headerText="" width="20" style="text-align: center;" rendered="#{managedPresences.paramMaintenance}">
+                            <p:commandButton icon="ui-icon-circle-minus" actionListener="#{managedPresences.excludeElement(iirecap)}" update=":form_presence_02:tab_recap_presence_list" style="width: 20px; height: 20px"/>
+                        </p:column>
+                        <p:column width="25" style="text-align: center" >
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_presenceEmps" value="false"
+                                                         onclick="selectionAllLineTab(#{managedPresences.fichesPresences.size()}, 'presenceEmps')">
+                                </h:selectBooleanCheckbox>
+                            </f:facet>
+                            <h:selectBooleanCheckbox  value="#{iirecap.supplementaire}" styleClass="chek_line_presenceEmps" 
+                                                      onclick="selectionLineTab(#{line_p}, 'presenceEmps')">
+                            </h:selectBooleanCheckbox>
+                        </p:column>
+                        <p:column headerText="" width="20" style="text-align: center;" >
+                            <f:facet name="header">
+                                <p:contextMenu for="action_head_fp" event="click" styleClass="context_menu">
+                                    <p:menuitem value="#{lab.LC_PMS_valider}" icon="ui-icon-circle-check" global="false" 
+                                                actionListener="#{managedPresences.openValidFiche(true)}" />
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" type="button" id="action_head_fp" style="width: 20px; height: 20px"/>
+                            </f:facet>
+                            <p:contextMenu for="action_fp_" event="click" styleClass="context_menu">
+                                <p:menuitem value="#{lab.LRH_PP_rapport_hebdo}." icon="ui-icon-calendar" oncomplete="dlgRecapHebdo.show()" rendered="false" 
+                                            actionListener="#{managedPresences.loadRecapHebdoEmploye(iirecap)}" update=":main_recap_employe"/>
+                                <p:menuitem value="#{lab.LRH_PP_rap_periodique}" icon="ui-icon-calendar" oncomplete="dlgRecapPresence.show()" rendered="#{accesRessource.point_print_rappport_periodique}"
+                                            actionListener="#{managedPresences.loadPresenceEmploye(iirecap)}" update=":main_recap_employe"/>
+                                <p:menuitem value="#{lab.LRH_PP_valide_hs}"  icon="ui-icon-circle-check"  rendered="#{iirecap.validerHs==false and iirecap.totalHeureSup gt 0}" actionListener="#{managedPresences.openToValidHs(iirecap)}"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" type="button" id="action_fp_" style="width: 20px; height: 20px"/>
+                        </p:column>
+                    </p:dataTable>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block" >
+                        <p:commandButton actionListener="#{managedPresences.pagineData(false)}" update="tab_recap_presence_list" icon="ui-icon-circle-triangle-w"  disabled="#{managedPresences.paginator.disPrev}"
+                                         />
+                        <p:outputPanel >
+                            <p:inplace label="#{managedPresences.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedPresences.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="valueChange" listener="#{managedPresences.gotoPagePaginator()}" update="tab_recap_presence_list"/>
+                                </pe:inputNumber>
+                            </p:inplace>
+                            <p:outputLabel value="/#{managedPresences.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton action="#{managedPresences.pagineData(true)}" update="tab_recap_presence_list" icon="ui-icon-circle-triangle-e"  disabled="#{managedPresences.paginator.disNext}"
+                                         />
+                        <p:selectOneMenu value="#{managedPresences.imax}" label="#{lab.L_nombre_max_resultat}" style="float: right; font-size: 0.9em; width: 50px" 
+                                         valueChangeListener="#{managedPresences._choosePaginator}">
+                            <f:selectItems value="#{managedPresences.paginations}" />
+                            <p:ajax event="valueChange"  update="tab_recap_presence_list"  />
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>               
+                <div class="yvs_grid_presenceEmps">
+                    <p:dataTable id="form_presence_tb" value="#{managedTableauBord.presences}" var="pres" rowIndexVar="_Idx"
+                                 style="max-height: 85%; overflow-y: auto">
+                        <p:column width="30" headerText="N°" style="text-align: center">
+                            <span>#{_Idx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PB_employe}" filterBy="#{pres[0]}">
+                            <span>#{pres[0]}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PCB_poste}">
+                            <span>#{pres[1]}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PP_presence}" style="text-align: right">
+                            <h:outputText value="#{pres[3]}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PP_jours_absent}" style="text-align: right">
+                            <h:outputText value="#{pres[4]}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PP_total_mission}" style="text-align: right">
+                            <h:outputText value="#{pres[5]}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PP_total_conge}" style="text-align: right">
+                            <h:outputText value="#{pres[6]}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PP_jour_sup}." style="text-align: center; margin-right: 20px">
+                            <h:outputText value="#{pres[7]}" />
+                            <h:outputText value="+ #{pres[8]}" rendered="#{pres[8] gt 0}"/>
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+            </div>                                  
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">              
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: absolute; cursor: pointer; margin-right: -20px;" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find" >   
+                <div class="yvs_form_presenceEmps display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedPresences.selectPresence.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedPresences.selectPresence.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedPresences.selectPresence.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <p:watermark for="txt_search_by_emp" value="#{lab.LCF_PBP_employe}..." />
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="7" style="font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:panelGroup>
+                            <h:outputText value="#{lab.LRH_PRS_periode}" />                             
+                            <h:selectBooleanCheckbox value="#{managedPresences.paramaDate}" valueChangeListener="#{managedPresences.addParamDate}">
+                                <p:ajax event="valueChange" update="s_pres_fdd s_pres_fdf :form_presence_02:tab_recap_presence_list" oncomplete="collapseList('presenceEmps')"/>
+                            </h:selectBooleanCheckbox>
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.L_agence} " />
+                        <h:outputText value="#{lab.LRH_PP_services}" />
+                        <h:outputText value="#{lab.LRH_PP_mode_valid}." />
+                        <h:outputText value="#{lab.LCF_PBP_employe}" />
+                        <h:outputText value="" />
+                        &nbsp;
+                        <h:panelGroup>
+                            <p:calendar value="#{managedPresences.debutFiche}" pattern="dd-MM-yyyy" size="8" disabled="#{!managedPresences.paramaDate}" id="s_pres_fdd" navigator="true">
+                                <p:ajax event="dateSelect" update=":form_presence_02:tab_recap_presence_list" listener="#{managedPresences.selectParamDate}" oncomplete="collapseList('presenceEmps')"/>
+                            </p:calendar>
+                            <p:calendar value="#{managedPresences.finFiche}" pattern="dd-MM-yyyy" size="8" disabled="#{!managedPresences.paramaDate}" id="s_pres_fdf" navigator="true">
+                                <p:ajax event="dateSelect" update=":form_presence_02:tab_recap_presence_list" listener="#{managedPresences.selectParamDate}" oncomplete="collapseList('presenceEmps')"/>
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedPresences.agenceFilter}" id="txt_agence_presence_tb" style="min-width: 120px"
+                                         valueChangeListener="#{managedPresences.addParamAgence}">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedAgence.listAgence}" var="agc"
+                                           itemLabel="#{agc.designation}" itemValue="#{agc.id}"/>
+                            <p:ajax event="valueChange" update=":form_presence_02:tab_recap_presence_list" oncomplete="collapseList('presenceEmps');"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedPresences.idDepartementFiter}" 
+                                         title="#{lab.LRH_PP_filtrer_presences_departement}" valueChangeListener="#{managedPresences.addParamDepartement}"
+                                         style="font-size: 0.9em; width: 150px">
+                            <f:selectItem itemValue="0" itemLabel="" />
+                            <f:selectItems value="#{managedDepartement.listValue}" var="itemD" itemValue="#{itemD.id}" itemLabel="#{itemD.cheminParent}/#{itemD.intitule}" />
+                            <f:selectItem itemValue="0" itemLabel="" />
+                            <f:selectItem itemValue="-1" itemLabel="#{lab.LRH_PP_tous_services}" />
+                            <p:ajax event="valueChange" update=":form_presence_02:tab_recap_presence_list" oncomplete="collapseList('presenceEmps');"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedPresences.modeValidF}" 
+                                         valueChangeListener="#{managedPresences.loadRecapByTypeValidation}">
+                            <f:selectItem itemValue="0" itemLabel=" " />
+                            <f:selectItems value="#{managedPresences.typesValidation}" var="tv" 
+                                           itemValue="#{tv.id}" itemLabel="#{tv.libelle}" />
+                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                            <f:selectItem itemValue="-2" itemLabel="#{lab.LRH_PP_invalide}" />
+                            <p:ajax event="valueChange" update=":form_presence_02:tab_recap_presence_list" oncomplete="collapseList('presenceEmps');"/>
+                        </h:selectOneMenu>
+                        <p:inputText value="#{managedPresences.codeEmployeF}" title="#{lab.LRH_PP_recherce_recap_employe}" id="txt_search_by_emp">
+                            <p:ajax event="valueChange" listener="#{managedPresences.findByEmploye(managedPresences.codeEmployeF)}" 
+                                    process="@this" update=":form_presence_02:tab_recap_presence_list" oncomplete="collapseList('presenceEmps');"/>
+                        </p:inputText>
+                        <p:selectBooleanCheckbox value="#{managedPresences.paramMaintenance}" itemLabel="#{lab.LRH_PP_fiches_incoherentes}" valueChangeListener="#{managedPresences.filterMaintenance}">
+                            <p:ajax event="valueChange" update="s_pres_fdd s_pres_fdf :form_presence_02:tab_recap_presence_list" 
+                                    oncomplete="collapseList('presenceEmps')"/>
+                        </p:selectBooleanCheckbox>
+                        <p:commandLink value="#{lab.L_avancees}" type="button" onclick="dlgOtherSearch.show()"/>
+                    </h:panelGrid>
+                    <p:commandButton type="button" icon="ui-icon-gear" id="btn_option_presences" style="float: right;width: 22px; height: 22px"/>
+                    <p:contextMenu for="btn_option_presences" event="left click">
+                        <p:menuitem value="#{lab.LRH_PP_voir_recapitulatif}" icon="ui-icon-refresh" oncomplete="collapseGrid('presenceEmps')"
+                                    actionListener="#{managedTableauBord.loadFichePresence(managedPresences.debutFiche,managedPresences.finFiche,managedPresences.codeEmployeF,managedPresences.idDepartementFiter)}"/>                                          
+                        <p:menuitem icon="ui-icon-print" title="#{lab.LRH_PP_telecharger_recapitulatif_cumule}" value="#{lab.LRH_PP_recap_cumule}" ajax="false"
+                                    update=":form-presence-000" actionListener="#{managedPresences.exportRecapJournalier()}"/>
+                        <p:menuitem icon="ui-icon-print" title="#{lab.LRH_PP_telecharger_recapitulatif_cumule}" value="#{lab.LRH_PP_recap_detaille}"  ajax="false"
+                                    update=":form-presence-000" actionListener="#{managedPresences.exportRecapPresenceDetaille()}"/>                                                      
+                        <p:separator />
+                        <p:menuitem value="#{lab.L_importer}" icon="ui-icon-info" global="false" onclick="dlgUploadFiles.show()"/>
+                    </p:contextMenu>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

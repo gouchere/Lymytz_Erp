@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"        
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"     
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">      
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Balance AGE Clients','modGescom', 'smenBalAgeClient', true,managedBordStatistique)}
+    </ui:define>          
+    <ui:define name="contents">     
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 190);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>           
+        #{managedExercice.loadAllExrecice()}
+        #{managedBordStatistique.initBalanceAgeClient()}
+        <h:form prependId="false" id="main_age_client">
+            <div class="part_fix">
+                <div style="width: 100%; font-size: 0.8em">
+                    <h:selectBooleanCheckbox value="#{managedBordStatistique.displayName}">
+                        <p:ajax event="valueChange" global="false" update=":main_age_client:form_age_clients"/>
+                    </h:selectBooleanCheckbox>
+                    <h:outputText value="#{lab.LC_PBC_afficher_designation}" />
+                </div>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_age_clients">
+                    <p:outputPanel id="form_age_clients" autoUpdate="true">
+                        <p:dataTable id="data_age_clients" value="#{managedBordStatistique.age.lignes}" var="row" rowIndexVar="iRow" 
+                                     style="width: 100%;overflow-x: auto">
+                            <p:columnGroup type="header">
+                                <p:row>
+                                    <p:column headerText="#{lab.LC_PBC_client}" style="width: 15%"/>
+                                    <c:forEach items="#{managedBordStatistique.age.colonnes}" var="head" varStatus="_head">
+                                        <p:column headerText="#{head.valeur}" style="width: 15%"/>
+                                    </c:forEach>
+                                </p:row>
+                            </p:columnGroup>   
+                            <p:column styleClass="ui-widget-header" style="width: 15%">
+                                <h:outputText value="#{row.valeur}" title="#{row.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.displayName}"/>
+                                <h:outputText value="#{row.libelle}" title="#{row.valeur}" style="cursor: pointer" rendered="#{managedBordStatistique.displayName}"/>
+                            </p:column>
+                            <p:columns value="#{managedBordStatistique.age.colonnes}" var="col" columnIndexVar="iHead" style="width: 15%;text-align: right"
+                                       styleClass="#{managedBordStatistique.age.isTotal(iRow, iHead)?'ui-widget-header':'y'}">
+                                <h:outputText value="#{managedBordStatistique.age.valeur(iRow, iHead)}" converter="DNS"
+                                              styleClass="#{managedBordStatistique.age.isTotalRow(iRow)?'texte_total':'inherit'}"/>
+                            </p:columns>
+                        </p:dataTable>  
+                    </p:outputPanel>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" id="main_search_age_clients">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find" >
+                <h:panelGrid columns="5" style="font-size: 0.8em">
+                    <h:outputText value="#{lab.LC_PBC_exercice}" />
+                    <h:outputText value="#{lab.LC_PBC_interval}" />
+                    <h:outputText value="#{lab.LC_PBC_ecart}" />
+                    <h:outputText value="#{lab.LC_PBC_nbr_colonne}" />
+                    <span>&nbsp;</span>
+                    <h:selectOneMenu value="#{managedBordStatistique.exo.id}">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedExercice.exercices}" var="_exo"
+                                       itemLabel="#{_exo.reference}" itemValue="#{_exo.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedBordStatistique.chooseExercice()}" update="data_search_age_client"/>
+                    </h:selectOneMenu>
+                    <h:panelGroup id="data_search_age_client">
+                        <p:calendar value="#{managedBordStatistique.dateDebut}" size="10" pattern="dd-MM-yyyy" navigator="true"/>
+                        <p:spacer width="5" style="background: black"/>
+                        <p:calendar value="#{managedBordStatistique.dateFin}" size="10" pattern="dd-MM-yyyy" navigator="true"/>
+                    </h:panelGroup>
+                    <h:inputText value="#{managedBordStatistique.ecartAge}"/>
+                    <h:inputText value="#{managedBordStatistique.colonneAge}"/>
+                    <p:commandButton icon="ui-icon-refresh" title="#{lab.LC_PBC_chargement}" actionListener="#{managedBordStatistique.loadBalanceAgeClient()}"
+                                     update=":main_age_client:form_age_clients" style="margin-left: 50px; width: 22px; height: 22px"/>
+                </h:panelGrid> 
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

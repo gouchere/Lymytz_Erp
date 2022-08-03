@@ -1,0 +1,1 @@
+ALTER TABLE yvs_societes ADD COLUMN print_with_entete boolean default true;

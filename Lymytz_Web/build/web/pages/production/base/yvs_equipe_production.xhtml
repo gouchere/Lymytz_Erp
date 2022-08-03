@@ -1,0 +1,361 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Equipe Production','modProduction', 'smenDtEquipeProd', true)}
+    </ui:define>  
+    <ui:define name="contents">
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('equipe_production');
+                collapseForm('employe_equipe_id');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+            });
+        </script>
+        #{managedEquipeProduction.loadAll()} 
+        #{managedSiteProduction.loadAll()} 
+        #{managedDepot.loadAllDepot()}                 
+        #{managedUser.addParamActif()}        
+        #{managedCategoriePerso.loadAll()}
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des employes
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="main_employe2">
+
+            <p:dialog header="#{lab.LP_PEP_selection_producteurs}" widgetVar="dlgEquipeEmploye" width="70%" height="530"
+                      closeOnEscape="true" dynamic="true" >                         
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('contratEmpContrat');
+                    });
+                </script>
+
+                <div class="dlg_part_fixe" style="font-size: 0.8em">
+                    <h:selectOneMenu value="#{managedUser.groupeSearch}">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedCategoriePerso.categories}" var="catS" itemLabel="#{catS.libelle}" itemValue="#{catS.id}" />     
+                        <p:ajax event="valueChange" listener="#{managedUser.addParamGroupe()}"/>             
+                    </h:selectOneMenu> 
+                    <h:inputText value="#{managedUser.numSearch}">
+                        <p:ajax event="blur" listener="#{managedUser.addParamUsers()}"/>
+                    </h:inputText>  
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedUser.loadAll(false,false)}" update="tab_user_00" icon="ui-icon-circle-triangle-w" disabled="#{managedUser.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedUser.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedUser.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedUser.gotoPagePaginator()}" update="tab_user_00"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedUser.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedUser.loadAll(true,false)}"  update="tab_user_00" icon="ui-icon-circle-triangle-e" disabled="#{managedUser.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedUser.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedUser.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedUser.paginations}"/>
+                            <p:ajax event="valueChange" update="tab_user_00"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>   
+                </div>
+                <div style="clear: right" ></div>
+                <div class="dlg_part_scroll">
+                    <div class="yvs_list_contratEmpContrat">
+                        <p:dataTable value="#{managedUser.listUser}" var="emp" rowKey="#{emp.id}" 
+                                     widgetVar="tabEmployes" id="tab_user_00" scrollHeight="410" scrollable="true" 
+                                     rowIndexVar="line_empC" selection="#{managedEquipeProduction.usersSelect}"> 
+                            <p:column headerText="N°" width="25">
+                                <h:outputText value="#{line_empC+1}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LP_PEP_noms_prenoms}" >
+                                <h:outputText value="#{emp.nomUsers}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LP_PEP_groupes} " width="150">
+                                <h:outputText value="#{emp.categorie.libelle}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_agence} " width="150" >
+                                <h:outputText value="#{emp.agence.designation}" />
+                            </p:column>
+                            <p:column width="25" style="text-align: center" selectionMode="multiple" />                                
+                        </p:dataTable> 
+                        <p:commandButton value="#{lab.LP_PEP_continuer}" actionListener="#{managedEquipeProduction.chooseEmploye()}" icon="ui-icon-arrowthickstop-1-e"
+                                         style="margin: auto; float: right" oncomplete="dlgEquipeEmploye.hide()"/>
+                    </div>
+                </div>
+                <f:facet name="footer">
+                    <span>&copy;Lymytz 2014</span>                                        
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteEmployeEquipe" closeOnEscape="true"
+                             message="#{lab.LP_PEP_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedEquipeProduction.deleteBeanEmployeEquipe()}" oncomplete="dlgConfirmDeleteEmployeEquipe.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteEmployeEquipe.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LP_PEP_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedEquipeProduction.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LP_PEP_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedEquipeProduction.deleteBean_()}" oncomplete="dlgConfirmDelete_.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_equipe_production">      
+            <div class="part_fix">                
+                <p:splitButton value="#{lab.L_enregistrer}" id="save_equipe_production" actionListener="#{managedEquipeProduction.saveNew()}"
+                               icon="ui-icon-disk">
+                    <p:menuitem value="#{lab.L_nouveau}" id="cancel_equipe_production" actionListener="#{managedEquipeProduction.resetFiche()}"
+                                update="blog_form_equipe_production" icon="ui-icon-document"/>
+                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" onclick="dlgConfirmDelete.show()"/>
+                </p:splitButton>
+                <p:commandButton value="#{lab.L_supprimer}" icon="ui-icon-trash" id="delete_equipe_production" global="false" onclick="dlgConfirmDelete.show()"/>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedEquipeProduction.parcoursInAllResult(false)}" update="txt_parc_linear_equipe_production" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('equipe_production')"/>
+                    <h:inputText value="#{managedEquipeProduction.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_equipe_production"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedEquipeProduction.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedEquipeProduction.parcoursInAllResult(true)}" update="txt_parc_linear_equipe_production" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('equipe_production')"/>
+                </h:panelGroup> 
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('equipe_production');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('equipe_production');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <h:inputHidden id="input_hide_reset" value="#{managedEquipeProduction.input_reset}"/>
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_equipe_production">
+                    <p:outputPanel id="blog_form_equipe_production" style="width: 99%; margin: auto; background: white">
+                        <h:panelGrid columns="4" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                            <span>#{lab.L_reference} : </span>
+                            <h:inputText value="#{equipeProduction.reference}"/>
+                            <span>#{lab.L_designation} : </span>
+                            <h:inputText value="#{equipeProduction.nom}" style="width: 99%"/>
+                            <span>#{lab.L_depot} : </span> 
+                            <h:selectOneMenu value="#{equipeProduction.depot.id}" id="equipe_depot">
+                                <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedDepot.depots_all}" var="dep" itemLabel="#{dep.designation}" itemValue="#{dep.id}" />
+                                <p:ajax event="valueChange" global="false" listener="#{managedEquipeProduction.chooseDepot()}"/>
+                            </h:selectOneMenu>
+                            <span>#{lab.LP_PEP_site} : </span> 
+                            <h:selectOneMenu value="#{equipeProduction.site.id}" id="equipe_site">
+                                <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedSiteProduction.sites}" var="sit" itemLabel="#{sit.designation}" itemValue="#{sit.id}" />
+                                <p:ajax event="valueChange" global="false" listener="#{managedEquipeProduction.chooseSite()}"/>
+                            </h:selectOneMenu>
+                            <span>#{lab.L_actif} : </span>
+                            <h:selectBooleanCheckbox value="#{equipeProduction.actif}"/>
+                            <span>#{lab.LP_PEP_principal} : </span>
+                            <h:selectBooleanCheckbox value="#{equipeProduction.principal}"/>                            
+                        </h:panelGrid>  
+                        <p:outputPanel id="blog_form_employe_equipe" style="width: 100%">
+                            <div id="zone_membre_equipe" class="block_slide" style="height: 400px;width: 99.5%">
+                                <span class="block_slide_title" onclick="slideShow('zone_membre_equipe', 400)">
+                                    <span class="button_slide">[-]</span>
+                                    #{lab.LP_PEP_membres} 
+                                </span>
+                                <div class="zone_slide" style="height: 340px">
+                                    <h:inputHidden id="input_hide_employe_equipe_id" value="#{managedEquipeProduction.tabIds_employe_equipe}"/>
+                                    <p:commandButton icon="ui-icon-circle-plus" title="#{lab.LP_PEP_ajouter_membre_cette_equipe}"   onclick="dlgEquipeEmploye.show()"
+                                                     style="float: right;width: 22px; height: 22px; border-radius: 10px" type="button"/>
+                                    <p:dataTable id="data_employe_equipe" value="#{equipeProduction.employeEquipeList}" var="emplEquip" rowKey="#{emplEquip.id}" rowIndexVar="emplEquipIdx">
+                                        <p:column headerText="N°" width="20">
+                                            <span>#{emplEquipIdx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PEP_employe}">
+                                            <span>#{emplEquip.producteur.nomUsers}</span>                 
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_agence}">
+                                            <span>#{emplEquip.producteur.agence.designation}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_actif}" width="20" style="text-align: center">
+                                            <p:commandLink global="false" actionListener="#{managedEquipeProduction.activeEmployeEquipe(emplEquip)}" update="data_employe_equipe">
+                                                <h:graphicImage library="img"  name="#{(emplEquip.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                        <p:column style="width: 5%;text-align: center">
+                                            <p:contextMenu for="btnoptEquipeMembre" event="left click">
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedEquipeProduction.deleteMembreEquipe(emplEquip)}" 
+                                                            update="data_employe_equipe"/>
+                                            </p:contextMenu>
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btnoptEquipeMembre"/>
+                                        </p:column>
+                                        <p:column style="width: 5%;text-align: center">
+                                            <f:facet name="header">
+                                                <h:selectBooleanCheckbox styleClass="chek_all_line_employe_equipe_id" value="false" onclick="selectionAllLineTab(#{equipeProduction.employeEquipeList.size()}, 'employe_equipe_id')"/>
+                                            </f:facet>
+                                            <h:selectBooleanCheckbox value="#{emplEquip.selectActif}" styleClass="chek_line_employe_equipe_id" onclick="selectionLineTab(#{emplEquip.id}, 'employe_equipe_id')"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </div>  
+                                <div class="zone_bottom">
+                                    <p:commandButton id="delete_employe_equipe_id" value="#{lab.L_supprimer}" onclick="dlgConfirmDeleteEmployeEquipe.show()" style="float: right"/>
+                                </div>
+                            </div>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_equipe_production" style="width: 99%; margin: auto; background: white">
+                    <h:inputHidden id="input_hide_id" value="#{managedEquipeProduction.tabIds}"/>
+                    <p:dataTable id="data_equipe_production" value="#{managedEquipeProduction.equipes}" var="equipe" rowKey="#{equipe.id}" rowIndexVar="equipeIdx"
+                                 selectionMode="single">
+                        <p:ajax event="rowSelect" listener="#{managedEquipeProduction.loadOnView}" oncomplete="collapseForm('equipe_production')"
+                                update=":main_equipe_production:blog_form_equipe_production :main_equipe_production:input_hide_id"/>        
+                        <p:column headerText="N°" style="width: 5%">
+                            <span>#{equipeIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_reference}">
+                            <span>#{equipe.reference}</span>                 
+                        </p:column>                                
+                        <p:column headerText="#{lab.L_designation}">
+                            <span>#{equipe.nom}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LP_PEP_site_production}">
+                            <span>#{equipe.site.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LP_PEP_depots}">
+                            <span>#{equipe.depot.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LP_PEP_chef_equipe}">
+                            <span>#{equipe.chefEquipe.nom} #{equipe.chefEquipe.prenom}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" style="width: 5%;text-align: center">
+                            <h:graphicImage library="img"  name="#{(equipe.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LP_PEP_principal}" style="width: 7%;text-align: center">
+                            <h:graphicImage library="img"  name="#{(equipe.principal)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <p:contextMenu for="btn_option_equiProd" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="#{lab.L_principal}" icon="ui-icon-trash" global="false" actionListener="#{managedEquipeProduction.setEntityEquipe(equipe)}" oncomplete="dlgConfirmDelete.show()"/>
+                            </p:contextMenu>   
+                            <p:commandButton icon="ui-icon-gear" type="button" id="btn_option_equiProd" style="width: 22px; height: 22px" />
+                        </p:column>
+                        <p:column width="20" style="text-align: center" rendered="false">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_equipe_production" value="false"
+                                                         onclick="selectionAllLineTab(#{managedEquipeProduction.equipes.size()}, 'equipe_production')">
+                                </h:selectBooleanCheckbox>
+                            </f:facet>
+                            <h:selectBooleanCheckbox  value="#{siteP.select}" styleClass="chek_line_equipe_production"
+                                                      onclick="selectionLineTab(#{equipeIdx}, 'equipe_production')">
+                            </h:selectBooleanCheckbox>
+                        </p:column>
+                    </p:dataTable>      
+                    <span class="nbSelectequipe_production" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedEquipeProduction.init(false)}" global="false" update="data_equipe_production" icon="ui-icon-circle-triangle-w" disabled="#{managedEquipeProduction.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedEquipeProduction.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedEquipeProduction.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedEquipeProduction.gotoPagePaginator()}" update="data_equipe_production"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedEquipeProduction.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedEquipeProduction.init(true)}" global="false" update="data_equipe_production" icon="ui-icon-circle-triangle-e" disabled="#{managedEquipeProduction.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedEquipeProduction.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedEquipeProduction.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedEquipeProduction.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_equipe_production"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>                             
+                </div> 
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_equipe_production display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedEquipeProduction.entityEquipe.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedEquipeProduction.entityEquipe.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedEquipeProduction.entityEquipe.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="7" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="" />
+                        <h:outputText value="#{lab.L_reference}" />
+                        <h:outputText value="#{lab.LP_PEP_site}" />
+                        <h:outputText value="#{lab.L_depot}" />
+                        <h:outputText value="#{lab.LP_PEP_chef}" />
+                        <h:outputText value="#{lab.L_actif}" />
+                        <h:outputText value="#{lab.LP_PEP_permanent}" />
+                        <p:commandButton icon="ui-icon-bullet" actionListener="#{managedEquipeProduction.clearParams()}" title="#{lab.L_reset_param}" style="width: 20px; height: 22px" />
+                        <h:inputText value="#{managedEquipeProduction.reference}" style="min-width: 120px">
+                            <p:ajax event="blur" global="false" listener="#{managedEquipeProduction.addParamReference()}" update=":main_equipe_production:data_equipe_production" oncomplete="collapseList('equipe_production')"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedEquipeProduction.siteSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="" itemValue="0"/>
+                            <f:selectItems value="#{managedSiteProduction.sites}" var="ssit" itemLabel="#{ssit.designation}" itemValue="#{ssit.id}"/>
+                            <p:ajax event="valueChange" global="false" listener="#{managedEquipeProduction.addParamSite()}" update=":main_equipe_production:data_equipe_production" oncomplete="collapseList('equipe_production')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedEquipeProduction.depotSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="" itemValue="0"/>
+                            <f:selectItems value="#{managedDepot.depots_all}" var="deqp" itemLabel="#{deqp.designation}" itemValue="#{deqp.id}"/>
+                            <p:ajax event="valueChange" global="false" listener="#{managedEquipeProduction.addParamDepot()}" update=":main_equipe_production:data_equipe_production" oncomplete="collapseList('equipe_production')"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedEquipeProduction.chefSearch}" style="min-width: 120px">
+                            <p:ajax event="blur" global="false" listener="#{managedEquipeProduction.addParamChef()}" update=":main_equipe_production:data_equipe_production" oncomplete="collapseList('equipe_production')"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedEquipeProduction.actifSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" global="false" listener="#{managedEquipeProduction.addParamActif()}" update=":main_equipe_production:data_equipe_production" oncomplete="collapseList('equipe_production')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedEquipeProduction.principalSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" global="false" listener="#{managedEquipeProduction.addParamPrincipal()}" update=":main_equipe_production:data_equipe_production" oncomplete="collapseList('equipe_production')"/>
+                        </h:selectOneMenu>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right">
+
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

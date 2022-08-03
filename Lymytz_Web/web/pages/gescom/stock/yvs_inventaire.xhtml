@@ -1,0 +1,1047 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Inventaires','modGescom', 'smenInventaire', true,managedInventaire)}
+
+    </ui:define> 
+    <ui:define name="contents"> 
+        #{managedRetenue.doNothing()}  
+        #{Marticle.doNothing()}  
+
+        #{managedAgence.loadAllUsable()}
+        #{managedDepot.loadDepotsByAgence()}
+        #{managedStockArticle.loadAll()}
+        #{managedQualite.loadAll()}
+        #{managedCategoriePerso.loadAll()}
+        #{managedInventaire.loadAll()}
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('inventaire');
+                collapseForm('contenu_inventaire');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+            function handleDrop(event, ui) {
+                var droppedCar = ui.draggable;
+                droppedCar.fadeOut('fast');
+            }
+        </script>
+        <style type="text/css">
+            .zone_find{
+                height: 95px;
+            }
+        </style>
+
+        <h:form prependId="false" id="main-agence">
+            <p:dialog widgetVar="dlgAgenceForDepot" header="Selectionner une agence" width="50%" closeOnEscape="true"> 
+                <p:dataTable value="#{managedAgence.agences}" var="ag" rowKey="#{ag.id}" selectionMode="single" id="table_agence" rowIndexVar="line_ag">
+                    <p:ajax event="rowSelect" listener="#{managedDepot.onSelectAgenceForAction}" update=":main_inventaire:select_source_inventaire" oncomplete="dlgAgenceForDepot.hide()"/>
+                    <p:column headerText="#{lab.L_code}" width="200">
+                        <h:outputText value="#{ag.codeagence}"/>
+                    </p:column>                                
+                    <p:column headerText="#{lab.L_designation}">
+                        <h:outputText value="#{ag.designation}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+
+        <h:form>
+            <p:remoteCommand name="updateBeanCaisse_" actionListener="#{managedInventaire.updateBean()}"/>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgConfirmDeleteUsers" message="#{lab.LCF_POD_text2}">
+                <p:selectBooleanCheckbox value="#{managedInventaire.deleteRetenue}" itemLabel="Supprimer les retenues" style="float: left;margin-top:5px">
+                    <p:ajax event="valueChange" global="false"/>
+                </p:selectBooleanCheckbox>
+                <h:panelGroup style="float: right">
+                    <p:commandButton value="#{lab.L_oui}" actionListener="#{managedInventaire.removeDrollable()}" oncomplete="dlgConfirmDeleteUsers.hide();" />
+                    <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteUsers.hide()"/>
+                </h:panelGroup>
+            </p:confirmDialog>
+        </h:form>
+
+
+        <h:form prependId="false" >            
+            <p:dialog widgetVar="dlgQteJustifiee" closeOnEscape="true" header="Quantitée justifiée" resizable="false">
+                <h:panelGrid id="txt_quantitee_justifiee_inventaire" columns="1" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <f:facet name="header">
+                        <h:panelGrid columns="1" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                            <h:outputText value="#{managedInventaire.selectContenu.article.designation}" style="font-weight: bold"/>
+                            <h:panelGroup>
+                                <h:outputText value="#{managedInventaire.selectContenu.quantite}" converter="DNS"/> 
+                                <h:outputText value="#{managedInventaire.selectContenu.conditionnement.unite.reference}" title="#{managedInventaire.selectContenu.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399"/>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </f:facet>
+                    <h:inputText value="#{managedInventaire.quantiteeJustifiee}" style="width: 100%" />                     
+                    <f:facet name="footer">
+                        <p:commandButton value="Enregistrer" style="float: right" actionListener="#{managedInventaire.saveQuantiteeJustifiee()}"/>                        
+                    </f:facet>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main-stock_value">            
+            <p:dialog  width="50%" widgetVar="dlgValueEcart" closeOnEscape="true" header="Options d'ecarts" resizable="false" modal="true">
+                <h:panelGrid id="form-stock_value" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <h:outputText value="Montant Total : " rendered="#{managedInventaire.showMontantDetail}"/> 
+                    <h:inputText value="#{managedInventaire.selectDoc.montantTotal}" style="font-weight: bold;width: 100%" disabled="true" converter="DNS" rendered="#{managedInventaire.showMontantDetail}"/> 
+                    <h:outputText value="Montant à imputer : " rendered="#{managedInventaire.showMontantDetail}"/> 
+                    <h:inputText value="#{managedInventaire.docStock.valeur.montant}" style="width: 100%" disabled="true" converter="DNS" rendered="#{managedInventaire.showMontantDetail}">
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:inputText> 
+                    <h:outputText value="Coefficient multiplicateur : "/> 
+                    <h:inputText value="#{managedInventaire.docStock.valeur.coefficient}" style="width: 100%">
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:inputText> 
+                    <h:outputText value="Valoriser MP au : " title="Valoriser les matières premières au"/> 
+                    <h:selectOneMenu value="#{managedInventaire.docStock.valeur.valoriseMpBy}" style="width: 100%" >
+                        <f:selectItem itemLabel="PRIX ACHAT" itemValue="A"/>
+                        <f:selectItem itemLabel="PRIX REVIENT" itemValue="R"/>
+                    </h:selectOneMenu> 
+                    <h:outputText value="Valoriser MS au : " title="Valoriser les marchandises au"/> 
+                    <h:selectOneMenu value="#{managedInventaire.docStock.valeur.valoriseMsBy}" style="width: 100%" >
+                        <f:selectItem itemLabel="PRIX VENTE" itemValue="V"/>
+                        <f:selectItem itemLabel="PRIX ACHAT" itemValue="A"/>
+                        <f:selectItem itemLabel="PRIX REVIENT" itemValue="R"/>
+                    </h:selectOneMenu> 
+                    <h:outputText value="Valoriser PF au : " title="Valoriser les produits finis au"/> 
+                    <h:selectOneMenu value="#{managedInventaire.docStock.valeur.valorisePfBy}" style="width: 100%" >
+                        <f:selectItem itemLabel="PRIX VENTE" itemValue="V"/>
+                        <f:selectItem itemLabel="PRIX ACHAT" itemValue="A"/>
+                        <f:selectItem itemLabel="PRIX REVIENT" itemValue="R"/>
+                    </h:selectOneMenu> 
+                    <h:outputText value="Valoriser PSF au : " title="Valoriser les produits semi-finis au"/> 
+                    <h:selectOneMenu value="#{managedInventaire.docStock.valeur.valorisePfsBy}" style="width: 100%" >
+                        <f:selectItem itemLabel="PRIX VENTE" itemValue="V"/>
+                        <f:selectItem itemLabel="PRIX ACHAT" itemValue="A"/>
+                        <f:selectItem itemLabel="PRIX REVIENT" itemValue="R"/>
+                    </h:selectOneMenu> 
+                    <f:facet name="footer">
+                        <p:commandButton value="Enregistrer" style="float: right" actionListener="#{managedInventaire.saveStockValue()}"/>                        
+                    </f:facet>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-ecart_stock">  
+            <p:dialog  width="80%" widgetVar="dlgBuildEcart" closeOnEscape="true" header="Définition des manquants" resizable="false"
+                       height="600" footer="&copy;Lymytz 2014">
+                <p:outputPanel id="data-ecart_stock">
+                    <h:panelGrid columns="2" style="width: 100%">
+                        <h:panelGrid columns="3" style="font-size: 0.8em;margin-right: 5%">
+                            <h:outputText value="#{lab.LDB_PU_code}" />
+                            <h:outputText value="#{lab.L_agence} : "/>
+                            <h:outputText value="" />
+                            <h:inputText value="#{managedInventaire.usersSearch}">
+                                <p:ajax event="valueChange" listener="#{managedInventaire.onSearchUsersByName()}"/>
+                            </h:inputText>
+                            <h:selectOneMenu value="#{managedInventaire.agenceTiers}">
+                                <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0"/>
+                                <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                                <p:ajax event="valueChange" listener="#{managedInventaire.onSearchUsersByAgence()}"/>
+                            </h:selectOneMenu>
+                            <p:outputPanel autoUpdate="true" id="txt-taux_a_repartir">
+                                <h:outputText value="#{100 - managedInventaire.selectDoc.qteRestant}" style="font-weight: bold;font-size: 1.2em" converter="DNS"/>
+                                <h:outputText value="% restant à repartir" style="font-size: 1.2em"/>
+                            </p:outputPanel>
+                        </h:panelGrid>
+                        <h:panelGrid id="blog-ecart_value" columns="3" style="font-size: 0.8em;margin-left: 20px">
+                            <h:outputText value="Total manquant : "/> 
+                            <h:outputText value="Valeur inventaire : "/> 
+                            <h:outputText value=""/> 
+                            <p:inputText value="#{managedInventaire.calculMontantTotal()}" style="font-weight: bold;" title="Montant Total des manquants : #{managedInventaire.selectDoc.montantTotal}" disabled="true" converter="DNS"/>
+                            <p:inputText value="#{managedInventaire.docStock.valeur.montant}" style="font-weight: bold;" title="Montant Approuvé : #{managedInventaire.docStock.valeur.montant}" disabled="true" converter="DNS"/>
+                            <h:panelGroup>
+                                <p:commandButton icon="ui-icon-arrowrefresh-1-s" style="margin-left: 5px" actionListener="#{managedInventaire.calculMontantTotal()}" update="data-ecart_stock"
+                                                 title="Actualiser le montant"/>
+                                <p:commandButton icon="ui-icon-pencil" style="margin-left: 5px" actionListener="#{managedInventaire.gotoStockValue()}" oncomplete="dlgValueEcart.show()"
+                                                 title="Modifier les options d'écarts"/>
+                                <p:commandButton value="Equilibrer" style="background: white!important" actionListener="#{managedInventaire.onEquilibreEcart()}"
+                                                 update="txt-taux_a_repartir"/> 
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </h:panelGrid>
+                    <div style="height: 480px;clear: right">
+                        <p:outputPanel id="tab_users_ecart" autoUpdate="true" style="height: 100%;overflow-y: auto">
+                            <div style="width: 50%;float: left">
+                                <p:dataTable id="tab_users_source" value="#{managedInventaire.selectDoc.filters}" var="ecr" rowKey="#{ecr.id}" rowIndexVar="EIdx"
+                                             scrollable="true" scrollHeight="450">
+                                    <p:column width="30">
+                                        <h:outputText value="#{EIdx +1}"/>
+                                    </p:column>                      
+                                    <p:column width="20" style="text-align: center">
+                                        <h:outputText id="dragIcon" styleClass="ui-icon ui-icon-arrow-4" />
+                                        <p:draggable for="dragIcon" />
+                                    </p:column> 
+                                    <p:column headerText="Tiers">
+                                        <h:outputText value="#{ecr.tiers.nom_prenom}"/> 
+                                    </p:column>
+                                    <p:column headerText="Employe" width="100">
+                                        <h:outputText value="#{ecr.tiers.currentEmploye.matricule}"/>
+                                    </p:column>
+                                    <p:column headerText="Agence" width="100">
+                                        <h:outputText value="#{ecr.tiers.agence.codeagence}"/>
+                                    </p:column>
+                                </p:dataTable>                                
+                            </div>
+                            <div style="width: 49%;margin-left: 51%">   
+                                <p:dataTable id="tab_users_cible" value="#{managedInventaire.selectDoc.ecarts}" var="ecr" rowKey="#{ecr.id}" rowIndexVar="EIdx" 
+                                             scrollable="true" scrollHeight="450" editMode="cell" editable="true">
+                                    <p:ajax event="cellEdit" listener="#{managedInventaire.cellEditEcart}" update=":form-ecart_stock:txt-taux_a_repartir"/>
+                                    <p:column width="30">
+                                        <h:outputText value="#{EIdx +1}"/>
+                                    </p:column>
+                                    <p:column headerText="Tiers">
+                                        <h:outputText value="#{ecr.tiers.nom_prenom}"/>
+                                        <h:panelGroup style="float: right">
+                                            <h:outputText title="Nombre de réglement(s) planifié(s)" value="#{ecr.reglements.size()}" rendered="#{!ecr.reglements.isEmpty()}" styleClass="style_statut"/>
+                                        </h:panelGroup>  
+                                    </p:column>
+                                    <p:column width="100" headerText="#{lab.L_taux}" style="text-align: right" styleClass="#{ecr.id gt 0?'line_actiftrue':'_'}">                                   
+                                        <p:cellEditor>
+                                            <f:facet name="output">
+                                                <h:outputText value="#{ecr.taux}" converter="DNS"/>%
+                                            </f:facet>
+                                            <f:facet name="input">
+                                                <h:inputText value="#{ecr.taux}" style="width: 50px;text-align: right"/>    
+                                            </f:facet>
+                                        </p:cellEditor>  
+                                    </p:column>
+                                    <p:column width="100" headerText="#{lab.L_montant}" style="text-align: right">                                   
+                                        <h:outputText value="#{(ecr.taux * managedInventaire.docStock.valeur.montant)/100}" converter="DNS" title="#{(ecr.taux * managedInventaire.docStock.valeur.montant)/100}"/>
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center" styleClass="statut_#{bon.statut}">
+                                        <p:contextMenu for="btn_option_ecart_inventaire" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="Generer reglement" icon="ui-icon-circle-plus" actionListener="#{managedInventaire.onGenererReglement(ecr, true)}" rendered="#{ecr.id gt 0 and ecr.reglements.isEmpty()}" update="tab_users_cible"/>
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedInventaire.removeDrollable(ecr)}" oncomplete="dlgConfirmDeleteUsers.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_ecart_inventaire" type="button"/>
+                                    </p:column> 
+                                </p:dataTable>
+                            </div> 
+                            <p:droppable for="tab_users_cible" tolerance="touch" activeStyleClass="ui-state-highlight" 
+                                         datasource="tab_users_source" onDrop="handleDrop">
+                                <p:ajax listener="#{managedInventaire.drollable}"/>
+                            </p:droppable>
+                        </p:outputPanel>
+                    </div>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_plus_option}" width="40%"  closeOnEscape="true" widgetVar="dlgPlusOption" resizable="false"> 
+                <h:panelGrid id="blog_more_inventaire" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">  
+                    <h:outputText value="#{lab.LC_PI_verrouille}" />
+                    <h:selectOneMenu value="#{managedInventaire.cloturer_}" valueChangeListener="#{managedInventaire.chooseCloturer}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" update=":main_inventaire:data_inventaire" oncomplete="collapseList('inventaire')"/>
+                    </h:selectOneMenu>  
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LDB_PC_dates}"  />
+                        <h:selectBooleanCheckbox value="#{managedInventaire.date_up}" title="#{lab.LDB_PC_dates_last_modif}" style="float: right">
+                            <p:ajax event="valueChange" global="false" update="blog_date_search_client"  listener="#{managedInventaire.addParamDates()}" oncomplete="collapseList('inventaire')" />
+                        </h:selectBooleanCheckbox>
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_client">
+                        <p:calendar value="#{managedInventaire.dateDebut_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedInventaire.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedInventaire.addParamDates}" update=":main_inventaire:data_inventaire" oncomplete="collapseList('inventaire')"/>
+                        </p:calendar>
+                        <p:spacer style="width: 5px;background: black"/>
+                        <p:calendar value="#{managedInventaire.dateFin_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedInventaire.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedInventaire.addParamDates}" update=":main_inventaire:data_inventaire" oncomplete="collapseList('inventaire')"/>
+                        </p:calendar>
+                    </h:panelGroup>
+
+                    <h:outputText value="Ids"/>
+                    <h:inputText value="#{managedInventaire.idsSearch}" style="width: 100%" title="#{lab.L_entrer_id_separer_virgules}">
+                        <p:ajax event="valueChange" listener="#{managedInventaire.addParamIds()}" update=":main_inventaire:data_inventaire" oncomplete="collapseList('inventaire')"/>
+                    </h:inputText>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des depots
+        *****************************************************************************
+        <--> 
+        <h:form prependId="false">                    
+            <p:dialog header="#{lab.L_liste_article}" widgetVar="dlgListArticle" resizable="false"
+                      closeOnEscape="true" width="50%" minHeight="150" modal="true" footer="&copy; Lymytz 2014">                                  
+                <p:watermark for="txt_search_article_en_stock" value="#{lab.L_reference_article}..." />
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_article_en_stock" value="#{managedStockArticle.article.article.refArt}">
+                        <p:ajax event="valueChange"   listener="#{managedStockArticle.searchArticleActifByDepot(false)}" update="data_articles_inventaire"/>
+                    </h:inputText> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedStockArticle.loadActifArticleByDepot(false, false)}" global="false" update="data_articles_inventaire" icon="ui-icon-circle-triangle-w" disabled="#{managedStockArticle.pa.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedStockArticle.pa.currentPage}/#{managedStockArticle.pa.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedStockArticle.loadActifArticleByDepot(true, false)}" global="false" update="data_articles_inventaire" icon="ui-icon-circle-triangle-e" disabled="#{managedStockArticle.pa.disNext}"/>
+                        <p:selectOneMenu value="#{managedStockArticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedStockArticle.choosePaginatorAchat}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedStockArticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_articles_inventaire"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>
+                <p:dataTable id="data_articles_inventaire" value="#{managedStockArticle.articlesResult}" var="art" rowKey="#{art.id}" selectionMode="single" 
+                             rowIndexVar="artIdx" rows="15"  >
+                    <p:ajax event="rowSelect"  listener="#{managedInventaire.loadOnViewArticle}" oncomplete="dlgListArticle.hide()"
+                            update=":main_inventaire:form_contenu_entree_stock :main_inventaire:desc_artcile_entree_stock"/>
+                    <p:column  headerText="N°" width="20">
+                        <span title="#{art.article.designation}">#{artIdx+1}</span>
+                    </p:column>
+                    <p:column  headerText="#{lab.L_reference}" style="width: 10%">
+                        <span title="#{art.article.designation}">#{art.article.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}">
+                        <span title="#{art.article.designation}">#{art.article.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" style="width: 4%">
+                        <span title="#{art.article.designation}">#{art.article.categorie}</span>
+                    </p:column>
+                </p:dataTable> 
+            </p:dialog>
+            <p:dialog header="#{lab.L_liste_article}" widgetVar="dlgListConditionnement" modal="true" width="70%" height="450" closeOnEscape="true"> 
+                <p:dataTable id="data_conditionnements_inventaire" value="#{managedStockArticle.conditionnements}" var="art" rowIndexVar="artLine"
+                             rowKey="#{art.id}" selectionMode="single">
+                    <p:ajax event="rowSelect" listener="#{managedInventaire.loadOnViewConditionnement}" oncomplete="dlgListConditionnement.hide()"
+                            update=":main_inventaire:form_contenu_entree_stock :main_inventaire:desc_artcile_entree_stock"/>
+                    <p:column headerText="N°" width="20" style="text-align: center">
+                        #{artLine+1}
+                    </p:column>                                                        
+                    <p:column headerText="#{lab.L_reference}" width="100">
+                        <span style="font-weight: bold">#{art.article.refArt}</span>
+                    </p:column>
+                    <p:column  headerText="#{lab.L_designation}" width="150"> 
+                        #{art.article.designation}
+                    </p:column>
+                    <p:column headerText="#{lab.L_unite}" width="100">
+                        #{art.unite.libelle}                                
+                        <span style="font-weight: bold">[#{art.unite.reference}]</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" width="100" style="text-align: center">
+                        #{art.article.categorie}
+                    </p:column>
+                    <p:column  headerText="#{lab.LC_PI_prix_v}" width="80"  style="text-align: right">                                                            
+                        <h:outputText value="#{art.prix}"  converter="DN" />                                                            
+                    </p:column>
+                    <p:column  headerText="#{lab.LC_PI_prix_a}" width="80"  style="text-align: right">                                                            
+                        <h:outputText value="#{art.prixAchat}"  converter="DN" />                                                            
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+            <p:dialog header="#{lab.L_liste_article}" widgetVar="dlgListArticleStock" width="70%" height="600px" closeOnEscape="true" modal="true"> 
+                <p:watermark for="txt_find_article_en_stock" value="#{lab.L_reference_article}..." />
+                <h:inputText id="txt_find_article_en_stock" value="#{managedInventaire.articleFind}">
+                    <p:ajax event="valueChange" listener="#{managedInventaire.findArticle()}"/>
+                </h:inputText> 
+                <p:commandButton icon="ui-icon-calculator" value="Calculer"  actionListener="#{managedInventaire.calculerStock()}" style="float: right"/>
+                <div style="height: 535px; overflow-y: auto">                    
+                    <p:dataTable id="data_stock_article" value="#{managedInventaire.articles}" var="stock" rowKey="#{stock.id}" rowIndexVar="mouvIdx"
+                                 editable="true" editMode="cell">
+                        <p:ajax event="cellEdit" listener="#{managedInventaire.cellEditStock}" />
+                        <p:column headerText="N°" width="40">
+                            <span>#{mouvIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="Reference" style="width: 20%">
+                            <span style="font-weight: bold">#{stock.article.refArt}</span>
+                        </p:column>
+                        <p:column headerText="Désignation">
+                            <span>#{stock.article.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PSA_puv}" style="width: 10%;text-align: right;">
+                            <h:outputText value="#{stock.conditionnement.prix} "/>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PSA_stock}" style="width: 12%;text-align: right;background:#{stock.stockInitial gt 0?'green':(stock.stockInitial lt 0?'red':'')}">
+                            <h:outputText value="#{stock.stockInitial}" style="color:  #{stock.stockInitial==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
+                            <span title="#{stock.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{stock.conditionnement.unite.reference}</span>
+                        </p:column>
+                        <p:column headerText="Stock réel" style="width: 10%;text-align: right;">
+                            <p:cellEditor>
+                                <f:facet name="output">
+                                    <h:outputText value="#{stock.stock}" converter="DNA"/>
+                                </f:facet>
+                                <f:facet name="input">
+                                    <h:inputText value="#{stock.stock}" style="width: 100px;text-align: right"/>    
+                                </f:facet>
+                            </p:cellEditor>  
+                        </p:column>
+                    </p:dataTable> 
+                </div>  
+                <p:selectBooleanCheckbox value="#{managedInventaire.deleteIfExist}" itemLabel="Supprimer si existe déjà ?"/>
+                <p:commandButton icon="ui-icon-check" value="Enregistre"  actionListener="#{managedInventaire.applyStock()}" style="float: right"/>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+
+        <h:form prependId="false">
+            <p:dialog header="Liste lot de reception" widgetVar="dlgListLots" modal="true" closeOnEscape="true" width="60%"> 
+                <p:dataTable value="#{managedInventaire.selectArticleDepot.lots}" var="aRL" rowKey="#{aRL.id}"
+                             id="data-article_stock_lot" selectionMode="single">
+                    <p:ajax event="rowSelect" listener="#{managedInventaire.loadOnViewLot}" oncomplete="dlgListLots.hide()"/>
+                    <p:column headerText="Numero" style="text-align: left">
+                        #{aRL.numero}
+                    </p:column>
+                    <p:column headerText="Date de fabrication" style="text-align: center">
+                        <h:outputText value="#{aRL.dateFabrication}" converter="DATE" rendered="#{aRL.id gt 0}"/>
+                        <h:outputText value="----" rendered="#{aRL.id lt 1}"/>
+                    </p:column>
+                    <p:column headerText="Date d'expiration" style="text-align: center">
+                        <h:outputText value="#{aRL.dateExpiration}" converter="DATE" rendered="#{aRL.id gt 0}"/>
+                        <h:outputText value="----" rendered="#{aRL.id lt 1}"/>
+                    </p:column>
+                    <p:column headerText="Stock" style="text-align: right">
+                        <h:outputText value="#{aRL.stock}" converter="#{managedFactureAchat.converterStock}"/>
+                        <span title="#{managedInventaire.selectArticleDepot.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{managedInventaire.selectArticleDepot.conditionnement.unite.reference}</span>
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">                    
+            <p:dialog header="#{lab.L_telecharger}" widgetVar="dlgPrint" resizable="false" closeOnEscape="true" modal="true" footer="&copy; Lymytz 2014">       
+                <h:panelGrid columns="3" style="width: 100%; font-size: 0.8em" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LC_PI_valoriser_ecarts}</span>
+                    <p:selectOneMenu value="#{managedInventaire.valeurBy}" label="#{lab.LC_PI_valorisation_prix}">
+                        <f:selectItem itemLabel="#{lab.LC_PI_prix_entree}" itemValue="E"/>
+                        <f:selectItem itemLabel="#{lab.LC_PI_prix_vente}" itemValue="V"/>
+                        <f:selectItem itemLabel="#{lab.LC_PI_prix_achat} " itemValue="A"/>
+                        <f:selectItem itemLabel="#{lab.LC_PI_prix_revient} " itemValue="R"/>
+                    </p:selectOneMenu>
+                    <p:commandButton value="#{lab.L_telecharger}" icon="ui-icon-print" ajax="false" actionListener="#{managedInventaire.print(managedInventaire.selectDoc)}" oncomplete="dlgPrint.hide()"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PI_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedInventaire.deleteBean()}" oncomplete="dlgConfirmDelete.hide();collapseList('inventaire')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LC_PI_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedInventaire.deleteBean_()}" oncomplete="dlgConfirmDelete_.hide();collapseList('inventaire')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog id="id_confirm_close_inv" hideEffect="explode" widgetVar="dlgConfirmClose" closeOnEscape="true"
+                             message="Êtes-vous sûr de vouloir #{managedInventaire.selectDoc.cloturer?'dévérrouiller':'vérrouiller'}?" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedInventaire.cloturer()}" oncomplete="dlgConfirmClose.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmClose.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmEditer" closeOnEscape="true"
+                             message="#{lab.LC_PI_text2}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedInventaire.editer_()}" oncomplete="dlgConfirmEditer.hide();collapseForm('inventaire')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmEditer.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmAnnuler" closeOnEscape="true"
+                             message="#{lab.LC_PI_text2}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedInventaire.annuler_()}" oncomplete="dlgConfirmAnnuler.hide();collapseForm('inventaire')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmAnnuler.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticle" closeOnEscape="true"
+                             message="#{lab.LC_PI_text1LC_PI_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedInventaire.deleteBeanContenu()}" oncomplete="dlgConfirmDeleteArticle.hide();collapseForm('contenu_ordre_transfert')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticle.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticle_" closeOnEscape="true"
+                             message="#{lab.LC_PI_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedInventaire.deleteBeanContenu_()}" oncomplete="dlgConfirmDeleteArticle_.hide();collapseForm('contenu_ordre_transfert')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticle_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgCleanStock" closeOnEscape="true"
+                             message="#{lab.LC_PI_text3}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedInventaire.cleanStock()}" oncomplete="dlgCleanStock.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgCleanStock.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_inventaire">    
+            <div class="part_fix">                
+                <p:splitButton value="#{lab.L_enregistrer}" id="save_inventaire" actionListener="#{managedInventaire.saveNew()}" update="blog_form_inventaire" oncomplete="collapseForm('inventaire');collapseForm('contenu_inventaire')"
+                               icon="ui-icon-disk">
+                    <p:menuitem value="#{lab.L_nouveau}" icon="ui-icon-document" actionListener="#{managedInventaire.resetFiche()}" update="blog_form_inventaire" oncomplete="collapseForm('inventaire');collapseForm('contenu_inventaire')"/>
+                    <p:menuitem value="Propriétés" icon="ui-icon-pencil" actionListener="#{managedInventaire.setShowMontantDetail(false)}" oncomplete="dlgValueEcart.show()" update=":main-stock_value:form-stock_value"/>
+                    <p:menuitem value="#{lab.LC_PI_gerer_ecart}" icon="ui-icon-copy" actionListener="#{managedInventaire.onBuildEcart(managedInventaire.selectDoc, false)}"/>
+                    <p:separator />
+                    <p:menuitem value="#{lab.L_modifier}" rendered="false" id="update_inventaire" actionListener="#{managedInventaire.updateBean()}" oncomplete="collapseForm('inventaire');return false"/>
+                    <p:menuitem value="#{lab.L_supprimer}"  onclick="dlgConfirmDelete.show()" global="false" icon="ui-icon-trash"/> 
+                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedInventaire.print(managedInventaire.selectDoc)}" ajax="false"/>
+                </p:splitButton>
+                <p:commandButton value="#{lab.L_supprimer}" id="delete_inventaire" onclick="dlgConfirmDelete.show()" type="button" icon="ui-icon-trash"/>                 
+                <h:panelGroup>                   
+                    <p:commandButton icon="ui-icon-alert" id="btn-alerte_inventaire" title="Alertes sur les inventaires" type="button"/>                                         
+                    <span class="num" style="margin-top: 50px!important;margin-left: -5px">
+                        <h:outputText value="#{managedInventaire.totalAlertes()}" />
+                    </span>     
+                    <p:overlayPanel for="btn-alerte_inventaire" styleClass="zone_alert">
+                        <ui:repeat value="#{managedInventaire.alertes}" var="war" varStatus="pos" >
+                            <p:commandLink value="(#{war[1]}) #{war[0]}" actionListener="#{managedInventaire.gotoAlerte(pos.index)}" oncomplete="collapseList('inventaire')" style="font-size: 0.8em"/> <br />
+                        </ui:repeat>
+                    </p:overlayPanel>                                                                                                    
+                </h:panelGroup>   
+                <h:panelGroup style="margin-left: 35%">
+                    <p:commandButton actionListener="#{managedInventaire.parcoursInAllResult(false)}" update="txt_parc_linear_inventaire" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('inventaire')"/>
+                    <h:inputText value="#{managedInventaire.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_inventaire"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedInventaire.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedInventaire.parcoursInAllResult(true)}" update="txt_parc_linear_inventaire" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('inventaire')"/>
+                </h:panelGroup> 
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('inventaire');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('inventaire');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_inventaire">
+                    <p:outputPanel id="blog_form_inventaire" style="width: 99%; margin: auto; background: white">
+                        <h:panelGrid columns="1" style="width: 100%; font-size: 0.9em">
+                            <p:outputPanel id="form_entete_inventaire">
+                                <h:panelGrid columns="3" styleClass="yvs_nostyle" style="width: 100%;margin-bottom: -5px;margin-top: -5px" cellpadding="0" cellspacing="0" rendered="#{managedInventaire.docStock.update}">
+                                    <h:panelGrid columns="3" styleClass="yvs_nostyle" style="float: left;font-size: large;background: black;color: white">                                             
+                                        <span style="font-size: initial">#{lab.L_numero} : </span>
+                                        <h:outputText id="txt_reference_document_inventaire" value="#{managedInventaire.docStock.numDoc}"/>
+                                        <h:outputText value="#{managedInventaire.docStock.id}" styleClass="style_identifiant" style="text-align: center;margin-top: 5px!important"/>
+                                    </h:panelGrid> 
+                                    <h:panelGroup style="float: right">                                               
+                                        <p:outputPanel id="grp_btn_etat_inventaire" styleClass="yvs_form_of">                                    
+                                            <p:commandLink value="#{lab.L_editable}" styleClass="button-stateOF #{(managedInventaire.docStock.statut == constantes.ETAT_EDITABLE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{(!((managedInventaire.docStock.statut == constantes.ETAT_SOUMIS
+                                                                       or managedInventaire.docStock.statut == constantes.ETAT_VALIDE
+                                                                       or managedInventaire.docStock.statut == constantes.ETAT_ANNULE)))}"
+                                                           actionListener="#{managedInventaire.changeStatut(constantes.ETAT_EDITABLE)}"
+                                                           process="@this" update="grp_btn_etat_inventaire form_inventaire" />
+                                            <p:commandLink value="#{(managedInventaire.docStock.statut==constantes.ETAT_VALIDE)?'VALID&Eacute;':'VALIDER'}" styleClass="button-stateOF #{(managedInventaire.docStock.statut==constantes.ETAT_VALIDE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{!((managedInventaire.docStock.statut == constantes.ETAT_EDITABLE))}" 
+                                                           actionListener="#{managedInventaire.changeStatut(constantes.ETAT_VALIDE)}"
+                                                           process="@this" update="grp_btn_etat_inventaire form_inventaire" />
+                                            <p:commandLink value="#{(managedInventaire.docStock.statut==constantes.ETAT_ANNULE)?'ANNUL&Eacute;':'ANNULER'}" styleClass="button-stateOF #{(managedInventaire.docStock.statut==constantes.ETAT_ANNULE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{(!(managedInventaire.docStock.statut == constantes.ETAT_SOUMIS))}" 
+                                                           actionListener="#{managedInventaire.changeStatut(constantes.ETAT_ANNULE)}"
+                                                           process="@this" update="grp_btn_etat_inventaire form_inventaire" />
+                                        </p:outputPanel>                                            
+                                    </h:panelGroup>                                     
+                                </h:panelGrid> 
+                            </p:outputPanel>                            
+                            <p:outputPanel style="width: 100%" id="form_inventaire">
+                                <div style="width: 61%;float: left; ">
+                                    <h:panelGrid id="infos_document_inventaire" styleClass="yvs_table" columns="2" style="width: 100%;font-size: 0.9em !important" cellpadding="0" cellspacing="0">
+                                        <f:facet name="header">
+                                            <div align="right" style="padding: 5px">
+                                                <span>#{lab.LC_PI_passation_stock} ? </span>
+                                                <h:selectBooleanCheckbox value="#{managedInventaire.docStock.passation}">
+                                                    <p:ajax event="valueChange" listener="#{managedInventaire.chooseDateDoc()}" update="form_inventaire"/>
+                                                </h:selectBooleanCheckbox>
+                                            </div>
+                                        </f:facet>
+                                        <h:outputText value="#{lab.L_date}" />
+                                        <p:calendar value="#{managedInventaire.docStock.dateDoc}" navigator="true" pattern="dd-MM-yyyy" size="10"
+                                                    disabled="#{managedInventaire.docStock.statut != constantes.ETAT_EDITABLE}">
+                                            <p:ajax event="dateSelect" listener="#{managedInventaire.chooseDateDoc()}" update="form_inventaire"/>                                                    
+                                        </p:calendar>
+                                        <h:outputText value="#{lab.L_depot}" />
+                                        <h:panelGroup>
+                                            <h:selectOneMenu value="#{managedInventaire.docStock.source.id}" id="select_source_inventaire"
+                                                             disabled="#{managedInventaire.docStock.statut != constantes.ETAT_EDITABLE}"
+                                                             style="min-width: #{managedAgence.agences.size() gt 1?'160px':'95%'}; max-width: #{managedAgence.agences.size() gt 1?'300px':'95%'}">
+                                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                                <f:selectItems value="#{managedDepot.depots}" var="iDep" itemLabel="#{iDep.designation}" itemValue="#{iDep.id}" />                                 
+                                                <p:ajax event="valueChange" listener="#{managedInventaire.chooseDepotSource()}" update="form_inventaire"/>
+                                            </h:selectOneMenu> 
+                                            <p:commandLink value="Selectionner agence" onclick="dlgAgenceForDepot.show()" global="false" rendered="#{managedAgence.agences.size() gt 1}"/>
+                                        </h:panelGroup>
+                                        <h:outputText value="#{lab.LC_PI_creneau}" />
+                                        <h:selectOneMenu value="#{managedInventaire.docStock.creneauSource.id}" id="select_creneau_source_inventaire"
+                                                         disabled="#{(managedInventaire.docStock.statut != constantes.ETAT_EDITABLE)}"  style="width: 100%">
+                                            <f:selectItem itemLabel="--" itemValue="0"/>
+                                            <f:selectItems value="#{managedDepot.creneaux}" var="iCrn" itemLabel="#{iCrn.semiReference}" itemValue="#{iCrn.id}" />                                 
+                                            <p:ajax event="valueChange" listener="#{managedInventaire.chooseCreneauSource()}" update="form_inventaire"/>
+                                        </h:selectOneMenu> 
+                                        <h:outputText value="#{lab.LC_PI_responsable}" />
+                                        <h:selectOneMenu value="#{managedInventaire.docStock.editeur.id}" id="select_responsable_inventaire" style="width: 100%"
+                                                         disabled="#{(managedInventaire.docStock.statut != constantes.ETAT_EDITABLE)}">
+                                            <f:selectItem itemLabel="--" itemValue="0"/>
+                                            <f:selectItems value="#{managedDepot.users}" var="iUsr" itemLabel="#{iUsr.nomUsers}" itemValue="#{iUsr.id}" />                                 
+                                            <p:ajax event="valueChange" listener="#{managedInventaire.chooseResponsable()}"/>
+                                        </h:selectOneMenu> 
+                                        <h:outputText value="#{lab.LC_PI_ref_externe}" />
+                                        <h:inputText value="#{managedInventaire.docStock.numPiece}" title="#{lab.LC_PI_numero_piece_externe}" style="width: 100%"
+                                                     disabled="#{managedInventaire.docStock.statut != constantes.ETAT_EDITABLE}"/>
+                                    </h:panelGrid>
+                                </div>
+                                <div style="margin-left: 62%" >
+                                    <p:outputPanel id="desc_artcile_entree_stock" layout="block" style="margin: auto; background: white;padding-bottom: 15px">
+                                        <h1 style="padding-left: 10px">Détails du produit</h1>
+                                        <div style="float: left; width: 59%; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;
+                                             border-bottom: 2px solid #bbb; padding-left: 10px; padding-bottom: 10px; padding-top: 5px">
+                                            <span style="font-weight: bold;color: #000">
+                                                #{managedInventaire.contenu.article.designation}
+                                            </span>
+                                            <p:outputPanel rendered="#{accesRessource.base_view_article_pua}" layout="block" style="padding-top: 5px; padding-bottom: 5px">
+                                                <h:outputText value="Prix d'achat = " />
+                                                <h:outputText value="#{managedInventaire.contenu.conditionnement.prixAchat}" converter="#{managedInventaire.converter}" style="font-weight: bold;color: #000"/>
+                                                <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                            </p:outputPanel>
+                                            <p:outputPanel rendered="#{accesRessource.base_view_article_puv}" layout="block" style="padding-top: 5px; padding-bottom: 5px">
+                                                <h:outputText value="Prix de vente = " />
+                                                <h:outputText value="#{managedInventaire.contenu.conditionnement.prix}" converter="#{managedInventaire.converter}" style="font-weight: bold;color: #000"/>
+                                                <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                            </p:outputPanel>
+                                            <p:outputPanel rendered="#{accesRessource.base_view_article_pr}" layout="block" style="padding-top: 5px; padding-bottom: 5px">
+                                                <h:outputText value="#{lab.LC_PFA_cout_unitaire_stock} = " />
+                                                <h:outputText value="#{managedInventaire.contenu.article.pr}" converter="#{managedInventaire.converter}"  style="font-weight: bold;color: #000"/>
+                                                <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                            </p:outputPanel>
+                                            <p:outputPanel layout="block" style="padding-top: 5px; padding-bottom: 5px">
+                                                <h:outputText value="#{managedInventaire.contenu.article.stock}" converter="#{managedInventaire.converterStock}" style="font-weight: bold;color: #000"/>
+                                                <h:outputText value=" #{managedInventaire.contenu.conditionnement.unite.reference} #{lab.LC_PFV_en_stock}"/>
+                                            </p:outputPanel>
+                                        </div>
+                                        <div style="margin-left: 61%;" align="center">
+                                            <h:graphicImage id="img_article" style="max-width: 100%;max-height: 140px" value="data:image/#{Marticle.photoArticle(managedInventaire.contenu.article)[1]};base64,#{Marticle.photoArticle(managedInventaire.contenu.article)[0]}"/>
+                                        </div>                                        
+                                    </p:outputPanel>
+                                </div>  
+                            </p:outputPanel>
+                        </h:panelGrid>
+                        <h:panelGrid class="headline_data" columns="2" styleClass="yvs_nostyle" style="width: 100%; font-size: 0.8em">
+                            <b><span> #{lab.LC_PI_contenus}</span></b>     
+                            <p:selectBooleanCheckbox value="#{managedInventaire.impactValeurInventaire}" itemLabel="Valoriser les excedents" style="float: right"/>
+                        </h:panelGrid>
+                        <div style="background:#FFF; width: 100%;" >
+                            <p:focus id="fos-value_article_inventaire" for="value-article_inventaire"/>
+                            <p:focus id="fos-value_unite_inventaire" for="value-unite_inventaire"/>
+                            <p:outputPanel id="form_contenu_entree_stock">
+                                <h:panelGrid columns="#{managedInventaire.contenu.article.requiereLot?'7':'6'}"  style="font-size: 0.8em">
+                                    <h:outputText value="#{lab.L_article}" />
+                                    <h:outputText value="#{lab.L_conditionnement}" />
+                                    <h:outputText value="#{lab.L_prix}" />
+                                    <h:outputText value="#{lab.LC_PI_stock_theorique}" />
+                                    <h:outputText value="#{lab.LC_PI_stock_reel}" />
+                                    <h:outputText value="#{lab.LC_PES_lot}"  rendered="#{managedInventaire.contenu.article.requiereLot}"/>
+                                    <h:outputText value=" " />
+                                    <h:panelGroup>
+                                        <h:inputText id="value-article_inventaire" value="#{managedInventaire.contenu.article.refArt}" style="color: #{managedInventaire.contenu.article.error?'red':''}" tabindex="10">
+                                            <p:ajax event="valueChange" listener="#{managedInventaire.searchArticle()}" update="form_contenu_entree_stock desc_artcile_entree_stock"/>
+                                        </h:inputText>                                    
+                                        <p:commandButton icon="ui-icon-note" actionListener="#{managedInventaire.initArticles()}"  oncomplete="dlgListArticle.show()"
+                                                         style="width: 22px; height: 22px; float: right"  title="#{lab.LC_PI_ouvrir_liste_article}"  />
+                                    </h:panelGroup>
+                                    <h:selectOneMenu id="value-unite_inventaire" value="#{managedInventaire.contenu.conditionnement.id}" tabindex="15" style="min-width: 120px">
+                                        <f:selectItem itemValue="#{0}" itemLabel="" />
+                                        <f:selectItems value="#{managedInventaire.contenu.article.conditionnements}" var="icons_" itemValue="#{icons_.id}" itemLabel="#{icons_.unite.reference}" />
+                                        <p:ajax event="valueChange" listener="#{managedInventaire.chooseConditionnement()}" update="desc_artcile_entree_stock form_contenu_entree_stock"/>
+                                    </h:selectOneMenu>
+                                    <h:inputText value="#{managedInventaire.contenu.prix}" disabled="true" style="width: 120px; text-align: right" converter="#{managedInventaire.converter}"/>
+                                    <h:inputText value="#{managedInventaire.contenu.article.stock}" disabled="true"  style="width: 120px" converter="#{managedInventaire.converterStock}"/>
+                                    <pe:inputNumber value="#{managedInventaire.contenu.quantite}" decimalPlaces="2" style="width: 120px" tabindex="20"/>
+                                    <h:inputText id="select_lot_inventaire" value="#{managedInventaire.contenu.lotSortie.numero}" style="color: #{managedInventaire.contenu.lotSortie.id lt 1?'red':''}"
+                                                 rendered="#{managedInventaire.contenu.article.requiereLot}">
+                                        <p:ajax event="valueChange" listener="#{managedInventaire.findLotReception(managedInventaire.contenu)}" update="@this"/>
+                                    </h:inputText>
+                                    <p:commandButton icon="ui-icon-circle-check" value="Appliquer"   title="#{lab.LC_PI_ajouter_rapport_inventaire}" tabindex="30" actionListener="#{managedInventaire.saveNewContenu()}"
+                                                     update="blog_form_contenu_inventaire form_contenu_entree_stock desc_artcile_entree_stock fos-value_article_inventaire"/>
+                                </h:panelGrid>
+                                <p:commandButton value="Ouvrir la liste d'article" onclick="dlgListArticleStock.show()" style="float: right;margin-top: -30px"/>
+                            </p:outputPanel>
+                        </div>
+                        <p:outputPanel id="blog_form_contenu_inventaire">
+                            <div style="float: left; width: 49%">
+                                <p:dataTable id="data_contenu_inventaire_E" value="#{managedInventaire.contenusEntree}" var="inv" rowKey="#{inv.article}"
+                                             rowIndexVar="lin_"  editable="true">          
+                                    <f:facet name="header">
+                                        <div align="left" style="font-weight: bold; font-size: 0.8em">
+                                            #{managedInventaire.selectDocEntree.numDoc}
+                                        </div>
+                                    </f:facet>
+                                    <p:ajax event="rowEdit" global="false" listener="#{managedInventaire.updateContenu}"/>    
+                                    <p:column width="15" headerText="N°">
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(inv.dateSave) : 'Lot N° '.concat(inv.lotEntree.numero)}" >
+                                            #{lin_+1}
+                                        </span>
+                                    </p:column>
+                                    <p:column  style="width: 12%" headerText="#{lab.L_reference}">   
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(inv.dateSave) : 'Lot N° '.concat(inv.lotEntree.numero)}" >                             
+                                            #{inv.article.refArt} 
+                                        </span>
+                                    </p:column>                   
+                                    <p:column headerText="#{lab.LC_PI_articles} ">    
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(inv.dateSave) : 'Lot N° '.concat(inv.lotEntree.numero)}" >                            
+                                            #{inv.article.designation} 
+                                        </span>
+                                        <h:panelGroup style="float: right">
+                                            <h:outputText rendered="#{inv.impactValeurInventaire}" value="I" styleClass="statut-green" title="Valoriser dans l'inventaire"/>
+                                        </h:panelGroup>
+                                    </p:column>          
+                                    <p:column headerText="#{lab.LC_PLV_lot}" style="text-align: center;width: 10%" rendered="#{managedInventaire.currentParam.useLotReception}">
+                                        <span title="#{managedInventaire.ldf.format(inv.dateSave)}">
+                                            #{inv.lotEntree.numero}
+                                        </span>
+                                    </p:column>         
+                                    <p:column headerText="#{lab.LC_PI_excedent}" style="text-align: right;"  width="90">     
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(inv.dateSave) : 'Lot N° '.concat(inv.lotEntree.numero)}" >                           
+                                            <h:outputText value="#{inv.quantite}" style="color: #0066cc" converter="#{managedInventaire.converterStock}"/>
+                                        </span>
+                                        <span title="#{inv.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{inv.conditionnement.unite.reference}</span>
+                                    </p:column>                     
+                                    <p:column headerText="Justifiée" style="text-align: right;"  width="90" rendered="#{managedInventaire.displayQteJustifEntree}">    
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(inv.dateSave) : 'Lot N° '.concat(inv.lotEntree.numero)}" >                            
+                                            <h:outputText value="#{inv.qteAttente}" style="color: #0066cc" converter="#{managedInventaire.converterStock}"/>
+                                        </span>
+                                        <span title="#{inv.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{inv.conditionnement.unite.reference}</span>
+                                    </p:column>                                  
+                                    <p:column headerText="#{lab.L_prix}" style="text-align: right;" width="90" rendered="#{managedInventaire.displayPrixEntree}">   
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(inv.dateSave) : 'Lot N° '.concat(inv.lotEntree.numero)}" >                             
+                                            <h:outputText value="#{managedInventaire.getPrix(inv)}" style="color: #0066cc" converter="#{managedInventaire.converterStock}"/>
+                                        </span>
+                                    </p:column>                                    
+                                    <p:column headerText="#{lab.LC_PI_qualite}" style="text-align: right;width: 10%">
+                                        <p:cellEditor>
+                                            <f:facet name="output">
+                                                <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(inv.dateSave) : 'Lot N° '.concat(inv.lotEntree.numero)}" >
+                                                    <h:outputText value="#{inv.qualite.libelle}"/>
+                                                </span>
+                                            </f:facet>
+                                            <f:facet name="input">
+                                                <h:selectOneMenu value="#{inv.idQualite}">
+                                                    <f:selectItem itemLabel="--" itemValue="0"/>
+                                                    <f:selectItems value="#{managedQualite.qualites}" var="q" 
+                                                                   itemLabel="#{q.libelle}" itemValue="#{q.id}"/>
+                                                </h:selectOneMenu>
+                                            </f:facet>
+                                        </p:cellEditor>                                
+                                    </p:column>
+                                    <p:column width="15" style="text-align: center">
+                                        <f:facet name="header">
+                                            <p:contextMenu for="btn_option_head_contenu_entree" event="left click" style="font-size: 0.8em;width: 200px">
+                                                <p:menuitem value="#{managedInventaire.displayPrixEntree?'Cacher':'Afficher'} prix" icon="ui-icon-radio-on" actionListener="#{managedInventaire.setDisplayPrixEntree(!managedInventaire.displayPrixEntree)}" update="data_contenu_inventaire_E"/>
+                                                <p:menuitem value="#{managedInventaire.displayQteJustifEntree?'Cacher':'Afficher'} quantitée justifiée" icon="ui-icon-radio-on" actionListener="#{managedInventaire.setDisplayQteJustifEntree(!managedInventaire.displayQteJustifEntree)}" update="data_contenu_inventaire_E"/>
+                                                <p:menuitem id="menu-search_contenu_es" value="Recherche" icon="ui-icon-search" global="false"/>
+                                                <p:menuitem value="Exclure de la valeur totale" icon="ui-icon-minus" actionListener="#{managedInventaire.changeAllImpactInValorise(false, managedInventaire.contenusEntree)}" update="data_contenu_inventaire_E"/>
+                                                <p:menuitem value="Inclure à la valeur totale" icon="ui-icon-plus" actionListener="#{managedInventaire.changeAllImpactInValorise(true, managedInventaire.contenusEntree)}" update="data_contenu_inventaire_E"/>
+                                            </p:contextMenu>
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_head_contenu_entree" type="button"/>
+                                            <p:overlayPanel for="menu-search_contenu_es" hideEffect="fade" style="width: 200px;background: black;color: white">
+                                                <h:inputText value="#{managedInventaire.articleEntree}" style="width:100%">
+                                                    <p:ajax event="blur" listener="#{managedInventaire.findEntreeByArticle()}" update="data_contenu_inventaire_E"/>
+                                                </h:inputText>
+                                            </p:overlayPanel>
+                                        </f:facet>
+                                        <p:contextMenu for="btn_option_contenu_entree" event="left click" style="font-size: 0.8em;width: 200px">
+                                            <p:menuitem value="#{inv.impactValeurInventaire?'Exclure de':'Inclure à'} la valeur totale" icon="#{inv.impactValeurInventaire?'ui-icon-minus':'ui-icon-plus'}"
+                                                        actionListener="#{managedInventaire.changeImpactInValorise(inv, managedInventaire.contenusEntree)}" update="data_contenu_inventaire_E" rendered="#{inv.id gt 0}"/>
+                                            <p:menuitem value="#{inv.calculPr?'Désactiver':'Activer'} le calcul du pr" icon="#{inv.calculPr?'ui-icon-pause':'ui-icon-play'}"
+                                                        actionListener="#{managedInventaire.changeCalculPr(inv)}" update="data_contenu_inventaire_E" rendered="#{inv.id gt 0}"/>
+                                            <p:menuitem value="Justifier" icon="ui-icon-check" actionListener="#{managedInventaire.onQuantiteeJustifiee(inv)}" oncomplete="dlgQteJustifiee.show()"/>
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash"  rendered="#{managedInventaire.docStock.update}"
+                                                        actionListener="#{managedInventaire.deleteBeanContenu_(inv)}" oncomplete="dlgConfirmDeleteArticle_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_entree" type="button"/>
+
+                                    </p:column> 
+                                </p:dataTable> 
+                            </div>
+                            <div style="margin-left: 50%">
+                                <p:dataTable id="data_contenu_inventaire_S" value="#{managedInventaire.contenusSortie}" var="invS" rowKey="#{invS.article}"
+                                             rowIndexVar="lin_E"   editable="true"> 
+                                    <f:facet name="header">
+                                        <div align="left" style="font-weight: bold; font-size: 0.8em">
+                                            #{managedInventaire.selectDocSortie.numDoc}
+                                        </div>
+                                    </f:facet>
+                                    <p:ajax event="rowEdit" global="false" listener="#{managedInventaire.updateContenu}"/>    
+                                    <p:column width="15" headerText="N°">
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(invS.dateSave) : 'Lot N° '.concat(invS.lotSortie.numero)}" > 
+                                            #{lin_E+1}
+                                        </span>
+                                    </p:column>
+                                    <p:column  style="width: 12%" headerText="#{lab.L_reference}">   
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(invS.dateSave) : 'Lot N° '.concat(invS.lotSortie.numero)}" >                              
+                                            #{invS.article.refArt} 
+                                        </span>
+                                    </p:column>                   
+                                    <p:column headerText="#{lab.LC_PI_articles} ">  
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(invS.dateSave) : 'Lot N° '.concat(invS.lotSortie.numero)}" >                               
+                                            #{invS.article.designation} 
+                                        </span>
+                                        <h:panelGroup style="float: right">
+                                            <h:outputText rendered="#{invS.qteAttente gt 0}" value="J" styleClass="statut" title="Justifiée"/>
+                                            <h:outputText rendered="#{!invS.impactValeurInventaire}" value="E" styleClass="statut-red"  title="Non valoriser dans l'inventaire"/>
+                                        </h:panelGroup>
+                                    </p:column>                        
+                                    <p:column headerText="#{lab.LC_PLV_lot}" style="text-align: center;width: 10%" rendered="#{managedInventaire.currentParam.useLotReception}">
+                                        <span title="#{managedInventaire.ldf.format(invS.dateSave)}">
+                                            #{invS.lotSortie.numero}
+                                        </span>
+                                    </p:column>     
+                                    <p:column headerText="#{lab.LC_PI_manquant}" style="text-align: right;" width="90">   
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(invS.dateSave) : 'Lot N° '.concat(invS.lotSortie.numero)}" >                              
+                                            <h:outputText value="#{invS.quantite}" style="color: red" converter="#{managedInventaire.converterStock}"/>
+                                        </span>
+                                        <span title="#{invS.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{invS.conditionnement.unite.reference}</span>
+                                    </p:column>                           
+                                    <p:column headerText="Justifiée" style="text-align: right;"  width="90" rendered="#{managedInventaire.displayQteJustifSortie}">  
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(invS.dateSave) : 'Lot N° '.concat(invS.lotSortie.numero)}" >                               
+                                            <h:outputText value="#{invS.qteAttente}" style="color: red" converter="#{managedInventaire.converterStock}"/>
+                                        </span>
+                                        <span title="#{invS.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{invS.conditionnement.unite.reference}</span>
+                                    </p:column>                             
+                                    <p:column headerText="#{lab.L_prix}" style="text-align: right;" width="90" rendered="#{managedInventaire.displayPrixSortie}">  
+                                        <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(invS.dateSave) : 'Lot N° '.concat(invS.lotSortie.numero)}" >                               
+                                            <h:outputText value="#{managedInventaire.getPrix(invS)}" style="color: #0066cc" converter="#{managedInventaire.converterStock}"/>
+                                        </span>
+                                    </p:column>   
+                                    <p:column headerText="#{lab.LC_PI_qualite}" style="text-align: right;width: 10%">
+                                        <p:cellEditor>
+                                            <f:facet name="output">
+                                                <span title="#{managedInventaire.currentParam.useLotReception ? managedInventaire.ldf.format(invS.dateSave) : 'Lot N° '.concat(invS.lotSortie.numero)}" > 
+                                                    <h:outputText value="#{invS.qualite.libelle}"/>
+                                                </span>
+                                            </f:facet>
+                                            <f:facet name="input">
+                                                <h:selectOneMenu value="#{invS.idQualite}">
+                                                    <f:selectItem itemLabel="--" itemValue="0"/>
+                                                    <f:selectItems value="#{managedQualite.qualites}" var="q" 
+                                                                   itemLabel="#{q.libelle}" itemValue="#{q.id}"/>
+                                                </h:selectOneMenu>
+                                            </f:facet>
+                                        </p:cellEditor>                                
+                                    </p:column>                                    
+                                    <p:column width="15" style="text-align: center">
+                                        <f:facet name="header">
+                                            <p:contextMenu for="btn_option_head_contenu_sortie" event="left click" style="font-size: 0.8em;width: 200px">
+                                                <p:menuitem value="#{managedInventaire.displayPrixSortie?'Cacher':'Afficher'} prix" icon="ui-icon-radio-on" actionListener="#{managedInventaire.setDisplayPrixSortie(!managedInventaire.displayPrixSortie)}" update="data_contenu_inventaire_S"/>
+                                                <p:menuitem value="#{managedInventaire.displayQteJustifSortie?'Cacher':'Afficher'} quantitée justifiée" icon="ui-icon-radio-on" actionListener="#{managedInventaire.setDisplayQteJustifSortie(!managedInventaire.displayQteJustifSortie)}" update="data_contenu_inventaire_S"/>
+                                                <p:menuitem id="menu-search_contenu_ss" value="#{lab.L_recherche}" icon="ui-icon-search" global="false"/>
+                                            </p:contextMenu>
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_head_contenu_sortie" type="button"/>
+                                            <p:overlayPanel for="menu-search_contenu_ss" hideEffect="fade" style="width: 200px;background: black;color: white">
+                                                <h:inputText value="#{managedInventaire.articleSortie}" style="width:100%">
+                                                    <p:ajax event="blur" listener="#{managedInventaire.findSortieByArticle()}" update="data_contenu_inventaire_S"/>
+                                                </h:inputText>
+                                            </p:overlayPanel>
+                                        </f:facet>
+                                        <p:contextMenu for="btn_option_contenu_sortie" event="left click" style="font-size: 0.8em;width: 200px">
+                                            <p:menuitem value="#{invS.impactValeurInventaire?'Retirer de':'Ajouter à'} la valeur totale" icon="#{invS.impactValeurInventaire?'ui-icon-minus':'ui-icon-plus'}"
+                                                        actionListener="#{managedInventaire.changeImpactInValorise(invS, managedInventaire.contenusSortie)}" update="data_contenu_inventaire_S" rendered="#{invS.id gt 0}"/>
+                                            <p:menuitem value="#{invS.calculPr?'Désactiver':'Activer'} le calcul du pr" icon="#{invS.calculPr?'ui-icon-pause':'ui-icon-play'}"
+                                                        actionListener="#{managedInventaire.changeCalculPr(invS)}" update="data_contenu_inventaire_S" rendered="#{invS.id gt 0}"/>
+                                            <p:menuitem value="Justifier" icon="ui-icon-check" actionListener="#{managedInventaire.onQuantiteeJustifiee(invS)}" oncomplete="dlgQteJustifiee.show()"/>
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash"  rendered="#{managedInventaire.docStock.update}"
+                                                        actionListener="#{managedInventaire.deleteBeanContenu_(invS)}" oncomplete="dlgConfirmDeleteArticle_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_sortie" type="button"/>
+                                    </p:column> 
+                                </p:dataTable> 
+                            </div>                            
+                        </p:outputPanel>                         
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_inventaire" style="width: 100%; margin: auto">
+                    <div  class="part_list">
+                        <h:inputHidden id="input_hide_inventaire" value="#{managedInventaire.tabIds}"/>
+                        <p:dataTable id="data_inventaire" value="#{managedInventaire.documents}" var="bon" rowKey="#{bon.id}" 
+                                     rowIndexVar="bonIdx" selectionMode="single" >
+                            <p:ajax event="rowSelect" listener="#{managedInventaire.loadOnView}"  oncomplete="collapseForm('inventaire');collapseForm('contenu_inventaire')"
+                                    update="@this :main_inventaire:input_hide_inventaire"/>
+                            <p:column headerText="N°" width="30" styleClass="statut_#{bon.statut}">
+                                <h:graphicImage title="#{lab.L_cloturer}" library="img" name="blocked.png" width="15" height="15" rendered="#{bon.cloturer}"/>     
+                                <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{bon.id eq managedInventaire.docStock.id}"/>
+                                <span title="#{bon.dateSave.toString()}">#{bonIdx+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" styleClass="statut_#{bon.statut}">
+                                <span title="#{bon.dateSave.toString()}">#{bon.numDoc}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_date}" style="text-align: center;width: 15%" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.dateDoc}" converter="DDMMYYYY" title="#{bon.dateSave.toString()}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_depot}" styleClass="statut_#{bon.statut}">
+                                <span title="#{bon.dateSave.toString()}">#{bon.source.designation}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PI_creneau}" styleClass="statut_#{bon.statut}">
+                                <span title="#{bon.dateSave.toString()}">#{bon.creneauSource.semiReference}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PI_responsable}" styleClass="statut_#{bon.statut}">
+                                <span title="#{bon.dateSave.toString()}">#{bon.editeur.nomUsers}</span>
+                            </p:column>
+                            <p:column width="20" style="text-align: center" styleClass="statut_#{bon.statut}">
+                                <p:contextMenu for="btn_option_inventaire" event="left click" style="font-size: 0.8em">
+                                    <p:menuitem value="#{bon.cloturer?'Dévérrouiller':'Vérrouiller'}" icon="#{bon.cloturer?'ui-icon-unlocked':'ui-icon-locked'}" 
+                                                global="false" actionListener="#{managedInventaire.cloturer(bon)}" oncomplete="dlgConfirmClose.show()"/>
+                                    <p:menuitem value="#{lab.LC_PES_supprimer_doublons}" icon="ui-icon-grip-solid-horizontal" actionListener="#{managedInventaire.removeDoublon(bon)}" global="false"
+                                                title="#{lab.LC_PES_suppression_articles_doublons_fiche}"/>
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.LC_PI_gerer_ecart}" icon="ui-icon-copy" actionListener="#{managedInventaire.onBuildEcart(bon, true)}" 
+                                                oncomplete="collapseForm('inventaire');collapseForm('contenu_inventaire')" update="data_inventaire :main_inventaire:input_hide_inventaire"/>
+                                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedInventaire.print(bon)}" ajax="false"/>
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedInventaire.deleteBean_(bon)}" oncomplete="dlgConfirmDelete_.show()"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_inventaire" type="button"/>
+                            </p:column> 
+                            <p:column width="20" style="text-align: center" styleClass="statut_#{bon.statut}">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_inventaire" value="false"
+                                                             onclick="selectionAllLineTab(#{managedInventaire.documents.size()}, 'inventaire')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="#{bon.selectActif}" styleClass="chek_line_inventaire" title="#{bon.dateSave.toString()}" 
+                                                          onclick="selectionLineTab(#{bonIdx}, 'inventaire')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                        </p:dataTable>         
+                        <span class="nbSelectinventaire" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                            <p:commandButton actionListener="#{managedInventaire.init(false)}" global="false" update="data_inventaire" icon="ui-icon-circle-triangle-w" disabled="#{managedInventaire.paginator.disPrev}"/>
+                            <p:outputPanel >
+                                <p:inplace label="#{managedInventaire.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                    <pe:inputNumber value="#{managedInventaire.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                        <p:ajax event="blur" listener="#{managedInventaire.gotoPagePaginator()}" update="data_inventaire"/>
+                                    </pe:inputNumber>
+                                </p:inplace><p:outputLabel value="/#{managedInventaire.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                            </p:outputPanel>
+                            <p:commandButton actionListener="#{managedInventaire.init(true)}" global="false" update="data_inventaire" icon="ui-icon-circle-triangle-e" disabled="#{managedInventaire.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{managedInventaire.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedInventaire.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{managedInventaire.paginations}"/>
+                                <p:ajax event="valueChange" global="false" update="data_inventaire"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel>   
+                    </div>                                  
+                </div> 
+            </div> 
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: 20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_inventaire display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedInventaire.selectDoc.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedInventaire.selectDoc.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedInventaire.selectDoc.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="6" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:panelGroup>                            
+                            <h:selectBooleanCheckbox value="#{managedInventaire.date_}">
+                                <p:ajax event="valueChange" listener="#{managedInventaire.chooseDateSearch()}" update="blog_date_search_inventaire :main_inventaire:data_inventaire" oncomplete="collapseList('inventaire')"/>
+                            </h:selectBooleanCheckbox>
+                            <h:outputText value="#{lab.L_date}" />
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.L_agence}" />
+                        <h:outputText value="#{lab.L_depot}" />
+                        <h:panelGroup>
+                            <h:outputText value="#{lab.L_statut}" style="float:left;margin-top: 0px"/>
+                            <h:selectOneMenu value="#{managedInventaire.egaliteStatut}" style="float:right;margin-right: 5px">
+                                <f:selectItem itemLabel="#{lab.L_egale}" itemValue="="/>
+                                <f:selectItem itemLabel="#{lab.L_different}" itemValue="!="/>
+                                <p:ajax event="valueChange" update=":main_inventaire:data_inventaire" listener="#{managedInventaire.addParamStatut()}" oncomplete="collapseList('inventaire')"/>
+                            </h:selectOneMenu>  
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.L_reference}" />
+                        <h:outputText value="" />
+                        <h:panelGroup id="blog_date_search_inventaire">
+                            <p:calendar value="#{managedInventaire.dateDebut_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedInventaire.date_}" size="8" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedInventaire.chooseDateSearch()}" update=":main_inventaire:data_inventaire" oncomplete="collapseList('inventaire')"/>
+                            </p:calendar>
+                            <p:spacer width="5px" style="background: black"/>
+                            <p:calendar value="#{managedInventaire.dateFin_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedInventaire.date_}" size="8" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedInventaire.chooseDateSearch()}" update=":main_inventaire:data_inventaire" oncomplete="collapseList('inventaire')"/>
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedInventaire.agence_}" style="min-width: 120px">
+                            <f:selectItems value="#{managedAgence.listAgence}" var="ag"
+                                           itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedInventaire.addParamAgence()}" oncomplete="collapseList('inventaire')" 
+                                    update="search_select_depot_inventaire"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedInventaire.depotSearch}" style="min-width: 120px" id="search_select_depot_inventaire">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedDepot.depots_all}" var="depS" itemLabel="#{depS.designation}" itemValue="#{depS.id}" />                                 
+                            <p:ajax event="valueChange" listener="#{managedInventaire.chooseDepotSearch()}" oncomplete="collapseList('inventaire')"
+                                    update=":main_inventaire:data_inventaire"/>
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedInventaire.statut_}"  valueChangeListener="#{managedInventaire.chooseStatut}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_editable}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                            <f:selectItem itemLabel="#{lab.L_annuler}" itemValue="#{constantes.ETAT_ANNULE}"/>
+                            <f:selectItem itemLabel="#{lab.L_valider}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                            <p:ajax event="valueChange" update=":main_inventaire:data_inventaire" oncomplete="collapseList('inventaire')"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedInventaire.numSearch_}">
+                            <p:ajax event="valueChange" listener="#{managedInventaire.searchByNum()}" update=":main_inventaire:data_inventaire" oncomplete="collapseList('inventaire')"/>
+                        </h:inputText>
+                        <p:splitButton value="#{lab.L_rechercher}" actionListener="#{managedInventaire.loadAllInventaire(true, true)}" icon="ui-icon-search">
+                            <p:menuitem value="Plus d'options" icon="ui-icon-plus" onclick="dlgPlusOption.show()"  global="false"/>
+                            <p:menuitem value="Analyser" icon="ui-icon-search" oncomplete="dlgAnalyseQuery.show()"
+                                        actionListener="#{managedInventaire.setInstance(managedInventaire)}"/>
+                        </p:splitButton>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right">
+                        <p:commandLink onclick="dlgCleanStock.show()" title="#{lab.LC_PI_nettoyage_stock}" style="border: 2px solid black; border-radius: 5px;padding: 2px;">
+                            <h:graphicImage library="img" name="clean.png" width="15" height="15"/>  
+                        </p:commandLink>
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

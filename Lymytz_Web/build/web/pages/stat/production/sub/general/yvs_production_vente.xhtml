@@ -1,0 +1,330 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide">
+        <span class="block_slide_title">
+            <span class="slide_title" group="ECART">#{lab.LP_PTB_production_vente}</span>  
+            <h:panelGrid columns="2" style="float: right;margin-right: 5px" cellpadding="0" cellspacing="0">
+                <span>#{lab.L_type}</span>
+                <h:selectOneMenu value="#{managedBordStatistique.productionVente.nature}" style="min-width: 120px">
+                    <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                    <f:selectItem itemLabel="#{lab.LDB_PD_production.toUpperCase()}" itemValue="P"/>
+                    <f:selectItem itemLabel="#{lab.LDB_PD_vente.toUpperCase()}" itemValue="V"/>
+                    <p:ajax event="valueChange" process="@this" global="false" update="data_production_vente"/>
+                </h:selectOneMenu>  
+            </h:panelGrid>
+        </span> 
+        <div class="zone_slide">
+            <p:dataTable id="data_production_vente" value="1" var="classe"
+                         paginator="true" rows="20" paginatorAlwaysVisible="false" style="width: 100%;overflow-x: auto">
+                <p:columnGroup type="header">
+                    <p:row>
+                        <p:column headerText="#{lab.L_articles}" style="width: 15%" colspan="2" rowspan="#{managedBordStatistique.productionVente.nature ne null ? 1 : 3}"/>
+                        <c:forEach items="#{managedBordStatistique.productionVente.colonnes}" var="head">
+                            <p:column headerText="#{head.libelle}" colspan="#{managedBordStatistique.productionVente.nature ne null ? 1 : 9}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{head.libelle}" title="#{head.valeur}"/> 
+                                </f:facet>
+                            </p:column>
+                        </c:forEach>
+                        <p:column headerText="#{lab.L_total.toUpperCase()}" style="width: 15%" colspan="#{managedBordStatistique.productionVente.nature ne null ? 1 : 9}"/>
+                    </p:row>
+                    <p:row rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                        <c:forEach items="#{managedBordStatistique.productionVente.colonnes}" var="head">
+                            <p:column headerText="#{lab.LP_PTB_prod}." colspan="3"/>
+                            <p:column headerText="#{lab.LP_PTB_vente}" colspan="3"/>
+                            <p:column headerText="#{lab.LP_PTB_ecart}" colspan="3"/>
+                        </c:forEach>
+                        <p:column headerText="#{lab.LP_PTB_prod}." colspan="3"/>
+                        <p:column headerText="#{lab.LP_PTB_vente}" colspan="3"/>
+                        <p:column headerText="#{lab.LP_PTB_ecart}" colspan="3"/>
+                    </p:row>
+                    <p:row rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                        <c:forEach items="#{managedBordStatistique.productionVente.colonnes}" var="head">
+                            <p:column headerText="#{lab.L_qte.toUpperCase()}"/>
+                            <p:column headerText="#{lab.L_prix.toUpperCase()}"/>
+                            <p:column headerText="#{lab.L_valeur.toUpperCase()}"/>
+                            <p:column headerText="#{lab.L_qte.toUpperCase()}"/>
+                            <p:column headerText="#{lab.L_prix.toUpperCase()}"/>
+                            <p:column headerText="#{lab.L_valeur.toUpperCase()}"/>
+                            <p:column headerText="#{lab.L_qte.toUpperCase()}"/>
+                            <p:column headerText="#{lab.L_prix.toUpperCase()}"/>
+                            <p:column headerText="#{lab.L_valeur.toUpperCase()}"/>
+                        </c:forEach>
+                        <p:column headerText="#{lab.L_qte.toUpperCase()}"/>
+                        <p:column headerText="#{lab.L_prix.toUpperCase()}"/>
+                        <p:column headerText="#{lab.L_valeur.toUpperCase()}"/>
+                        <p:column headerText="#{lab.L_qte.toUpperCase()}"/>
+                        <p:column headerText="#{lab.L_prix.toUpperCase()}"/>
+                        <p:column headerText="#{lab.L_valeur.toUpperCase()}"/>
+                        <p:column headerText="#{lab.L_qte.toUpperCase()}"/>
+                        <p:column headerText="#{lab.L_prix.toUpperCase()}"/>
+                        <p:column headerText="#{lab.L_valeur.toUpperCase()}"/>
+                    </p:row>
+                    <c:forEach items="#{managedBordStatistique.productionVente.lignes}" var="mp" varStatus="iRow">
+                        <p:row>
+                            <p:column headerText="#{mp.titre}" style="text-align: left" rowspan="#{mp.titres.size()}" rendered="#{!managedBordStatistique.productionVente.displayName}"/>
+                            <p:column headerText="#{mp.libelle}" style="text-align: left" rowspan="#{mp.titres.size()}" rendered="#{managedBordStatistique.productionVente.displayName}"/>
+                            <p:column headerText="#{mp.autres}" style="text-align: left"/>
+                            <c:forEach items="#{managedBordStatistique.productionVente.colonnes}" var="head" varStatus="iCol">
+                                <p:column style="background: #a4e1fc!important;text-align: right"
+                                          rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, mp.autres, 'qte')}" 
+                                                      converter="#{managedBordStatistique.converterStock}" style="color: blue"/> 
+                                    </f:facet>
+                                </p:column>
+                                <p:column style="background: #a4e1fc!important;text-align: right"
+                                          rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, mp.autres, 'puv')}" 
+                                                      converter="#{managedBordStatistique.converterStock}" style="color: blue"/> 
+                                    </f:facet>
+                                </p:column>
+                                <p:column style="background: #a4e1fc!important;text-align: right"
+                                          rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, mp.autres, 'attente')}" 
+                                                      converter="#{managedBordStatistique.converterStock}" style="color: blue"/> 
+                                    </f:facet>
+                                </p:column>
+                                <p:column style="background: white!important;text-align: right"
+                                          rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, mp.autres, 'valeur')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                    </f:facet>
+                                </p:column>
+                                <p:column style="background: white!important;text-align: right"
+                                          rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, mp.autres, 'puv')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                    </f:facet>
+                                </p:column>
+                                <p:column style="background: white!important;text-align: right"
+                                          rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, mp.autres, 'ca')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                    </f:facet>
+                                </p:column>
+                                <p:column style="background: white!important;text-align: right"
+                                          rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, mp.autres, 'pua')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                    </f:facet>
+                                </p:column>
+                                <p:column style="background: white!important;text-align: right"
+                                          rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, mp.autres, 'puv')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                    </f:facet>
+                                </p:column>
+                                <p:column style="background: white!important;text-align: right"
+                                          rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                                    <f:facet name="header">
+                                        <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, mp.autres, 'pr')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                    </f:facet>
+                                </p:column>
+                            </c:forEach>
+                            <p:column style="background: #a4e1fc!important;text-align: right"
+                                      rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumRow(iRow.index, mp.autres, 'qte')}" 
+                                                  converter="#{managedBordStatistique.converterStock}" style="color: blue"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column style="background: #a4e1fc!important;text-align: right"
+                                      rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumRow(iRow.index, mp.autres, 'puv')}" 
+                                                  converter="#{managedBordStatistique.converterStock}" style="color: blue"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column style="background: #a4e1fc!important;text-align: right"
+                                      rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumRow(iRow.index, mp.autres, 'attente')}" 
+                                                  converter="#{managedBordStatistique.converterStock}" style="color: blue"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column style="background: white!important;text-align: right"
+                                      rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumRow(iRow.index, mp.autres, 'valeur')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column style="background: white!important;text-align: right"
+                                      rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumRow(iRow.index, mp.autres, 'puv')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column style="background: white!important;text-align: right"
+                                      rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumRow(iRow.index, mp.autres, 'ca')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column style="background: white!important;text-align: right"
+                                      rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumRow(iRow.index, mp.autres, 'pua')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column style="background: white!important;text-align: right"
+                                      rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumRow(iRow.index, mp.autres, 'puv')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column style="background: white!important;text-align: right"
+                                      rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                                <f:facet name="header">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumRow(iRow.index, mp.autres, 'pr')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>
+                            </p:column>
+                        </p:row>
+                        <c:forEach items="#{mp.titres}" var="unite" varStatus="iTitle">
+                            <p:row rendered="#{unite ne mp.autres}">
+                                <p:column headerText="#{unite}" style="text-align: left"/>
+                                <c:forEach items="#{managedBordStatistique.productionVente.colonnes}" var="head" varStatus="iCol">
+                                    <p:column style="background: white!important;font-weight: #{head.libelle eq 'TOTAL'?'':'normal!important'};text-align: right"
+                                              rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                        <f:facet name="header">
+                                            <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, unite, 'qte')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                    <p:column style="background: white!important;font-weight: #{head.libelle eq 'TOTAL'?'':'normal!important'};text-align: right"
+                                              rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                        <f:facet name="header">
+                                            <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, unite, 'puv')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                    <p:column style="background: white!important;font-weight: #{head.libelle eq 'TOTAL'?'':'normal!important'};text-align: right"
+                                              rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                        <f:facet name="header">
+                                            <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, unite, 'attente')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                    <p:column style="background: white!important;font-weight: #{head.libelle eq 'TOTAL'?'':'normal!important'};text-align: right"
+                                              rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                                        <f:facet name="header">
+                                            <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, unite, 'valeur')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                    <p:column style="background: white!important;font-weight: #{head.libelle eq 'TOTAL'?'':'normal!important'};text-align: right"
+                                              rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                        <f:facet name="header">
+                                            <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, unite, 'puv')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                    <p:column style="background: white!important;font-weight: #{head.libelle eq 'TOTAL'?'':'normal!important'};text-align: right"
+                                              rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                                        <f:facet name="header">
+                                            <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, unite, 'ca')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                    <p:column style="background: white!important;font-weight: #{head.libelle eq 'TOTAL'?'':'normal!important'};text-align: right"
+                                              rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                                        <f:facet name="header">
+                                            <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, unite, 'pua')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                    <p:column style="background: white!important;font-weight: #{head.libelle eq 'TOTAL'?'':'normal!important'};text-align: right"
+                                              rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                        <f:facet name="header">
+                                            <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, unite, 'puv')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                    <p:column style="background: white!important;font-weight: #{head.libelle eq 'TOTAL'?'':'normal!important'};text-align: right"
+                                              rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                                        <f:facet name="header">
+                                            <h:outputText value="#{managedBordStatistique.productionVente.valeur(iRow.index, iCol.index, unite, 'pr')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                </c:forEach>
+                            </p:row>
+                        </c:forEach>
+                    </c:forEach>
+                </p:columnGroup>
+                <p:columnGroup type="footer">
+                    <p:row>
+                        <p:column footerText="#{lab.LP_PTB_totaux}" style="width: 15%" colspan="2"/>
+                        <c:forEach items="#{managedBordStatistique.productionVente.colonnes}" var="head" varStatus="iCol">
+                            <p:column/>
+                            <p:column/>
+                            <p:column style="text-align: right" rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumColonne(iCol.index, 'attente')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column/>
+                            <p:column/>
+                            <p:column style="text-align: right" rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumColonne(iCol.index, 'ca')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column/>
+                            <p:column/>
+                            <p:column style="text-align: right" rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.productionVente.sumColonne(iCol.index, 'pr')}" converter="#{managedBordStatistique.converterStock}"/> 
+                                </f:facet>
+                            </p:column>
+                        </c:forEach>
+                        <p:column/>
+                        <p:column/>
+                        <p:column style="text-align: right" rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'P'}">
+                            <f:facet name="footer">
+                                <h:outputText value="#{managedBordStatistique.productionVente.sum('attente')}" converter="#{managedBordStatistique.converterStock}"/> 
+                            </f:facet>
+                        </p:column>
+                        <p:column/>
+                        <p:column/>
+                        <p:column style="text-align: right" rendered="#{managedBordStatistique.productionVente.nature eq null or managedBordStatistique.productionVente.nature eq 'V'}">
+                            <f:facet name="footer">
+                                <h:outputText value="#{managedBordStatistique.productionVente.sum('ca')}" converter="#{managedBordStatistique.converterStock}"/> 
+                            </f:facet>
+                        </p:column>
+                        <p:column/>
+                        <p:column/>
+                        <p:column style="text-align: right" rendered="#{managedBordStatistique.productionVente.nature eq null}">
+                            <f:facet name="footer">
+                                <h:outputText value="#{managedBordStatistique.productionVente.sum('pr')}" converter="#{managedBordStatistique.converterStock}"/> 
+                            </f:facet>
+                        </p:column>
+                    </p:row>
+                </p:columnGroup>
+            </p:dataTable>
+        </div>
+        <div class="zone_bottom">
+            <h:panelGroup style="float: left;margin-right: 5px">
+                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_production_vente" type="button"/>
+                <p:contextMenu for="btn_production_vente" event="left click" styleClass="context_menu" style="width: 210px">
+                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadProductionVente()}" update="data_production_vente"/>
+                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.downloadProductionVente()}" ajax="false"/>            
+                </p:contextMenu>
+                <h:inputText value="#{managedBordStatistique.productionVente.varSearch}" id="txt_search_production_vente">
+                    <p:ajax event="valueChange" listener="#{managedBordStatistique.productionVente.filter()}" update="data_production_vente"/>
+                </h:inputText>  
+                <p:outputPanel autoUpdate="true" style="font-size: 0.8em">
+                    <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="Liste des articles" global="false" 
+                                     actionListener="#{managedBordStatistique.setEtat('MP')}" oncomplete="dlgListArticles.show()"/>
+                    <h:outputText id="label-nombre_article_select" value="#{managedBordStatistique.productionVente.length}" style="font-weight: bold"/>
+                    <h:outputText value=" #{lab.LP_PTB_article_selectionne}"/>
+                </p:outputPanel> 
+                <p:watermark for="txt_search_production_vente" value="#{lab.L_rechercher}" /> 
+            </h:panelGroup>
+            <h:panelGroup style="float: right;margin-top: 5px">
+
+            </h:panelGroup>
+        </div>
+    </div>
+</ui:composition>
+

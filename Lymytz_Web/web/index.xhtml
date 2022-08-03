@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <h:head> 
+        <title>Erp Lymytz</title>        
+        <link rel="icon" type="image/ico" sizes="16x16" href="resources/icones/favicon-16.ico"/>   
+        <h:outputStylesheet library="css"  name="index.css" />      
+        <h:outputScript library="js" name="index.js" /> 
+    </h:head>
+    <h:body > 
+        <div style="height: 205px; width: 110% ; background: #333; position: absolute; top: -10px; left: -5px;; right: -5px"></div>
+        <div>  
+            <p:notificationBar>
+                <span>XXXXX</span>
+            </p:notificationBar>
+            <h:form prependId="false">
+                <p:dialog header="Confirmer l'accès" widgetVar="dlgConfirmCreate" width="20%" closeOnEscape="true" resizable="false">
+                    <h:panelGrid columns="1" style="width: 100%">
+                        <span>Mot de passe administrateur</span>
+                        <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                            <h:inputSecret value="#{loggin.passwordAdmin}" redisplay="true" style="text-align: center;width: 100%"/>
+                            <p:commandButton value="Confirmer" icon="ui-icon-circle-check" actionListener="#{loggin.createNewWay()}"  style="float: right"/>
+                        </h:panelGrid>
+                    </h:panelGrid>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <div style="width: 90%; margin: auto; position: absolute; top: 200px; left: 5% ">
+                    <p:focus for="txtLOGIN"/>
+                    #{navigations.doNothing()}
+                    #{managedVersion.load()}
+                    #{loggin.load()}
+                    <p:growl autoUpdate="true" />
+                    <div class="c1">
+                        <h:graphicImage library="lymytz/documents/logos_doc" name="logo.jpg" width="150" height="150"/>
+                        <div class="part">
+                            <div class="part2">
+                                <span class="welcome">WELCOME TO</span><br />
+                                <span class="welcome w1">LYMYTZ ERP</span><br />
+                                <span class="copyrith">&copy; LYMYTZ ERP STandard Edition <span>By Lymytz</span> | <a style="color: #0099ff" href="www.lymytz.com" target="blank"> A propos de lymytz</a></span>
+                            </div>
+                        </div>
+                        <div style="float: right;margin-right: 10px;font-weight: bold;font-style: italic">
+                            <span>Version </span> 
+                            <h:outputText value="#{managedVersion.version.name}"/>
+                        </div>
+                    </div>
+                    <div class="c2">
+                        <div class="connect">
+                            <h:inputHidden id="txtMACAdress" value="#{loggin.adresseMac}"/>
+                            <h:inputHidden id="txtIPAdress" value="#{loggin.adresseIp}"/>
+                            <h:panelGrid columns="2" id="panel_user_login_01">
+                                <h:outputText value="Login " />
+                                <h:inputText id="txtLOGIN" value="#{loggin.login}" required="true" label="Login"  tabindex="10" style="width: 100%">
+                                    <p:ajax event="blur" global="false" />
+                                </h:inputText>
+                                <h:outputText value="Mot&nbsp;de&nbsp;passe " />
+                                <h:panelGroup id="txt_password_login">
+                                    <h:inputSecret value="#{loggin.password}" redisplay="true" label="Mot de passe" tabindex="20" style="width: 100%" rendered="#{!loggin.lookPassword}">
+                                        <p:ajax event="blur" global="false"/>
+                                    </h:inputSecret>
+                                    <h:inputText value="#{loggin.password}" label="Mot de passe" tabindex="20" style="width: 90%" rendered="#{loggin.lookPassword}">
+                                        <p:ajax event="blur" global="false"/>
+                                    </h:inputText>
+                                    <p:commandLink actionListener="#{loggin.setLookPassword(!loggin.lookPassword)}" global="false" update="txt_password_login" style="float: right;margin-top: 5px" rendered="false">
+                                        <h:graphicImage library="img" name="#{(loggin.lookPassword)?'see_no.png':'see.png'}" width="16" height="16" 
+                                                        title="#{(loggin.lookPassword)?'Cacher':'Afficher'} le mot de passe"/>
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <h:outputText value="Societe : " rendered="#{loggin.displaySociete}"/>
+                                <h:selectOneMenu value="#{loggin.societe.id}" tabindex="30" rendered="#{loggin.displaySociete}"
+                                                 valueChangeListener="#{loggin.chooseSociete}">
+                                    <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                                    <f:selectItems value="#{loggin.listSociete}" var="soc" 
+                                                   itemValue="#{soc.id}" itemLabel="#{soc.codeAbreviation}"/>
+                                    <p:ajax event="valueChange"  update="login_agence login_agence_" process="@this"/>
+                                </h:selectOneMenu>
+                                <h:panelGroup id="login_agence_">
+                                    <h:outputText value="Agence : " rendered="#{loggin.displayAgence}"/>
+                                </h:panelGroup>
+                                <h:panelGroup id="login_agence">
+                                    <h:selectOneMenu value="#{loggin.agence.id}" tabindex="40" rendered="#{loggin.displayAgence}"
+                                                     valueChangeListener="#{loggin.chooseAgence}" >
+                                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                        <f:selectItems value="#{loggin.listAgences}" var="ag" 
+                                                       itemValue="#{ag.id}" itemLabel="#{ag.designation}"/>
+                                        <p:ajax event="valueChange" />
+                                    </h:selectOneMenu>      
+                                </h:panelGroup>
+                            </h:panelGrid><br />
+                            <p:commandButton value="Connexion" actionListener="#{loggin.verifieParam()}" update="panel_user_login_01"/>
+                            <h:panelGroup id="blog_mode_chargement" style="float: right;margin-right: 2px">
+                                <h:outputText value="Mode Chargement : " rendered="#{false}"/>
+                                <h:selectOneMenu value="#{constantes.USE_PRETTY}" tabindex="50" style="width: 100px" rendered="#{false}">
+                                    <f:selectItem itemValue="#{true}" itemLabel="PRETTY"/>
+                                    <f:selectItem itemValue="#{false}" itemLabel="AJAX"/>
+                                    <p:ajax event="valueChange" global="false"/>
+                                </h:selectOneMenu>  
+                            </h:panelGroup>
+                        </div>                          
+                    </div>              
+                </div>
+                <div class="new-way">
+                    <i class="ui ui-icon-plus"/>
+                    <p:commandLink value="Nouvelle socièté" onclick="dlgConfirmCreate.show()" global="false"/>                        
+                </div>
+            </h:form>  
+        </div> 
+    </h:body>
+</ui:composition>
+

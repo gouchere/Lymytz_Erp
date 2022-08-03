@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+            <h:panelGrid columns="7" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                <h:outputText value="#{lab.LDB_PD_agence}" />
+                <h:outputText value="#{lab.LCF_PBP_employe}" />
+                <h:outputText value="#{lab.LRH_PM_periode}" />
+                <h:outputText value="#{lab.LRH_PRS_etat_planifier}" />
+                <h:outputText value="#{lab.L_statut}" />
+                <h:outputText value="#{lab.LCF_PMC_comptabiliser}" />
+                <span>&nbsp;</span> 
+                <h:selectOneMenu value="#{managedRetenue.agenceSearch}" style="min-width: 120px">
+                    <f:selectItem itemLabel="--" itemValue="0"/>
+                    <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                    <p:ajax event="valueChange" listener="#{managedRetenue.addParamAgence()}"
+                            update=":form_maj_pc_comptable:data_doc_piece_retenue"/>
+                </h:selectOneMenu>
+                <p:inputText value="#{managedRetenue.employe}" style="float: right" >
+                    <p:ajax event="valueChange" listener="#{managedRetenue.loadRetenueByEmploye(managedRetenue.employe)}"
+                            update=":form_maj_pc_comptable:data_doc_piece_retenue"/>
+                </p:inputText>
+                <h:panelGroup id="zone_add_param_date_ret">
+                    <h:selectBooleanCheckbox value="#{managedRetenue.paramDate}" valueChangeListener="#{managedRetenue.addParamDate}">
+                        <p:ajax event="valueChange" update=":form_maj_pc_comptable:data_doc_piece_retenue"/>
+                    </h:selectBooleanCheckbox>
+                    <p:calendar value="#{managedRetenue.debutF}" size="7" title="Filtrer à partir du" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedRetenue.paramDate}">                                                   
+                        <p:ajax event="dateSelect" listener="#{managedRetenue.addParamDate1}" update=":form_maj_pc_comptable:data_doc_piece_retenue"/>
+                    </p:calendar>
+                    <p:calendar value="#{managedRetenue.finF}" size="7" title="Filtrer jusqu'au" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedRetenue.paramDate}">
+                        <p:ajax event="dateSelect" listener="#{managedRetenue.addParamDate2}" update=":form_maj_pc_comptable:data_doc_piece_retenue"/>
+                    </p:calendar>
+                </h:panelGroup>
+                <p:selectOneRadio value="#{managedRetenue.planifier}" style="font-size: 0.8em" valueChangeListener="#{managedRetenue.addParamPlanifier}">
+                    <f:selectItem itemLabel="#{lab.LRH_PRS_planifie}" itemValue="1"/>
+                    <f:selectItem itemLabel="#{lab.LRH_PRS_non_planifier}" itemValue="2"/>
+                    <f:selectItem itemLabel="#{lab.LRH_PRS_tout}" itemValue="0"/>                        
+                    <p:ajax event="valueChange" update=":form_maj_pc_comptable:data_doc_piece_retenue"/>
+                </p:selectOneRadio>
+                <h:selectOneMenu value="#{managedRetenue.statut}" title="Filtrer les retenues par statut" valueChangeListener="#{managedRetenue.addParamStatut}">
+                    <f:selectItem itemLabel="" itemValue="#{' '}"/>
+                    <f:selectItem itemLabel="#{lab.LC_PFA_en_cours}" itemValue="#{'E'}"/>
+                    <f:selectItem itemLabel="#{lab.LCF_PVC_suspendu}" itemValue="#{'S'}"/>
+                    <f:selectItem itemLabel="#{lab.LC_PFV_regler}" itemValue="#{'R'}"/>
+                    <p:ajax event="valueChange" update=":form_maj_pc_comptable:data_doc_piece_retenue"/>
+                </h:selectOneMenu>
+                <h:panelGroup id="bloc-search_compta_retenue">
+                    <h:selectOneMenu value="#{managedRetenue.comptaSearch}" style="min-width: 120px">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}"/>
+                        <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}"/>
+                        <p:ajax event="valueChange" listener="#{managedRetenue.addParamComptabilised()}" update=":form_maj_pc_comptable:data_doc_piece_retenue bloc-search_compta_retenue"  />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{managedRetenue.nbrComptaSearch} élèment(s)" rendered="#{managedRetenue.comptaSearch ne null}" title="#{lab.LCF_PMC_document_valides}"/>
+                </h:panelGroup>
+            </h:panelGrid>
+        </h:panelGrid>
+    </div>
+</ui:composition>
+

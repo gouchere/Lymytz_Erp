@@ -1,0 +1,1 @@
+ALTER TABLE yvs_com_commission_commerciaux ADD COLUMN statut_regle CHARACTER VARYING DEFAULT 'W';

@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+            <h:panelGrid columns="7" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                <h:outputText value="#{lab.LDB_PD_agence}" />
+                <h:panelGroup>
+                    <h:selectBooleanCheckbox value="#{managedFactureAchat.date_}">
+                        <p:ajax event="valueChange" listener="#{managedFactureAchat.chooseDateSearch()}" update="blog_date_search_doc_piece_achat :form_maj_pc_comptable:data_doc_piece_achat"/>
+                    </h:selectBooleanCheckbox>
+                    <h:outputText value="#{lab.L_date}" />
+                </h:panelGroup>
+                <h:outputText value="#{lab.L_fournisseur}" />
+                <h:outputText value="#{lab.L_statut}" />
+                <h:outputText value="#{lab.L_reference}" />
+                <h:outputText value="#{lab.LCF_PMC_comptabiliser}" />
+                <span>&nbsp;</span>
+                <h:selectOneMenu value="#{managedFactureAchat.agenceSearch}" style="min-width: 120px">
+                    <f:selectItem itemLabel="--" itemValue="0"/>
+                    <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                    <p:ajax event="valueChange" listener="#{managedFactureAchat.addParamAgences()}"
+                            update=":form_maj_pc_comptable:data_doc_piece_achat"/>
+                </h:selectOneMenu>
+                <h:panelGroup id="blog_date_search_doc_piece_achat">
+                    <p:calendar value="#{managedFactureAchat.dateDebut_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedFactureAchat.date_}" size="10" style="font-size: 0.8em">
+                        <p:ajax event="dateSelect" listener="#{managedFactureAchat.chooseDateSearch()}" update=":form_maj_pc_comptable:data_doc_piece_achat"/>
+                    </p:calendar>
+                    <p:spacer width="5px" style="background: black"/>
+                    <p:calendar value="#{managedFactureAchat.dateFin_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedFactureAchat.date_}" size="10" style="font-size: 0.8em">
+                        <p:ajax event="dateSelect" listener="#{managedFactureAchat.chooseDateSearch()}" update=":form_maj_pc_comptable:data_doc_piece_achat"/>
+                    </p:calendar>
+                </h:panelGroup>
+                <h:inputText value="#{managedFactureAchat.codeFsseur_}" style="min-width: 120px">
+                    <p:ajax event="valueChange" listener="#{managedFactureAchat.addParamFsseur()}" update=":form_maj_pc_comptable:data_doc_piece_achat"/>
+                </h:inputText>
+                <h:selectOneMenu value="#{managedFactureAchat.statut_}" valueChangeListener="#{managedFactureAchat.chooseStatut}" style="min-width: 120px">
+                    <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                    <f:selectItem itemLabel="#{lab.L_editable}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                    <f:selectItem itemLabel="#{lab.L_annulers}" itemValue="#{constantes.ETAT_ANNULE}"/>
+                    <f:selectItem itemLabel="#{lab.L_valider}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                    <p:ajax event="valueChange" update=":form_maj_pc_comptable:data_doc_piece_achat"/>
+                </h:selectOneMenu> 
+                <h:inputText value="#{managedFactureAchat.numSearch_}">
+                    <p:ajax event="valueChange" listener="#{managedFactureAchat.searchByNum()}" update=":form_maj_pc_comptable:data_doc_piece_achat"/>
+                </h:inputText>
+                <h:panelGroup id="bloc-search_compta_fa">
+                    <h:selectOneMenu value="#{managedFactureAchat.comptaSearch}" style="min-width: 120px">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}"/>
+                        <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}"/>
+                        <p:ajax event="valueChange" listener="#{managedFactureAchat.addParamComptabilised()}" update=":form_maj_pc_comptable:data_doc_piece_head_vente bloc-search_compta_fa"/>
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{managedFactureAchat.nbrComptaSearch} élèment(s)" rendered="#{managedFactureAchat.comptaSearch ne null}" title="#{lab.LCF_PMC_document_valides}"/>
+                </h:panelGroup>
+            </h:panelGrid>
+            <h:panelGroup style="float: right">
+                <p:commandLink value="#{lab.LCF_PMC_comptabiliser_selection}" onclick="dlgComptabilised.show()" global="false"
+                               style="border: 2px solid black; border-radius: 5px;padding: 2px;float: right;margin-top: 5px;font-size: 0.8em"/>
+            </h:panelGroup>
+        </h:panelGrid>
+    </div>
+</ui:composition>
+

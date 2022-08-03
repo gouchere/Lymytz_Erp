@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+            <h:panelGrid columns="7" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                <h:outputText value="#{lab.LDB_PD_agence}" />
+                <h:panelGroup>
+                    <h:selectBooleanCheckbox value="#{managedReglementAchat.dateSearch}">
+                        <p:ajax event="valueChange" listener="#{managedReglementAchat.addParamDates()}" update="blog_date_search_doc_piece_caisse_achat :form_maj_pc_comptable:data_doc_piece_caisse_achat"/>
+                    </h:selectBooleanCheckbox>
+                    <h:outputText value="#{lab.L_date}" />
+                </h:panelGroup>
+                <h:panelGroup>
+                    <h:outputText value="Statut" />
+                    <h:selectOneMenu value="#{managedReglementAchat.operateurStatut}">
+                        <f:selectItem itemValue="=" itemLabel="#{lab.L_egale}"/>
+                        <f:selectItem itemValue="!=" itemLabel="#{lab.L_different}"/>
+                        <p:ajax event="valueChange" listener="#{managedReglementAchat.addParamStatut()}" update=":form_maj_pc_comptable:data_doc_piece_caisse_achat"/>
+                    </h:selectOneMenu>
+                </h:panelGroup>
+                <h:outputText value="#{lab.LDB_PA_fournisseur}" />
+                <h:outputText value="#{lab.L_reference}" />
+                <h:outputText value="#{lab.LC_PFA_comptabiliser}" />
+                <span>&nbsp;</span>
+                <h:selectOneMenu value="#{managedReglementAchat.agenceSearch}" style="min-width: 120px">
+                    <f:selectItem itemLabel="--" itemValue="0"/>
+                    <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                    <p:ajax event="valueChange" listener="#{managedReglementAchat.addParamAgence()}"
+                            update=":form_maj_pc_comptable:data_doc_piece_caisse_achat"/>
+                </h:selectOneMenu>
+                <h:panelGroup id="blog_date_search_doc_piece_caisse_achat">
+                    <p:calendar value="#{managedReglementAchat.dateDebutSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedReglementAchat.dateSearch}" size="10" style="font-size: 0.8em">
+                        <p:ajax event="dateSelect" listener="#{managedReglementAchat.addParamDates()}" update=":form_maj_pc_comptable:data_doc_piece_caisse_achat"/>
+                    </p:calendar>
+                    <p:spacer width="5px" style="background: black"/>
+                    <p:calendar value="#{managedReglementAchat.dateFinSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedReglementAchat.dateSearch}" size="10" style="font-size: 0.8em">
+                        <p:ajax event="dateSelect" listener="#{managedReglementAchat.addParamDates()}" update=":form_maj_pc_comptable:data_doc_piece_caisse_achat"/>
+                    </p:calendar>
+                </h:panelGroup>
+                <h:selectOneMenu value="#{managedReglementAchat.statut_}" style="min-width: 120px">
+                    <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                    <f:selectItem itemLabel="#{lab.L_en_attente}" itemValue="#{constantes.ETAT_ATTENTE}"/>
+                    <f:selectItem itemLabel="#{lab.L_en_cours}" itemValue="#{constantes.ETAT_ENCOURS}"/>
+                    <f:selectItem itemLabel="#{lab.LCF_PGG_payer}" itemValue="#{constantes.ETAT_REGLE}"/>
+                    <f:selectItem itemLabel="#{lab.L_annulers}" itemValue="#{constantes.ETAT_ANNULE}"/>
+                    <p:ajax event="valueChange" listener="#{managedReglementAchat.addParamStatut()}" update=":form_maj_pc_comptable:data_doc_piece_caisse_achat"/>
+                </h:selectOneMenu> 
+                <h:inputText value="#{managedReglementAchat.fournisseurF}" style="width: 100%">
+                    <p:ajax event="blur" listener="#{managedReglementAchat.addParamFournisseur()}" update=":form_maj_pc_comptable:data_doc_piece_caisse_vente"/>
+                </h:inputText> 
+                <h:inputText value="#{managedReglementAchat.numPieceF}">
+                    <p:ajax event="valueChange" listener="#{managedReglementAchat.addParamReference()}" update=":form_maj_pc_comptable:data_doc_piece_caisse_achat"/>
+                </h:inputText>
+                <h:panelGroup id="bloc-search_compta_reg_fa">
+                    <h:selectOneMenu value="#{managedReglementAchat.comptaSearch}" style="min-width: 120px">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}"/>
+                        <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}"/>
+                        <p:ajax event="valueChange" listener="#{managedReglementAchat.addParamComptabilised()}" update=":form_maj_pc_comptable:data_doc_piece_caisse_achat bloc-search_compta_reg_fa"/>
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{managedReglementAchat.nbrComptaSearch} élèment(s)" rendered="#{managedReglementAchat.comptaSearch ne null}" title="#{lab.LCF_PMC_document_valides}"/>
+                </h:panelGroup>
+            </h:panelGrid>                        
+            <h:panelGroup style="float: right">
+                <p:commandLink value="#{lab.LCF_PMC_comptabiliser_selection}" onclick="dlgComptabilised.show()" global="false"
+                               style="border: 2px solid black; border-radius: 5px;padding: 2px;float: right;margin-top: 5px;font-size: 0.8em"/>
+            </h:panelGroup>
+        </h:panelGrid>
+    </div>
+</ui:composition>
+

@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Créances vendeurs','modStat', 'smenStatVendeurCreance', true)}
+    </ui:define>  
+    <ui:define name="contents"> 
+        #{managedBordStatistique.loadAll()}
+        #{managedAgence.loadAgence()}
+        #{managedUser.loadAllUserSociete_()}
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                definedTabView('tabview', '', ($('body').find('.part_scroll').height() - 20), 2, 22);
+            });
+        </script>
+        <h:form prependId="false" id="main_creance_vendeur">
+            <p:dialog header="Plus d'options" widgetVar="dlgPlusOption" closeOnEscape="true" width="50%">                            
+                <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:outputText value="Vendeur"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.users}" style="width: 100%" >
+                        <f:selectItem itemValue="#{0}" itemLabel="--"/>
+                        <f:selectItems value="#{managedUser.listAllUser}" var="vd" itemValue="#{vd.id}" itemLabel="#{vd.nomUsers}"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="Grouper : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.cumule}" style="width: 100%">
+                        <f:selectItem itemValue="#{true}" itemLabel="OUI"/>
+                        <f:selectItem itemValue="#{false}" itemLabel="NON"/>
+                        <p:ajax event="valueChange" process="@this" global="false"/>
+                    </h:selectOneMenu>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+            <div id="tabview">
+                <div class="tabview_top part_fix" style="background: black;color: white;width: 100%">
+                    <h:panelGrid columns="4" style="float: left;color: white;font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.L_agence} : "/>
+                        <h:outputText value="#{lab.L_dates} : "/>
+                        <h:outputText value="#{lab.LP_PTB_periodicite} : "/>
+                        <h:outputText value=""/>
+                        <h:selectOneMenu value="#{managedBordStatistique.agence}">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0"/>
+                            <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:selectOneMenu>
+                        <h:panelGroup >
+                            <p:calendar value="#{managedBordStatistique.dateDebut}" navigator="true" pattern="dd-MM-yyyy" size="8"/>
+                            <p:calendar value="#{managedBordStatistique.dateFin}" navigator="true" pattern="dd-MM-yyyy" size="8"/>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedBordStatistique.periode}">
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}"/>
+                            <f:selectItem itemValue="A" itemLabel="#{lab.LP_PTB_annuel}"/>
+                            <f:selectItem itemValue="T" itemLabel="#{lab.LP_PTB_trimistriel}"/>
+                            <f:selectItem itemValue="M" itemLabel="#{lab.LP_PTB_mensuel}"/>
+                            <f:selectItem itemValue="S" itemLabel="#{lab.LP_PTB_hebdomadaire}"/>
+                            <f:selectItem itemValue="J" itemLabel="#{lab.LP_PTB_journalier}"/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:selectOneMenu>
+                        <p:commandLink style="border: 2px solid white; border-radius: 5px;padding: 2px;color: white" global="false" 
+                                       onclick="dlgPlusOption.show()" value=" #{lab.L_plus_option}"/>
+                    </h:panelGrid>
+                    <div class="checkbox" style="float: right">
+
+                    </div>
+                </div>
+                <div class="tabview_content part_scroll" style="width: 100%">
+                    <ui:include src="../sub/journal/yvs_creance_vendeur.xhtml"/>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

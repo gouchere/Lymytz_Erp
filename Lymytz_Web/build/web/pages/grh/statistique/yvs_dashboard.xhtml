@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"       
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"      
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">   
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('DashBoard','modRh', 'smenDashBoardGrh', true,managedTableauBord)}
+    </ui:define>              
+    <ui:define name="contents">   
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />    
+        <div class="part_scroll">
+            <h:form prependId="false" style="background: white"> 
+                #{managedTableauBord.load(false)}
+                #{managedAgence.loadAgence()}
+                <div class="context_menu">
+                    <span>#{lab.L_agence} </span>
+                    <h:selectOneMenu value="#{managedTableauBord.agence}">
+                        <f:selectItem itemValue="0" itemLabel="" />
+                        <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemValue="#{ag.id}" itemLabel="#{ag.designation}"/>
+                    </h:selectOneMenu>
+                    <span>#{lab.L_date_debut}</span>   
+                    <p:calendar value="#{managedTableauBord.dateDebut}" size="10" pattern="dd-MM-yyyy" navigator="true"/>
+                    <span>#{lab.L_date_fin} </span>   
+                    <p:calendar value="#{managedTableauBord.dateFin}" size="10" pattern="dd-MM-yyyy" navigator="true"/>
+                    <span>#{lab.LDB_PC_periode} </span>                    
+                    <h:selectOneMenu value="#{managedTableauBord.periode}">
+                        <f:selectItem itemValue="M" itemLabel="#{lab.LC_PTB_mensuel}"/>
+                        <f:selectItem itemValue="A" itemLabel="#{lab.LC_PTB_annuel}"/>
+                        <f:selectItem itemValue="T" itemLabel="#{lab.LC_PTBS_trimestriel}"/>
+                        <f:selectItem itemValue="S" itemLabel="#{lab.LC_PTBS_hebdomendaire}"/>
+                        <f:selectItem itemValue="J" itemLabel="#{lab.LC_PTBS_journalier}"/>
+                    </h:selectOneMenu>
+                </div>
+                <div style="width: 100%; margin: auto">
+                    <p:tabView id="tabview_grh">
+                        <p:tab title="#{lab.LRH_PTB_frais_mssion}">
+                            <h:panelGroup style="float: right;margin-top: -20px">
+                                <span>#{lab.L_type} </span>                    
+                                <h:selectOneMenu value="#{managedTableauBord.tabMission.nature}">
+                                    <f:selectItem itemValue="O" itemLabel="#{lab.LRH_PTB_par_objet}"/>
+                                    <f:selectItem itemValue="L" itemLabel="#{lab.LRH_PTB_par_lieu}"/>
+                                    <f:selectItem itemValue="E" itemLabel="#{lab.LRH_PTB_par_employe} "/>
+                                </h:selectOneMenu>
+                                <p:spacer width="10"/>
+                                <p:contextMenu for="btn_frais_mission" event="left click" styleClass="context_menu" style="width: 210px;margin-left: 5px">
+                                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedTableauBord.loadFraisMission()}" update="tabview_grh:data_frais_mission_dashboard"/>
+                                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedTableauBord.downloadFraisMission()}" ajax="false"/>                                    
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" style="width: 20px; height: 22px; background: white!important" id="btn_frais_mission" type="button"/>
+                            </h:panelGroup>
+                            <p:dataTable id="data_frais_mission_dashboard" value="#{managedTableauBord.tabMission.lignes}" var="row" rowIndexVar="iRow" paginator="true" rows="20" paginatorAlwaysVisible="false" style="width: 100%;overflow-x: auto">
+                                <p:columnGroup type="header">
+                                    <p:row>
+                                        <p:column headerText="#{lab.LRH_PNF_element}" style="width: 15%"/>
+                                        <c:forEach items="#{managedTableauBord.tabMission.colonnes}" var="head" varStatus="_head">
+                                            <p:column headerText="#{head.valeur}" style="width: 15%;font-weight: bold"/>
+                                        </c:forEach>
+                                        <p:column headerText="#{lab.L_total}" style="width: 10%;font-weight: bold"/>
+                                    </p:row>
+                                </p:columnGroup>   
+                                <p:column styleClass="ui-widget-header" style="width: 15%">
+                                    <h:outputText value="#{row.valeur}" title="#{row.libelle}" style="cursor: pointer"/>
+                                </p:column>
+                                <p:columns value="#{managedTableauBord.tabMission.colonnes}" var="col" columnIndexVar="iHead" style="width: 15%;text-align: right">
+                                    <h:outputText value="#{managedTableauBord.abs(managedTableauBord.tabMission.valeur(iRow, iHead, 'valeur'))}" converter="DNS"/>  
+                                </p:columns>
+                                <p:column style="width: 10%;text-align: right;font-weight: bold" styleClass="ui-widget-header">
+                                    <h:outputText value="#{managedTableauBord.abs(managedTableauBord.tabMission.sumRow(iRow, 'valeur'))}" converter="DNS"/>
+                                </p:column> 
+                                <p:columnGroup type="footer">
+                                    <p:row>
+                                        <p:column footerText="#{lab.LC_PTBS_totaux}" style="width: 15%" styleClass="ui-widget-header"/>
+                                        <c:forEach items="#{managedTableauBord.tabMission.colonnes}" var="head" varStatus="_head">
+                                            <p:column style="width: 15%;font-weight: bold">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedTableauBord.abs(managedTableauBord.tabMission.sumColonne(_head.index, 'valeur'))}" converter="DNS"/>
+                                                </f:facet>
+                                            </p:column>
+                                        </c:forEach>
+                                        <p:column style="width: 10%;font-weight: bold">
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{managedTableauBord.abs(managedTableauBord.tabMission.sum('valeur'))}" converter="DNS"/>
+                                            </f:facet>
+                                        </p:column>
+                                    </p:row>
+                                </p:columnGroup>   
+                            </p:dataTable>
+                            <div style="clear: both"/>
+                        </p:tab>
+                        <p:tab title="#{lab.LC_PTBC_autres}">
+                            <div style="clear: both"/>
+                        </p:tab>
+                    </p:tabView>                       
+                </div>                    
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>

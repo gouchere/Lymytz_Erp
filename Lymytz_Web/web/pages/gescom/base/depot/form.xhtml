@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>  
+        <h:panelGrid id="blog-form_depot" columns="4" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0"> 
+            <f:facet name="header">
+                <h:inputText value="#{managedDepot.depot.id}" styleClass="left" style="width: 8%;text-align: right; background: #CCC" disabled="true" />                                     
+            </f:facet>
+            <span>#{lab.LDB_PD_code} </span>  
+            <h:inputText id="txt_code" value="#{managedDepot.depot.code}"/>                                
+            <span>#{lab.LDB_PD_designation} </span>  
+            <h:inputText value="#{managedDepot.depot.designation}" style="width: 80%" tabindex="10" />                                                                     
+            <span>#{lab.LDB_PD_abbreviation} </span>  
+            <h:inputText id="txt_abbrev" value="#{managedDepot.depot.abbreviation}" tabindex="20">
+                <p:ajax event="valueChange" listener="#{managedDepot.changeAbbreviation()}" update="txt_code"/>                                
+            </h:inputText>
+            <span>#{lab.LDB_PD_adresse} </span> 
+            <h:inputText value="#{managedDepot.depot.adresse}" tabindex="30"/>                                   
+            <span>#{lab.LDB_PD_agence} </span>    
+            <h:selectOneMenu value="#{managedDepot.depot.agence.id}" tabindex="40">
+                <f:selectItem itemLabel="--" itemValue="0"/>
+                <f:selectItems value="#{managedAgence.agences}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseAgences()}"/>
+            </h:selectOneMenu>                                 
+            <span>#{lab.LDB_PD_responsable} </span>                                
+            <h:panelGroup>
+                <h:inputText id="txt_employe_depot" value="#{managedDepot.depot.responsable.nom}"
+                             style="color: #{managedDepot.depot.responsable.error?'red':''};width: 80%" tabindex="50">
+                    <p:ajax event="valueChange" global="false" listener="#{managedDepot.searchEmploye()}" update="@this"/>
+                </h:inputText>    
+                <p:commandButton icon="ui-icon-search" style="float: right; width: 20px;height: 22px;background: white" title="Liste Employe" global="false"
+                                 actionListener="#{managedDepot.initEmployes()}" oncomplete="dlgListEmployes.show()"/>
+            </h:panelGroup>
+            <span>#{lab.LDB_PD_code_acces}</span>
+            <h:inputText value="#{managedDepot.depot.codeAcces}" tabindex="60" />
+            <span>#{lab.LDB_PP_actif}</span>
+            <p:selectBooleanCheckbox value="#{managedDepot.depot.actif}" tabindex="75" 
+                                     style="float: right;margin-top: 4px;font-weight: normal;margin-right: 2px"/>  
+            <f:facet name="footer">
+                <h:panelGrid columns="8" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <span title="#{lab.LDB_PD_text8}">Rappel Appro</span>
+                    <p:selectBooleanCheckbox value="#{managedDepot.depot.verifyAppro}"  tabindex="76" />
+                    <span title="#{lab.LDB_PD_text9}">Dépôt multi tranche</span>
+                    <p:selectBooleanCheckbox value="#{managedDepot.depot.crenau}" tabindex="77" />
+                    <span>Activer la gestion par lot </span>
+                    <p:selectBooleanCheckbox value="#{managedDepot.depot.requiereLot}" tabindex="78"/>
+                </h:panelGrid>
+            </f:facet>
+        </h:panelGrid>
+        <h:inputTextarea title="#{lab.LDB_PD_description}" value="#{managedDepot.depot.description}" rows="3" 
+                         style="width: 100%;margin-bottom: 3px" tabindex="80"/>
+        <p:separator />
+        <h:panelGrid columns="8" style="width: 100%">
+            <f:facet name="header">
+                <span style="font-size: 0.7em; font-style: italic; text-align: center; color: #003333"><span>(i)</span>
+                    Ces propriétés permettent de définir les dépôts par défaut des articles de même catégories
+                </span>
+            </f:facet>
+            <span>#{lab.LDB_PD_type_mp}</span>
+            <p:selectBooleanCheckbox value="#{managedDepot.depot.typeMp}" tabindex="85" />
+            <span>#{lab.LDB_PD_type_pf}</span>
+            <p:selectBooleanCheckbox value="#{managedDepot.depot.typePf}" tabindex="86"/>
+            <span>#{lab.LDB_PD_type_psf}</span>
+            <p:selectBooleanCheckbox value="#{managedDepot.depot.typePsf}" tabindex="87"/>
+            <span>#{lab.LDB_PD_type_negoce}</span>
+            <p:selectBooleanCheckbox value="#{managedDepot.depot.typeNegoce}" tabindex="88"/>
+        </h:panelGrid> 
+        <p:separator />
+        <p:selectBooleanCheckbox itemLabel="#{lab.LDB_PD_text2}" tabindex="95"
+                                 value="#{managedDepot.depot.verifyAllValidInventaire}" style="margin-top: 2px;margin-right: 5px"/>
+    </div>
+</ui:composition>

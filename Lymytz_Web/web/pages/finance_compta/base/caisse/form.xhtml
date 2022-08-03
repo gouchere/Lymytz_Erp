@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <h:panelGrid id="blog-form_caisse" columns="4" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">                        
+            <f:facet name="header">
+                <h:panelGroup>
+                    <div align="left" style="font-size: 0.8em">
+                        <p:selectOneRadio value="#{caisses.type}" styleClass="yvs_nostyle" style="display: inline;float: left">
+                            <f:selectItem itemValue="CAISSE" itemLabel="#{lab.LDB_PCB_caisse}" />
+                            <f:selectItem itemValue="BANQUE" itemLabel="#{lab.LDB_PCB_banque}" />
+                            <p:ajax event="valueChange" listener="#{managedCaisses.chooseType()}" global="false" />
+                        </p:selectOneRadio>
+                        <h:panelGrid columns="2" styleClass="yvs_nostyle" style="margin-left: 27%;float: left;border: 2px solid #666; border-radius: 5px;background: #666;color: white">
+                            <span>#{lab.LDB_PCB_caisse_defaut} </span>  
+                            <h:selectBooleanCheckbox value="#{caisses.defaultCaisse}">
+                                <p:ajax event="valueChange" global="false" />
+                            </h:selectBooleanCheckbox>                                           
+                        </h:panelGrid> 
+                        <h:panelGroup style="float: right;margin-top: 10px;margin-right: 5px">
+                            <p:selectBooleanCheckbox value="#{caisses.actif}" itemLabel="Actif">
+                                <p:ajax event="valueChange" global="false" />
+                            </p:selectBooleanCheckbox>
+                            <p:spacer width="10"/>
+                            <p:selectBooleanCheckbox value="#{caisses.principal}" itemLabel="#{lab.LDB_PCB_principal}" >
+                                <p:ajax event="valueChange" global="false" />
+                            </p:selectBooleanCheckbox>
+                            <p:selectBooleanCheckbox value="#{caisses.venteOnline}" itemLabel="#{lab.LC_PPV_vente_ligne} ? " rendered="#{managedCatCompt.currentScte.venteOnline}" >
+                                <p:ajax event="valueChange" global="false" />
+                            </p:selectBooleanCheckbox>
+                        </h:panelGroup>
+                    </div>
+                    <h:inputText value="#{caisses.intitule}" style="width: 99%;text-align: center" title="#{lab.LDB_PCB_designation_caisse}">
+                        <p:ajax event="valueChange" global="false" />
+                    </h:inputText>
+                </h:panelGroup>
+            </f:facet>
+            <span style="font-weight: bold">Code</span>
+            <h:inputText value="#{caisses.code}" >
+                <p:ajax event="valueChange" global="false" />
+            </h:inputText>
+            <span>#{lab.LDB_PCB_responsable}</span>
+            <h:panelGroup id="chmp_responsable_Caisse">
+                <h:inputText value="#{caisses.responsable.matricule}"> 
+                    <p:ajax event="blur" global="false" listener="#{managedCaisses.ecouteSaisieEmps()}"  update="chmp_responsable_Caisse chmp_caissier_Caisse"/>
+                </h:inputText>
+                <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 2%" type="button" onclick="dlgEmploye.show()"/>
+                <h:outputText value="#{caisses.responsable.nom} #{caisses.responsable.prenom}" style="color: #006666; font-size: 0.9em"  />
+            </h:panelGroup>
+            <span>#{lab.LDB_PCB_caissier}</span>
+            <h:selectOneMenu value="#{caisses.caissier.id}" id="chmp_caissier_Caisse" style="min-width: 170px">
+                <f:selectItem itemValue="0" itemLabel=""  noSelectionOption="true"/>                                    
+                <f:selectItems value="#{managedUser.listAllUser}" var="usr1" itemValue="#{usr1.id}" itemLabel="#{usr1.nomUsers} [#{usr1.codeUsers}]"/>
+                <p:ajax event="valueChange" global="false" listener="#{managedCaisses.chooseCaissier()}"/>
+            </h:selectOneMenu> 
+            <span>#{lab.LDB_PCB_adresse}</span>
+            <h:inputText value="#{caisses.adresse}" >
+                <p:ajax event="valueChange" global="false" />
+            </h:inputText>
+            <span>#{lab.LDB_PCB_parent}</span>
+            <h:selectOneMenu value="#{caisses.parent.id}" style="min-width: 170px">
+                <f:selectItem itemValue="0" itemLabel=""/>
+                <f:selectItems value="#{managedCaisses.caisses}" var="caiss" itemValue="#{caiss.id}" itemLabel="#{caiss.intitule}"/> 
+                <p:ajax event="valueChange" global="false" />                       
+            </h:selectOneMenu>                                                
+            <span>#{lab.LDB_PCB_compte_general}</span>
+            <h:panelGroup id="chmp_compteGen_Caisse">
+                <h:inputText value="#{caisses.compte.numCompte}" style="color: #{caisses.compte.error?'red':'normal'}"> 
+                    <p:ajax event="blur" global="false" listener="#{managedCaisses.ecouteSaisieCG(caisses.compte.numCompte,'CG')}" update="chmp_compteGen_Caisse"/>
+                </h:inputText>
+                <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 2%" actionListener="#{managedCaisses.openAllCompte('CG')}"/>
+                <h:outputText value="#{caisses.compte.intitule}" style="color: #006666; font-size: 0.9em"  />
+            </h:panelGroup>
+            <span>#{lab.LDB_PCB_journal}</span>
+            <h:selectOneMenu id="chmp_journal_Caisse" value="#{caisses.journal.id}" style="min-width: 170px">
+                <f:selectItem itemValue="0" itemLabel=""/>                       
+                <f:selectItems value="#{managedJournaux.journaux}" var="jo_" itemValue="#{jo_.id}" itemLabel="#{jo_.intitule}"/>
+                <f:selectItem itemValue="0" itemLabel=""/>             
+                <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/>             
+                <p:ajax event="valueChange" listener="#{managedCaisses.chooseJournal()}" update="@this"/>                       
+            </h:selectOneMenu> 
+            <span>#{lab.LDB_PCB_mode_reg_defaut}</span>
+            <h:selectOneMenu value="#{caisses.modeRegDefaut.id}" style="min-width: 170px">
+                <f:selectItem itemValue="0" itemLabel="" />
+                <f:selectItems value="#{managedModeReglement.modes}" var="imod" itemValue="#{imod.id}" itemLabel="#{imod.designation}" />
+                <p:ajax event="valueChange" global="false" />
+            </h:selectOneMenu>                            
+            <f:facet name="footer">         
+                <h:panelGroup>
+                    <h:panelGrid columns="2" styleClass="yvs_nostyle" style="float: left">
+                        <h:outputText value="#{lab.LDB_PCB_code_acces}"/>
+                        <h:inputText value="#{caisses.codeAcces}" style="background: #99ccff">
+                            <p:ajax event="valueChange" global="false" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right;margin-top: 5px">
+                        <p:selectBooleanCheckbox itemLabel="billetage requis? " value="#{caisses.giveBilletage}" style="margin-right: 10px">
+                            <p:ajax event="valueChange" global="false" />
+                        </p:selectBooleanCheckbox>
+                        <p:selectBooleanCheckbox itemLabel="#{lab.LDB_PCB_autoriser} &lt;0" value="#{caisses.canBeNegative}">
+                            <p:ajax event="valueChange" global="false" />
+                        </p:selectBooleanCheckbox>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </f:facet>
+        </h:panelGrid>
+    </div>
+</ui:composition>
+

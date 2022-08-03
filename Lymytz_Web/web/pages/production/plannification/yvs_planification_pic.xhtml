@@ -1,0 +1,598 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Planification PIC','modProduction', 'smenPlanifPic', true)}
+    </ui:define>           
+    <ui:define name="contents">
+        <h:outputStylesheet library="css/production" name="planification.css" />
+        <h:outputStylesheet library="css/articles" name="articles.css" />
+        <h:outputScript library="js/articles" name="article.js" />
+        <h:outputStylesheet library="css/onglets" name="onglets.css" />
+        <h:outputScript library="js/production" name="planification_pic.js" />
+        <h:outputScript library="js" name="onglets.js" />
+        <h:form prependId="false" >
+            <p:growl autoUpdate="true" showDetail="true" escape="true" />
+            <p:confirmDialog  showEffect="fade" hideEffect="explode" closeOnEscape="true">
+                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />                      
+            </p:confirmDialog>
+        </h:form> 
+        #{managedPIC.loadAllTypeCoef()}
+        <h:form prependId="false" >
+            <p:dialog header="Créer les types de  coefficient" widgetVar="dlgAddTypeCoef" showEffect="scale" 
+                      closeOnEscape="true" width="50%">                        
+                <h:panelGrid columns="2" styleClass="yvs_table" id="forAddTypeCoef" style="width: 100%">                                                                
+                    <span>Libelé</span>
+                    <h:inputText value="#{managedPIC.newTypeCoef.libele}" />
+                    <span>Description</span>
+                    <h:inputTextarea value="#{managedPIC.newTypeCoef.description}" style="width: 100%"/>                                
+                </h:panelGrid>                                                       
+                <p:commandButton value="Ajouter" actionListener="#{managedPIC.addTypeCoeficient()}" style="float: right" 
+                                 update="tabTypeCoef forAddTypeCoef :formAddCoef:chpTypeCoef" global="false"/>
+                <p:dataTable value="#{managedPIC.listTypeCoeficient}" var="itemTypeC" 
+                             rowIndexVar="lineTC" id="tabTypeCoef" >
+                    <p:column headerText="N°">
+                        <a href="#" onclick="chooseOneLineTypeCoef('#{itemTypeC.id}')">#{lineTC+1}</a>                                    
+                    </p:column>
+                    <p:column headerText="Types coefficients" >
+                        <a href="#" onclick="chooseOneLineTypeCoef('#{itemTypeC.id}')">#{itemTypeC.libele}</a>                                                                        
+                    </p:column>
+                    <p:column headerText="Description" >
+                        <a href="#" onclick="chooseOneLineTypeCoef('#{itemTypeC.id}')">#{itemTypeC.description}</a>                                                                        
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014                            
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false"  id="formAddCoef">
+            <p:dialog header="Affiner le pic" widgetVar="dlgDetailsPic" showEffect="scale" 
+                      closeOnEscape="true" width="30%">
+                <h:inputHidden value="#{managedPIC.chaineSelect}" id="lineSelect"/><!-->contient les coordonnées de l'élément selectionné dans le tableau du pic<--> 
+                <h:panelGrid columns="2" styleClass="yvs_table" id="formCoefPic" cellpadding="0"
+                             cellspacing="0" style="width: 100%">                                
+                    <span>Type coefficient</span>
+                    <h:selectOneMenu value="#{managedPIC.newCoeficient.type.id}" id="chpTypeCoef" onchange="chooseTypeCoef($(this).val())">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedPIC.listTypeCoeficient}" var="typeCoef_" itemLabel="#{typeCoef_.libele}" itemValue="#{typeCoef_.id}" />
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItem itemValue="-1" itemLabel="Créer..." />
+                    </h:selectOneMenu>
+                    <h:outputText value="Coefficient" />
+                    <h:panelGroup >
+                        <h:inputText value="#{managedPIC.newCoeficient.value}" style="width: 50px"/>                                   
+                        <p:selectOneRadio value="#{managedPIC.newCoeficient.percent}" style="float: right; margin-right: 10%">
+                            <f:selectItem itemValue="#{true}" itemLabel="Pourcentage" />
+                            <f:selectItem itemValue="#{false}" itemLabel="Montant" />
+                        </p:selectOneRadio>
+                    </h:panelGroup>
+                </h:panelGrid>                                                      
+                <p:commandButton value="Ajouter" actionListener="#{managedPIC.addNewCoeficientToPic()}" 
+                                 update="tableCoef_ formCoefPic" style="float: right"/> 
+                <p:dataTable value="#{managedPIC.listCoeficient}" var="itemCoef" rowIndexVar="lineCoef" 
+                             id="tableCoef_">
+                    <p:column headerText="N°" width="20">
+                        #{lineCoef+1}
+                    </p:column>
+                    <p:column headerText="Types coefficients" >
+                        #{itemCoef.type.libele}
+                    </p:column>
+                    <p:column headerText="Valeurs" >
+                        <h:outputText value="#{itemCoef.value}" converter="DN" style="float: right  "/>
+                    </p:column>
+                    <p:column width="20">
+                        <p:commandLink global="false" actionListener="#{managedPIC.removeCoefToList(lineCoef)}" 
+                                       update="tableCoef_ :main_pic:tabData"
+                                       oncomplete="sizeCol_3D('table_pic_');">
+                            <h:graphicImage style="border:none; margin-left: 1em; cursor: pointer;"  alt="img" library="img"  name="del.png" width="15" height="15"/>                                                                    
+                        </p:commandLink>
+                    </p:column>
+                </p:dataTable>
+                <p:commandButton value="Terminer" actionListener="#{managedPIC.bindListCoefToDetails()}" 
+                                 update=":main_pic:tabData"
+                                 oncomplete="sizeCol_3D('table_pic_'); PF('dlgDetailsPic').hide()"
+                                 style="width: 20%; margin: auto" global="false"/>
+                <f:facet name="footer" class="yvs-dialog-footer" >
+                    &copy; Lymytz 2014                            
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form1_HorizonP">
+            <p:dialog header="Horizon h-" widgetVar="dlgHorizon_h-" showEffect="scale" 
+                      closeOnEscape="true" width="500">
+                <h:panelGroup id="table_horizonP">
+                    <div style="width:100% ;overflow: auto;">
+                        <table class="yvs_table" style="width: 100% ;overflow: auto;" cellpadding="0" cellspacing="0">
+                            <tbody>
+                                <tr style="width: 100%">
+                                    <ui:repeat value="#{managedPIC.headersP}" var="headP" varStatus="num_P">
+                                        <td  style="width: 500px" align="right"> 
+                                            #{num_P.index+1}
+                                            <h:panelGrid columns="1" styleClass="yvs_nostyle" style="width: 100%">                                                        
+                                                <h:outputText value="#{headP.dateDebut}" converter="DATEYY" style="color: #006666; width: 99%; margin: auto"/> 
+                                                <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                                    <h:outputText value="#{headP.reference}" />
+                                                    <h:selectBooleanCheckbox value="true" style="float: right" />
+                                                </h:panelGrid>
+                                            </h:panelGrid>                                                           
+                                        </td>
+                                    </ui:repeat>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </h:panelGroup>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014                            
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form2_HorizonP">
+            <p:dialog header="Ventes sur l'horizon h-" widgetVar="dlgVenteHorizon_h-" showEffect="scale" 
+                      closeOnEscape="true" width="95%" style="width: 99%; margin: auto">
+                <p:outputPanel id="tabDataV" >
+                    <table width="99%" class="yvs_table" cellpadding="0" 
+                           cellspacing="0" id="tableVenteP" style="width: 98%; margin: auto">
+                        <thead style="display: block; width: 100%">
+                            <tr>
+                                <th  class="ui-widget-header cellH1">--</th>
+                                <ui:repeat value="#{managedPIC.headersP}" var="head" varStatus="colHead">                                                    
+                                    <th class="ui-widget-header cellH1" style="color: #666;">
+                                        #{head.reference}
+                                    </th>
+                                </ui:repeat>
+                                <th  class="ui-widget-header cellH1" style="width: 20px !important">--</th>
+                            </tr>
+                        </thead>
+                        <tbody style="max-height: 500px; overflow: auto; display:block; overflow-x: hidden; height: auto">
+                            <ui:repeat value="#{managedPIC.listDataHorizonP}" var="dataVente" varStatus="indexFamille">
+                                <h:panelGroup rendered="#{indexFamille.even}">
+                                    <tr style="background: #fff">                                                        
+                                        <td  style="font-size: 1em; color: #241f1f; width: 250px; font-style: normal" class="ui-widget-header" >                                                                                                                   
+                                            #{dataVente.famille.designation}                                                         
+                                        </td>
+                                        <ui:repeat value="#{dataVente.colones}" var="data_" varStatus="status_">                                                                        
+                                            <td  height="25" class="colData"
+                                                 align="right" style="padding-right: 10px; width: 200px">
+                                                <h:outputText styleClass="output_#{data_.data.id} cell_output"  value="#{data_.data.value}" converter="DN"/>  
+                                            </td>                                                                        
+                                        </ui:repeat> 
+                                    </tr>
+                                </h:panelGroup>
+                                <h:panelGroup rendered="#{indexFamille.odd}">
+                                    <tr style="background: #f3f4ff">                                                        
+                                        <td  style="font-size: 1em; color: #241f1f; width: 250px; font-style: normal" class="ui-widget-header" >                                                                                                                   
+                                            #{dataVente.famille.designation}                                                         
+                                        </td>
+                                        <ui:repeat value="#{dataVente.colones}" var="data_" varStatus="status_">                                                                        
+                                            <td  height="25" class="colData"
+                                                 align="right" style="padding-right: 10px; width: 200px">
+                                                <h:outputText styleClass="output_#{data_.data.id} cell_output"  value="#{data_.data.value}" converter="DN"/>  
+                                            </td>                                                                        
+                                        </ui:repeat> 
+                                    </tr>
+                                </h:panelGroup>
+
+                            </ui:repeat>
+                        </tbody>
+                    </table>
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014                            
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <!--> 
+         *****************************************************************************
+         Début du formulaire
+         *****************************************************************************
+         <-->
+        #{managedPIC.loadAllFamille(true, true)}
+        #{managedPIC.loadAllPic(true,true)}
+        <div style="width: 100%; overflow-y: hidden">
+            <h:form prependId="false" id="main_pic">       
+                <div class="part_fix" style="padding-left: 1.5%">
+                    <p:commandButton value="Enregistrer" id="save_pic" 
+                                     actionListener="#{managedPIC.savePic(false)}"
+                                     update="tabData tableauPic @this save_pic_" oncomplete="sizeCol_3D('table_pic_')"/>
+                    <p:commandButton value="Modifier &amp; Suivre" id="save_pic_" 
+                                     actionListener="#{managedPIC.savePic(true)}" rendered="#{managedPIC.updatePic}"
+                                     update="tabData tableauPic save_pic" oncomplete="sizeCol_3D('table_pic_')"/>
+                    <p:commandButton value="Nouveau"  id="cancel_pic" type="button"
+                                     onclick="resetMainFormArt('main_pic')" global="false"
+                                     update="image_art_prod resetFormArt tabData main_grid_article0"
+                                     actionListener="#{managedPIC.resetFiche()}"/>
+                    <p:commandButton value="Modifier" id="update_pic" actionListener="#{managedPIC.openOnePic()}"
+                                     update="tabData main_grid_article0"   process="@this input_hide_pic" partialSubmit="true"
+                                     oncomplete="sizeCol_3D('table_pic_');collapseForm();"/>                            
+                    <!-->Un champ caché pour gérer la mise à zero du formulaire<-->
+                    <h:inputHidden   id="resetFormArt" />            
+                    <!-->Un champ caché pour gérer la sélection des lignes du tableau<-->
+                    <h:inputHidden value="#{managedPIC.chaineSelect}" id="input_hide_pic" />
+                    <p:commandButton value="Supprimer" id="delete_pic" actionListener="#{Marticle.deleteBean()}" 
+                                     update="tabData input_hide_pic">
+                    </p:commandButton>                         
+                    <div style="float: right">
+                        <h:link title="mode création" onclick="collapseForm();
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <p:spacer />
+
+                        <h:link onclick="collapseList();
+                                return false" title="vue liste" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>                              
+                    </div>
+                </div>
+                <div class="part_scroll">
+                    <div class="yvs_form_pic">
+                        <fieldset title="Famille articles" class="header-panel">
+                            <legend style="cursor: pointer" onclick="tooglePanel_Famille($(this))">
+                                <span >[-]</span> 
+                                Famille articles
+                            </legend>
+                            <p:outputPanel >                                        
+                                <div>          
+                                    <h:panelGroup style="width: 100%; padding-left: 15%" >
+                                        <span>Date </span>
+                                        <p:calendar size="8" value="#{planification.dateReference}" pattern="dd-MM-yyyy"/> 
+                                        <p:commandButton icon="ui-icon-note" style="float: right;" styleClass="toggle-buton-panel"  type="button"
+                                                         title="visualiser les vente de l'horizon h-" onclick="sizeCol_('tableVenteP');
+                                                                 PF('dlgVenteHorizon_h-').show();"/>
+                                        <p:commandButton icon="ui-icon-calculator" style="float: right" styleClass="toggle-buton-panel" 
+                                                         onclick="openVenteH_()" type="button"  title="modifier l'horizon h-"/>                                       
+                                    </h:panelGroup>
+                                    <div style="float: right">
+                                        <p:inplace label="Rechercher...">                                                                            
+                                            <h:inputText value="#{Marticle.searchFamille}" >
+                                                <p:ajax event="keyup" global="false"    partialSubmit="true" process="@this"
+                                                        update="art_tab_famArt1" oncomplete="sizeCol_('table_famille_art')"/>
+                                            </h:inputText>
+                                        </p:inplace>
+                                    </div>
+                                    <p:outputPanel  id="art_tab_famArt1">                                     
+                                        <table class="yvs_data_table " width="100%" 
+                                               cellpadding="0" cellspacing="0" id="table_famille_art">
+                                            <thead  style="display: block; width: 100%">
+                                                <tr>
+                                                    <th class="ui-widget-header cellH1">N°</th>
+                                                    <th class="ui-widget-header cellH1">Référence</th>
+                                                    <th class="ui-widget-header cellH1">Désignation</th>
+                                                    <th class="ui-widget-header cellH1">Parent</th>
+                                                    <th class="ui-widget-header cellH1">
+                                                        <h:selectBooleanCheckbox styleClass="chek_all_line_famille" 
+                                                                                 onchange="selectionAllLineFamille(#{Marticle.listFamilleArticle.size()})">
+                                                        </h:selectBooleanCheckbox>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody style="overflow: auto; display: block; width: 100%; height: auto; max-height: 160px">
+                                                <ui:repeat value="#{managedPIC.listFamille}" var="famArt_" varStatus="familleLine">
+                                                    <h:panelGroup rendered="#{familleLine.even}">                                                    
+                                                        <tr class="ui-datatable-even">
+                                                            <td class="colData" style="width: 10%">
+                                                                <p:commandLink value="#{familleLine.index+1}" actionListener="#{Marticle.loadOnViewFamille(famArt_)}"
+                                                                               oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                            </td>
+                                                            <td class="colData" style="width: 30%">
+                                                                <p:commandLink value="#{famArt_.reference}" actionListener="#{Marticle.loadOnViewFamille(famArt_)}"
+                                                                               oncomplete="PF('dlgArtFamArt').hide()"   />                     
+                                                            </td>
+                                                            <td class="colData" style="width: 40%">
+                                                                <p:commandLink value="#{famArt_.designation}" actionListener="#{Marticle.loadOnViewFamille(famArt_)}"
+                                                                               oncomplete="PF('dlgArtFamArt').hide()"  />
+                                                            </td>
+                                                            <td class="colData" style="width: 30%">
+                                                                <p:commandLink value="#{famArt_.parentFamille.designation}" actionListener="#{Marticle.loadOnViewFamille(famArt_)}"
+                                                                               oncomplete="PF('dlgArtFamArt').hide()"  />
+                                                            </td>
+                                                            <td class="colData" style="width: 10%">
+                                                                <h:selectBooleanCheckbox  value="#{famArt_.selectActif }" styleClass="chek_line_famille" 
+                                                                                          onclick="selectionLineFamilleArticle_pic(#{familleLine.index})" >
+                                                                </h:selectBooleanCheckbox>
+                                                            </td>
+                                                        </tr>
+                                                    </h:panelGroup> 
+                                                    <h:panelGroup rendered="#{familleLine.odd}">
+                                                        <tr class="ui-datatable-odd">
+                                                            <td class="colData" style="width: 10%">
+                                                                <p:commandLink value="#{familleLine.index+1}" actionListener="#{Marticle.loadOnViewFamille(famArt_)}"
+                                                                               oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                            </td>
+                                                            <td class="colData" style="width: 30%">
+                                                                <p:commandLink value="#{famArt_.reference}" actionListener="#{Marticle.loadOnViewFamille(famArt_)}"
+                                                                               oncomplete="PF('dlgArtFamArt').hide()"   />                     
+                                                            </td>
+                                                            <td class="colData" style="width: 40%">
+                                                                <p:commandLink value="#{famArt_.designation}" actionListener="#{Marticle.loadOnViewFamille(famArt_)}"
+                                                                               oncomplete="PF('dlgArtFamArt').hide()"  />
+                                                            </td>
+                                                            <td class="colData" style="width: 30%">
+                                                                <p:commandLink value="#{famArt_.parentFamille.designation}" actionListener="#{Marticle.loadOnViewFamille(famArt_)}"
+                                                                               oncomplete="PF('dlgArtFamArt').hide()"  />
+                                                            </td>
+                                                            <td class="colData" style="width: 10%">
+                                                                <h:selectBooleanCheckbox  value="#{famArt_.selectActif }" styleClass="chek_line_famille" 
+                                                                                          onclick="selectionLineFamilleArticle_pic(#{familleLine.index})" >
+                                                                </h:selectBooleanCheckbox>
+                                                            </td>
+                                                        </tr>
+                                                    </h:panelGroup> 
+                                                </ui:repeat>
+                                            </tbody>                                        
+                                        </table>                                                
+                                    </p:outputPanel>  
+                                </div>                                       
+                                <span style="margin-left: 35%; font-size: .8em; font-style: italic; color: #828c95" class="nbSelectGroupe"></span>
+                                <h:panelGrid columns="4"  style="float: right; margin-right: 0.1%;font-size: .8em; font-weight: bold; color: #241f1f" id="nav_groupe">
+                                    <p:commandLink  disabled="#{Marticle.disPrev}"  actionListener="#{Marticle.loadAllGroupe(false, false)}" 
+                                                    oncomplete="afterPaginationGroupe()">
+                                        <h:graphicImage style="border:none; margin-left: 1em; cursor: pointer;"  alt="img" library="img"  name="dnavigation.png" width="20" height="18"/>                        
+                                    </p:commandLink>
+                                    <span > #{Marticle.currentPage} / #{Marticle.totalPage}</span>
+                                    <p:commandLink  disabled="#{Marticle.disNext}" actionListener="#{Marticle.loadAllGroupe(true, false)}"
+                                                    oncomplete="afterPaginationGroupe()">
+                                        <h:graphicImage style="border:none; margin-left: 1em; cursor: pointer;"  alt="img" library="img"  name="gnavigation.png" width="20" height="18"/>                                                        
+                                    </p:commandLink>                                                        
+                                    <span>(#{Marticle.nbMax} Lignes par page) </span>
+                                </h:panelGrid> 
+                            </p:outputPanel>                                                                          
+                        </fieldset>   
+                        <h:inputHidden value="#{managedPIC.chaineSelectFamille}"  id="input_hide_famille" />                                    
+                        <h:panelGrid columns="1" style="width: 100%; background: #aaa" styleClass="yvs_form_article_01" id="main_grid_article0" cellpadding="0" cellspacing="0">                                        
+                            <h:panelGrid columns="3" styleClass="yvs_table" style="width: 100%; background: #aaa">                                            
+                                <h:panelGrid columns="4" styleClass="yvs_nostyle" style="width: 80%">                                                                                               
+                                    <span>Périodicité</span>                                           
+                                    <h:panelGroup>
+                                        <h:selectOneMenu value="#{planification.periode}" >                                                        
+                                            <f:selectItem itemLabel="Semaine" itemValue="Semaine" />
+                                            <f:selectItem itemLabel="Mois" itemValue="Mois" />
+                                            <f:selectItem itemLabel="Trimestre" itemValue="Trimestre" />
+                                        </h:selectOneMenu>                                            
+                                    </h:panelGroup> 
+                                    <p:spacer /> 
+                                    <p:spacer />                                                                                               
+                                    <span>Horizon</span>                                           
+                                    <pe:inputNumber value="#{planification.horizon}" 
+                                                    style="width: 100px" decimalPlaces="0"/>
+                                    <span>Amplitude</span>
+                                    <pe:inputNumber value="#{planification.amplitude}" decimalPlaces="0" style="width: 100px"/>
+                                    <span>Date début</span>
+                                    <p:calendar value="#{planification.dateDebut}" size="8" navigator="true" pattern="dd-MM-yyyy" />
+                                    <span>Fin</span>
+                                    <h:outputText styleClass="yvs_input_disable" value="#{planification.dateFin}" 
+                                                  style="width: 100px; background: #666" converter="DDMMYYYY"/>
+                                </h:panelGrid>   
+                                <h:panelGroup>
+                                    <span >Réference </span>
+                                    <h:inputText value="#{planification.reference}" style="margin: auto"/>
+                                </h:panelGroup>
+                                <h:panelGroup>
+                                    <h:panelGrid columns="3" styleClass="yvs_nostyle">
+                                        <span>Méthode de planification</span>
+                                        <h:selectOneMenu value="#{planification.methode}">
+                                            <f:selectItem itemValue="1" itemLabel="Points etrêmes" />
+                                            <f:selectItem itemValue="2" itemLabel="Points moyen" />
+                                            <f:selectItem itemValue="3" itemLabel="Mediane" />
+                                            <f:selectItem itemValue="4" itemLabel="Variation saisonnière" />
+                                        </h:selectOneMenu>
+                                        <p:commandButton value="Générer..."  disabled="#{managedPIC.updatePic}"
+                                                         actionListener="#{managedPIC.calculPic()}" 
+                                                         update=":form2_HorizonP:tabDataV :form1_HorizonP:table_horizonP tabData"
+                                                         oncomplete="sizeCol_3D('table_pic_')"/>
+                                    </h:panelGrid> 
+                                </h:panelGroup>
+                            </h:panelGrid>
+                        </h:panelGrid>
+                        <!-->
+                       ******************************
+                       dataTable Planification
+                       **********************************
+                       <-->                                
+                        <div columns="1" id="tabData" style="width: 99%; overflow-x: auto; margin: auto;background: wheat">
+                            <h:panelGrid columns="1" id="tabData" style="background: white;width: 100%;">
+                                <p:outputPanel rendered="#{(managedPIC.headers.size()!=0)}" style="width: 100%">
+                                    <!-->Tableau PIC<-->                                        
+                                    <table class="yvs_data_table" cellpadding="0"
+                                           cellspacing="0" id="table_pic_"                                                   >
+                                        <thead style="display: block;">
+                                            <tr>
+                                                <th  class="ui-widget-header cellH1">--</th>
+                                                <ui:repeat value="#{managedPIC.headers}" var="head">                                                    
+                                                    <th class="ui-widget-header cellH1" style="color: #666">
+                                                        #{head.reference}
+                                                    </th>                                                                
+                                                </ui:repeat>                                                        
+                                                <th  class="ui-widget-header cellH1" width="20">-</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody  style="display: block; max-height: 500px; overflow-y: auto; overflow-x: hidden; height: auto">                                                        
+                                            <ui:repeat value="#{managedPIC.listDataFamille}" var="fami" varStatus="indexFamille">
+                                                <tr style="background: #b4e391">                                                        
+                                                    <td style="font-size: 1.2em;  color: #241f1f; width: 150px" 
+                                                        colspan="#{managedPIC.headers.size()+1}">
+                                                        #{fami.famille.designation}                                                            
+                                                    </td>
+                                                </tr>
+                                                <ui:repeat value="#{fami.colones}" var="section" varStatus="indexType">                                                                                                                                           
+                                                    <tr class="lineData">  
+                                                        <td class="impair" style="padding-left: 20px; width: 120px; font-weight: bold; color: #241f1f">
+                                                            #{section.labelDetail}
+                                                        </td>                                                                            
+                                                        <ui:repeat value="#{section.listData}" var="data_P" varStatus="status">                                                                        
+                                                            <td height="25" class="colData #{(section.labelDetail=='Productions')?'bg_line_':'none'}"
+                                                                align="right" style="padding-right: 10px; width: 120px">
+                                                                <div ondblclick="clickCell('#{data_P.data.id_}')" class="cell_output">
+                                                                    <p:contextMenu for="tab2D">
+                                                                        <p:menuitem value="select" onclick="envoi(#{indexFamille.index},#{indexType.index},#{status.index})" 
+                                                                                    actionListener="#{managedPIC.chooseOneDataPic(indexFamille.index,indexType.index,status.index)}" global="false"
+                                                                                    update=":formAddCoef:tableCoef_"/>
+                                                                    </p:contextMenu>
+                                                                    <h:outputText styleClass="output_#{data_P.data.id_} cell_output"  value="#{data_P.data.value}" id="tab2D" converter="DN"/>  
+                                                                </div>
+                                                                <div class="input_#{data_P.data.id_} cell_input">
+                                                                    <h:inputText value="#{data_P.data.value}" id="data_P"
+                                                                                 style="width: 98%; text-align: right;">
+                                                                        <p:ajax update="tab2D" global="false" oncomplete="complete()"
+                                                                                listener="#{managedPIC.updateData(indexFamille.index, indexType.index, status.index)}"/>
+                                                                    </h:inputText>
+                                                                </div>
+                                                            </td> 
+                                                        </ui:repeat> 
+                                                    </tr>
+                                                </ui:repeat>
+
+                                            </ui:repeat>
+                                        </tbody>
+                                    </table>                                            
+                                    <div style="float: right">
+                                        <p:commandLink >
+                                            <h:graphicImage library="img" name="dnavigation.png" width="18" height="15"/>
+                                        </p:commandLink>&nbsp;&nbsp;&nbsp;
+                                        <p:commandLink >
+                                            <h:graphicImage library="img" name="gnavigation.png" width="18" height="15"/>
+                                        </p:commandLink>
+                                        <p:commandButton icon="ui-icon-circle-plus" type="button"  title="Ajouter une famille" style="width: 20px; height: 20px"/>
+                                    </div>
+                                </p:outputPanel>                                    
+                            </h:panelGrid> 
+                        </div>
+                    </div>
+                    <div class="yvs_list_pic" style="background: white">
+                        <p:outputPanel id="tableauPic">
+                            <table class="yvs_data_table " width="100%" style="background: white"
+                                   cellpadding="0" cellspacing="0" id="table_planifPic_">
+                                <thead  style="display: block; width: 100%">
+                                    <tr>
+                                        <th class="ui-widget-header cellH1">N°</th>
+                                        <th class="ui-widget-header cellH1">Référence</th>
+                                        <th class="ui-widget-header cellH1">Horizon</th>
+                                        <th class="ui-widget-header cellH1">Période</th>
+                                        <th class="ui-widget-header cellH1">Début</th>
+                                        <th class="ui-widget-header cellH1">Fin</th>
+                                        <th class="ui-widget-header cellH1">Méthode</th>
+                                        <th class="ui-widget-header cellH1" >Nb. Rev.</th>
+                                        <th class="ui-widget-header cellH1">
+                                            <h:selectBooleanCheckbox styleClass="chek_all_line_pic" 
+                                                                     onchange="selectionAllLinePic(#{managedPIC.listPlanification.size()})">
+                                            </h:selectBooleanCheckbox>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody style="overflow: auto; display: block; width: 100%; height: 160px">
+                                    <ui:repeat value="#{managedPIC.listPlanification}" var="planif_" varStatus="idxPlanif_">
+                                        <h:panelGroup rendered="#{idxPlanif_.even}">                                                    
+                                            <tr class="ui-datatable-even">
+                                                <td class="colData" style="width: 5%">
+                                                    <p:commandLink value="#{idxPlanif_.index+1}"
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 25%">
+                                                    <p:commandLink value="#{planif_.reference}" 
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 15%">
+                                                    <p:commandLink value="#{planif_.horizon} #{planif_.periode}" 
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 15%">
+                                                    <p:commandLink value="#{planif_.amplitude} #{planif_.periode}"
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 12%">
+                                                    <p:commandLink oncomplete="PF('dlgArtFamArt').hide()"   >
+                                                        <h:outputText value="#{planif_.dateDebut}" converter="DDMMYYYY" />
+                                                    </p:commandLink>
+                                                </td>
+                                                <td class="colData" style="width: 12%">
+                                                    <p:commandLink >
+                                                        <h:outputText value="#{planif_.dateFin}" converter="DDMMYYYY" />
+                                                    </p:commandLink>
+                                                </td>
+                                                <td class="colData" style="width: 20%">
+                                                    <p:commandLink value="#{planif_.methode}"
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 20%">
+                                                    #{planif_.listRevision.size()}
+                                                </td>
+                                                <td class="colData" style="width: 15%">
+                                                    <h:selectBooleanCheckbox value="false" styleClass="chek_line_pic" onchange="selectionLinePic(#{idxPlanif_.index})"/>
+                                                </td>
+                                            </tr>
+                                        </h:panelGroup> 
+                                        <h:panelGroup rendered="#{idxPlanif_.odd}">
+                                            <tr class="ui-datatable-odd">
+                                                <td class="colData" style="width: 5%">
+                                                    <p:commandLink value="#{idxPlanif_.index+1}"
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 25%">
+                                                    <p:commandLink value="#{planif_.reference}" 
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 15%">
+                                                    <p:commandLink value="#{planif_.horizon} #{planif_.periode}" 
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 15%">
+                                                    <p:commandLink value="#{planif_.amplitude} #{planif_.periode}"
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 12%">
+                                                    <p:commandLink oncomplete="PF('dlgArtFamArt').hide()"   >
+                                                        <h:outputText value="#{planif_.dateDebut}" converter="DDMMYYYY" />
+                                                    </p:commandLink>
+                                                </td>
+                                                <td class="colData" style="width: 12%">
+                                                    <p:commandLink >
+                                                        <h:outputText value="#{planif_.dateFin}" converter="DDMMYYYY" />
+                                                    </p:commandLink>
+                                                </td>
+                                                <td class="colData" style="width: 20%">
+                                                    <p:commandLink value="#{planif_.methode}"
+                                                                   oncomplete="PF('dlgArtFamArt').hide()"   />
+                                                </td>
+                                                <td class="colData" style="width: 20%">
+                                                    #{planif_.listRevision.size()}
+                                                </td>
+                                                <td class="colData" style="width: 15%">
+                                                    <h:selectBooleanCheckbox value="false" styleClass="chek_line_pic" onchange="selectionLinePic(#{idxPlanif_.index})"/>
+                                                </td>
+                                            </tr>
+                                        </h:panelGroup> 
+                                    </ui:repeat>
+                                </tbody>                                        
+                            </table>
+
+                            <p:separator style="width: 100%;" />
+                            <span style="margin-left: 35%; font-size: .8em; font-style: italic; color: #828c95" class="nbSelectPic"></span>
+                            <h:panelGrid columns="4"  style="float: right; margin-right: 2%" id="nav_planification">
+                                <p:commandLink  disabled="#{managedPIC.disPrev}"  actionListener="#{managedPIC.loadAllPic(false, false)}" 
+                                                oncomplete="afterPaginationGroupe()">
+                                    <h:graphicImage style="border:none; margin-left: 1em; cursor: pointer;"  alt="img" library="img"  name="dnavigation.png" width="30" height="25"/>                        
+                                </p:commandLink>
+                                <span >Page #{managedPIC.currentPage} / #{managedPIC.totalPage}</span>
+                                <p:commandLink  disabled="#{managedPIC.disNext}" actionListener="#{managedPIC.loadAllPic(true, false)}"
+                                                oncomplete="afterPaginationGroupe()">
+                                    <h:graphicImage style="border:none; margin-left: 1em; cursor: pointer;"  alt="img" library="img"  name="gnavigation.png" width="30" height="25"/>                                                        
+                                </p:commandLink>                                                        
+                                <span>(#{managedPIC.nbMax} Lignes par page) </span>
+                            </h:panelGrid> <br /> <br />
+                        </p:outputPanel>
+                    </div>
+                </div>
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>
+

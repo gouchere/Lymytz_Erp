@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml" 
+                xmlns:h="http://java.sun.com/jsf/html" 
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Analyseur','modParam', 'managedTiers', true,managedParamForm)}
+    </ui:define>  
+    <ui:define name="contents">
+        #{managedTiers.doNothing()}
+        #{managedCompte.doNothing()}
+        #{Marticle.doNothing()}
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('audit');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script> 
+        <h:form prependId="false" id="main-audit">
+            <div  class="part_list">
+                <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="width: 100%;margin-top: 10px;margin-bottom: -5px">
+                    <h:panelGrid columns="3" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                        <h:outputText value="Nombre de jour(s) d'inactivité : "/>
+                        <h:panelGroup>
+                            <h:inputText value="#{managedTiers.ecartInactif}" style="width: 50px;text-align: right"/>jr(s)
+                        </h:panelGroup>
+                        <p:commandButton value="Recherche" actionListener="#{managedTiers.auditTiers()}" update="tabview-remove" icon="ui-icon-search"/>
+                    </h:panelGrid>
+                </h:panelGrid>
+            </div>  
+            <div class="part_scroll">
+                <div class="yvs_form_audit" style="width: 99%; margin: auto; background: white">
+                    <p:tabView id="tabview-remove">
+                        <p:tab title="Tiers">
+                            <p:dataTable value="#{managedTiers.tiersRemove}" var="trs" rowKey="#{trs.id}" rowIndexVar="cltIdx"
+                                         selection="#{managedTiers.tiersRemoveSelect}">
+                                <p:column headerText="N°" width="20" style="text-align: center">
+                                    <span>#{cltIdx+1}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PT_code}" style="width: 12%" >
+                                    <span>#{trs.codeTiers}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PT_nom}" rendered="#{managedTiers.display_column_3}">
+                                    <h:outputText value="#{managedTiers.resumeText(trs.nom_prenom,30)}" title="#{trs.nom_prenom}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PT_telephone}" style="width: 12%" rendered="#{managedTiers.display_column_4}">
+                                    <h:outputText value="#{trs.contact.numero}" converter="PHONE"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PT_type}" rendered="#{managedTiers.display_column_5}">
+                                    <span>#{trs.type}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PT_region}" style="width: 20%" rendered="#{managedTiers.display_column_6}">
+                                    <span>#{trs.region}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_actif}" style="width: 5%;text-align: center" rendered="#{managedTiers.display_column_7}">
+                                    <h:graphicImage library="img"  name="#{(trs.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                </p:column>
+                                <p:column width="20" style="text-align: center">
+                                    <f:facet name="header">
+                                        <p:contextMenu for="btn_option_head_tiers" event="left click" styleClass="context_menu" style="width: 200px">
+                                            <p:menuitem value="Désactiver tout" icon="ui-icon-cancel" actionListener="#{managedTiers.desactive()}"/> 
+                                            <p:menuitem value="Désactiver le tiers" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveTiers()}"/> 
+                                            <p:menuitem value="Désactiver le client" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveClient()}"/> 
+                                            <p:menuitem value="Désactiver le fournisseur" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveFournisseur()}"/> 
+                                            <p:menuitem value="Désactiver l' employe" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveEmploye()}"/> 
+                                            <p:menuitem value="Désactiver le commercial" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveCommercial()}"/> 
+                                            <p:separator/> 
+                                            <p:menuitem value="Supprimer tout" icon="ui-icon-trash"/> 
+                                            <p:menuitem value="Supprimer le tiers" icon="ui-icon-trash"/> 
+                                            <p:menuitem value="Supprimer le client" icon="ui-icon-trash"/> 
+                                            <p:menuitem value="Supprimer le fournisseur" icon="ui-icon-trash"/> 
+                                            <p:menuitem value="Supprimer l' employe" icon="ui-icon-trash"/> 
+                                            <p:menuitem value="Supprimer le commercial" icon="ui-icon-trash"/> 
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_head_tiers" type="button"/>
+                                    </f:facet>
+                                    <p:contextMenu for="btn_option_tiers" event="left click" styleClass="context_menu" style="width: 200px">
+                                        <p:menuitem value="Désactiver tout" icon="ui-icon-cancel" actionListener="#{managedTiers.desactive(trs)}"/> 
+                                        <p:menuitem value="Désactiver le tiers" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveTiers(trs)}"/> 
+                                        <p:menuitem value="Désactiver le client" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveClient(trs)}" rendered="#{trs.clients.size() gt 0}"/> 
+                                        <p:menuitem value="Désactiver le fournisseur" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveFournisseur(trs)}" rendered="#{trs.fournisseurs.size() gt 0}"/> 
+                                        <p:menuitem value="Désactiver l' employe" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveEmploye(trs)}" rendered="#{trs.employes.size() gt 0}"/> 
+                                        <p:menuitem value="Désactiver le commercial" icon="ui-icon-cancel" actionListener="#{managedTiers.desactiveCommercial(trs)}" rendered="#{trs.commerciaux.size() gt 0}"/> 
+                                        <p:separator/>
+                                        <p:menuitem value="Supprimer tout" icon="ui-icon-trash"/> 
+                                        <p:menuitem value="Supprimer le tiers" icon="ui-icon-trash"/> 
+                                        <p:menuitem value="Supprimer le client" icon="ui-icon-trash" rendered="#{trs.clients.size() gt 0}"/> 
+                                        <p:menuitem value="Supprimer le fournisseur" icon="ui-icon-trash" rendered="#{trs.fournisseurs.size() gt 0}"/> 
+                                        <p:menuitem value="Supprimer l' employe" icon="ui-icon-trash" rendered="#{trs.employes.size() gt 0}"/> 
+                                        <p:menuitem value="Supprimer le commercial" icon="ui-icon-trash" rendered="#{trs.commerciaux.size() gt 0}"/> 
+                                    </p:contextMenu>
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_tiers" type="button"/>
+                                </p:column>
+                                <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                            </p:dataTable>
+                        </p:tab>
+                        <p:tab title="Article">
+
+                        </p:tab>
+                        <p:tab title="Compte">
+
+                        </p:tab>
+                        <p:tab title="Caisse">
+
+                        </p:tab>
+                    </p:tabView>                                                                   
+                </div>  
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

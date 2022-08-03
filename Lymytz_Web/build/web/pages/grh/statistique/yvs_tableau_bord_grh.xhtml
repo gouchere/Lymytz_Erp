@@ -1,0 +1,396 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"        
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"     
+                xmlns:ui="http://java.sun.com/jsf/facelets">      
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Tableaux de bords','modRh', 'smenStatistiqueGRH', true,managedTableauBord)}
+    </ui:define>      
+    <ui:define name="contents">     
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script> 
+        #{managedTableauBord.load(false)}
+        #{managedTableauBord.loadAllAgenceForSociete()}
+        #{managedTableauBord.loadInfos(true)} 
+        <h:form prependId="false" id="main_tb_grh">
+            <div class="part_fix">
+                <div style="width: 100%; font-size: 0.8em">
+                    <p:commandLink style="float: left" actionListener="#{managedTableauBord.pagine(false)}" update="form_tb_grh">
+                        <h:graphicImage library="img" name="slide_l.png" width="16" height="16"
+                                        style="border: 2px solid black; border-radius: 5px;padding: 3px;"/>
+                    </p:commandLink>  
+                    <p:outputPanel autoUpdate="true" style="margin-left: 45%;width: 5%;border: 2px solid black; border-radius: 5px;padding: 3px;float: left;text-align: center">
+                        <span>#{managedTableauBord.currentIndex} / #{managedTableauBord.totalElement}</span>
+                    </p:outputPanel>
+                    <p:commandLink style="float: right" actionListener="#{managedTableauBord.pagine(true)}" update="form_tb_grh">
+                        <h:graphicImage library="img" name="slide_r.png" width="16" height="16"
+                                        style="border: 2px solid black; border-radius: 5px;padding: 3px;"/>
+                    </p:commandLink>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <p:outputPanel id="form_tb_grh">
+                    <div style="float: left;width: 50%; border: solid 2px; height: 225px; padding: 2px; border-radius: 5px">
+                        <span style="display: inline-block; background: #CCC; width: 100%">#{lab.LDB_PA_generale}</span>
+                        <div style="width: 99.5%; height: 205px; border: solid 1px; margin: auto;overflow-y: auto">
+                            <h:panelGrid columns="1" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                <h:panelGroup>
+                                    <div style="float: left; width: 15%; border: 1px solid #000">
+                                        <h:graphicImage library="photos" name="default.jpg" width="80" height="100" /> 
+                                    </div>
+                                    <h:panelGrid columns="2" style="margin-left: 20%; font-size: 0.8em;">
+                                        <span>#{lab.L_code} : </span>
+                                        <h:outputText value="[#{tableauBord.societe.codeAbreviation}] #{tableauBord.societe.numIdentification}" style="font-weight: bold"/>
+                                        <span>#{lab.L_designation} :</span>
+                                        <h:outputText value="#{tableauBord.societe.raisonSocial}" style="font-weight: bold"/>
+                                        <span>#{lab.Siège} : </span>
+                                        <h:outputText value="#{tableauBord.societe.siege}" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PSP_adresse} : </span>
+                                        <h:outputText value="#{tableauBord.societe.adressSiege}" style="font-weight: bold"/>
+                                    </h:panelGrid>
+                                </h:panelGroup>
+                                <h:panelGroup>
+                                    <p:panelGrid columns="4" style="width: 100%;font-size: 0.8em;">
+                                        <span>#{lab.L_email} : </span>
+                                        <h:outputText value="#{tableauBord.societe.email}" converter="EMAIL" style="font-weight: bold"/>
+                                        <span>#{lab.L_telephone} : </span>
+                                        <h:outputText value="#{tableauBord.societe.telephone}" converter="TEL" style="font-weight: bold"/>
+                                        <span>#{lab.L_pays} : </span>
+                                        <h:outputText value="#{tableauBord.societe.pays.libelle}" style="font-weight: bold"/>
+                                        <span>#{lab.L_ville} : </span>
+                                        <h:outputText value="#{tableauBord.societe.ville.libelle}" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PTB_permanents} : </span>
+                                        <h:outputText value="#{tableauBord.societe.employePermament}" converter="DNA" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PTB_temporaires} : </span>
+                                        <h:outputText value="#{tableauBord.societe.employeTemporaire}" converter="DNA" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PTB_tacherons} : </span>
+                                        <h:outputText value="#{tableauBord.societe.employeTacheron}" converter="DNA" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PTB_stagiaires} : </span>
+                                        <h:outputText value="#{tableauBord.societe.employeStagiaire}" converter="DNA" style="font-weight: bold"/>
+                                    </p:panelGrid> 
+                                </h:panelGroup>
+                            </h:panelGrid>
+                        </div>
+                    </div>
+                    <div style="margin-left: 51%; border: solid 2px; height: 225px; padding: 2px; border-radius: 5px">
+                        <span style="display: inline-block; background: #CCC; width: 100%">
+                            #{lab.LDB_PA_agences}
+                            <span style="float: right; font-size: 0.8em;font-weight: bold">#{lab.L_total} : <h:outputText value="#{managedTableauBord.listAgence.size()}" style="font-weight: bold" converter="DNS"/></span>
+                        </span>
+                        <div style="width: 99%; border: solid 1px; height: 205px; margin: auto; overflow-y: auto">
+                            <h:panelGrid columns="1" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                <h:panelGroup>
+                                    <div style="float: left; width: 15%; border: 1px solid #000">
+                                        <h:graphicImage library="photos" name="user1.jpg" width="80" height="100" title="#{lab.LRH_PTB_photo_responsable}"/>
+                                    </div>
+                                    <h:panelGrid columns="2" style="margin-left: 20%; font-size: 0.8em;">
+                                        <span>#{lab.L_code} : </span>
+                                        <h:outputText value="[#{tableauBord.agence.abbreviation}] #{tableauBord.agence.codeAgence}" style="font-weight: bold"/>
+                                        <span>#{lab.L_designation} : </span>
+                                        <h:outputText value="#{tableauBord.agence.designation}" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PTB_siege} : </span>
+                                        <h:outputText value="#{tableauBord.agence.ville.libelle}" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PSP_adresse} : </span>
+                                        <h:outputText value="#{tableauBord.agence.adresse}" style="font-weight: bold"/>
+                                    </h:panelGrid>
+                                </h:panelGroup>
+                                <h:panelGroup>
+                                    <p:panelGrid columns="4" style="width: 100%;font-size: 0.8em;">
+                                        <span>#{lab.L_email} : </span>
+                                        <h:outputText value="#{tableauBord.agence.email}" converter="EMAIL" style="font-weight: bold"/>
+                                        <span>#{lab.L_telephone} : </span>
+                                        <h:outputText value="#{tableauBord.agence.telephone}" converter="TEL" style="font-weight: bold"/>
+                                        <span>#{lab.L_secteur} : </span>
+                                        <h:outputText value="#{tableauBord.agence.secteur.nom}" style="font-weight: bold"/>
+                                        <span>#{lab.LDB_PT_responsable} : </span>
+                                        <h:outputText value="#{tableauBord.agence.responsableAgence.prenom} #{tableauBord.agence.responsableAgence.nom}" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PTB_permanents} : </span>
+                                        <h:outputText value="#{tableauBord.agence.employePermament}" converter="DNA" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PTB_temporaires} : </span>
+                                        <h:outputText value="#{tableauBord.agence.employeTemporaire}" converter="DNA" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PTB_tacherons} : </span>
+                                        <h:outputText value="#{tableauBord.agence.employeTacheron}" converter="DNA" style="font-weight: bold"/>
+                                        <span>#{lab.LRH_PTB_stagiaires} : </span>
+                                        <h:outputText value="#{tableauBord.agence.employeStagiaire}" converter="DNA" style="font-weight: bold"/>
+                                    </p:panelGrid> 
+                                </h:panelGroup>
+                            </h:panelGrid>
+                        </div>
+                    </div>
+                    <div style="clear: left; height: 20px"/>
+                    <div style="float: left;width: 50%; border: solid 2px; height: 255px; padding: 2px; border-radius: 5px">
+                        <span style="display: inline-block; background: #CCC; width: 100%">
+                            #{lab.LRH_PP_presence}
+                            <span style="float: right; font-size: 0.8em;font-weight: bold">#{lab.LRH_PTB_jours_requis} : <h:outputText value="#{managedTableauBord.returnValue(contentDuree.JOUR_REQUIS)}" style="font-weight: bold" converter="DNS"/></span>
+                        </span>
+                        <div style="width: 99.5%; border: solid 1px; height: 212px; margin: auto;overflow-y: auto">
+                            <p:outputPanel id="blog_presence_dashboard_grh">
+                                <h:panelGrid columns="4" style="width: 100%; font-size: 0.8em;">
+                                    <f:facet name="header">
+                                        <div style="font-weight: bold" align="left">Congé</div>
+                                    </f:facet>
+                                    <h:panelGroup>
+                                        <p:spacer width="5"/>
+                                        <span>#{lab.LCF_PGG_annuel}</span>
+                                    </h:panelGroup>
+                                    <h:outputText value="#{managedTableauBord.returnValue(contentDuree.CONGE_ANNUEL)}" converter="DNA" style="font-weight: bold"/>
+                                    <h:panelGroup>
+                                        <p:spacer width="5"/>
+                                        <span>#{lab.LRH_PTB_maladie}</span>
+                                    </h:panelGroup>
+                                    <h:outputText value="#{managedTableauBord.returnValue(contentDuree.CONGE_MALADIE)}" converter="DNA" style="font-weight: bold"/>
+                                    <h:panelGroup>
+                                        <p:spacer width="5"/>
+                                        <span>#{lab.LRH_PTB_technique}</span>
+                                    </h:panelGroup>
+                                    <h:outputText value="#{managedTableauBord.returnValue(contentDuree.CONGE_TECHNIQUE)}" converter="DNA" style="font-weight: bold"/>
+                                </h:panelGrid>
+                                <h:panelGrid columns="4" style="width: 100%; font-size: 0.8em;">
+                                    <f:facet name="header">
+                                        <div style="font-weight: bold" align="left">#{lab.LRH_PTB_travail}</div>
+                                    </f:facet>
+                                    <h:panelGroup>
+                                        <p:spacer width="5"/>
+                                        <span>#{lab.LRH_PTB_taux_presence}</span>
+                                    </h:panelGroup>
+                                    <h:panelGroup>
+                                        <h:outputText value="#{managedTableauBord.returnTauxValue(contentDuree.JOUR_EFFECTIF) * 100}" converter="DNS" style="font-weight: bold"/>
+                                        %
+                                    </h:panelGroup>
+                                    <h:panelGroup>
+                                        <p:spacer width="5"/>
+                                        <span>#{lab.LRH_PTB_taux_absence}</span>
+                                    </h:panelGroup>
+                                    <h:panelGroup>
+                                        <h:outputText value="#{(1 - managedTableauBord.returnTauxValue(contentDuree.JOUR_EFFECTIF)) * 100}" converter="DNS" style="font-weight: bold"/>
+                                        %
+                                    </h:panelGroup>
+                                    <f:facet name="footer">
+                                        <div style="height: 120px; overflow-y: auto">
+                                            <p:dataTable value="#{tableauBord.contents}" var="con">
+                                                <p:column headerText="#{lab.LDB_PMR_element}">
+                                                    <h:outputText value="#{contentDuree.nameConstantes(con.element)}"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_valeur}" style="text-align: center">
+                                                    <h:outputText value="#{con.valeur}" converter="DN"/>                                            
+                                                </p:column>
+                                            </p:dataTable>
+                                        </div>
+                                    </f:facet>
+                                </h:panelGrid>
+                            </p:outputPanel>
+                        </div>
+                        <div>
+                            <p:contextMenu for="btn_presence_dashboard_grh" event="left click" styleClass="context_menu" style="width: 210px;float: right">
+                                <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedTableauBord.loadDataPresence()}" update="blog_presence_dashboard_grh"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" style="width: 20px; height: 22px; background: white!important;float: right" id="btn_presence_dashboard_grh" type="button"/>                          
+                        </div>
+                    </div>
+                    <div style="margin-left: 51%; border: solid 2px; height: 255px; padding: 2px; border-radius: 5px">
+                        <span style="display: inline-block; background: #CCC; width: 100%">
+                            #{lab.LRH_PT_remuneration}
+                            <span style="float: right; font-size: 0.8em;font-weight: bold">#{lab.LRH_PTB_masse_salariale_globale} : <h:outputText value="#{tableauBord.allMasseSalarial}" style="font-weight: bold" converter="DNS"/></span>
+                        </span>
+                        <div style="width: 99.5%; border: solid 1px; height: 212px; margin: auto; overflow-y: auto">
+                            <p:outputPanel id="blog_remuneration_dashboard_grh"> 
+                                <h:panelGrid columns="4" style="width: 100%; font-size: 0.8em;">
+                                    <f:facet name="header">
+                                        <div style="font-weight: bold" align="left">#{lab.LRH_PTB_charges}</div>
+                                    </f:facet>
+                                    <span>#{lab.LRH_PTB_contrat_suspendu}</span>
+                                    <h:outputText value="#{tableauBord.contratSuspendu}" style="font-weight: bold" converter="DNS"/>
+                                    <span>#{lab.LRH_PTB_contrat_nouveau} </span>
+                                    <h:outputText value="#{tableauBord.contratNouveau}" style="font-weight: bold" converter="DNS"/>
+                                    <span>#{lab.LRH_PTB_charge_cotisation}</span>
+                                    <h:outputText value="#{tableauBord.chargeCotisation}" style="font-weight: bold" converter="DNS"/>
+                                    <span>#{lab.LRH_PTB_charge_salariale}</span>
+                                    <h:outputText value="#{tableauBord.masseSalariale}" style="font-weight: bold" converter="DNS"/>
+                                </h:panelGrid>
+                                <h:panelGrid columns="4" style="width: 100%; font-size: 0.8em;">
+                                    <f:facet name="header">
+                                        <div style="font-weight: bold" align="left">#{lab.LRH_PRS_retenues}</div>
+                                    </f:facet>
+                                    <h:panelGroup>
+                                        <p:spacer width="5"/>
+                                        <span>#{lab.LC_PFV_regler}</span>
+                                    </h:panelGroup>
+                                    <h:outputText value="#{tableauBord.retenuRegle}" converter="DNS" style="font-weight: bold"/>
+                                    <span>#{lab.LRH_PTB_total_en_cours}</span>
+                                    <h:outputText value="#{tableauBord.retenuEncours}" converter="DNS" style="font-weight: bold"/>
+                                    <f:facet name="footer">
+                                        <div style="height: 120px; overflow-y: auto">
+                                            <p:dataTable value="#{tableauBord.retenues}" var="ret" rowKey="#{ret.id}">
+                                                <p:column headerText="#{lab.LRH_PRS_retenues}">
+                                                    <h:outputText value="#{ret.typeElement.libelle}"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_total}" style="text-align: right">
+                                                    <h:outputText value="#{ret.montantElement}" converter="DNS"/>                                            
+                                                </p:column>
+                                                <p:column headerText="#{lab.LC_PFA_regler}" style="text-align: right">
+                                                    <h:outputText value="#{ret.montantRegle}" converter="DNS"/>                                         
+                                                </p:column>
+                                                <p:column headerText="#{lab.LC_PFA_en_cours}" style="text-align: right">
+                                                    <h:outputText value="#{ret.montantEncours}" converter="DNS"/>                                           
+                                                </p:column>
+                                            </p:dataTable>
+                                        </div>
+                                    </f:facet>
+                                </h:panelGrid>
+                            </p:outputPanel>
+                        </div>
+                        <div>
+                            <p:contextMenu for="btn_remuneration_dashboard_grh" event="left click" styleClass="context_menu" style="width: 210px;float: right">
+                                <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedTableauBord.loadDataRemuneration()}" update="blog_remuneration_dashboard_grh"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" style="width: 20px; height: 22px; background: white!important;float: right" id="btn_remuneration_dashboard_grh" type="button"/>                          
+                        </div>
+                    </div>
+                    <div style="clear: left; height: 20px"/>
+                    <div style="float: left;width: 50%; border: solid 2px; height: 255px; padding: 2px; border-radius: 5px">
+                        <span style="display: inline-block; background: #CCC; width: 100%">
+                            #{lab.LRH_PTB_mouvements_poste_travail}
+                            <span style="float: right; font-size: 0.8em;font-weight: bold">#{lab.L_total} : <h:outputText value="#{tableauBord.affectations.size()}" style="font-weight: bold" converter="DNS"/></span>
+                        </span>
+                        <div style="width: 99.5%; border: solid 1px; height: 212px; margin: auto;overflow-y: auto">
+                            <p:dataTable id="data_affectattion_dashboard_grh" value="#{tableauBord.affectations}" var="post" rowKey="#{post.id}">
+                                <p:column headerText="#{lab.LDB_PT_employe}">
+                                    <span>#{post.employe.nom_prenom}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PCB_poste}">
+                                    <span>#{post.poste.intitule}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LRH_PTB_date_affectation}" style="text-align: center">
+                                    <h:outputText value="#{post.dateAcquisition}" converter="DATE" rendered="#{post.dateConfirmation == null}"/>
+                                    <h:outputText value="#{post.dateConfirmation}" converter="DATE" rendered="#{post.dateConfirmation != null}"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                        <div>
+                            <p:contextMenu for="btn_affectattion_dashboard_grh" event="left click" styleClass="context_menu" style="width: 210px;float: right">
+                                <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedTableauBord.loadDataAffectation()}" update="data_affectattion_dashboard_grh"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" style="width: 20px; height: 22px; background: white!important;float: right" id="btn_affectattion_dashboard_grh" type="button"/>                          
+                        </div>
+                    </div>
+                    <div style="margin-left: 51%; border: solid 2px; height: 255px; padding: 2px; border-radius: 5px">                    
+                        <span style="display: inline-block; background: #CCC; width: 100%">
+                            #{lab.LDB_PC_progression}
+                            <span style="float: right; font-size: 0.8em;font-weight: bold">Total : <h:outputText value="#{tableauBord.conventions.size()}" style="font-weight: bold" converter="DNS"/></span>
+                        </span>
+                        <div style="width: 99.5%; border: solid 1px; height: 212px; margin: auto;overflow-y: auto">
+                            <p:dataTable id="data_convention_dashboard_grh" value="#{tableauBord.conventions}" var="con" rowKey="#{con.id}">
+                                <p:column headerText="#{lab.LDB_PT_employe}">
+                                    <h:outputText value="#{con.employe.nom_prenom}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_categorie}">
+                                    <h:outputText value="#{con.convention.categorie.categorie}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LRH_PCP_echelon}">
+                                    <h:outputText value="#{con.convention.echelon.echelon}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_date}" style="text-align: center">
+                                    <h:outputText value="#{con.dateChange}" converter="DATE"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                        <div>
+                            <p:contextMenu for="btn_convention_dashboard_grh" event="left click" styleClass="context_menu" style="width: 210px;float: right">
+                                <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedTableauBord.loadDataProgression()}" update="data_convention_dashboard_grh"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" style="width: 20px; height: 22px; background: white!important;float: right" id="btn_convention_dashboard_grh" type="button"/>                          
+                        </div>
+                    </div>
+                    <div style="clear: left; height: 10px; width: 100%"></div>
+                    <div style="width: 100%;border: solid 2px; height: 350px; padding: 2px; border-radius: 5px">                     
+                        <span style="display: inline-block; background: #CCC; width: 100%">
+                            #{lab.LP_POF_evolution}
+                        </span>   
+                        <div style="width: 99.5%; border: solid 1px; height: 305px; margin: auto;overflow-y: auto">
+                            <p:panel id="linear_tb_agence">  
+                                <p:lineChart value="#{tableauBord.barModel}" legendPosition="e" style="height:280px"
+                                             title="#{lab.LRH_PTB_evoution_des} #{tableauBord.nameCharacter(tableauBord.type)}"/>
+                            </p:panel>
+                        </div>  
+                        <div>
+                            <h:panelGroup style="font-size: 0.8em;margin-top: -3px">
+                                <h:selectOneMenu value="#{tableauBord.type}">
+                                    <f:selectItem itemLabel="#{lab.LRH_PCP_salaire}" itemValue="sal" />
+                                    <f:selectItem itemLabel="#{lab.LRH_PTB_presence}" itemValue="pre" />
+                                    <f:selectItem itemLabel="#{lab.LRH_PTB_conge}" itemValue="con" />
+                                    <f:selectItem itemLabel="#{lab.LRH_PTB_permission}" itemValue="per" />
+                                    <p:ajax event="valueChange" global="false" listener="#{managedTableauBord.loadProgression(false)}" update="linear_tb_agence"/>
+                                </h:selectOneMenu>
+                            </h:panelGroup>
+                            <p:contextMenu for="btn_linear_tb_agence" event="left click" styleClass="context_menu" style="width: 210px;float: right">
+                                <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedTableauBord.loadProgression(true)}" update="linear_tb_agence"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" style="width: 20px; height: 22px; background: white!important;float: right" id="btn_linear_tb_agence" type="button"/>                          
+                        </div>
+                    </div>   
+                </p:outputPanel>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" id="main_search_tb_grh">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_charger}"/>                    
+            <div class="zone_find" style="font-size: 0.8em">
+                <h:panelGrid columns="2" style="width: 100%">
+                    <h:panelGrid columns="2" style="font-size: 0.9em">
+                        <h:outputText value="#{lab.LRH_PTB_societe} " />
+                        <h:outputText value="#{lab.L_agence} " />
+                        <h:selectOneMenu value="#{tableauBord.societe.id}">
+                            <f:selectItems value="#{managedTableauBord.listSociete}" var="ste"
+                                           itemLabel="#{ste.name}" itemValue="#{ste.id}"/>
+                            <p:ajax event="valueChange" update="select_agence_societe_tb select_exerice_societe_tb"
+                                    listener="#{managedTableauBord.loadAllAgenceForSociete()}"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{tableauBord.agence.id}" id="select_agence_societe_tb">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedTableauBord.listAgence}" var="agc"
+                                           itemLabel="#{agc.designation}" itemValue="#{agc.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedTableauBord.chooseAgence()}"
+                                    update=":main_tb_grh:form_tb_grh"/>
+                        </h:selectOneMenu>
+                    </h:panelGrid>  
+                    <h:panelGrid columns="2" style="font-size: 0.9em;float: right">
+                        <h:outputText value="#{lab.LRH_PE_exercice}" />
+                        <h:outputText value="" />
+                        <h:selectOneMenu value="#{tableauBord.exercice.id}" id="select_exerice_societe_tb">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedTableauBord.exercices}" var="exo"
+                                           itemLabel="#{exo.reference}" itemValue="#{exo.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedTableauBord.chooseExercice()}"
+                                    update=":main_tb_grh:form_tb_grh date_search_tb_grh"/>
+                        </h:selectOneMenu>
+                        <h:panelGroup id="date_search_tb_grh">
+                            <p:calendar value="#{tableauBord.datePrec}" navigator="true" pattern="dd-MM-yyyy" size="10" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedTableauBord.chooseDates()}"
+                                        update=":main_tb_grh:form_tb_grh" />
+                            </p:calendar>
+                            <p:spacer width="5px" style="background: black"/>
+                            <p:calendar value="#{tableauBord.dateSuiv}" navigator="true" pattern="dd-MM-yyyy" size="10" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedTableauBord.chooseDates()}"
+                                        update=":main_tb_grh:form_tb_grh" />
+                            </p:calendar>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                </h:panelGrid>                                
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

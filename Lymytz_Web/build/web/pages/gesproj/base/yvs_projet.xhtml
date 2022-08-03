@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">     
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Projets','modProj', 'smenProjet', true, managedProjet)}
+    </ui:define>    
+    <ui:define name="contents">  
+        #{managedProjet.loadAll()}   
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('projet');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script> 
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true" message="#{lab.LDB_PD_text3}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedProjet.deleteBean()}" oncomplete="dlgConfirmDelete.hide();collapseForm('projet')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form-dep00"> 
+            <div class="part_fix">                        
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('projet');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link onclick="collapseList('projet');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div style="float: left">
+                    <p:splitButton value="#{lab.L_enregistrer}" id="save_projet" actionListener="#{managedProjet.saveNew()}"  icon="ui-icon-disk">
+                        <p:menuitem value="#{lab.L_nouveau}" actionListener="#{managedProjet.resetFiche()}"
+                                    update="form-projet" icon="ui-icon-document" id="cancel_projet" process="@this"/>
+                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()"  global="false" />
+                    </p:splitButton>   
+                    <p:splitButton value="#{lab.L_options}" id="delete_projet" icon="ui-icon-gear" type="button">
+                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()"  global="false" />
+                    </p:splitButton>   
+                </div>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedProjet.parcoursInAllResult(false)}" update="txt_parc_linear_ser" icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('projet')"/>
+                    <h:inputText value="#{managedProjet.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_ser"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedProjet.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedProjet.parcoursInAllResult(true)}" update="txt_parc_linear_ser" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('projet')"/>
+                </h:panelGroup> 
+                <div style="clear: right"></div>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_projet">
+                    <h:panelGrid columns="1" id="form-projet" style="width: 99%; margin: auto" styleClass="yvs_table"> 
+                        <span>#{lab.L_designation}</span>
+                        <p:inputText value="#{managedProjet.projet.libelle}" id="txtcode" style="width: 99%"/>
+                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <span>#{lab.L_code}</span>
+                            <h:panelGroup>
+                                <h:inputText value="#{managedProjet.projet.code}" id="txtDes" style="width: 50%"/>                                
+                                <h:panelGroup style="float: right;margin-right: 10px">                        
+                                    <h:outputText value="#{lab.LC_PR_code_acces}"/>
+                                    <h:inputText value="#{managedProjet.projet.codeAcces}" style="background: #99ccff"/>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            <p:outputLabel value="#{lab.L_parent}" />
+                            <h:selectOneMenu value="#{managedProjet.projet.parent.id}" id="select-projet_parent" style="width: 99%">
+                                <f:selectItem itemValue="0" itemLabel="---"/>
+                                <f:selectItems value="#{managedProjet.parents}" var="item" itemValue="#{item.id}" itemLabel="#{item.libelle}"/>
+                                <p:ajax event="valueChange" listener="#{managedProjet.chooseParent()}"/>
+                            </h:selectOneMenu>
+                        </h:panelGrid> 
+                        <span>#{lab.L_description}</span>
+                        <h:inputTextarea style="width: 100%" value="#{managedProjet.projet.description}" rows="3"/>
+                        <f:facet name="footer">
+                            <p:selectBooleanCheckbox value="#{managedProjet.projet.direct}" itemLabel="Direct" style="float: right;margin: 5px">
+                                <p:ajax event="valueChange" update="data-projet_services"/>
+                            </p:selectBooleanCheckbox>
+                            <p:dataTable id="data-projet_services" value="#{managedProjet.projet.services}" var="dep" rowKey="#{dep.id}" rowIndexVar="idx"
+                                         paginator="true" rows="10" paginatorAlwaysVisible="false">
+                                <p:column width="20" style="text-align: center">
+                                    #{idx+1}
+                                </p:column>
+                                <p:column headerText="Département" styleClass="#{dep.id gt 0?'line_actiftrue':'_'}">
+                                    #{dep.service.service.intitule}
+                                </p:column>
+                                <p:column width="20" style="text-align: center" rendered="#{!managedProjet.projet.direct}">
+                                    <p:contextMenu for="btn_option-projet_service" style="font-size: 0.8em" event="left click">
+                                        <p:menuitem value="#{dep.id gt 0 ? lab.L_retirer : lab.L_ajouter}" actionListener="#{managedProjet.addOrRemoveService(dep)}" 
+                                                    icon="#{dep.id gt 0 ? 'ui-icon-minus' : 'ui-icon-plus'}"/>
+                                    </p:contextMenu>
+                                    <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option-projet_service" />
+                                </p:column>
+                            </p:dataTable>
+                        </f:facet>
+                    </h:panelGrid>
+                </div>
+                <div class="yvs_list_projet">
+                    <h:inputHidden value="#{managedProjet.tabIds}" id="input_hide_projet" />
+                    <p:dataTable id="data-projet" value="#{managedProjet.projets}" var="serv"
+                                 rowKey="#{serv.id}" rowIndexVar="lineDep" selectionMode="single">
+                        <p:ajax event="rowSelect" listener="#{managedProjet.loadOnView}" oncomplete="collapseForm('projet');"/>    
+                        <p:ajax event="rowUnselect" listener="#{managedProjet.unLoadOnView}" oncomplete="collapseForm('projet');"/>    
+                        <p:column headerText="N° " width="25"> 
+                            #{lineDep+1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_code} " width="150">
+                            #{serv.code}
+                        </p:column>
+                        <p:column headerText="#{lab.L_designation}">
+                            #{serv.libelle}
+                        </p:column>
+                        <p:column headerText="#{lab.L_description}">
+                            #{serv.description}
+                        </p:column>                           
+                        <p:column headerText="#{lab.L_actif}" width="15" style="text-align: center">
+                            <h:graphicImage library="img" name="#{serv.actif?'yes.png':'no.png'}" width="15" height="15" />
+                        </p:column>
+                        <p:column width="20" style="text-align: center" styleClass="#{serv.id le 0?'line_actiftrue':'_'}">
+                            <p:contextMenu for="btn_option-projet" style="font-size: 0.8em" event="left click">
+                                <p:menuitem value="#{serv.actif ? lab.L_desactiver : lab.L_activer}" icon="ui-icon-locked" actionListener="#{managedProjet.active(serv)}"
+                                            disabled="#{serv.id le 0}"/>
+                                <p:separator/>
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" oncomplete="dlgConfirmDelete.show()" actionListener="#{managedProjet.setEntity(serv)}"
+                                            disabled="#{serv.id le 0}"/>
+                            </p:contextMenu>
+                            <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option-projet" />
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_projet" value="false" onclick="selectionAllLineTab(#{managedProjet.projets.size()}, 'projet')" />
+                            </f:facet>
+                            <h:selectBooleanCheckbox styleClass="chek_line_projet"  value="false" onclick="selectionLineTab(#{lineDep}, 'projet')" />
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <div class="yvs_grid_projet">                
+
+                </div>
+            </div>                                  
+        </h:form>  
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">
+                <div class="display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">Enregistré Le <h:outputText value="#{managedProjet.entity.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>Modifier Le <h:outputText value="#{managedProjet.entity.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>Par <h:outputText value="#{managedProjet.entity.author.users.nomUsers}" style="font-weight: bold" styleClass="valeur" /></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em">
+                    <h:panelGrid columns="3" style="font-size: 0.8em">
+                        <h:outputText value="#{lab.L_code}" />
+                        <h:outputText value="#{lab.L_parent}" />
+                        <h:outputText value="#{lab.L_actif}" />
+                        <p:inputText title="#{lab.LRH_PD_entre_code_projet}" value="#{managedProjet.codeSearch}">
+                            <p:ajax event="valueChange" listener="#{managedProjet.addParamCode()}" oncomplete="collapseList('projet')"/>
+                        </p:inputText>
+                        <h:selectOneMenu value="#{managedProjet.parentSearch}" id="select-projet_parent_search" style="min-width: 120px">
+                            <f:selectItem itemValue="0" itemLabel="TOUT"/>
+                            <f:selectItems value="#{managedProjet.parents}" var="item_" itemValue="#{item_.id}" itemLabel="#{item_.libelle}"/>
+                            <p:ajax event="valueChange" listener="#{managedProjet.addParamParent()}" oncomplete="collapseList('projet')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedProjet.actifSearch}">
+                            <f:selectItem itemValue="#{null}" itemLabel="TOUT"/>
+                            <f:selectItem itemValue="#{true}" itemLabel="ACTIF"/>
+                            <f:selectItem itemValue="#{false}" itemLabel="INACTIF"/>
+                            <p:ajax event="valueChange" listener="#{managedProjet.addParamActif()}" oncomplete="collapseList('projet')"/>
+                        </h:selectOneMenu>
+                    </h:panelGrid>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

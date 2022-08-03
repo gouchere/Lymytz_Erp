@@ -1,0 +1,379 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                template="./../../WEB-INF/template/templatePageAchat.xhtml"                
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:pe="http://primefaces.org/ui/extensions">
+    <ui:define name="tool-bar">       
+        <!--Boite de dialogue-->
+        <!--liste des dépots-->
+        <p:dialog header="Liste des entrepôts actifs" widgetVar="listDep" dynamic="true"
+                  modal="true" height="500" width="600" closeOnEscape="true">
+            <h:form prependId="false" id="ldep-form">                
+                <p:dataTable value="#{Mdstock.listDepot}" var="dep" scrollHeight="450" scrollable="true"
+                             selectionMode="single" rowKey="#{dep.id}" filteredValue="#{Mdstock.listFilterDepot}"
+                             style="width: 98%" id="ldep-S">
+                    <p:ajax event="rowSelect" listener="#{Mdstock.chooseDepot}" />
+                    <p:column headerText="Identifiant">
+                        <h:outputText value="#{dep.id}"/>
+                    </p:column>
+                    <p:column headerText="Code Référence" filterBy="#{dep.codeDepot}" filterMatchMode="contains">
+                        <h:outputText value="#{dep.codeDepot}"/>
+                    </p:column>
+                    <p:column headerText="Désignation" filterBy="#{dep.designation}">
+                        <h:outputText value="#{dep.designation}"/>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+        </p:dialog>
+        <!-- fin liste des dépots-->
+
+        <!--liste des crénaux horaires-->
+        <p:dialog header="Liste des Crénaux actif" widgetVar="listCrenaux" dynamic="true"
+                  modal="true" height="500" width="600" closeOnEscape="true">
+            <h:form prependId="false" id="lcreno-form">
+                <p:dataTable value="#{Mdstock.listCrenaux}" var="cre" scrollHeight="450" scrollable="true"
+                             selectionMode="single" rowKey="#{cre.id}" filteredValue="#{Mdstock.listCrenauxF}"
+                             style="width: 98%" id="lcreno-S">
+                    <p:ajax event="rowSelect" listener="#{Mdstock.chooseCrenaux}" />
+                    <p:column headerText="Identifiant" filterBy="#{cre.id}">
+                        <h:outputText value="#{cre.id}"/>
+                    </p:column>
+                    <p:column headerText="Code Crenaux" filterBy="#{cre.codeTranche}">
+                        <h:outputText value="#{cre.codeTranche}"/>
+                    </p:column>
+                    <p:column headerText="Libellé" filterBy="#{cre.libelle}">
+                        <h:outputText value="#{cre.libelle}"/>
+                    </p:column>
+                    <p:column headerText="Heure D." filterBy="#{cre.heureDeb}">
+                        <h:outputText value="#{cre.heureDeb}" converter="TIME"/>
+                    </p:column>
+                    <p:column headerText="Heure F." filterBy="#{cre.heureFin}">
+                        <h:outputText value="#{cre.heureFin}" converter="TIME"/>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+        </p:dialog>
+        <!-- fin liste des crénaux-->
+
+        <!--liste des Articles-->
+        <p:dialog header="Liste des Articles actifs" widgetVar="listArt" dynamic="true"
+                  modal="true" height="500" width="1100" closeOnEscape="true">
+            <p:dataTable value="#{Mdstock.listArt}" var="art"  scrollHeight="450" scrollable="true"
+                         selectionMode="single" rowKey="#{art.id}" filteredValue="#{Mdstock.listFilterArt}"
+                         style="width: 100%">
+                <p:ajax event="rowSelect" listener="#{Mdstock.chooseArticle}" update=":AddS-form"/>
+                <p:column headerText="Identifiant" filterBy="#{art.id}">
+                    <h:outputText value="#{art.id}"/>
+                </p:column>
+                <p:column headerText="Référence" filterBy="#{art.refArt}">
+                    <h:outputText value="#{art.refArt}"/>
+                </p:column>
+                <p:column headerText="Désignation" filterBy="#{art.designation}">
+                    <h:outputText value="#{art.designation}"/>
+                </p:column>
+                <p:column headerText="Prix U.A" filterBy="#{art.pua}" rendered="#{Mdstock.displayPrix}">
+                    <h:outputText value="#{art.pua}"/>
+                </p:column>
+                <p:column headerText="Prix U.V" filterBy="#{art.puv}">
+                    <h:outputText value="#{art.puv}"/>
+                </p:column>
+            </p:dataTable>
+        </p:dialog>
+        <!-- fin liste des Articles-->
+
+        <!-- liste des documents de stocks-->
+        <p:dialog header="Liste des Documents de stock" widgetVar="listDS" dynamic="true"
+                  modal="true" height="500" width="700" closeOnEscape="true">
+            <h:form prependId="false" id="form-LDS">                
+                <p:dataTable value="#{Mdstock.listDocStock}" var="docV" scrollHeight="400" scrollable="true"
+                             selectionMode="single" rowKey="#{docV.id}" filteredValue="#{Mdstock.listDocStockF}"
+                             style="width: 98%" id="listDocStock">
+                    <p:ajax event="rowSelect" listener="#{Mdstock.chooseDocStock}" update=":topS-form:refDocLS :contentS-form:listContentDS"/>                    
+                    <p:column headerText="Identifiant" filterBy="#{docV.id}">
+                        <h:outputText value="#{docV.id}"/>
+                    </p:column>
+                    <p:column headerText="Numéro Document" filterBy="#{docV.numPiece}" filterPosition="bottom" filterMatchMode="contains">
+                        <h:outputText value="#{docV.numPiece}"/>
+                    </p:column>
+                    <p:column headerText="Date  " filterBy="#{docV.date}">
+                        <h:outputText value="#{docV.date}" converter="DATE"/>
+                    </p:column>
+                    <p:column headerText="Type  " filterBy="#{docV.typeDoc}">
+                        <h:outputText value="#{docV.typeDoc}"/>
+                    </p:column>
+                    <p:column headerText="Auteur " filterBy="#{docV.auteur}">
+                        <h:outputText value="#{docV.auteur}"/>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+        </p:dialog>
+        <!-- fin liste des documents de vente-->
+
+        <!-- liste des catégories comptable actifs-->
+        <p:dialog header="Liste Catégories Vente" widgetVar="listCatC" dynamic="true"
+                  modal="true" height="500" width="600" closeOnEscape="true">
+            <h:form prependId="false" id="form-catcS">                
+                <p:dataTable value="#{Mdstock.listCatC}" var="cat" 
+                             selectionMode="single" rowKey="#{cat.id}" filteredValue="#{Mdstock.listCatCFilter}">
+                    <p:ajax event="rowSelect" listener="#{Mdstock.chooseCatC}" />
+                    <p:column headerText="Identifiant" filterBy="#{cat.id}">
+                        <h:outputText value="#{cat.id}"/>
+                    </p:column>
+                    <p:column headerText="Code Catégorie" filterBy="#{cat.codeCategorie}">
+                        <h:outputText value="#{cat.codeCategorie}"/>
+                    </p:column>
+                    <p:column headerText="Noms" filterBy="#{cat.codeAppel}">
+                        <h:outputText value="#{cat.codeAppel}"/>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+        </p:dialog>
+        <!--End liste des categorie comptable-->
+        <p:confirmDialog widgetVar="confirmEdit" message="Si vous réalisez la vente à ce prix, vous réaliserez un déficite! "
+                         closeOnEscape="true">
+            <h:outputText value="Voulez-vous quand même continuer?"/>
+            <p:commandButton value="Oui"  oncomplete="confirmEdit.hide()"/>
+            <p:commandButton value="Non"  oncomplete="confirmEdit.hide()"/>
+        </p:confirmDialog>
+        <p:confirmDialog widgetVar="confirmDel" message="Voulez-vous vraiment supprimmer cette ligne? "
+                         closeOnEscape="true" >
+            <h:outputText value="Cliquez sur oui pour continuer et sur non pour quitter"/>
+            <p:commandButton value="Oui" actionListener="#{Mdstock.remove()}" update=":contentS-form:listContentDS" oncomplete="confirmDel.hide()"/>
+            <p:commandButton value="Non"  oncomplete="confirmDel.hide()"/>
+        </p:confirmDialog>
+        
+        <p:confirmDialog widgetVar="confirmAdd" message="Ce document est déjà validé ! 
+                         si vous continuer il passera au statut de document non valide"
+                         closeOnEscape="true" >
+            <h:outputText value="Voulez-vous continuer?"/>
+            <p:commandButton value="Oui" actionListener="#{Mdstock.ajouter(true)}" update=":contentS-form:listContentDS" oncomplete="confirmAdd.hide()"/>
+            <p:commandButton value="Non"  oncomplete="confirmAdd.hide()"/>
+        </p:confirmDialog>
+         <p:confirmDialog widgetVar="confirmEdit" message="Ce document est déjà validé ! 
+                         si vous continuer il passera au statut de document non valide"
+                         closeOnEscape="true" >
+            <h:outputText value="Voulez-vous continuer?"/>
+            <p:commandButton value="Oui" actionListener="#{Mdstock.edit(true)}" update=":contentS-form:listContentDS" oncomplete="confirmEdit.hide()"/>
+            <p:commandButton value="Non"  oncomplete="confirmEdit.hide()"/>
+        </p:confirmDialog>
+        <p:confirmDialog widgetVar="confirmRem" message="Ce document est déjà validé ! 
+                         si vous continuer il passera au statut de document non valide"
+                         closeOnEscape="true" >
+            <h:outputText value="Voulez-vous continuer?"/>
+            <p:commandButton value="Oui" actionListener="#{Mdstock.removeToList(true)}" update=":contentS-form:listContentDS" oncomplete="confirmRem.hide()"/>
+            <p:commandButton value="Non"  oncomplete="confirmRem.hide()"/>
+        </p:confirmDialog>
+        <!-- FIN Boite de dialogue-->
+        <h:form prependId="false" id="topS-form">
+            #{Mdstock.loadAll()}
+            <div style="float: left; width: 40%">            
+                <p:commandButton value="Nouveau" actionListener="#{Mdstock.resetView()}" update=":contentS-form:listContentDS :coutS-add-form:tab-accS"/>
+                <p:commandButton value="Annuler" /> 
+                <p:inplace label="Ouvrir Un document"  style="color: #990000">
+                    <p:inputText value="#{Mdstock.numDocToUpdate}" id="refDocLS">
+                        <p:ajax event="blur" listener="#{Mdstock.loadOneDocStock()}" update=":contentS-form:listContentDS"/>
+                    </p:inputText>
+                    <p:commandButton icon="ui-icon-folder-open" actionListener="#{Mdstock.loadListDocToUpdate()}" />
+                </p:inplace>
+            </div>
+            <div style="margin-left: 30%;border: 1px solid #006666; background: #ccffcc;width: 70%; color: #990000; height: 22px">
+                <p:outputPanel autoUpdate="true" >     
+                    <h:outputText value="#{dstock.designationProduit}"/>               
+                </p:outputPanel>
+            </div>                                 
+            <span style="clear: both">
+            </span>
+        </h:form>
+    </ui:define>
+    <ui:define name="main-head">        
+        <p:outputPanel autoUpdate="true" >
+            <h:outputText value="Numéro de pièce :" style="text-decoration: underline"/>
+            <p:spacer  width="10"/>
+            <h:outputText value="#{dstock.numPiece}"  style="color: #790000"/> 
+            <p:spacer  width="10"/>
+            <h:outputText value=" / "/>            
+            <h:outputText value="#{dstock.numRefPiece}"  style="color: #790000"/>
+        </p:outputPanel> 
+    </ui:define>       
+    <ui:define name="head-value">     
+        <div style="width: 60.5%; float: left">  
+            <h:form prependId="false" id="stock-head">     
+                <p:outputPanel autoUpdate="true">
+                    <p:panelGrid columns="3" style="width: 100%"> 
+                        <h:outputText value="Date "/>
+                        <p:calendar  size="15" value="#{dstock.date}" locale="tr" showButtonPanel="true" navigator="true" disabled="#{Mdstock.disabledDate}"/>
+                        <p:selectOneRadio id="consoleS" layout="grid" value="#{dstock.typeDoc}"
+                                          disabled="#{Mdstock.disabledTypeDoc}" valueChangeListener="#{Mdstock.chooseTypedoc}">
+                            <f:selectItem itemLabel="Transfert" itemValue="TR" id="consoleS-1"/>
+                            <f:selectItem itemLabel="Entrée" itemValue="EN" />
+                            <f:selectItem itemLabel="Sortie " itemValue="SO" />                                                      
+                            <p:ajax event="valueChange" update="dep-Dest"/>
+                        </p:selectOneRadio>                        
+                    </p:panelGrid>  
+                    <p:panelGrid columns="6" style="width: 100%">                        
+                        <p:commandLink value="Source :" actionListener="#{Mdstock.openListDep()}"  style="text-decoration: underline"
+                                       disabled="#{Mdstock.disabledDepoS}" update=":ldep-form:ldep-S"/>
+                        <p:inputText value="#{dstock.depSource}" id="C-DepS" disabled="#{Mdstock.disabledDepoS}">
+                            <p:ajax event="blur" listener="#{Mdstock.choixDepot('S')}" update="@this CR-S dep-Dest"/>
+                        </p:inputText>
+                        <p:outputPanel id="CR-S">
+                            <p:commandLink value="Crénaux Source :"  style="text-decoration: underline" update=":lcreno-form:lcreno-S" 
+                                           rendered="#{Mdstock.displayCrenoS}"  disabled="#{Mdstock.disabledCrenoS}" actionListener="#{Mdstock.openListCreno('CS')}"/>
+                            <p:inputText value="#{dstock.crenoSource}" id="CR-DepS" disabled="#{Mdstock.disabledCrenoS}" rendered="#{Mdstock.displayCrenoS}" > 
+                                <p:ajax event="blur" listener="#{Mdstock.choixCrenaux('CS')}" update="@this"/>
+                            </p:inputText>                          
+                        </p:outputPanel>
+                    </p:panelGrid>                                                        
+                    <p:panelGrid columns="4" style="width: 100%" id="dep-Dest">                        
+                        <p:commandLink value="Destination :" actionListener="#{Mdstock.openListDepLie()}" rendered="#{Mdstock.displayDepoD}" 
+                                       style="text-decoration: underline" disabled="#{Mdstock.disabledDepoD}" update=":ldep-form:ldep-S"/>
+                        <p:inputText value="#{dstock.depDest}" disabled="#{Mdstock.disabledDepoD}" id="C-DepD" rendered="#{Mdstock.displayDepoD}"> 
+                            <p:ajax event="blur" listener="#{Mdstock.choixDepot('D')}"/>
+                        </p:inputText>   
+                        <p:outputPanel id="CR-D">
+                            <p:commandLink value="Crénaux Destination. " id="LcrenauxS" actionListener="#{Mdstock.openListCreno('CD')}" update=":lcreno-form:lcreno-S"
+                                           rendered="#{Mdstock.displayCrenoD}" disabled="#{Mdstock.disabledCrenoD}" style="text-decoration: underline"/>                    
+                            <p:inputText value="#{dstock.crenoDest}" id="CR-DepD" rendered="#{Mdstock.displayCrenoD}">
+                                <p:ajax event="blur" listener="#{Mdstock.choixCrenaux('CD')}" update="@this"/>
+                            </p:inputText> 
+                        </p:outputPanel>
+                    </p:panelGrid>               
+                    <p:defaultCommand target="sav-DS"/>
+                    <p:commandButton value="Enregistrer" id="sav-DS" actionListener="#{Mdstock.saveDocumentVente(dstock.typeDoc)}" update=":contentV-form:listContentFV"/>                    
+                </p:outputPanel>
+            </h:form>
+        </div>
+        <div style="width: 40%; margin-left: 60.4%;margin-top: -20px; overflow: auto">
+            <div class="bord1">
+                <span style="float: left; margin-top: -1.6em; color: white">Statistiques</span>
+            </div>           
+            <p:outputPanel autoUpdate="true">
+                <p:panelGrid columns="4" style="width: 100%">
+                    <h:outputText value="T. H.T "/>               
+                    <h:inputText value="#{dstock.valTotalHT}" disabled="true" dir="RTL" converter="DN"/>
+                    <h:outputText value="T.T.C"/>
+                    <h:inputText value="#{dstock.valTotalTTC}" disabled="true" dir="RTL" converter="DN"/>                    
+                    <h:outputText value="Agence "/>
+                    <h:inputText value="#{facesContext.externalContext.sessionMap.get('agenc').codeagence}" disabled="true" style="color: #006666"/>
+                </p:panelGrid>
+            </p:outputPanel>                    
+        </div>
+    </ui:define>
+    <ui:define name="content-saisi">     
+        <div>
+            <h:form prependId="false" id="AddS-form">
+                <p:focus for="ref-Art-S"/>
+                <p:panelGrid columns="8" style="font-size: 9pt">
+                    <h:outputText value="Afficher La désignation"/>                
+                    <p:selectBooleanCheckbox value="#{Mdstock.displayDes}" >
+                        <p:ajax update="@this :contentS-form:listContentDS"/>
+                    </p:selectBooleanCheckbox>                    
+                    <h:outputText value="Limiter la selection au dépôt courant"/>                
+                    <p:selectBooleanCheckbox value="#{Mdstock.restricToDep}" >
+                        <p:ajax update="@this"/>
+                    </p:selectBooleanCheckbox>
+                </p:panelGrid>
+                <p:panelGrid columns="11">
+                    <p:commandLink value="Ref Produit" actionListener="#{Mdstock.openListArt()}" style="text-decoration: underline"/>                                                  
+                    <p:inputText value="#{dstock.refProd}" id="ref-Art-S">
+                        <p:ajax event="blur" listener="#{Mdstock.saisieProduit()}" update="@this" />
+                    </p:inputText>
+                    <h:outputText value="Quantité "/>
+                    <pe:inputNumber value="#{dstock.quantite}" decimalPlaces="2" emptyValue="" style="width: 90px"/>
+                    <h:outputText value="Prix U"/>
+                    <pe:inputNumber value="#{dstock.prix}" id="puE" decimalPlaces="2" emptyValue="" style="width: 120px"/>                    
+                    <p:commandButton value="Ok" actionListener="#{Mdstock.addToList()}" update=":contentS-form:listContentDS :stock-head :AddS-form" />                    
+                </p:panelGrid>
+            </h:form>
+        </div> 
+    </ui:define>
+    <ui:define name="inc-info">       
+        <h:form rendered="true" prependId="false">            
+            <p:outputPanel  autoUpdate="true" layout="block">
+                <p:messages  showDetail="true" closable="true" />
+                <br />                    
+            </p:outputPanel>
+        </h:form>
+    </ui:define>
+    <ui:define name="table-content">
+        <div style="float: left;margin-top: 10px" class="data">
+            <p:outputPanel autoUpdate="false">
+                <h:form prependId="false" id="contentS-form">
+                    <p:contextMenu for="listContentDS" > 
+                        <p:menuitem value="Supprimer" onclick="confirmDel.show()" />
+                    </p:contextMenu>
+                    <p:dataTable value="#{Mdstock.listContentDS}" var="content" editable="true" editMode="cell"
+                                 selectionMode="single" rowKey="#{content.id}" id="listContentDS"
+                                 selection="#{Mdstock.selectedContent}" style="width: 100%"
+                                 scrollable="true" scrollHeight="200">
+                        <p:ajax event="cellEdit" listener="#{Mdstock.editListContentArt}" update="listContentDS"/>
+                        <p:column headerText="N° ">
+                            <h:outputText value="#{content.numero}" /> 
+                        </p:column>
+                        <p:column headerText="Réf Produit" >
+                            <h:outputText value="#{content.refProd}" />
+                        </p:column>
+                        <p:column headerText="Désignation" rendered="#{Mdstock.displayDes}">
+                            <h:outputText value="#{content.designation}" />
+                        </p:column>
+                        <p:column headerText="Quantité" id="colQteS" >
+                            <p:cellEditor >
+                                <f:facet name="output"><h:outputText value="#{content.quantite}" converter="DN"/></f:facet>
+                                <f:facet name="input"><pe:inputNumber value="#{content.quantite}" emptyValue="" style="width: 80%"/></f:facet>
+                            </p:cellEditor>                        
+                        </p:column>
+                        <p:column headerText="Prix U" id="colPuE" rendered="#{Mdstock.displayPrix}">
+                            <p:cellEditor>
+                                <f:facet name="output"><h:outputText value="#{content.prix}" converter="DN"/></f:facet>
+                                <f:facet name="input"><pe:inputNumber value="#{content.prix}" style="width: 80%"/></f:facet>
+                            </p:cellEditor>                         
+                        </p:column>                        
+                        <p:column headerText="Total TTC">
+                            <h:outputText value="#{(content.quantite*content.prix)-(content.remise1+content.remise2)}"  converter="DN"/>
+                        </p:column>                   
+                    </p:dataTable>
+                </h:form>
+            </p:outputPanel>
+        </div>
+        <div style="width: 48%; margin-left: 50.1%;margin-top: -20px;overflow-x: auto">            
+            <div>
+                <div class="bord2">
+                    <span style="float: left; margin-top: -1.5em; color: white">Coûts additionnels</span>
+                    <span style="clear: left"></span>
+                </div>
+                <h:form prependId="false" id="coutS-add-form">
+                    <p:tabView id="tab-accS">
+                        <p:tab title="Accessoires">
+                            <p:panelGrid columns="4" style="margin-left: 20px">
+                                <h:outputText value="Transport "/>               
+                                <pe:inputNumber value="#{dstock.fraisTransport}" style="width: 90px"/>
+                                <h:outputText value="Manutention"/>
+                                <pe:inputNumber value="#{dstock.fraisManutention}" style="width: 90px"/> 
+                                <h:outputText value="Assurence"/>
+                                <pe:inputNumber value="#{dstock.fraisAssurance}" style="width: 90px"/>
+                                <h:outputText value="Commission"/>
+                                <pe:inputNumber value="#{dstock.fraisComission}" style="width: 90px"/>
+                                <h:outputText value="Autres Frais"/>
+                                <pe:inputNumber value="#{dstock.autreFrais}" style="width: 90px"/>
+                            </p:panelGrid>
+                            <p:commandButton value="Enregistrer" actionListener="#{Mdstock.saveCoutSup()}"/>
+                        </p:tab>                                              
+                    </p:tabView>  
+                </h:form>
+            </div>           
+        </div>        
+    </ui:define>
+    <ui:define name="table-footer">
+        <h:form prependId="false">
+            <h:commandLink >
+                <h:graphicImage style="border:none;" library="img"  name="iconePDF.png" width="25" height="25"
+                                title="téléchager le pdf"/>
+            </h:commandLink>
+            <p:spacer width="10"/>        
+            <div style="width: 100%; border: 1px solid #CCCCCC"></div>
+        </h:form>
+    </ui:define>    
+</ui:composition>

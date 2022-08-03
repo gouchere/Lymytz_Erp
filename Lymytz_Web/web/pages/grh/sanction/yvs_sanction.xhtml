@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://java.sun.com/jsf/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Sanction','modRh', 'smenSanctionEmps', true,managedSanctionEmps)}
+    </ui:define> 
+    <ui:define name="contents">
+        #{managedSanctionEmps.loadAll()}    
+        #{managedSanctionEmps.loadAllFaute()}   
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        <h:form prependId="false" id="head_sanction_emps">
+            <h:panelGrid columns="2" style="float: left" rendered="#{managedSanctionEmps.selectSanctionEmps}">
+                <p:commandButton value="#{lab.L_modifier}" actionListener="#{managedSanctionEmps.updateBean()}" rendered="#{managedSanctionEmps.optionUpdate}"/>
+                <p:splitButton value="#{lab.L_autres_option}">
+                    <p:menuitem value="#{lab.L_supprimer}" onclick="dlgConfirmDelete.show()"/>
+                </p:splitButton>
+            </h:panelGrid>
+            <h:panelGrid columns="2" style="float: left" rendered="#{!managedSanctionEmps.viewliste}">
+                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedSanctionEmps.saveNew()}"/>
+                <p:commandButton value="#{lab.L_nouveau}" actionListener="#{managedSanctionEmps.resetFiche()}"/>
+            </h:panelGrid>
+            <h:panelGrid columns="1" style="float: right">
+                <p:commandButton value="#{(managedSanctionEmps.viewliste)?lab.LRH_PS_creation:lab.LRH_PS_liste}" update="@this"
+                                 actionListener="#{managedSanctionEmps.changeView()}"/>
+            </h:panelGrid>
+            <div style="clear: right"/>
+        </h:form>  
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LRH_PS_text}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedSanctionEmps.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">         
+            <p:dialog header="#{lab.LRH_PD_liste_employes_actif}" widgetVar="dlgEmploye" width="700" height="600"
+                      closeOnEscape="true" resizable="false" dynamic="true">
+                #{MEmps.loadAllEmployesByAgence(true,true)}
+                <h:panelGrid columns="2" style="width: 100%">
+                    <h:panelGrid columns="1" style="float: left">
+                        <p:commandButton value="#{lab.LRH_PSE_change_vue}" actionListener="#{MEmps.changeViewListe()}" 
+                                         update="dlg_employe_sanction" />  
+                    </h:panelGrid>
+                    <h:panelGrid columns="1" style="float: right">                                                               
+                        <p:inputText value="#{MEmps.matriculeToUpdate}">
+                            <p:ajax event="keyup" listener="#{MEmps.findEmploye(MEmps.matriculeToUpdate, 'dlgEmploye', 'dlg_employe_sanction')}"/>
+                        </p:inputText>
+                    </h:panelGrid>        
+                    <div style="clear: right"/>   
+                </h:panelGrid>
+                <p:outputPanel id="dlg_employe_sanction">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rendered="#{!MEmps.displayListe}"
+                                 widgetVar="tabEmployes" selectionMode="single" scrollable="true" scrollHeight="500">  
+                        <p:ajax event="rowSelect" listener="#{managedSanctionEmps.loadViewEmploye}" oncomplete="dlgEmploye.hide()"/>
+                        <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                            <h:outputText value="#{emp.prenom} #{emp.nom}" />
+                        </p:column>                        
+                        <p:column headerText="#{lab.LDB_PD_matricule}" width="150">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PCB_poste} " width="100">
+                            <h:outputText value="#{emp.posteDeTravail.intitule}" />
+                        </p:column>                                            
+                    </p:dataTable>                
+                    <p:dataGrid value="#{MEmps.listEmployes}" var="emp1" columns="4"
+                                rows="10"  rendered="#{MEmps.displayListe}">
+                        <p:commandLink oncomplete="dlgEmploye.hide()" actionListener="#{managedSanctionEmps.choixEmploye1(emp1)}">
+                            <p:panel  header="#{emp1.nom} , #{emp1.prenom}" style="text-align: center">                            
+                                <p:graphicImage library="lymytz/documents/docEmps/photo" name="#{(emp1.photos==null)?'user1.png':emp1.photos}" width="100" height="100"/>
+                                <h:outputText value="#{emp1.posteDeTravail.intitule}" />                            
+                            </p:panel>
+                            <f:setPropertyActionListener value="#{emp1}" target="#{managedNoteDeFrais.employe}" /> 
+                        </p:commandLink>
+                    </p:dataGrid>
+                </p:outputPanel>  
+                <h:panelGrid columns="2" id="footer_dlg_employe_sanction">
+                    <p:commandLink actionListener="#{MEmps.loadAllEmployesByAgence(true,false)}" disabled="#{MEmps.disablePrev}" update="dlg_employe_sanction footer_dlg_employe_sanction">
+                        <h:graphicImage style="border:none; margin-left: .5em; cursor: pointer;"  alt="img" library="img"  name="dnavigation.png" width="30" height="25"/>                        
+                    </p:commandLink>
+                    <p:commandLink action="#{MEmps.loadAllEmployesByAgence(true,false)}" disabled="#{MEmps.disableNext}" update="dlg_employe_sanction footer_dlg_employe_sanction">
+                        <h:graphicImage style="border:none; margin-left: 1em; cursor: pointer;"  alt="img" library="img"  name="gnavigation.png" width="30" height="25"/>                                                        
+                    </p:commandLink>  
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="body_sanction_emps">
+            <p:outputPanel id="form_sanction_emps_00">
+                <p:dataTable rendered="#{managedSanctionEmps.viewliste}" value="#{managedSanctionEmps.listSanctionEmps}" var="sanc" rowKey="#{sanc.id}"
+                             selectionMode="single">
+                    <p:ajax event="rowSelect" listener="#{managedSanctionEmps.loadOnView}"/>
+                    <p:ajax event="rowUnselect" listener="#{managedSanctionEmps.unLoadOnView}"/>
+                    <p:column width="16">
+                        <h:graphicImage library="img"  name="#{(sanc.selectActif)?'connecte.png':'deconnecte.png'}" width="15" height="15"/>
+                    </p:column> 
+                    <p:column headerText="#{lab.LP_PEP_employe}">
+                        <p:outputLabel value="#{sanc.employe.prenom} #{sanc.employe.nom}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PS_faute}">
+                        <p:outputLabel value="#{sanc.sanction.faute.libelle}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PS_decision}">
+                        <p:outputLabel value="#{sanc.sanction.decision.libelle}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PS_duree_en_jour}">
+                        <p:outputLabel value="#{sanc.sanction.decision.duree}"/>
+                    </p:column>                            
+                </p:dataTable>
+            </p:outputPanel>
+            <p:outputPanel id="form_sanction_emps_01">
+                <p:panelGrid columns="1" style="width: 95%;margin: auto">
+                    <p:panelGrid style="width: 100%">
+                        <p:row>
+                            <p:column>
+                                <p:outputLabel value="#{lab.LRH_PPT_employe} : "/>
+                            </p:column>
+                            <p:column colspan="3">
+                                <p:inputText value="#{sanctionEmps.employe.nom}" />
+                                <p:commandButton icon="ui-icon-search" onclick="dlgEmploye.show()"/> 
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column>
+                                <p:outputLabel value="#{lab.L_date_debut} : "/>
+                            </p:column>
+                            <p:column>
+                                <p:calendar value="#{sanctionEmps.dateDebut}" pattern="dd/MM/yyyy">
+                                    <p:ajax event="dateSelect" global="false"/>
+                                </p:calendar>
+                            </p:column>
+
+                            <p:column>
+                                <p:outputLabel value="#{lab.L_date_fin} : "/>
+                            </p:column>
+                            <p:column>
+                                <p:calendar value="#{sanctionEmps.dateFin}" pattern="dd/MM/yyyy">
+                                    <p:ajax event="dateSelect" global="false"/>
+                                </p:calendar>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column>
+                                <p:outputLabel value="#{lab.LRH_PSE_faute} : "/>
+                            </p:column>
+                            <p:column>
+                                <p:selectOneMenu value="#{managedSanctionEmps.fauteSanction.id}" valueChangeListener="#{managedSanctionEmps.chooseFauteSanction}">
+                                    <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedSanctionEmps.listFauteSanction}" var="faut"
+                                                   itemValue="#{faut.id}" itemLabel="#{faut.libelle}"/>
+                                    <p:ajax event="valueChange" global="false"/>
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column>
+                                <p:outputLabel value="#{lab.LRH_PSE_decision} : "/>
+                            </p:column>
+                            <p:column>
+                                <p:selectOneMenu value="#{sanctionEmps.sanction.id}" valueChangeListener="#{managedSanctionEmps.chooseSanction}">
+                                    <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedSanctionEmps.listSanction}" var="decis"
+                                                   itemValue="#{decis.id}" itemLabel="#{decis.decision.libelle}"/>
+                                    <p:ajax event="valueChange" global="false"/>
+                                </p:selectOneMenu>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                </p:panelGrid>
+            </p:outputPanel>
+        </h:form>
+    </ui:define>
+</ui:composition>
+
+
+

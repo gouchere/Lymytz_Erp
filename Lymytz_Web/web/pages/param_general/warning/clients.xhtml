@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <p:dataTable value="#{managedWarning.clients}" var="clt" rowKey="#{clt.id}" rowIndexVar="cltIdx"  selectionMode="single"
+                     paginator="true" rows="50" paginatorAlwaysVisible="false">
+            <f:facet name="header">
+                <div align="left" style="font-weight: bold">
+                    #{managedWarning.warning.description}
+                </div>
+            </f:facet>
+            <p:ajax event="rowSelect"  listener="#{managedWarning.loadOnView}"/>                                
+            <p:column headerText="N°" style="width: 5%">
+                <span title="#{lab.LDB_PC_categorie} : #{clt.categorie}"  >#{cltIdx+1}</span>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PC_code}" style="width: 15%; ">
+                <span title="#{lab.LDB_PC_categorie} : #{clt.categorie}">#{clt.codeClient}</span>
+                <h:graphicImage library="img" name="danger.png" style="float: right" rendered="#{clt.solde lt -(clt.seuilSolde)}" width="23" height="23" title="#{lab.LDB_PC_capacite_endettement_depasse}"/>
+                <h:outputText value="#{lab.LDB_PC_defaut}" rendered="#{clt.defaut}" style="float: right;font-weight: bold;font-size: 0.8em;font-style: italic;color: blue"/>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PC_tiers}" style="width: 15%;">
+                <span title="#{lab.LDB_PC_categorie} : #{clt.categorie}">#{clt.tiers.codeTiers}</span>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PC_nom_prenom}"  >
+                <span title="#{lab.LDB_PC_categorie} : #{clt.categorie}">#{clt.nom_prenom}</span>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PC_compte}"  >
+                <span title="#{lab.LDB_PC_categorie} : #{clt.categorie}">#{clt.compte.numCompte}</span>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PC_telephone}" style="width: 12%;text-align: center; ">
+                <h:outputText value="#{clt.tiers.contact.numero}" converter="PHONE" title="#{lab.LDB_PC_categorie} : #{clt.categorie}"/>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PC_region}" style="width: 20%; ">
+                <span title="#{lab.LDB_PC_categorie} : #{clt.categorie}">#{clt.tiers.region}</span>
+            </p:column>
+            <p:column headerText="#{lab.L_confirmer}" style="width: 5%;text-align: center" rendered="#{managedClient.currentScte.venteOnline}">
+                <p:commandLink global="false" actionListener="#{managedClient.confirmTiers(clt)}" update="data_client">
+                    <h:graphicImage library="img"  name="#{(clt.confirmer)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                </p:commandLink>
+            </p:column>
+            <p:column headerText="#{lab.L_actif}" style="width: 5%;text-align: center">
+                <h:graphicImage library="img"  name="#{(clt.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+            </p:column>
+        </p:dataTable>   
+    </div>
+</ui:composition>
+

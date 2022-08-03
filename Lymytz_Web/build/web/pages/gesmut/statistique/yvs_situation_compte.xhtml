@@ -1,0 +1,292 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Situation Compte','modMutuelle', 'smenSituationCompte', true,managedEpargne)}
+    </ui:define>   
+    <ui:define name="contents"> 
+        #{managedEpargne.init()}  
+        #{managedMutualiste.loadActif(true)}  
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('situation');
+            });
+        </script>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des mutualistes 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LM_PM_liste_mutualistes}" widgetVar="dlgListMutualistes" modal="true" width="70%" height="500" closeOnEscape="true">  
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:inputText value="#{managedMutualiste.numSearch}" >
+                            <p:ajax event="keyup" listener="#{managedMutualiste.addParamReference()}" update="data_mutualiste_situation"/>
+                        </h:inputText>
+                    </h:panelGroup>
+                    <h:panelGroup style="float: right">
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block" >
+                            <p:commandButton actionListener="#{managedMutualiste.paginer(false)}" update="data_mutualiste_situation" icon="ui-icon-circle-triangle-w"  disabled="#{managedMutualiste.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{managedMutualiste.paginator.currentPage}/#{managedMutualiste.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton action="#{managedMutualiste.paginer(true)}" update="data_mutualiste_situation" icon="ui-icon-circle-triangle-e"  disabled="#{managedMutualiste.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{managedMutualiste.imax}" label="#{lab.L_nombre_max_resultat}" style="float: right; font-size: 0.9em;" 
+                                             valueChangeListener="#{managedMutualiste.choosePaginator}">
+                                <f:selectItems value="#{managedMutualiste.paginations}" />
+                                <p:ajax event="valueChange"  update="data_mutualiste_situation" />
+                            </p:selectOneMenu>
+                        </p:outputPanel>
+                    </h:panelGroup>
+                </h:panelGrid>
+                <p:dataTable id="data_mutualiste_situation" value="#{managedMutualiste.mutualistes}" var="mutua_" rowKey="#{mutua_.id}" rowIndexVar="mIdx" selectionMode="single">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedEpargne.loadOnViewMutualiste}" oncomplete="dlgListMutualistes.hide()"/>
+                    <p:column headerText="N°" style="text-align: center" width="15">
+                        <span>#{mIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_matricule}" width="80">
+                        <span>#{mutua_.employe.matricule}</span>                 
+                    </p:column>
+                    <p:column headerText="#{lab.L_nom_prenom}" width="200" >
+                        <span>#{mutua_.employe.nom_prenom}</span>                 
+                    </p:column>
+                    <p:column headerText="#{lab.L_compte}" width="150" rendered="false">
+                        <span>#{mutua_.displayCompte()}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_agence}" width="90">
+                        <span>#{mutua_.employe.agence.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_actif}" width="15" style="text-align: center">
+                        <h:graphicImage library="img" name="#{mutua_.actif?'vu.png':'vu_non.png'}" width="15" height="15" />
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy; Lymytz 2014
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_situation">  
+            <div class="part_fix">
+                <div style="float: left; font-weight: bold">
+                    <span>#{lab.LM_PM_mutualiste} </span> 
+                    <h:panelGroup id="txt_mutualiste_situation">
+                        <h:inputText value="#{managedEpargne.situation.matricule}" style="color: #{managedEpargne.situation.error?'red':''}">
+                            <p:ajax event="blur" global="false" listener="#{managedEpargne.searchMutualiste(true)}" update="txt_mutualiste_situation blog_situation"/>
+                        </h:inputText>    
+                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.LM_PMC_liste_mutualiste}" global="false"
+                                         actionListener="#{managedEpargne.initMutualistes(true)}" oncomplete="dlgListMutualistes.show()"/> 
+                        <h:outputText value="#{managedEpargne.situation.employe.nom_prenom}" style="margin-left: 10px;color: #333; font-size: 0.8em"/>
+                    </h:panelGroup>                    
+                </div>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedEpargne.parcoursInAllMutualise(false)}" update="txt_situation_mutualiste" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('mutualiste')"
+                                     />
+                    <h:inputText value="#{managedEpargne.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_situation_mutualiste"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedEpargne.paginatorMut.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                    </p:outputPanel>
+                    <p:commandButton actionListener="#{managedEpargne.parcoursInAllMutualise(true)}" update="txt_situation_mutualiste" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('mutualiste')"
+                                     />
+                </h:panelGroup>  
+                <div style="float: right">
+                    <h:panelGrid columns="5" cellpadding="0" cellspacing="0" style="float: right">
+                        <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('situation');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>            
+                        <p:spacer />
+                        <h:link title="#{lab.LM_PEA_mode_attribuion}" onclick="collapseGrid('situation');
+                                return false">
+                            <p:graphicImage library="icones" name="ico_arbre.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link> 
+                        <p:spacer />
+                        <h:link title="#{lab.L_mode_liste}" onclick="collapseList('situation');
+                                return false" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>   
+                    </h:panelGrid>                                  
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_situation">
+                    <p:outputPanel id="blog_situation" style="width: 99%; margin: auto; background: white">
+                        <p:dataTable id="data_situation_compte" value="1">
+                            <p:columnGroup type="header">
+                                <p:row>
+                                    <c:forEach items="#{managedEpargne.situation.montants}" var="head">
+                                        <p:column headerText="#{head[0]}"/>
+                                    </c:forEach>
+                                </p:row>
+                            </p:columnGroup>  
+                            <p:columns value="#{managedEpargne.situation.montants}" var="valeur" style="text-align: right">
+                                <h:outputText value="#{valeur[1]}" converter="DNS" style="font-weight: bold"/> Fcfa
+                            </p:columns>
+                        </p:dataTable> 
+                        <div style="width: 49.5%;float: left">
+                            <div style="width: 99%; border: solid 2px; height: 370px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                <span style="display: inline-block; background: #CCC; width: 100%">
+                                    #{lab.LM_PSC_remboursement_en_cours} 
+                                    <span style="float: right">Total : <h:outputText value="#{managedEpargne.situation.montantRetrait}" converter="DNA" style="font-weight: bold"/> Fcfa</span>
+                                </span>
+                                <div style="width: 99.5%; border: solid 1px; height: 350px; margin: auto;overflow-y: auto">
+                                    <p:dataTable value="#{managedEpargne.situation.encours}" var="eM" rowIndexVar="eIdx">
+                                        <p:column headerText="N°" style="text-align: center" width="10">
+                                            <span >#{eIdx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_periode}" width="100">
+                                            <h:outputText value="#{eM.referencePeriode}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_montant}" width="100" style="text-align: right">
+                                            <h:outputText  value="#{eM.montantTotal}" converter="DNA"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PC_amortissement}" width="100" style="text-align: right">
+                                            <h:outputText  value="#{eM.amortissementTotal}" converter="DNA"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PC_interet}" width="100" style="text-align: right">
+                                            <h:outputText  value="#{eM.interetTotal}" converter="DNA"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PSC_penalite}" width="100" style="text-align: right">
+                                            <h:outputText  value="#{eM.penaliteTotal}" converter="DNA"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </div>
+                            </div> 
+                        </div>
+                        <div style="width: 49.5%;margin-left: 50.5%;">
+                            <div style="width: 99%; border: solid 2px; height: 370px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                <span style="display: inline-block; background: #CCC; width: 100%">
+                                    #{lab.LM_PSC_remboursement_en_retard} 
+                                    <span style="float: right">Total : <h:outputText value="#{managedEpargne.situation.montantCredit}" converter="DNA" style="font-weight: bold"/> Fcfa</span>
+                                </span>
+                                <div style="width: 99.5%; border: solid 1px; height: 350px; margin: auto;overflow-y: auto">
+                                    <p:dataTable value="#{managedEpargne.situation.retards}" var="rM" rowIndexVar="rIdx">
+                                        <p:column headerText="N°" style="text-align: center" width="10">
+                                            <span >#{rIdx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_periode}" width="100">
+                                            <h:outputText value="#{rM.referencePeriode}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_montant}" width="100" style="text-align: right">
+                                            <h:outputText  value="#{rM.montantTotal}" converter="DNA"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PC_amortissement}" width="100" style="text-align: right">
+                                            <h:outputText  value="#{rM.amortissementTotal}" converter="DNA"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PC_interet}" width="100" style="text-align: right">
+                                            <h:outputText  value="#{rM.interetTotal}" converter="DNA"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LM_PSC_penalite}" width="100" style="text-align: right">
+                                            <h:outputText  value="#{rM.penaliteTotal}" converter="DNA"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                </div>
+                            </div> 
+                        </div>
+                        <div style="clear: both"/>
+                        <div style="width: 99.5%; border: solid 2px; height: 170px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                            <span style="display: inline-block; background: #CCC; width: 100%">
+                                #{lab.LM_PSC_situation_compte}                                 
+                            </span>
+                            <div style="width: 99.5%; border: solid 1px; height: 150px; margin: auto;overflow-y: auto">
+                                <p:dataTable value="#{managedEpargne.situation.comptes}" var="cpt" rowIndexVar="cIdx">
+                                    <p:column headerText="N°" style="text-align: center" width="10">
+                                        <span>#{cIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_reference}" width="100">
+                                        <h:outputText value="#{cpt.reference}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PU_solde}" width="100" style="text-align: right">
+                                        <h:outputText value="#{cpt.solde}" converter="DNA"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_type}" width="100" style="text-align: center">
+                                        #{cpt.typeCompte.nature}
+                                    </p:column>
+                                </p:dataTable>
+                            </div>
+                        </div> 
+                        <div style="clear: both"/>
+                        <div style="width: 99.5%; border: solid 2px; height: 170px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                            <span style="display: inline-block; background: #CCC; width: 100%">
+                                #{lab.LM_PSC_credits} 
+                                <div style="float: right">
+                                    <span>Total : <h:outputText value="#{managedEpargne.situation.montantResteEpargne}" converter="DNA" style="font-weight: bold"/> Fcfa</span>
+                                </div>
+                            </span>
+                            <div style="width: 99.5%; border: solid 1px; height: 150px; margin: auto;overflow-y: auto">
+                                <p:dataTable value="#{managedEpargne.situation.credits}" var="cred" rowIndexVar="eIdx">
+                                    <p:column headerText="N°" style="text-align: center" width="10">
+                                        <span>#{eIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_designation}" width="100">
+                                        <h:outputText value="#{cred.designation}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_total}" width="100" style="text-align: right">
+                                        <h:outputText value="#{cred.totalPris}" converter="DNA"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PSC_encours}" width="100" style="text-align: right">
+                                        <h:outputText value="#{cred.totalEncours}" converter="DNA"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LM_PSC_paye}" width="100" style="text-align: right">
+                                        <h:outputText value="#{cred.totalPaye}" converter="DNA"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_montant}" width="100" style="text-align: right">
+                                        <h:outputText value="#{cred.montantTotal}" converter="DNA"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </div>
+                        </div> 
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->                       
+                <div class="yvs_list_situation" style="width: 99%; margin: auto; background: white; height: 95%">
+
+                </div> 
+                <!-->
+                 *****************************************************************************
+                 Vue Attrib
+                 *****************************************************************************
+                <-->
+                <div class="yvs_grid_situation" style="width: 99%; margin: auto; background: white">
+
+                </div>                        
+            </div>                    
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20" styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">                                                              
+
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

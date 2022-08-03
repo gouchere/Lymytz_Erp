@@ -1,0 +1,463 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Agences','modParam', 'smenAgence', true,managedAgence)}
+    </ui:define>  
+    <ui:define name="contents">
+        #{managedSociete.loadAll()}       
+        #{Mdico.loadPays()}
+        #{MEmps.addParamMutuelle()}
+        #{managedAgence.loadAll()}
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('agence');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>  
+
+        <h:form prependId="false" id="main_fusionn_agence">
+            <p:dialog widgetVar="dlgConfirmFusion" header="#{lab.L_fusionner}" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_agence" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LMP_PA_fusionner_agence} : </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedAgence.fusionneTo}"/>
+                    <span>#{lab.LMP_PA_avec_agence} :</span>
+                    <c:forEach items="#{managedAgence.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LRH_PRS_cette_operation_irreversible}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui.toUpperCase()}" actionListener="#{managedAgence.fusionner(false)}" style="float: right" 
+                                 oncomplete="dlgConfirmFusion.hide()"  update=":body_agence:table_agence"/> 
+            </p:dialog>
+        </h:form> 
+
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAccesAgence" header="Modifier l'accès à l'agence" dynamic="true" resizable="false" closeOnEscape="true" modal="true" style="width: 75%">
+                <p:dataTable value="#{managedAgence.users}" var="iUs" style="width: 100%" rowKey="#{iUs.id}" 
+                             id="data_agence_users_all" rowIndexVar="line"
+                             paginator="true" rows="15" paginatorAlwaysVisible="false">
+                    <p:column headerText="N°" width="40" style="text-align: center">  
+                        #{line+1}
+                    </p:column>
+                    <p:column headerText="Code" filterBy="#{iUs.users.codeUsers}">  
+                        #{iUs.users.codeUsers}
+                    </p:column>
+                    <p:column headerText="Noms" filterBy="#{iAg.users.nomUsers}">  
+                        #{iUs.users.nomUsers}                                      
+                    </p:column>
+                    <p:column headerText="" width="40" style="text-align: center">
+                        <p:commandLink actionListener="#{managedAgence.autoriseAccesAgence(iUs)}" update="data_agence_users_all :body_agence:tabview_agence:data_agence_users">
+                            <p:graphicImage library="img" name="#{!iUs.actif?'switch_off.png':'switch_on.png'}" width="40"  />
+                        </p:commandLink>
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form> 
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des employes 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgEmployes_">         
+            <p:dialog id="dlgEmployes_" header="#{lab.LRH_PM_liste_employes_actifs}" widgetVar="dlgEmployes" width="85%" 
+                      closeOnEscape="true" resizable="false"  modal="true" style="max-height: 600px">                    
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('responsable');
+                    });
+                </script>
+                <h:inputText value="#{MEmps.matriculeToUpdate}" >
+                    <p:ajax event="valueChange" listener="#{MEmps.findEmploye(MEmps.matriculeToUpdate)}"  update="grid_responsable tab_responsable"/>
+                </h:inputText>
+                <div style="float: right" >
+                    <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                        <p:outputPanel  autoUpdate="true">
+                            <h:selectOneMenu value="#{managedDepartement.agence_}" valueChangeListener="#{MEmps.addParamAgence}" >
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedDepartement.currentScte.agences}" var="itemA" itemValue="#{itemA.id}" itemLabel="#{itemA.designation}" />
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.LDB_PCB_toutes_societe}" />
+                                <p:ajax event="valueChange" update="grid_responsable tab_responsable"/>
+                            </h:selectOneMenu>
+                            <p:commandButton actionListener="#{MEmps.pagineResult(false)}" update="grid_responsable tab_responsable" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{MEmps.paginator.currentPage} / #{MEmps.paginator.nbPage}" style="margin-top: 0px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton actionListener="#{MEmps.pagineResult(true)}" update="grid_responsable tab_responsable" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{MEmps.changeMaxResult}" style="font-size: 0.9em;min-width: 50px; position: relative; top: 10px" >
+                                <f:selectItems value="#{MEmps.paginations}"/>
+                                <p:ajax event="valueChange" update="grid_responsable tab_responsable"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel> 
+                        <h:panelGroup>
+                            <h:link onclick="collapseList('responsable');
+                                    return false" title="#{lab.L_mode_liste}" >
+                                <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>
+                            <h:link  onclick="collapseGrid('responsable');
+                                    return false" title="#{lab.L_mode_hierrachique}">
+                                <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>   
+                        </h:panelGroup>
+                    </h:panelGrid>
+                </div>         
+                <div style="clear: both"/>  
+                <div class="yvs_list_responsable">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                 widgetVar="tabEmployes" id="tab_responsable" selectionMode="single"
+                                 scrollable="true" scrollHeight="400" > 
+                        <p:ajax event="rowSelect" listener="#{managedAgence.loadOnViewEmploye}" oncomplete="dlgEmployes.hide()"/>
+                        <p:column headerText="N°" width="15" style="text-align: center">
+                            <h:outputText value="#{line_e+1}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                            <h:outputText value="#{emp.civilite} #{emp.nom} #{emp.prenom}" />
+                        </p:column>                        
+                        <p:column headerText="#{lab.LDB_PD_matricule}" width="90" style="text-align: center">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PF_poste} " width="200">
+                            <h:outputText value="#{emp.posteActif.intitule}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+                <div class="yvs_grid_responsable">
+                    <p:dataGrid value="#{MEmps.listEmployes}" var="emp1" columns="3" id="grid_responsable" >
+                        <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                            <f:facet name="header">
+                                <p:commandLink  actionListener="#{managedAgence.loadOneEmploye(emp1)}" oncomplete="dlgEmployes.hide()">
+                                    <p:graphicImage library="lymytz/documents/docEmps/perso/photo" name="#{(emp1.photos==null)?'user1.png':emp1.photos}" width="100" height="100" />                                                                      
+                                </p:commandLink>
+                            </f:facet>
+                            <span>#{lab.L_noms_prenoms}</span>
+                            <h:outputText value="#{emp1.prenom} #{emp1.nom}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LDB_PD_matricule}</span>
+                            <h:outputText value="#{emp1.matricule}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LRH_PF_poste}</span>
+                            <h:outputText value="#{emp1.posteActif.intitule}" style="font-weight: bold; font-size: 1.1em"/> 
+                        </h:panelGrid>
+                    </p:dataGrid>
+                </div>
+                <f:facet name="footer">                    
+                    <h:outputText value="&copy; Lymytz 2014" escape="true" />                    
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="main_secteur">
+            <p:dialog header="#{lab.LMP_PA_secteur_activite}" widgetVar="dlgSecteurActivite" width="40%" closeOnEscape="true" resizable="false">                   
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('secteur');
+                    });
+                </script>
+                <div class="dlg_part_fixe">
+                    <h:panelGrid columns="2" style="float: left" >
+                        <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedAgence.saveNewSecteur()}" id="save_secteur" update="data_secteur form_secteur"/>
+                        <p:commandButton value="#{lab.L_nouveau}" actionListener="#{managedAgence.resetFicheSecteur()}" id="cancel_secteur" update="form_secteur"/>
+                    </h:panelGrid>
+                    <div style="float: right">
+                        <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('secteur');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <p:spacer />
+                        <h:link onclick="collapseList('secteur');
+                                return false" title="#{lab.L_mode_liste}" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>
+                        <p:spacer />                       
+                    </div>
+                </div>
+                <div style="clear: both"/>
+                <div class="dlg_part_scroll">
+                    <div class="yvs_form_secteur">
+                        <h:panelGrid id="form_secteur" columns="1" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <h:outputText value="#{lab.L_designation} : "/>
+                            <h:inputText value="#{managedAgence.secteur.nom}" style="width: 100%"/>
+                            <h:outputText value="#{lab.L_description} : "/>
+                            <h:inputTextarea value="#{managedAgence.secteur.description}" rows="3" style="width: 100%"/>
+                        </h:panelGrid>                        
+                    </div>
+                    <div class="yvs_list_secteur">
+                        <p:dataTable value="#{managedAgence.listSecteurActivite}" var="sct" rowKey="#{sct.id}" selectionMode="single" id="data_secteur" rowIndexVar="sIdx">
+                            <p:ajax event="rowSelect" listener="#{managedAgence.loadOnViewSecteur}" update=":main_secteur:form_secteur" oncomplete="collapseForm('secteur')"/>
+                            <p:ajax event="rowUnselect" listener="#{managedAgence.unLoadOnViewSecteur}" update=":main_secteur:form_secteur" oncomplete="collapseForm('secteur')"/>
+                            <p:column width="20" headerText="N°">
+                                #{sIdx+1}
+                            </p:column>
+                            <p:column headerText="#{lab.L_designation}" width="100">
+                                <h:outputText value="#{sct.nom}"/>
+                            </p:column>                                
+                            <p:column headerText="#{lab.L_description}">
+                                <h:outputText value="#{sct.description}"/>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:contextMenu for="option_secteur" event="left click" style="font-size: 0.8em" styleClass="context_menu">
+                                    <p:menuitem value="#{lab.LMP_PA_selectionner}" icon="ui-icon-circle-arrow-s" actionListener="#{managedAgence.loadOneSecteur(sct)}" oncomplete="dlgSecteurActivite.hide()"/>
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedAgence.deleteBeanSecteur(sct)}" update="data_secteur"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="option_secteur" type="button"/>  
+                            </p:column> 
+                        </p:dataTable>
+                    </div>
+                </div>
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue de pays
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PF_creation_pays}" widgetVar="dlgPays" modal="true" width="20%"  closeOnEscape="true"> 
+                <h:panelGrid columns="1" style="width: 100%">
+                    <span>#{lab.L_designation} </span>
+                    <h:inputText value="#{Mdico.etat.libelle}" style="width: 100%"/>      
+                    <span>#{lab.LDB_PF_abbreviation} </span>
+                    <h:inputText value="#{Mdico.etat.abreviation}" style="width: 100%"/>      
+                    <p:commandButton value="#{lab.L_enregistrer}" style="width: 100%" oncomplete="dlgPays.hide()"
+                                     actionListener="#{Mdico.saveNewPays()}" update=":body_agence:txt_pays_agence"/>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue de villes
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_add_ville"> 
+            <p:dialog header="#{lab.LDB_PF_creation_ville}" widgetVar="dlgVille" modal="true" width="20%"  closeOnEscape="true"> 
+                <h:panelGrid columns="1" style="width: 100%">
+                    <span>#{lab.L_designation} </span>
+                    <h:inputText value="#{Mdico.ville.libelle}" style="width: 100%"/>
+                    <span>#{lab.LDB_PF_abbreviation} </span>
+                    <h:inputText value="#{Mdico.ville.abreviation}" style="width: 100%"/>
+                    <span>#{lab.L_pays} </span>
+                    <h:inputText id="txt_pays_ville_agence" value="#{managedAgence.agence.pays.libelle}" readonly="true" style="width: 100%"/> 
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" style="width: 100%" oncomplete="dlgVille.hide()" actionListener="#{Mdico.saveNewVille(managedAgence.agence.pays)}" 
+                                 update=":body_agence:txt_ville_agence"/>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>     
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmSave" closeOnEscape="true"
+                             message="#{lab.LMP_PS_sauvegarder_donnees_inserees}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedAgence.confirmSave()}" oncomplete="dlgConfirmSave.hide()"/>
+                <p:commandButton value="#{lab.L_non}" actionListener="#{managedAgence.closeAlldlgEmploye()}" oncomplete="dlgConfirmSave.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true" header="#{lab.L_confirmation}"
+                             message="#{lab.LMP_PA_text}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedAgence.deleteBean()}" oncomplete="collapseList('agence'); dlgConfirmDelete.hide()" update=":body_agence:table_agence"/>
+                <p:commandButton value="#{lab.L_non}" global="false" oncomplete="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog showEffect="fade" hideEffect="scale" closeOnEscape="true">
+                <p:commandButton value="#{lab.L_oui}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />                      
+            </p:confirmDialog>                
+        </h:form>
+        <h:form prependId="false" id="body_agence">
+            <div class="part_fix">
+                <h:panelGrid columns="2" style="float: left" >
+                    <p:splitButton value="#{lab.L_enregistrer}" actionListener="#{managedAgence.saveNew()}" id="save_agence" update="table_agence"
+                                   icon="ui-icon-disk">
+                        <p:menuitem value="#{lab.L_nouveau}" actionListener="#{managedAgence.resetFiche()}" id="cancel_agence" update="form_agence_01"
+                                    icon="ui-icon-document"/>
+                        <p:separator />
+                        <p:menuitem value="#{lab.L_supprimer}" onclick="dlgConfirmDelete.show()" global="false" icon="ui-icon-trash"/>
+                    </p:splitButton>
+                    <p:commandButton value="#{lab.L_supprimer}" id="delete_agence" onclick="dlgConfirmDelete.show()" global="false" icon="ui-icon-trash"/>
+                    <p:splitButton type="button" value="#{lab.L_options}" id="option_agence" style="font-size: 0.8em">
+                        <p:menuitem value="#{lab.L_fusionner}" icon="ui-icon-refresh" actionListener="#{managedAgence.fusionner(true)}" global="false"
+                                    oncomplete="dlgConfirmFusion.show()" update=":main_fusionn_agence:blog_fusionner_agence"/>
+                    </p:splitButton>
+                </h:panelGrid>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('agence');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link onclick="collapseList('agence');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <p:spacer />                       
+                </div>
+                <div style="clear: right"/>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_agence">
+                    <p:outputPanel id="form_agence_01">
+                        <h:panelGrid columns="4" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                            <f:facet name="header">
+                                <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%">
+                                    <h:panelGroup>
+                                        <span>#{lab.LMP_PA_societe} : </span>  
+                                        <h:selectOneMenu value="#{agence.societe.id}" valueChangeListener="#{managedAgence.chooseSociete}" id="txt_societe_agence" disabled="#{!managedAgence.viewSociete}">
+                                            <f:selectItem itemValue="0" itemLabel="-"/>
+                                            <f:selectItems value="#{managedSociete.listSociete}" var="soc1" itemLabel="#{soc1.name}" itemValue="#{soc1.id}" />
+                                            <p:ajax event="valueChange" process="@this txt_societe_agence" update="txt_ville_agence txt_secteur_agence"/> 
+                                        </h:selectOneMenu>
+                                    </h:panelGroup>
+                                    <h:panelGroup style="float: right">
+                                        <span>#{lab.LMP_PA_secteur_activite} : </span>
+                                        <h:selectOneMenu value="#{agence.secteur.id}" id="txt_secteur_agence" style="min-width: 160px"> 
+                                            <f:selectItem itemValue="0" itemLabel="-"/>
+                                            <f:selectItems value="#{managedAgence.listSecteurActivite}" var="sect" itemLabel="#{sect.nom}" itemValue="#{sect.id}" />
+                                            <f:selectItem itemValue="0" itemLabel="-"/>
+                                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_option}"/>
+                                            <p:ajax event="valueChange" listener="#{managedAgence.chooseSecteur()}"/>
+                                        </h:selectOneMenu>                                        
+                                    </h:panelGroup>
+                                </h:panelGrid>                                
+                            </f:facet>
+                            <span>#{lab.L_code}</span>
+                            <h:panelGroup>
+                                <h:inputText value="#{agence.codeAgence}" />
+                                <h:inputText value="#{agence.id}" style="text-align: right; width: 50px; background: #CCC" readonly="true"/>
+                            </h:panelGroup>
+                            <span>#{lab.LDB_PD_abbreviation}</span>
+                            <h:inputText value="#{agence.abbreviation}" />
+                            <span>#{lab.L_designation}</span>
+                            <h:inputText value="#{agence.designation}"  />
+                            <span>#{lab.L_telephone}</span>
+                            <h:inputText value="#{agence.telephone}" />
+                            <span>#{lab.LMP_PA_email}</span>
+                            <h:inputText value="#{agence.email}" converter="EMAIL" />
+                            <span>#{lab.L_adresse}</span>
+                            <h:inputText value="#{agence.adresse}" />
+                            <span>#{lab.LMP_PA_region}</span>
+                            <h:inputText value="#{agence.region}" />
+                            <span>#{lab.LMP_PA_respondable}</span>
+                            <h:panelGroup id="txt_matricule_emp_agence">
+                                <h:inputText title="#{lab.LRH_PA_text1}" 
+                                             value="#{agence.responsableAgence.matricule}" style="color: #{agence.responsableAgence.error?'#990000':'inherit'}">                                    
+                                    <p:ajax event="blur" listener="#{managedAgence.findOneEmploye(agence.responsableAgence.matricule)}" update="txt_matricule_emp_agence"/>
+                                </h:inputText>
+                                <p:commandButton icon="ui-icon-search" actionListener="#{managedAgence.update('data_responsable')}" 
+                                                 oncomplete="dlgEmployes.show();" style="width: 20px; height: 20px"/>
+                                <span>#{agence.responsableAgence.nom_prenom}</span>
+                            </h:panelGroup>
+                            <span>#{lab.L_pays}</span>
+                            <h:selectOneMenu value="#{agence.pays.id}" id="txt_pays_agence" style="min-width: 170px">
+                                <f:selectItem itemValue="0" itemLabel="-"/>
+                                <f:selectItems value="#{Mdico.pays}" var="pys" itemLabel="#{pys.libele}" itemValue="#{pys.id}" />
+                                <f:selectItem itemValue="0" itemLabel="-"/>
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/>
+                                <p:ajax event="valueChange" update="txt_ville_agence" listener="#{managedAgence.choosePays()}"/>
+                            </h:selectOneMenu>
+                            <span>#{lab.L_ville}</span>
+                            <h:selectOneMenu value="#{agence.ville.id}" id="txt_ville_agence" style="min-width: 170px">
+                                <f:selectItem itemValue="0" itemLabel="-"/>
+                                <f:selectItems value="#{Mdico.villes}" var="vil" itemLabel="#{vil.libele}" itemValue="#{vil.id}" />
+                                <f:selectItem itemValue="0" itemLabel="-"/>
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/>
+                                <p:ajax event="valueChange" listener="#{managedAgence.chooseVille()}"/>
+                            </h:selectOneMenu>
+                        </h:panelGrid>      
+                        <p:tabView id="tabview_agence" >
+                            <p:tab title="Accèssible aux utilisateurs" >
+                                <p:commandButton icon="ui-icon-plus" value="Ajouter" actionListener="#{managedAgence.loadUsers()}" oncomplete="dlgAccesAgence.show()"/>
+                                <p:dataTable value="#{managedAgence.utilisateurs}" var="iAg" style="width: 100%" rowKey="#{iAg.id}" id="data_agence_users" rowIndexVar="line"
+                                             paginator="true" rows="15" paginatorAlwaysVisible="false">
+                                    <p:column headerText="N°" width="40" style="text-align: center">  
+                                        #{line+1}
+                                    </p:column>
+                                    <p:column headerText="Code" filterBy="#{iAg.users.codeUsers}">  
+                                        #{iAg.users.codeUsers}
+                                    </p:column>
+                                    <p:column headerText="Noms" filterBy="#{iAg.users.nomUsers}">  
+                                        #{iAg.users.nomUsers}                                      
+                                    </p:column>
+                                    <p:column headerText="Action" width="40" style="text-align: center">
+                                        <p:commandLink actionListener="#{managedAgence.autoriseActionAgence(iAg)}" update="data_agence_users" disabled="#{!iAg.actif}">
+                                            <p:graphicImage library="img" name="#{!iAg.canAction?'switch_off.png':'switch_on.png'}" width="40"  />
+                                        </p:commandLink>
+                                    </p:column>
+                                    <p:column headerText="" width="40" style="text-align: center">
+                                        <p:commandLink actionListener="#{managedAgence.autoriseAccesAgence(iAg)}" update="data_agence_users">
+                                            <p:graphicImage library="img" name="#{!iAg.actif?'switch_off.png':'switch_on.png'}" width="40"  />
+                                        </p:commandLink>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:tab>
+                        </p:tabView>
+                    </p:outputPanel>
+                </div>
+                <div class="yvs_list_agence">
+                    <p:outputPanel id="form_agence_00">  
+                        <h:panelGrid columns="2" rendered="#{managedAgence.viewSociete}">
+                            <p:outputLabel value="#{lab.LMP_PA_societe} : " />
+                            <h:selectOneMenu value="#{managedAgence.societe.id}" valueChangeListener="#{managedAgence.findBySociete}">
+                                <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedSociete.listSociete}" var="soc"  
+                                               itemLabel="#{soc.name}" itemValue="#{soc.id}" />
+                                <p:ajax event="valueChange" update="table_agence" process="@this"/>
+                            </h:selectOneMenu>             
+                        </h:panelGrid>           
+                        <p:separator style="width: 100%"/> 
+                        <h:inputHidden id="input_hide_agence" value="#{managedAgence.tabIds}"/>
+                        <p:dataTable value="#{managedAgence.listAgence}" var="ag" rowKey="#{ag.id}" selectionMode="single"
+                                     id="table_agence" rowIndexVar="line_ag">
+                            <p:ajax event="rowSelect" listener="#{managedAgence.loadOnView}" update=":body_agence:form_agence_01 :body_agence:input_hide_agence" process="@this" oncomplete="collapseForm('agence')"/>
+                            <p:column width="20" headerText="N°">
+                                #{line_ag+1}
+                            </p:column>
+                            <p:column headerText="#{lab.L_code}" width="200">
+                                <h:outputText value="#{ag.codeagence}"/>
+                            </p:column>                                
+                            <p:column headerText="#{lab.L_designation}">
+                                <h:outputText value="#{ag.designation}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_ville}" width="200">
+                                <h:outputText value="#{ag.ville.libele}"/>  
+                            </p:column>
+                            <p:column headerText="#{lab.L_secteur}" style="text-align: center">
+                                <h:outputText value="#{ag.secteurActivite.nom}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LMP_PA_respondable}">
+                                <h:outputText value="#{ag.chefAgence.nom_prenom}"/>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:contextMenu for="option_agence" event="left click" style="font-size: 0.8em" styleClass="context_menu">
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedAgence.deleteBean_(ag)}" oncomplete="dlgConfirmDelete.show()"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="option_agence" type="button"/>  
+                            </p:column> 
+                            <p:column width="25" style="text-align: center">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_agence" value="false"
+                                                             onclick="selectionAllLineTab(#{managedAgence.listAgence.size()}, 'agence')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="#{ag.select}" styleClass="chek_line_agence" 
+                                                          onclick="selectionLineTab(#{line_ag}, 'agence')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                        </p:dataTable>
+                    </p:outputPanel> 
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

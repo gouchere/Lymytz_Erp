@@ -1,0 +1,1006 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Paramètres','modDonneBase', 'smenParamBase', true)}
+    </ui:define>
+    <ui:define name="contents">
+        #{managedCategoriePerso.loadAll()}
+        #{managedParametreBase.loadAll()}
+        #{managedTypeCreneau.loadAll()}
+        #{managedTaxes.loadAll()}
+        #{managedTypeCout.loadAll()}
+        #{managedSectionValorisation.loadAll()}
+        #{managedCentreAnalytique.loadActif(null)}
+        #{managedModeReglement.loadAllMode()}
+        #{managedClasseStat.loadAll()}
+        #{managedTypeDocDivers.loadAll()}
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('tranche_model_reglement');
+                collapseForm('param_classe_stat');
+                collapseForm('categorie_perso');
+                collapseForm('mode_reglement');
+                collapseForm('type_crenau');
+                collapseForm('type_cout_all');
+                collapseForm('taxes');
+                collapseForm('centre_val');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+
+        <h:form>
+            <p:remoteCommand name="reloadAllLotReception_" global="false" oncomplete="collapseForm('lot_reception')"
+                             actionListener="#{managedCritereLot.update('form_lot_reception')}"/>
+        </h:form>
+        <h:form prependId="false" id="main_fusionn_mdr">
+            <p:dialog widgetVar="dlgConfirmFusion" header="#{lab.L_fusionner}" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_mdr" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LDB_PPB_text1} </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedModeReglement.fusionneTo}"/>
+                    <span>#{lab.LDB_PPB_text2}</span>
+                    <c:forEach items="#{managedModeReglement.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LDB_PU_text3}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedModeReglement.fusionner(false)}" style="float: right" 
+                                 oncomplete="dlgConfirmFusion.hide()"  update=":main_param_base:tabview_param_base:data_mode_reglement(ffqse"/> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">                    
+            <p:dialog header="#{lab.L_categories}" widgetVar="dlgCategorieType" closeOnEscape="true" width="25%" modal="true">                            
+                <p:dataTable id="data-categories_type_doc" value="#{managedTypeDocDivers.selectType.categories}" var="cte" rowKey="#{cte.id}" rowIndexVar="pcte">
+                    <p:column headerText="N°" style="width: 20px">
+                        <span>#{pcte+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PP_categorie}" styleClass="#{cte.id gt 0?'line_actiftrue':'_'}">
+                        <span>#{managedTypeDocDivers.giveNameCategorie(cte.categorie)}</span>
+                    </p:column>                        
+                    <p:column style="text-align: center;width: 20px">
+                        <p:commandButton icon="#{cte.id gt 0?'ui-icon-circle-minus':'ui-icon-circle-plus'}" style="width: 22px; height: 22px"
+                                         actionListener="#{managedTypeDocDivers.addCategorie(cte)}"/>
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="main_fusionn_tranche_horaire">
+            <p:dialog widgetVar="dlgConfirmFusionTranche" header="Fusionner" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_tranche_horaire" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LDB_PP_txt1} </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedTypeCreneau.fusionneTo}"/>
+                    <span>#{lab.LDB_PP_txt2}</span>
+                    <c:forEach items="#{managedTypeCreneau.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LDB_PP_txt3}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeCreneau.fusionner(false)}" style="float: right" 
+                                 oncomplete="dlgConfirmFusionTranche.hide()"  update=":main_param_base:tabview_param_base:data_type_crenau"/> 
+            </p:dialog>
+        </h:form> 
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des comptes
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PP_liste_compte}" widgetVar="dlgListBaseComptes" modal="true" width="50%" closeOnEscape="true" style="min-height: 250px">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PP_saisir_compte_g}" for="txt_cmpte_find_taxes"/>
+                    <p:watermark value="#{lab.LDB_PP_saisir_nature_compte}" for="txt_nature_find_taxes"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_taxes">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_taxes_base data_comptes_type_cout_base" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_taxes">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_taxes_base data_comptes_type_cout_base" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_taxes_base data_comptes_type_cout_base" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_taxes_base data_comptes_type_cout_base" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.LDB_PP_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_taxes_base data_comptes_type_cout_base"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_taxes_base" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cltIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedTaxes.loadOnViewCompte}"  oncomplete="dlgListBaseComptes.hide()"
+                                update=":main_param_base:tabview_param_base:txt_compte_taxes"/>
+                        <p:column width="15">
+                            <span>#{cltIdx+1}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LDB_PP_numero_g}">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LDB_PP_compte_general}">
+                            <span>#{cpt.compteGeneral.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PP_intitule}" width="80">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+            <p:dialog header="#{lab.LDB_PP_liste_compte}" widgetVar="dlgListComptes" modal="true" width="50%" closeOnEscape="true" style="min-height: 250px">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PP_saisir_compte_g}" for="txt_cmpte_find_type_cout_base"/>
+                    <p:watermark value="#{lab.LDB_PP_saisir_nature_compte}" for="txt_nature_find_type_cout_base"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_type_cout_base">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_taxes_base data_comptes_type_cout_base" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_type_cout_base">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_taxes_base data_comptes_type_cout_base" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_taxes_base data_comptes_type_cout_base" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_taxes_base data_comptes_type_cout_base" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.LDB_PP_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_taxes_base data_comptes_type_cout_base"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_type_cout_base" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cltIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedTypeCout.loadOnViewCompte}"  oncomplete="dlgListComptes.hide()"
+                                update=":main_param_base:tabview_param_base:txt_compte_type_cout_base"/>
+                        <p:column width="15">
+                            <span>#{cltIdx+1}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LDB_PP_numero_g}">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LDB_PP_compte_general}">
+                            <span>#{cpt.compteGeneral.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PP_intitule}" width="80">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelTypeDoc" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeDocDivers.deleteBean()}" 
+                                 oncomplete="dlgConfirmDelTypeDoc.hide();"  update=":main_param_base:tabview_param_base:tables_type_doc"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelTypeDoc.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTranche" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedModeReglement.deleteBeanTranche()}" oncomplete="dlgConfirmDeleteTranche.hide();collapseForm('tranche_model_reglement')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTranche.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTranche_" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedModeReglement.deleteBeanTranche_()}" oncomplete="dlgConfirmDeleteTranche_.hide();collapseForm('tranche_model_reglement')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTranche_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteCategoriePerso" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedCategoriePerso.deleteBean()}" update=":main_param_base:tabview_param_base:blog_form_categorie_perso_base"
+                                 oncomplete="dlgConfirmDeleteCategoriePerso.hide();collapseForm('categorie_perso')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteCategoriePerso.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteCategoriePerso_" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedCategoriePerso.deleteBean_()}" update=":main_param_base:tabview_param_base:blog_form_categorie_perso_base :main_param_base:tabview_param_base:data_categorie_perso"
+                                 oncomplete="dlgConfirmDeleteCategoriePerso_.hide();collapseForm('categorie_perso')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteCategoriePerso_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTypeCrenau" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeCreneau.deleteBean()}" update=":main_param_base:tabview_param_base:form_type_crenau :main_param_base:tabview_param_base:data_type_crenau"
+                                 oncomplete="dlgConfirmDeleteTypeCrenau.hide();collapseForm('type_crenau')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTypeCrenau.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTypeCrenau_" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_ou}" actionListener="#{managedTypeCreneau.deleteBean_()}" update=":main_param_base:tabview_param_base:form_type_crenau :main_param_base:tabview_param_base:data_type_crenau"
+                                 oncomplete="dlgConfirmDeleteTypeCrenau_.hide();collapseForm('type_crenau')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTypeCrenau_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTypeCout" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeCout.deleteBean()}" update=":main_param_base:tabview_param_base:form_type_cout_all :main_param_base:tabview_param_base:data_type_cout_all"
+                                 oncomplete="dlgConfirmDeleteTypeCout.hide();collapseForm('type_cout_all')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTypeCout.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTypeCout_" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeCout.deleteBean_()}" update=":main_param_base:tabview_param_base:form_type_cout_all :main_param_base:tabview_param_base:data_type_cout_all"
+                                 oncomplete="dlgConfirmDeleteTypeCout_.hide();collapseForm('type_cout_all')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTypeCout_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteMode" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedModeReglement.deleteBean()}" update=":main_param_base:tabview_param_base:form_mode_reglement :main_param_base:tabview_param_base:data_mode_reglement"
+                                 oncomplete="dlgConfirmDeleteMode.hide();collapseForm('mode_reglement')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteMode.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteMode_" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedModeReglement.deleteBean_()}" update=":main_param_base:tabview_param_base:form_mode_reglement :main_param_base:tabview_param_base:data_mode_reglement"
+                                 oncomplete="dlgConfirmDeleteMode_.hide();collapseForm('mode_reglement')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteMode_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTaxes" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTaxes.deleteBean()}" update=":main_param_base:tabview_param_base:form_taxes :main_param_base:tabview_param_base:data_taxes"
+                                 oncomplete="dlgConfirmDeleteTaxes.hide();collapseForm('taxes')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTaxes.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTaxes_" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTaxes.deleteBean_()}" update=":main_param_base:tabview_param_base:form_taxes :main_param_base:tabview_param_base:data_taxes"
+                                 oncomplete="dlgConfirmDeleteTaxes_.hide();collapseForm('taxes')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTaxes_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteCentre" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedSectionValorisation.deleteBean()}" update=":main_param_base:tabview_param_base:form_centre_val :main_param_base:tabview_param_base:data_centre_val"
+                                 oncomplete="dlgConfirmDeleteCentre.hide();collapseForm('centre_val')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteCentre.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteCentre_" closeOnEscape="true"
+                             message="#{lab.LDB_PP_txt4}" header="Confirmation">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedSectionValorisation.deleteBean_()}" update=":main_param_base:tabview_param_base:form_centre_val :main_param_base:tabview_param_base:data_centre_val"
+                                 oncomplete="dlgConfirmDeleteCentre_.hide();collapseForm('centre_val')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteCentre_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Début du formulaire
+        *****************************************************************************
+        <-->         
+        <h:form prependId="false" id="main_param_base">  
+            <h:inputHidden id="input_hide_mode_reglement" value="#{managedModeReglement.tabIds}"/>
+            <div class="part_scroll">
+                <p:tabView id="tabview_param_base">
+                    <p:tab title="#{lab.L_parametres}">
+                        <p:outputPanel id="blog_form_parametre_base">
+                            <h:panelGrid id="form_parametre_base" columns="4" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0"> 
+                                <f:facet name="header">
+                                    <h:panelGrid columns="2" style="width: 100%">
+                                        <span style="font-weight: bold">#{lab.LDB_PP_parametre_generaux}</span>
+                                        <h:panelGroup style="float: right">
+                                            <p:commandButton value="#{lab.L_supprimer}" id="delete_parametre_base" global="false" rendered="false"
+                                                             onclick="dlgConfirmDeleteParametre.show()" style="float: left"/>
+                                            <p:commandButton value="#{lab.L_enregistrer}" update="form_parametre_base"
+                                                             actionListener="#{managedParametreBase.saveNew()}"/>
+                                        </h:panelGroup>
+                                    </h:panelGrid>
+                                </f:facet>
+                                <p:selectBooleanCheckbox value="#{managedParametreBase.parametre.genererPassword}" itemLabel="#{lab.LDB_PP_generer_mot_passe}">
+                                    <p:ajax event="valueChange" update="bloc-password"/>
+                                </p:selectBooleanCheckbox>
+                                <h:panelGroup id="bloc-password">
+                                    <span>#{lab.LDB_PP_taille} </span>
+                                    <pe:inputNumber value="#{managedParametreBase.parametre.taillePassword}" decimalPlaces="0" style="width: 30px;text-align: center"/>
+                                    <h:panelGroup style="float: right">
+                                        <span>#{lab.LDB_PP_defaut} </span>
+                                        <h:inputText id="txt-default_password" value="#{managedParametreBase.parametre.defautPassword}" disabled="#{managedParametreBase.parametre.genererPassword}"/>                                        
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                                <span>#{lab.LDB_PP_duree_inactivite_marchandise}</span>
+                                <pe:inputNumber value="#{managedParametreBase.parametre.dureeInactivArticle}" decimalPlaces="0" symbol="Jr(s)" symbolPosition="suffixe" style="text-align: right"/>                                
+                                <p:selectBooleanCheckbox value="#{managedParametreBase.parametre.genererReferenceArticle}" itemLabel="#{lab.LDB_PP_generer_reference_article}">
+                                    <p:ajax event="valueChange" update="bloc-reference_article"/>
+                                </p:selectBooleanCheckbox>
+                                <h:panelGroup id="bloc-reference_article">
+                                    <pe:inputNumber value="#{managedParametreBase.parametre.tailleLettreReferenceArticle}" decimalPlaces="0" symbolPosition="suffixe"
+                                                    disabled="#{!managedParametreBase.parametre.genererReferenceArticle}" style="width: 30px;text-align: center"/>
+                                    <span>#{lab.LDB_PP_lettre_} </span>
+                                    <span> #{lab.LDB_PP_et} </span>
+                                    <pe:inputNumber value="#{managedParametreBase.parametre.tailleNumeroReferenceArticle}" decimalPlaces="0" symbolPosition="suffixe"
+                                                    disabled="#{!managedParametreBase.parametre.genererReferenceArticle}" style="width: 30px;text-align: center"/>
+                                    <span>#{lab.LDB_PP_chiffre}</span>
+                                </h:panelGroup>
+                                <p:selectBooleanCheckbox value="#{managedParametreBase.parametre.monitorPr}" itemLabel="#{lab.LDB_PP_surveiller_pr}">
+                                    <p:ajax event="valueChange" update="bloc-monitor_pr"/>
+                                </p:selectBooleanCheckbox>
+                                <h:panelGroup id="bloc-monitor_pr">
+                                    <span>#{lab.LDB_PP_ecart_acceptable}</span>
+                                    <pe:inputNumber value="#{managedParametreBase.parametre.tauxEcartPr}" symbol="%" symbolPosition="suffixe"
+                                                    disabled="#{!managedParametreBase.parametre.monitorPr}" style="width: 80px;text-align: right"/>
+                                </h:panelGroup>
+                                <span>Couleur de l'etiquette</span>
+                                <h:panelGroup>
+                                    <span>Arriere plan</span>
+                                    <p:colorPicker value="#{managedParametreBase.parametre.backColorEtiquette}"/> 
+                                    <span>Prix</span>
+                                    <p:colorPicker value="#{managedParametreBase.parametre.foreColorEtiquette}"/> 
+                                </h:panelGroup>
+                                <span>Nombre de ligne du tableau de bord accueil</span>
+                                <pe:inputNumber value="#{managedParametreBase.parametre.nombreEltAccueil}" decimalPlaces="0" symbolPosition="suffixe" style="width: 30px;text-align: center"/>
+                                <f:facet name="footer">
+                                    <div align="left">
+                                        <span>Nombre de page minimal pour l'affichage du menu complèt : </span>
+                                        <pe:inputNumber value="#{managedParametreBase.parametre.nombrePageMin}" decimalPlaces="0" style="width: 30px;text-align: center"/>
+                                    </div>
+                                </f:facet>
+                            </h:panelGrid>
+                        </p:outputPanel>                        
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LDB_PP_categorie_pers}">
+                        <p:outputPanel id="form_categorie_perso">
+                            <div style="float: left;width: 30%">
+                                <h:panelGrid id="blog_form_categorie_perso_base" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <span> #{lab.LDB_PP_code}</span>
+                                    <h:inputText value="#{categoriePerso.code}" style="width: 100%"/>
+                                    <span>#{lab.LDB_PP_libelle} </span>
+                                    <h:inputText value="#{categoriePerso.libelle}" style="width: 100%"/>
+                                    <span>#{lab.LDB_PP_parent} </span>
+                                    <h:selectOneMenu value="#{managedCategoriePerso.categorieParent.id}" id="select_parent_categorie_perso_base" style="width: 100%">
+                                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                        <f:selectItems value="#{managedCategoriePerso.categoriesParent}" var="catPerso_" 
+                                                       itemLabel="#{catPerso_.libelle}" itemValue="#{catPerso_.id}" />                  
+                                    </h:selectOneMenu> 
+                                    <f:facet name="footer">
+                                        <span>#{lab.LDB_PP_description} </span>
+                                        <h:inputTextarea value="#{categoriePerso.description}" rows="5" style="width: 100%"/>
+                                    </f:facet>
+                                </h:panelGrid>
+                                <div>
+                                    <p:commandButton value="#{lab.L_nouveau}" update="blog_form_categorie_perso_base" global="false"
+                                                     actionListener="#{managedCategoriePerso.resetFiche()}" style="float: left"
+                                                     oncomplete="collapseForm('categorie_perso')"/>
+                                    <p:commandButton value="#{lab.L_enregistrer}" update="blog_form_categorie_perso_base data_categorie_perso"
+                                                     actionListener="#{managedCategoriePerso.saveNew()}" style="float: right"
+                                                     oncomplete="collapseForm('categorie_perso')"/>
+                                </div>
+                            </div>
+                            <div style="margin-left: 31%;width: 69%">
+                                <h:inputHidden id="input_hide_categorie_perso" value="#{managedCategoriePerso.tabIds}"/>
+                                <p:dataTable id="data_categorie_perso" value="#{managedCategoriePerso.categories}" var="catPerso"
+                                             rowKey="#{catPerso.id}" rowIndexVar="catPersoIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedCategoriePerso.loadOnView}" update=":main_param_base:tabview_param_base:blog_form_categorie_perso_base"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedCategoriePerso.unLoadOnView}" update=":main_param_base:tabview_param_base:blog_form_categorie_perso_base"/>
+                                    <p:column width="20" headerText="N°">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{catPerso.new_}"/>
+                                        <span>#{catPersoIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_code}">
+                                        <span>#{catPerso.code}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_designation}">
+                                        <span>#{catPerso.libelle}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_parent}">
+                                        <span>#{catPerso.parent.libelle}</span>
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">                   
+                                        <p:contextMenu for="btn_option_categ_perso" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedCategoriePerso.deleteBean_(catPerso)}" oncomplete="dlgConfirmDeleteCategoriePerso_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_categ_perso" type="button"/>
+                                    </p:column> 
+                                </p:dataTable>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LDB_PP_tranche_horaire}">
+                        <p:outputPanel id="blog_form_type_crenau">
+                            <div style="float: left;width: 30%">
+                                <h:panelGrid id="form_type_crenau" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <f:facet name="header">
+                                        <div align="left">
+                                            <p:splitButton  value="#{lab.L_enregistrer}" update=":main_param_base:tabview_param_base:blog_form_type_crenau"
+                                                            actionListener="#{managedTypeCreneau.saveNew()}" icon="ui-icon-disk">
+                                                <p:menuitem value="#{lab.L_nouveau}" global="false" update=":main_param_base:tabview_param_base:form_type_crenau"
+                                                            actionListener="#{managedTypeCreneau.resetFiche()}" style="float: left" oncomplete="collapseForm('type_crenau')" />
+                                                <p:separator />
+                                                <p:menuitem value="#{lab.L_fusionner}" icon="ui-icon-refresh" actionListener="#{managedTypeCreneau.fusionner(true)}" global="false"
+                                                            oncomplete="dlgConfirmFusionTranche.show()" update=":main_fusionn_tranche_horaire:blog_fusionner_tranche_horaire"/>
+                                            </p:splitButton>
+                                            <span class="style_identifiant" style="float: right">#{typeCreneau.id}</span>                                                
+                                        </div>
+                                    </f:facet>
+                                    <span title="Reference">#{lab.LDB_PP_code} </span>
+                                    <h:inputText value="#{typeCreneau.reference}" readonly="true"/>
+                                    <span title="Heure Début">#{lab.LDB_PP_debut} </span>
+                                    <pe:timePicker value="#{typeCreneau.heureDebut}" style="width: 100px"/>
+                                    <span title="Heure Fin">#{lab.LDB_PP_fin} </span>
+                                    <pe:timePicker value="#{typeCreneau.heureFin}" style="width: 100px"/>
+                                    <p:outputLabel value="#{lab.LDB_PP_critere} " for="event1" />
+                                    <p:autoComplete id="event1" value="#{typeCreneau.critere}" completeMethod="#{managedTypeCreneau.completeText}" size="10">
+                                        <p:ajax event="itemSelect" listener="#{managedTypeCreneau.onCritereSelect}" global="false"/>
+                                        <!--<p:ajax event="query" global="false"/>-->
+                                    </p:autoComplete>
+                                    <f:facet name="footer">
+                                        <p:selectBooleanCheckbox value="#{typeCreneau.venteOnline}" itemLabel="Vente en ligne ? " style="float: right" rendered="#{managedTypeCreneau.currentScte.venteOnline}"/>
+                                        <f:facet name="footer">
+                                            <div style="clear: both; font-size: 0.8em; color: #333">
+                                                <div >Enregistré Le <h:outputText value="#{managedTypeCreneau.typeSelect.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></div>
+                                                <div>Modifier Le <h:outputText value="#{managedTypeCreneau.typeSelect.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/>
+                                                    <span>Par <h:outputText value="#{managedTypeCreneau.typeSelect.author.users.nomUsers}" style="font-weight: bold" styleClass="valeur" /></span></div>
+                                            </div>
+                                        </f:facet>
+                                    </f:facet>
+                                </h:panelGrid>
+                            </div>
+                            <div style="margin-left: 31%;width: 69%">
+                                <h:inputHidden id="input_hide_type_crenau" value="#{managedTypeCreneau.tabIds}"/>
+                                <p:dataTable id="data_type_crenau" value="#{managedTypeCreneau.tranches}" var="typCre" rowKey="#{typCre.id}"
+                                             rowIndexVar="typCreIdx" selection="#{managedTypeCreneau.selectTranches}">
+                                    <p:ajax event="toggleSelect" global="false"/>
+                                    <p:ajax event="rowSelectCheckbox" global="false"/>
+                                    <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedTypeCreneau.loadOnView}" update=":main_param_base:tabview_param_base:form_type_crenau"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedTypeCreneau.unLoadOnView}" update=":main_param_base:tabview_param_base:form_type_crenau"/>
+                                    <p:column width="20" headerText="N°">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typCre.new_}"/>
+                                        <span>#{typCreIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_reference}">
+                                        <span>#{typCre.titre}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_heure_travail}">
+                                        <span>#{lab.LDB_PP_de} </span>
+                                        <h:outputText value="#{typCre.heureDebut}" converter="TIME"/>
+                                        <span> #{lab.LDB_PP_a} </span>
+                                        <h:outputText value="#{typCre.heureFin}" converter="TIME"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_critere}">
+                                        <span>#{typCre.typeJournee}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_actif}" style="width: 10%;text-align: center">
+                                        <p:commandLink style="margin-top: 5px" title="#{(typCre.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedTypeCreneau.activeType(typCre)}"
+                                                       update="data_type_crenau">
+                                            <h:graphicImage library="img"  name="#{(typCre.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">                      
+                                        <p:contextMenu for="btn_option_tranch_horaie" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{(typCre.actif)?lab.L_desactiver:lab.L_activer}" icon="#{(typCre.actif)?'ui-icon-circle-close':'ui-icon-circle-check'}" 
+                                                        actionListener="#{managedTypeCreneau.activerDesactiverTranche(typCre)}" update="data_type_crenau"/>                                                                                   
+                                            <p:separator />
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedTypeCreneau.deleteBean_(typCre)}" oncomplete="dlgConfirmDeleteTypeCrenau_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_tranch_horaie" type="button"/>
+                                    </p:column> 
+                                    <p:column selectionMode="multiple" style="width:16px;text-align:center"/>   
+                                </p:dataTable>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LDB_PP_mode_paiement}">
+                        <p:outputPanel id="blog_form_mode_reglement">
+                            <div style="float: left;width: 30%">
+                                <h:panelGrid id="form_mode_reglement" styleClass="yvs_nostyle" columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                                    <f:facet name="header">
+                                        <div align="left">
+                                            <p:splitButton  value="#{lab.L_enregistrer}" update="form_mode_reglement data_mode_reglement"
+                                                            actionListener="#{managedModeReglement.saveNew()}" icon="ui-icon-disk">
+                                                <p:menuitem value="#{lab.L_nouveau}" update="form_mode_reglement" global="false"
+                                                            actionListener="#{managedModeReglement.resetFiche()}" 
+                                                            oncomplete="collapseForm('mode_reglement')" icon="ui-icon-document" />
+                                                <p:separator /> 
+                                                <p:menuitem value="Fusionner" icon="ui-icon-refresh" actionListener="#{managedModeReglement.fusionner(true)}" global="false"
+                                                            oncomplete="dlgConfirmFusion.show()" update=":main_fusionn_mdr:blog_fusionner_mdr" />
+                                            </p:splitButton>
+                                            <div align="right">
+                                                <span class="style_identifiant" style="float: left">#{managedModeReglement.mode.id}</span>
+                                                <span>#{lab.LDB_PP_defaut} </span>
+                                                <h:selectBooleanCheckbox value="#{managedModeReglement.mode.defaut}"/>
+                                            </div>
+                                        </div>
+                                    </f:facet>
+                                    <span>#{lab.LDB_PP_designation} </span>
+                                    <h:inputText value="#{managedModeReglement.mode.designation}" style="width: 100%"/>
+                                    <span>#{lab.LDB_PP_type} </span>
+                                    <h:selectOneMenu value="#{managedModeReglement.mode.typeReglement}" style="width: 100%">
+                                        <f:selectItem itemValue="#{constantes.MODE_PAIEMENT_ESPECE}" itemLabel="#{constantes.MODE_PAIEMENT_ESPECE}"/>
+                                        <f:selectItem itemValue="#{constantes.MODE_PAIEMENT_BANQUE}" itemLabel="#{constantes.MODE_PAIEMENT_BANQUE}"/>
+                                        <f:selectItem itemValue="#{constantes.MODE_PAIEMENT_SALAIRE}" itemLabel="#{constantes.MODE_PAIEMENT_SALAIRE}"/>
+                                        <f:selectItem itemValue="#{constantes.MODE_PAIEMENT_COMPENSATION}" itemLabel="#{constantes.MODE_PAIEMENT_COMPENSATION}" />
+                                        <p:ajax event="valueChange" update="tabview_param_base:slc_id_code_paie" />
+                                    </h:selectOneMenu>
+                                    <h:outputText value="#{lab.LC_PPG_code_paiement}"/>
+                                    <h:selectOneMenu value="#{managedModeReglement.mode.codePaiement}" id="slc_id_code_paie" disabled="#{managedModeReglement.mode.typeReglement ne constantes.MODE_PAIEMENT_ESPECE}" style="width: 100%">
+                                        <f:selectItem itemValue="#{constantes.CODE_PAIEMENT_AUTRE}" itemLabel="#{lab.LC_PPG_autre}" />
+                                        <f:selectItem itemValue="#{constantes.CODE_PAIEMENT_ORANGE_MONEY}" itemLabel="#{lab.LC_PPG_OM}" />
+                                        <f:selectItem itemValue="#{constantes.CODE_PAIEMENT_MOBILE_MONEY}" itemLabel="#{lab.LC_PPG_MM}" />
+                                        <f:selectItem itemValue="#{constantes.CODE_PAIEMENT_VISA}" itemLabel="#{lab.LC_PPG_visa}" />
+                                        <p:ajax event="valueChange"  />
+                                    </h:selectOneMenu>
+                                    <h:outputText value="#{lab.LC_PPG_numero_marchand}"/>                                       
+                                    <h:inputText value="#{managedModeReglement.mode.numeroMarchand}" disabled="#{managedModeReglement.mode.codePaiement eq constantes.CODE_PAIEMENT_AUTRE}" style="width: 100%" >
+                                        <p:ajax event="valueChange" global="false" />   
+                                    </h:inputText>
+                                    <h:outputText value="Visible sur l'etat des ventes" style="width: 100%"/>  
+                                    <p:selectBooleanCheckbox value="#{managedModeReglement.mode.visibleOnPrintVente}"/> 
+                                    <span>#{lab.LDB_PP_description}</span>
+                                    <h:inputTextarea value="#{managedModeReglement.mode.description}" rows="3" style="width: 100%"/>
+                                    <f:facet name="footer">
+                                        <div style="clear: both; font-size: 0.8em; color: #333">
+                                            <div >Enregistré Le <h:outputText value="#{managedModeReglement.modeSelect.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></div>
+                                            <div>Modifier Le <h:outputText value="#{managedModeReglement.modeSelect.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/>
+                                                <span>Par <h:outputText value="#{managedModeReglement.modeSelect.author.users.nomUsers}" style="font-weight: bold" styleClass="valeur" /></span></div>
+                                        </div>
+                                    </f:facet>
+                                </h:panelGrid>
+                            </div>
+                            <div style="margin-left:31%;width: 69%" align="right">
+                                <p:dataTable id="data_mode_reglement" value="#{managedModeReglement.modes}" var="mode"
+                                             rowKey="#{mode.id}" rowIndexVar="modeIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedModeReglement.loadOnView}" update=":main_param_base:tabview_param_base:form_mode_reglement"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedModeReglement.unLoadOnView}" update=":main_param_base:tabview_param_base:form_mode_reglement"/>
+                                    <p:column width="15" headerText="N°">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{mode.new_}"/>
+                                        <span>#{modeIdx+1}</span>
+                                        <h:graphicImage title="Mode Défaut" library="img"  name="bookmark.png" width="15" height="15" rendered="#{mode.defaultMode}" style="float: right"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_valeur}" width="100">
+                                        <span title="#{mode.description}">#{mode.designation}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_type}" width="50">
+                                        <span title="#{mode.description}">#{mode.typeReglement}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_code_paiement}" width="50">
+                                        <span title="#{mode.description}">#{mode.codePaiement}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_NIM}" width="50">
+                                        <span title="#{mode.description}">#{mode.numeroMarchand}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_actif}" width="15" style="text-align: center">
+                                        <p:commandLink style="margin-top: 5px" title="#{(mode.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedModeReglement.activeMode(mode)}"
+                                                       update="data_mode_reglement">
+                                            <h:graphicImage library="img"  name="#{(mode.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">                                          
+                                        <p:contextMenu for="btn_option_mode_regl" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{(mode.actif)?lab.L_desactiver:lab.L_activer}" icon="#{(mode.actif)?'ui-icon-circle-close':'ui-icon-circle-check'}" 
+                                                        actionListener="#{managedModeReglement.activerDesactiver(mode)}" update="data_mode_reglement"/>                                                                                   
+                                            <p:separator />
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedModeReglement.deleteBean_(mode)}" oncomplete="dlgConfirmDeleteMode_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_mode_regl" type="button"/>
+                                    </p:column> 
+                                    <p:column  width="10" style="text-align: center">
+                                        <f:facet name="header">
+                                            <h:selectBooleanCheckbox styleClass="chek_all_line_mode_reglement" value="false" onclick="selectionAllLineTab(#{managedModeReglement.modes.size()}, 'mode_reglement')" />
+                                        </f:facet>
+                                        <h:selectBooleanCheckbox styleClass="chek_line_mode_reglement" value="false"  onclick="selectionLineTab(#{modeIdx}, 'mode_reglement')"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LDB_PP_type_cout}">
+                        <p:outputPanel id="blog_form_type_cout_all">
+                            <div style="float: left;width: 30%">
+                                <h:panelGrid id="form_type_cout_all" columns="2" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                                    <f:facet name="header">
+                                        <div align="left">
+                                            <p:splitButton value="#{lab.L_enregistrer}" update="form_type_cout_all data_type_cout_all"
+                                                           actionListener="#{managedTypeCout.saveNew()}"  icon="ui-icon-disk">
+                                                <p:menuitem  value="#{lab.L_nouveau}" update="form_type_cout_all" global="false"
+                                                             actionListener="#{managedTypeCout.resetFiche()}"  
+                                                             oncomplete="collapseForm('type_cout_all')" icon="ui-icon-document" />
+                                            </p:splitButton>
+                                        </div>
+                                    </f:facet>
+                                    <span>#{lab.LDB_PP_libelle} </span>
+                                    <h:inputText value="#{managedTypeCout.typeCout.libelle}" style="width: 100%"/>
+                                    <span>#{lab.LDB_PP_compte} </span>
+                                    <h:panelGroup id="txt_compte_type_cout_base">
+                                        <h:inputText value="#{managedTypeCout.typeCout.compte.numCompte}" style="color: #{managedTypeCout.typeCout.compte.error?'red':''}">
+                                            <p:ajax event="blur" global="false" listener="#{managedTypeCout.searchCompte()}" update="txt_compte_type_cout_base"/>
+                                        </h:inputText>                                      
+                                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="Liste Comptes" global="false"
+                                                         actionListener="#{managedTypeCout.initComptes()}" oncomplete="dlgListComptes.show()"/><br />
+                                        <h:outputText value="#{managedTypeCout.typeCout.compte.intitule}" style="font-size: 0.8em"/>
+                                    </h:panelGroup>
+                                    <span>#{lab.LDB_PP_point_application}</span>
+                                    <h:selectOneMenu value="#{managedTypeCout.typeCout.module}" style="width: 100%" valueChangeListener="#{managedTypeCout.chooseType}">
+                                        <f:selectItem itemValue=" " itemLabel="--"/>
+                                        <f:selectItems value="#{constantes.COUTS}" var="mol" itemValue="#{mol.value}" itemLabel="#{mol.label}"/>
+                                        <p:ajax event="valueChange" global="false" update="data_type_cout_all"/>
+                                    </h:selectOneMenu>
+                                    <span>#{lab.LDB_PP_sens} </span>
+                                    <p:commandLink actionListener="#{managedTypeCout.typeCout.setAugmentation(!managedTypeCout.typeCout.augmentation)}" global="false" update="@this"
+                                                   style="margin-top: 3px;border: 2px solid black; border-radius: 5px;padding: 2px;background: #CCC;font-size: 0.8em">
+                                        <h:outputText value="#{managedTypeCout.typeCout.augmentation?'AUGMENTATION':'DIMINUTION'}"/>
+                                    </p:commandLink>
+                                    <f:facet name="footer">
+                                        <div style="clear: both; font-size: 0.8em; color: #333">
+                                            <div >Enregistré Le <h:outputText value="#{managedTypeCout.selectType.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></div>
+                                            <div>Modifier Le <h:outputText value="#{managedTypeCout.selectType.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/>
+                                                <span>Par <h:outputText value="#{managedTypeCout.selectType.author.users.nomUsers}" style="font-weight: bold" styleClass="valeur" /></span></div>
+                                        </div>
+                                    </f:facet>
+                                </h:panelGrid>
+                            </div>
+                            <div style="margin-left:31%;width: 69%">
+                                <h:inputHidden id="input_hide_type_cout_all" value="#{managedTypeCout.tabIds}"/>
+                                <p:dataTable id="data_type_cout_all" value="#{managedTypeCout.types}" var="typC"
+                                             rowKey="#{typC.id}" rowIndexVar="modeIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedTypeCout.loadOnView}" update=":main_param_base:tabview_param_base:form_type_cout_all"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedTypeCout.unLoadOnView}" update=":main_param_base:tabview_param_base:form_type_cout_all"/>
+                                    <p:column width="20" headerText="N°">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typC.new_}"/>
+                                        <span>#{modeIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_valeur}">
+                                        <span>#{typC.libelle}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_compte}">
+                                        <span title="#{typC.compte.intitule}">#{typC.compte.numCompte}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_apli_sur}">
+                                        <span>#{managedTypeCout.giveNameCouts(typC.moduleCout)}</span>
+                                    </p:column>
+                                    <p:column style="width: 7%;text-align: center">
+                                        <h:graphicImage title="#{typC.augmentation?'Augmente':'diminu'} le net à payer" library="img/icones" name="#{typC.augmentation?'plus.png':'moins.png'}" width="15" height="15"/>                                                         
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">                                          
+                                        <p:contextMenu for="btn_option_type_cout_all" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedTypeCout.deleteBean_(typC)}" oncomplete="dlgConfirmDeleteTypeCout_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_type_cout_all" type="button"/>
+                                    </p:column> 
+                                </p:dataTable>
+                                <p:outputPanel autoUpdate="true" style="float: right" layout="block" >
+                                    <p:commandButton actionListener="#{managedTypeCout.loadAllType(false, false)}" update="data_type_cout_all" icon="ui-icon-circle-triangle-w"  disabled="#{managedTypeCout.paginator.disPrev}"/>
+                                    <p:outputLabel value="#{managedTypeCout.paginator.currentPage}/#{managedTypeCout.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                                    <p:commandButton action="#{managedTypeCout.loadAllType(true, false)}" update="data_type_cout_all" icon="ui-icon-circle-triangle-e"  disabled="#{managedTypeCout.paginator.disNext}"/>
+                                    <p:selectOneMenu value="#{managedTypeCout.imax}" label="Nombre max Résultat" style="float: right; font-size: 0.9em;" valueChangeListener="#{managedTypeCout.choosePaginator}">
+                                        <f:selectItems value="#{managedTypeCout.paginations}" />
+                                        <p:ajax event="valueChange"  update="data_type_cout_all" />
+                                    </p:selectOneMenu>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LDB_PP_taxes}">
+                        <p:outputPanel id="blog_form_taxes">
+                            <div style="float: left;width: 30%">
+                                <h:panelGrid id="form_taxes" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <f:facet name="header">
+                                        <div align="left">
+                                            <p:splitButton value="#{lab.L_enregistrer}" update="form_taxes data_taxes"
+                                                           actionListener="#{managedTaxes.saveNew()}"  icon="ui-icon-disk">
+                                                <p:menuitem value="#{lab.L_nouveau}" update="form_taxes" global="false" oncomplete="collapseForm('taxes')"
+                                                            actionListener="#{managedTaxes.resetFiche()}"  icon="ui-icon-document" />
+                                            </p:splitButton>
+                                        </div>
+                                    </f:facet>
+                                    <span title="#{lab.LDB_PP_code_appel}">#{lab.LDB_PP_appel}</span>
+                                    <h:inputText value="#{taxes.codeAppel}"/>
+                                    <span title="#{lab.LDB_PP_code_taxe}">#{lab.LDB_PP_code}</span>
+                                    <h:inputText value="#{taxes.codeTaxe}"/>
+                                    <span title="#{lab.LDB_PP_valeur_etat}">#{lab.LDB_PP_impression}</span>
+                                    <h:inputText value="#{taxes.libellePrint}"/>
+                                    <span title="#{lab.LDB_PP_designation}">#{lab.LDB_PP_libelle}</span>
+                                    <h:inputText value="#{taxes.designation}"/>
+                                    <span title="#{lab.LDB_PP_module_application}">#{lab.LDB_PP_module}</span>
+                                    <h:selectOneMenu value="#{taxes.module}">
+                                        <f:selectItem itemValue="#{lab.LDB_PP_item_mixte}" itemLabel="#{lab.LDB_PP_mixte}"/>
+                                        <f:selectItem itemValue="#{lab.LDB_PP_item_achat}" itemLabel="#{lab.LDB_PP_achat}"/>
+                                        <f:selectItem itemValue="#{lab.LDB_PP_item_vente}" itemLabel="#{lab.LDB_PP_vente}"/>
+                                        <p:ajax event="valueChange" global="false"/>
+                                    </h:selectOneMenu>
+                                    <span>#{lab.LDB_PP_taux}</span>
+                                    <pe:inputNumber value="#{taxes.taux}" symbol=" %" symbolPosition="suffixe" style="width: 50%"/>
+                                    <span>#{lab.LDB_PP_compte} </span>
+                                    <h:panelGroup id="txt_compte_taxes">
+                                        <h:inputText value="#{taxes.compte.numCompte}" style="color: #{taxes.compte.error?'red':''};">
+                                            <p:ajax event="blur" global="false" listener="#{managedTaxes.searchCompte()}" update="txt_compte_taxes"/>
+                                        </h:inputText>  
+                                        <p:commandButton icon="ui-icon-note" style="float: right; width: 20px;height: 22px" title="#{lab.LDB_PP_liste_compte}" global="false"
+                                                         actionListener="#{managedTaxes.initComptes()}" oncomplete="dlgListBaseComptes.show()"/>
+                                        <br />
+                                        <h:outputText value="#{taxes.compte.intitule}" style="font-size: 0.8em"/>                                                                            
+                                    </h:panelGroup>
+                                    <f:facet name="footer">
+                                        <div style="clear: both; font-size: 0.8em; color: #333">
+                                            <div >Enregistré Le <h:outputText value="#{managedTaxes.taxeSelect.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></div>
+                                            <div>Modifier Le <h:outputText value="#{managedTaxes.taxeSelect.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/>
+                                                <span>Par <h:outputText value="#{managedTaxes.taxeSelect.author.users.nomUsers}" style="font-weight: bold" styleClass="valeur" /></span></div>
+                                        </div>
+                                    </f:facet>
+                                </h:panelGrid>                                
+                            </div>
+                            <div style="margin-left: 31%;width: 69%">
+                                <h:inputHidden id="input_hide_taxes" value="#{managedTaxes.tabIds}"/>
+                                <p:dataTable id="data_taxes" value="#{managedTaxes.taxesList}" var="tax" rowKey="#{tax.id}"
+                                             rowIndexVar="taxIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedTaxes.loadOnView}" update=":main_param_base:tabview_param_base:form_taxes"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedTaxes.unLoadOnView}" update=":main_param_base:tabview_param_base:form_taxes"/>
+                                    <p:column style="width: 8%;" headerText="N°">
+                                        <span>#{taxIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_code}" style="width: 18%">
+                                        <span>#{tax.codeTaxe}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_designation}">
+                                        <span>#{tax.designation}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_compte}" style="width: 25%">
+                                        <span title="#{tax.compte.intitule}">#{tax.compte.numCompte}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_taux}" style="width: 25%">
+                                        <span >#{tax.taux}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_module}" style="width: 25%">
+                                        <span >#{tax.module eq 'A'?'ACHAT':(tax.module eq 'V'?'VENTE':'MIXTE')}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_actif}" style="width: 10%;text-align: center">
+                                        <p:commandLink style="margin-top: 5px" title="#{(tax.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedTaxes.activeTaxe(tax)}" update="data_taxes">
+                                            <h:graphicImage library="img"  name="#{(tax.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">                        
+                                        <p:contextMenu for="btn_option_taxe" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedTaxes.deleteBean_(tax)}" oncomplete="dlgConfirmDeleteTaxes_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_taxe" type="button"/>
+                                    </p:column> 
+                                </p:dataTable>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LDB_PP_centre_val}">
+                        <p:outputPanel id="blog_form_centre_val">
+                            <div style="float: left;width: 30%">
+                                <h:panelGrid id="form_centre_val" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <f:facet name="header">
+                                        <div align="left" style="margin-bottom: 5px">
+                                            <div>
+                                                <p:splitButton value="#{lab.L_enregistrer}" update="form_centre_val data_centre_val"
+                                                               actionListener="#{managedSectionValorisation.saveNew()}" icon="ui-icon-disk">
+                                                    <p:menuitem value="#{lab.L_nouveau}" update="form_centre_val"  oncomplete="collapseForm('centre_val')"
+                                                                actionListener="#{managedSectionValorisation.resetFiche()}" icon="ui-icon-document" />
+                                                </p:splitButton>
+                                            </div>
+                                            <div>
+                                                <span>#{lab.LDB_PP_centre_analytique}</span>
+                                                <h:selectOneMenu value="#{sectionDeValorisation.centre.id}" style="min-width: 200px">
+                                                    <f:selectItem itemLabel="--" itemValue="0"/>
+                                                    <f:selectItems value="#{managedCentreAnalytique.secondaires}" var="sc" itemLabel="[#{sc.codeRef}] #{sc.designation}" itemValue="#{sc.id}"/>
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedSectionValorisation.chooseCentre()}"/>
+                                                </h:selectOneMenu>
+                                            </div>
+                                        </div>
+                                    </f:facet>
+                                    <span>#{lab.LDB_PP_reference}</span>
+                                    <h:inputText value="#{sectionDeValorisation.reference}"/>
+                                    <span>#{lab.LDB_PP_designation}</span>
+                                    <h:inputText value="#{sectionDeValorisation.designation}"/>
+                                    <span>#{lab.LDB_PP_type_valeur}</span>
+                                    <h:selectOneMenu value="#{sectionDeValorisation.typeValeur}" style="min-width: 200px">
+                                        <f:selectItem itemLabel="#{constantes.DIRECT_NAME}" itemValue="#{constantes.DIRECT}"/>
+                                        <f:selectItem itemLabel="#{constantes.CALCULE_NAME}" itemValue="#{constantes.CALCULE}"/>
+                                    </h:selectOneMenu>
+                                    <f:facet name="footer">
+                                        <span>#{lab.LDB_PP_description}</span>
+                                        <h:inputTextarea value="#{sectionDeValorisation.description}" rows="5" style="width: 100%"/>
+                                        <div style="clear: both;margin-bottom: 5px"/>
+                                    </f:facet>
+                                </h:panelGrid>                                
+                            </div>
+                            <div style="margin-left: 31%;width: 69%">
+                                <h:inputHidden id="input_hide_centre_val" value="#{managedSectionValorisation.tabIds}"/>
+                                <p:dataTable id="data_centre_val" value="#{managedSectionValorisation.centres}" var="cent" rowKey="#{cent.id}"
+                                             rowIndexVar="cIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedSectionValorisation.loadOnView}" update=":main_param_base:tabview_param_base:form_centre_val"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedSectionValorisation.unLoadOnView}" update=":main_param_base:tabview_param_base:form_centre_val"/>
+                                    <p:column style="width: 8%;" headerText="N°">
+                                        <span>#{cIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_code}" style="width: 18%">
+                                        <span>#{cent.reference}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_designation}">
+                                        <span>#{cent.designation}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_type}" style="width: 20%;text-align: center">
+                                        <span>#{cent.typeValeur == constantes.DIRECT?constantes.DIRECT_NAME:constantes.CALCULE_NAME}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PP_actif}" style="width: 10%;text-align: center">
+                                        <p:commandLink style="margin-top: 5px" title="#{(cent.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedSectionValorisation.setActive(cent)}" update="data_centre_val">
+                                            <h:graphicImage library="img"  name="#{(cent.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                        </p:commandLink>
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">                        
+                                        <p:contextMenu for="btn_option_taxe" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedSectionValorisation.deleteBean_(cent)}" oncomplete="dlgConfirmDeleteCentre_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_taxe" type="button"/>
+                                    </p:column> 
+                                </p:dataTable>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LDB_PP_classes_statistiques}">
+                        <div style="float: left; width: 40%">
+                            <h:panelGrid id="form_param_classe_stat" columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%; ">
+                                <f:facet name="header">
+                                    <div align="left">
+                                        <p:splitButton value="#{lab.L_enregistrer}" update="table_param_classes"
+                                                       actionListener="#{managedClasseStat.saveNew()}" icon="ui-icon-disk">
+                                            <p:menuitem value="#{lab.L_nouveau}" update="form_param_classe_stat" 
+                                                        actionListener="#{managedClasseStat.resetFiche()}" icon="ui-icon-document" />
+                                        </p:splitButton>
+                                    </div>
+                                </f:facet>
+                                <span>#{lab.LDB_PP_reference}</span>
+                                <h:panelGroup>
+                                    <h:inputText value="#{classesStat.codeRef}"/>
+                                    <p:selectBooleanCheckbox value="#{classesStat.actif}" itemLabel="#{lab.LDB_PP_actif}" style="float: right;margin-top: 5px"/>
+                                </h:panelGroup>
+                                <span>#{lab.LDB_PP_designation}</span>
+                                <h:inputText value="#{classesStat.designation}" style="width: 100%"/>
+                                <span>#{lab.LDB_PP_visible_journal_vente}</span>
+                                <p:selectBooleanCheckbox value="#{classesStat.visibleJournal}" />
+                                <span>#{lab.LDB_PP_visible_etat_synthese}</span>
+                                <p:selectBooleanCheckbox value="#{classesStat.visibleSynthese}" />
+                                <span>#{lab.LDB_PP_parent}</span>
+                                <h:selectOneMenu value="#{classesStat.parent}" id="select_parent_classe_stat" style="width: 100%">
+                                    <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedClasseStat.classesStat}" var="clst" 
+                                                   itemLabel="#{clst.designation}" itemValue="#{clst.id}" />                  
+                                </h:selectOneMenu> 
+                            </h:panelGrid>
+                        </div>
+                        <div style="margin-left: 40%">
+                            <p:dataTable value="#{managedClasseStat.classesStat}" rowIndexVar="line_cs" var="iClass" rowKey="#{iClass.id}"
+                                         id="table_param_classes" style="width: 100%; min-height: 200px" selectionMode="single">
+                                <p:ajax event="rowSelect" onstart="dlgWait.show()" onsuccess="dlgWait.hide()" listener="#{managedClasseStat.loadOnView}"/>
+                                <p:column headerText="N°" width="10">
+                                    <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{iClass.id eq classesStat.id}"/>
+                                    #{line_cs+1}
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PP_code_ref}" width="80">
+                                    #{iClass.codeRef}
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PP_designation}" width="100">
+                                    #{iClass.designation}
+                                </p:column>  
+                                <p:column headerText="#{lab.LDB_PP_parent}" width="20" style="text-align: center;font-weight: bold">
+                                    #{iClass.parent.codeRef}
+                                </p:column>  
+                                <p:column headerText="#{lab.LDB_PP_synthese}" width="20" style="text-align: center">
+                                    <h:graphicImage library="img" name="#{iClass.visibleSynthese?'vu.png':'vu_non.png'}" width="12" height="12" />
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PP_journal}" width="20" style="text-align: center">
+                                    <h:graphicImage library="img" name="#{iClass.visibleJournal?'vu.png':'vu_non.png'}" width="12" height="12" />
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PP_actif}" width="20" style="text-align: center">
+                                    <h:graphicImage library="img" name="#{iClass.actif?'vu.png':'vu_non.png'}" width="12" height="12" />
+                                </p:column>
+                                <p:column headerText="" width="20" style="text-align: center">
+                                    <f:facet name="header">
+                                        <p:commandButton icon="ui-icon-gear" type="button" id="btn_option_all_classes" style="width: 22px; height: 22px"/>
+                                        <p:contextMenu for="btn_option_all_classes" event="left click">
+                                            <p:menuitem value="#{lab.L_supprimer_tout}" title="Supprimer la selection" icon="ui-icon-trash" actionListener="#{managedClasseStat.deleteLineAll()}"/>
+                                        </p:contextMenu>
+                                    </f:facet>
+                                    <p:commandButton icon="ui-icon-gear" type="button" id="btn_option_classes" style="width: 22px; height: 22px"/>
+                                    <p:contextMenu for="btn_option_classes" event="left click">
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedClasseStat.deleteLine(iClass, false)}"/>
+                                    </p:contextMenu>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                    </p:tab>
+                    <p:tab title="#{lab.LDB_PP_type_od}">
+                        <div style=" float: left; width: 40%">
+                            <p:watermark for="txt_desc_type_doc" value="Entrer le descriptif" />
+                            <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" id="form_edit_type_doc" style="width: 100%">
+                                <span>#{lab.LDB_PP_code_type}</span>
+                                <h:panelGroup>
+                                    <h:inputText value="#{managedTypeDocDivers.typeDoc.libelle}" />
+                                    <p:selectBooleanCheckbox value="#{managedTypeDocDivers.typeDoc.actif}" itemLabel="Actif" style="float: right;margin-top: 5px" />
+                                </h:panelGroup>
+                                <span>#{lab.LDB_PP_code_acces}</span>
+                                <h:inputText value="#{managedTypeDocDivers.typeDoc.codeAcces.code}" />                                   
+                                <span>#{lab.LDB_PP_module}</span>
+                                <h:panelGroup id="module_type_doc">
+                                    <h:selectOneMenu value="#{managedTypeDocDivers.typeDoc.module}" styleClass="yvs_nostyle" style="width: 200px">
+                                        <f:selectItem itemLabel="#{constantes.TYPE_OD_NAME}" itemValue="#{constantes.TYPE_OD}" />
+                                        <f:selectItem itemLabel="#{constantes.TYPE_FA_NAME}" itemValue="#{constantes.TYPE_FA}" />
+                                        <p:ajax event="valueChange" global="false" update="module_type_doc"/>
+                                    </h:selectOneMenu>        
+                                    <p:selectBooleanCheckbox value="#{managedTypeDocDivers.typeDoc.canReception}" itemLabel="Reception ?" style="float: right;margin-top: 5px"
+                                                             rendered="#{managedTypeDocDivers.typeDoc.module eq constantes.TYPE_FA}"/>
+                                </h:panelGroup>                          
+                                <f:facet name="footer">
+                                    <h:inputTextarea value="#{managedTypeDocDivers.typeDoc.description}" style="width: 99%" rows="3" title="#{lab.LDB_PP_description}" id="txt_desc_type_doc"/>
+                                </f:facet>
+                            </h:panelGrid>
+                            <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedTypeDocDivers.saveNew()}" style="float: right"
+                                             update=":main_param_base:tabview_param_base:tables_type_doc form_edit_type_doc"/>
+                        </div>
+                        <div style="margin-left: 40%">
+                            <p:dataTable id="tables_type_doc" value="#{managedTypeDocDivers.typesDocDivers}" rowIndexVar="_line" rowKey="#{iTypeD.id}" var="iTypeD"
+                                         selectionMode="single" >
+                                <p:ajax event="rowSelect" listener="#{managedTypeDocDivers.loadOnView}" update=":main_param_base:tabview_param_base:form_edit_type_doc"/>
+                                <p:column headerText="N°" width="15" style="text-align: center">
+                                    #{_line+1}
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PP_libelle} ">
+                                    #{iTypeD.libelle}
+                                    <h:panelGroup style="float: right" rendered="#{iTypeD.module eq constantes.TYPE_FA ? iTypeD.canReception : false}">
+                                        <h:outputText title="#{lab.LDB_PP_autoriser_reception}" value="L" styleClass="statut"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PP_description} ">
+                                    #{iTypeD.description}
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PP_module} " style="text-align: center">
+                                    #{iTypeD.module}
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PP_code_acces}">
+                                    #{iTypeD.codeAcces.code}
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PP_actif} " width="15" style="text-align: center">
+                                    <h:graphicImage library="img" name="#{iTypeD.actif?'vu.png':'vu_non.png'}" width="15" height="15" />
+                                </p:column>
+                                <p:column headerText="" width="20" style="text-align: center">
+                                    <p:contextMenu styleClass="context_menu" for="btn_option_type_doc" event="left click">
+                                        <p:menuitem value="Catégories" icon="ui-icon-note" actionListener="#{managedTypeDocDivers.buildCategorie(iTypeD)}"  oncomplete="dlgCategorieType.show()"/>      
+                                        <p:menuitem value="#{icaiss.actif?'Désactiver':'Activer'}" icon="#{iTypeD.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" 
+                                                    actionListener="#{managedTypeDocDivers.toogleActiveCaisse(iTypeD)}"  />      
+                                        <p:separator />
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedTypeDocDivers.openToDelete(iTypeD)}"/>
+                                    </p:contextMenu>
+                                    <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_type_doc"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                        <div style="clear: both"/>
+                    </p:tab>
+                </p:tabView>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

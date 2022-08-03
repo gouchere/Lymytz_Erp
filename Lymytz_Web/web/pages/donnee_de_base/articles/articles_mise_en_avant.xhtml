@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">  
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Articles','modDonneBase', 'smenProduitMiseEnAvant', true,Marticle)}
+    </ui:define> 
+    <ui:define name="contents">   
+        #{managedClient.doNothing()}   
+        #{managedPointVente.doNothing()}   
+        #{managedFournisseur.loadAllFournisseur(true, true,false)}
+
+        #{Mdico.loadPays()}
+        #{managedStockArticle.load(true)}   
+        #{managedDepot.loadAllDepotActif(true)}   
+        #{Marticle.loadAlls_art()}
+        #{Marticle.loadAllAsCatalogue()}    
+        #{managedUniteMesure.loadAll(constantes.UNITE_QUANTITE)} 
+
+        #{Marticle.loadTrancheRemise()}
+        #{managedCategorieClt.loadAll()}
+
+        #{managedCompte.loadAllActif(true)}
+        #{managedCatCompt.loadAll()}
+        #{managedCentreAnalytique.loadAllByNamedQuery()}
+
+        #{managedTemplateArticle.loadAll(true, true)}
+        #{managedFamilleArticle.loadFamilleByActif(true)}
+        #{managedGroupeArticle.loadAll(false)}
+        #{managedClasseStat.loadAllClasStat(true)}
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des rabais
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="bt_niveau">
+            <p:dialog header="Liste des niveaux" width="50%" widgetVar="dlgArtByCompte" resizable="true">
+                <ui:repeat value="#{Marticle.niveau}" var="art">
+
+                    <p:commandButton value="#{art} " actionListener="#{Marticle.mettreEnAvant(art)}" update=":form_mise_avant"  oncomplete="dlgArtByCompte.hide()"/>
+                    <p:outputLabel value="-"/> 
+                </ui:repeat>
+                <p:commandButton value="#{Marticle.niveauMax} " actionListener="#{Marticle.mettreEnAvant(Marticle.niveauMax)}" update=":form_mise_avant:tab_article bt_niveau"  oncomplete="dlgArtByCompte.hide()"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="form-tag_article">
+            <p:dialog header="Tags" hideEffect="explode" widgetVar="dlgTagsArticle" closeOnEscape="true" width="500">
+                <h:panelGrid id="blog-tag_article" columns="1" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:inputText value="#{Marticle.tag}"/>
+                        <p:commandButton value="#{lab.L_ajouter}" actionListener="#{Marticle.addTag()}" update=":form_mise_avant :form-tag_article:blog-tag_article" style="height: 30px"/>
+                    </h:panelGroup>
+                    <p:separator style="width: 100%"/>
+                    <div style="text-align:left;">
+                        <ui:repeat value="#{Marticle.tags}" var="tag">
+                            <span class="signes_op">
+                                <p:commandLink value="X" actionListener="#{Marticle.removeTags(tag)}" update=":form-tag_article:blog-tag_article"/>
+                                #{tag}
+                            </span>                                                
+                        </ui:repeat>
+                    </div>
+                </h:panelGrid>                
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_mise_avant">
+            <div class="yvs_list_article" style="height: 80%; overflow-y: auto; background: #FFF" > 
+                <div  class="part_list">
+                    <ui:repeat value="#{Marticle.articlesOrdres}" var="art" id="tab_article" >
+                        <p:dataGrid value="#{art.articles}" var="art1" columns="2" id="art_dgrig" rowIndexVar="numArt" style="width: 100%;" >   
+                            <f:facet name="header">
+                                <p:outputLabel value="NIVEAU #{art.niveau}"  style="margin-left: 10%"/>
+                            </f:facet>
+                            <p:outputPanel  style="text-align: center; width: 100%" >                            
+                                <h:panelGroup style="width: 200px; float: left">
+                                    <p:commandLink global="false" actionListener="#{Marticle.selectOneArticle(art1)}" 
+                                                   process="@this" partialSubmit="true"
+                                                   oncomplete="collapseForm('article');collapseForm('nav_article')"  >
+                                        <h:graphicImage library="lymytz/documents/docArticle" styleClass="article_img" 
+                                                        name="#{Marticle.photoArticles(art1)}" width="90"/>  
+                                    </p:commandLink>
+                                </h:panelGroup>
+                                <p:panelGrid columns="2" style="margin-left: 200px; width: 450px">
+                                    <f:facet name="header">
+                                        <p:commandLink   actionListener="#{Marticle.selectOneArticle(art1)}" 
+                                                         process="@this" partialSubmit="true"
+                                                         oncomplete="collapseForm('article');collapseForm('nav_article')">
+                                            <h:outputText value="#{art1.designation}" />
+                                        </p:commandLink>
+                                    </f:facet>
+                                    <p:outputLabel value="#{lab.LDB_PA_reference}" />
+                                    <h:outputText value="#{art1.refArt}" />  
+                                    <p:outputLabel value="#{lab.LDB_PA_categorie}" />
+                                    <h:outputText value="#{art1.categorie}"  /> 
+                                    <p:outputLabel value="#{lab.LDB_PA_famille}" />
+                                    <h:outputText value="#{art1.famille.designation}"  />
+                                    <p:outputLabel value="#{lab.LDB_PA_groupes}" />
+                                    <h:outputText value="#{art1.groupe.designation}"  />
+                                    <f:facet name="footer">
+                                        <p:outputPanel autoUpdate="true" style="float: right">
+
+                                            <p:commandButton icon="ui-icon-tag" global="false" value="#{lab.LDB_PA_ajouter_tags}" actionListener="#{Marticle.selectArticleTag(art1)}" oncomplete="dlgTagsArticle.show()" 
+                                                             update=":form-tag_article:blog-tag_article" />
+                                            <p:commandButton  global="false" value="Mettre en avant" icon="ui-icon-show" oncomplete="dlgArtByCompte.show()" actionListener="#{Marticle.selectArt(art1)}"
+                                                              update=":form-tag_article:blog-tag_article" />
+                                        </p:outputPanel>
+
+                                    </f:facet>
+                                </p:panelGrid>
+                            </p:outputPanel>
+                            <h:panelGrid columns="2" style="width: 100%;font-size: 0.8em" styleClass="yvs_table" cellpadding="0" cellspacing="0" rendered="false">                                                       
+                                <b>#{lab.L_prix}</b>
+                                <ui:repeat value="#{art1.conditionnements}" var="cond" varStatus="o">
+                                    <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="font-size: 0.8em; 
+                                                 width: 100%">
+                                        <span style="display: inline-block; width: 100px">#{cond.unite.libelle} :</span>
+                                        <h:panelGrid columns="4" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0"
+                                                     style="font-size: 1em; margin-left: 10px">                                        
+                                            <span>#{lab.LDB_PA_achat} :</span>
+                                            <h:outputText value="#{cond.prixAchat}" converter="DNS"/>
+                                            <span>#{lab.LDB_PA_vente} :</span>
+                                            <h:outputText value="#{cond.prix}" converter="DN" />
+                                        </h:panelGrid>
+                                    </h:panelGrid>
+                                </ui:repeat>
+
+
+                            </h:panelGrid>
+                        </p:dataGrid> 
+
+                        <p:outputPanel autoUpdate="true" style="float: right">
+                            <p:commandButton action="#{Marticle.loadOrdre(art, false,false)}" process="@this"   update=":form_mise_avant" icon="ui-icon-circle-triangle-w" disabled="#{art.paginator.disPrev}" oncomplete="collapseList('nav_article');"/>
+                            <p:outputPanel ><p:outputLabel value="#{art.paginator.currentPage}/#{art.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton action="#{Marticle.loadOrdre(art, true,false)}" update=":form_mise_avant" icon="ui-icon-circle-triangle-e" disabled="#{art.paginator.disNext}" oncomplete="collapseList('nav_article');"/>
+                            <p:selectOneMenu value="#{art.paginator.rows}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{Marticle.paginations}"/>
+                                <p:ajax event="valueChange" update=":form_mise_avant " />
+                            </p:selectOneMenu>
+                        </p:outputPanel>
+                    </ui:repeat>
+
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+
+
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">                
+                <div class="display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">Enregistré Le <h:outputText value="#{Marticle.entityArticle.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>Modifier Le <h:outputText value="#{Marticle.entityArticle.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>Par <h:outputText value="#{Marticle.entityArticle.author.users.nomUsers}" style="font-weight: bold" styleClass="valeur" /></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em">
+                    <h:panelGrid columns="5" style="float: left; font-size: 1.0em">
+                        <h:outputText value="#{lab.LDB_PA_categorie}" />
+                        <h:outputText value="#{lab.LDB_PA_famille}" />
+                        <h:outputText value="Niveau" />
+                        <h:outputText value="#{lab.LDB_PA_designation}" />
+                        <h:outputText value="" />
+                        <!--                        <span>&nbsp;</span>-->
+                        <h:selectOneMenu value="#{Marticle.cat}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="" noSelectionOption="true"/>
+                            <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" />
+                            <p:ajax event="valueChange" listener="#{Marticle.filterByCategorie()}"  
+                                    process="@form" update=":form_mise_avant"/>                              
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{Marticle.familySearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedFamilleArticle.familles}" var="fam" 
+                                           itemLabel="#{fam.designation}" itemValue="#{fam.id}" />
+                            <p:ajax event="valueChange" listener="#{Marticle.filterByFamille()}"  
+                                    process="@form" update=":form_mise_avant "/>                              
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{Marticle.niveauSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="-1"/>
+                            <f:selectItems value="#{Marticle.niveau}" var="niv" 
+                                           itemLabel="#{niv}" itemValue="#{niv}" />
+                            <p:ajax event="valueChange" listener="#{Marticle.addNiveau()}"  
+                                    process="@form" update=":form_mise_avant "/>                              
+                        </h:selectOneMenu> 
+
+
+                        <p:inputText value="#{Marticle.searchArticles}" id="txt_find_article">
+                            <p:ajax event="valueChange" listener="#{Marticle.filterByRef()}"  
+                                    process="@form" update=":form_mise_avant"/>
+                        </p:inputText>   
+
+                    </h:panelGrid>
+
+                </h:panelGrid>
+
+            </div>
+        </h:form>
+    </ui:define>
+
+</ui:composition>

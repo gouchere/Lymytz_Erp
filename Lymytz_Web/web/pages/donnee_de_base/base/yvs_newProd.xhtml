@@ -1,0 +1,377 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://java.sun.com/jsf/facelets"               
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:pe="http://primefaces.org/ui/extensions">
+        <h:form prependId="false" id="A-form_gp"> 
+            <p:dialog header="Gérer les tranches" closeOnEscape="true"
+                      widgetVar="lArt"  width="350" height="380" resizable="false">                
+                <p:dataTable value="#{Marticle.listArticle}" var="a"
+                             paginator="true" rows="15" paginatorAlwaysVisible="false" paginatorPosition="left"
+                             >
+                    <p:column headerText="Borne" >
+                        <h:outputText value="#{a.refArt}"/>
+                    </p:column>
+                    <p:column headerText="Prix" width="100">
+                        <h:outputText value="#{a.refArt}" />
+                    </p:column>                    
+                </p:dataTable>                                    
+            </p:dialog>
+            <!--Dialogue valeur-->                   
+            <p:confirmDialog message="Ce plan tarifaire a initialement été réparti en tranche. Si vous cliquez sur oui, ces tranches seront supprimées !"
+                             widgetVar="delTranche" header="Supprimer des tranches" width="300">
+
+                <h:outputText value="Note: Cette opération est irréversible "/>                                    
+                <p:commandButton value="Ok" actionListener="#{Marticle.updatePt()}" oncomplete="delTranche.hide()"/>  
+                <p:commandButton value="Annuler" oncomplete="delTranche.hide()"/>  
+            </p:confirmDialog>            
+            <p:dialog header="Gérer les tranches" closeOnEscape="true"
+                      widgetVar="tranche" modal="true" width="500" height="300" resizable="false">
+                <p:panelGrid columns="1">
+                    <p:selectOneRadio id="A-options"  value="#{Marticle.modelTranche}" style="border-color: white">  
+                        <f:selectItem itemLabel="Quantité" itemValue="Quantité" />  
+                        <f:selectItem itemLabel="Valeurs" itemValue="Valeurs" />  
+                    </p:selectOneRadio> 
+                </p:panelGrid>
+                <p:panelGrid columns="6" id="A-bo-grid">                                     
+                    <h:outputText value="Borne  "/>          
+                    <pe:inputNumber widgetVar="f0" value="#{Marticle.borne}" emptyValue="empty" tabindex="10" style="width: 100%"/>                                                                                    
+                    <h:outputText value="Prix "/>
+                    <pe:inputNumber value="#{Marticle.prix}" tabindex="11"
+                                    emptyValue="empty" style="width: 100%"/>
+                    <h:outputText value="Remise "/>
+                    <pe:inputNumber widgetVar="f1" value="#{Marticle.valremise}" tabindex="20"
+                                    emptyValue="empty" symbol="%" symbolPosition="s" maxValue="99" style="width: 50px"/>
+                    <p:commandButton value="ok" id="A-b-add" actionListener="#{Marticle.addBorne()}" tabindex="30"/>  
+                </p:panelGrid>
+                <p:contextMenu for="A-bo-tarif" style="width: 8%; font-size: 1em">
+                    <p:menuitem value="Supprimer" icon="ui-icon-close" actionListener="#{Marticle.deleteBorne()}" update="A-bo-tarif"/> 
+                </p:contextMenu>
+                <p:dataTable value="#{Marticle.listBorneTranche}" var="ba" rowKey="#{ba.borne}"
+                             selectionMode="single" id="A-bo-tarif" selection="#{Marticle.newBorne}">
+                    <p:column headerText="Borne">
+                        <h:outputText value="#{ba.borne}" converter="DN" style="float: right"/>
+                    </p:column>
+                    <p:column headerText="Prix">
+                        <h:outputText value="#{ba.prix}" converter="DN" style="float: right"/>
+                    </p:column>
+                    <p:column headerText="Remise">
+                        <h:outputText value="#{ba.remise}" converter="DN" style="float: right" />
+                    </p:column>
+                </p:dataTable>                
+                <f:facet name="footer">                    
+                    <p:commandButton value="Fermer" oncomplete="tranche.hide()"/>       
+                </f:facet>
+                <p:defaultCommand target="A-b-add"/>    
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">            
+            #{Marticle.loadAll()}
+            #{MgroupeProd.loadActif()}
+            #{McatT.loadActif()}
+            #{Mdepot.loadAll()}
+            <p:dialog header="désactive un groupe de produits"
+                      widgetVar="disable" modal="true" width="300" height="50" resizable="false">
+                <h:outputText value="Désactiver Ce groupe de produits ?"/>
+                <f:facet name="footer">
+                    <p:commandButton value="Yes" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" actionListener="#{MgroupeProd.disable()}" oncomplete="disable.hide()"/>  
+                    <p:commandButton value="No" styleClass="ui-confirmdialog-no" icon="ui-icon-close" oncomplete="disable.hide()"/>       
+                </f:facet>
+            </p:dialog>   
+            <p:confirmDialog  header="Supprimer un groupe de produits"
+                              widgetVar="supprime" message="Supprimer Ce groupe de produit ?" width="300">  
+                <p:commandButton value="Yes" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" actionListener="#{MgroupeProd.delete()}" oncomplete="supprime.hide()"/>  
+                <p:commandButton value="No" styleClass="ui-confirmdialog-no" icon="ui-icon-close" oncomplete="supprime.hide()"/>       
+            </p:confirmDialog>
+            <p:outputPanel id="A-groupProd-main1" autoUpdate="true" layout="block">
+                <div class="men-button">                                                    
+                    <h:panelGrid columns="3">
+                        <p:commandLink title="#{men.T_new}" style="margin-right: 20px" actionListener="#{Marticle.resetFiche()}" 
+                                       >
+                            <h:graphicImage  value="../../resources/img/new.png"  style="width: 25px; height: 30px"/>
+                        </p:commandLink>
+                        <p:commandLink title="#{men.T_save}" style="margin-right: 20px"   actionListener="#{Marticle.saveNew()}"
+                                       id="A-groupP-save" disabled="#{Marticle.disableSave}">
+                            <h:graphicImage  value="../../resources/img/IcoSave.png"  style="width: 25px; height: 30px"/>
+                        </p:commandLink>
+                        <p:commandLink title="#{men.T_save}" style="margin-right: 20px"   actionListener="#{Marticle.updateBean()}"
+                                       disabled="#{!Marticle.disableSave}" id="A-groupP-update">
+                            <h:graphicImage  value="../../resources/img/update.png"  style="width: 25px; height: 30px"/>
+                        </p:commandLink>
+                    </h:panelGrid>  
+                    <p:defaultCommand target="#{Marticle.defaultButon}" id="defaultButon"/>               
+                </div>
+            </p:outputPanel>
+            <div class="part-data"> 
+                <p:outputPanel id="A-groupProd-main" layout="block" style="height: 300px; overflow: auto">
+                    <p:tabView id="A-vue-group" activeIndex="0">
+                        <p:ajax event="tabChange" listener="#{Marticle.changeDefaultButon}"/>
+                        <p:tab title="Infos Globales" id="A-tab_gen">
+                            <p:panelGrid columns="6"  style="width: 100%" >
+                                <h:outputText value="Référence"/>
+                                <h:inputText value="#{article.refArt}" id="A-ref-groupP"  disabled="#{Marticle.disableSave}"/>                                                                
+                                <h:outputText value="Désignation"/>
+                                <h:inputText value="#{article.designation}" id="A-des-groupP" style="width: 100%"/>                                                                                                
+                            </p:panelGrid>
+                            <p:panelGrid columns="6"  style="width: 100%" >
+                                <h:outputText value="Groupe " />
+                                <p:selectOneMenu value="#{article.refGroupe}" filter="true" style="width: 100%">  
+                                    <f:selectItem itemLabel="" itemValue=""/>
+                                    <f:selectItems value="#{MgroupeProd.listGroupe}" var="grpe" itemLabel="#{grpe.refGroupe}" itemValue="#{grpe.refGroupe}"/>                                      
+                                </p:selectOneMenu>
+                                <h:outputText value="Catégorie " />
+                                <h:selectOneMenu value="#{article.categorie}">
+                                    <f:selectItem itemLabel="" itemValue=""/>
+                                    <f:selectItems value="#{Marticle.categories}" var="cat" itemLabel="#{cat.libelle}" itemValue="#{cat.valeur}"/>
+                                </h:selectOneMenu>
+                                <h:outputText value="Classe stat. " />
+                                <p:selectOneMenu value="#{article.classeStat}" filter="true" style="width: 100%">  
+                                    <f:selectItems value="#{Mdico.dictionnaires}" var="cl" itemLabel="#{cl.libelle}" itemValue="#{cllibellee}" />                                      
+                                </p:selectOneMenu>
+                                <h:outputText value="Code B." />
+                                <h:inputText value="#{article.codeBarre}" style="width: 100%"/>
+                                <h:outputText value="Conditionnement" />
+                                <p:selectOneMenu value="#{article.conditionnement}" filter="true" style="width: 100%" editable="true">  
+                                    <f:selectItems value="#{Mdico.dictionnaires}" var="cond" itemLabel="#{cond.libelle}" itemValue="#{condlibellee}" />                                      
+                                </p:selectOneMenu>
+                                <h:outputText value="Coefficient" />
+                                <pe:inputNumber value="#{article.coefficient}" style="width: 50%"/>
+                                <h:outputText value="Unité de masse" />
+                                <h:selectOneMenu value="#{article.unite}">
+                                    <f:selectItem itemLabel="" itemValue=""/>
+                                    <f:selectItems value="#{Marticle.uniteMasses}" var="um" itemLabel="#{um.libele}" itemValue="#{um.valeur}"/>
+                                    <p:ajax event="valueChange" update="idUM" />
+                                </h:selectOneMenu>                            
+                                <h:outputText value="Masse Net" />
+                                <pe:inputNumber value="#{article.masseNet}" id="idUM" style="width: 50%" symbol=" #{article.unite}" symbolPosition="suffix"/>
+                                <h:outputText value="Prix d'achat" />
+                                <pe:inputNumber value="#{article.pua}" style="width: 50%"/>
+                                <h:outputText value="Prix de vente" />
+                                <pe:inputNumber value="#{article.puv}" style="width: 50%"/>
+                                <h:outputText value="prix de vente Min." />
+                                <pe:inputNumber value="#{article.puvMin}" style="width: 50%"/>
+                                <h:outputText value="Remise" />
+                                <pe:inputNumber value="#{article.remise}" style="width: 50%" symbol="%" symbolPosition="s"/>
+                                <h:outputText value="Mode Conso" />
+                                <h:selectOneMenu value="#{article.modeConso}">
+                                    <f:selectItem itemLabel="" itemValue=""/>
+                                    <f:selectItems value="#{Marticle.modeConso}" var="mdc" itemLabel="#{mdc.libele}" itemValue="#{mdc.valeur}"/>
+                                </h:selectOneMenu>
+                                <h:outputText value="Suivi en stock"/>
+                                <h:selectBooleanCheckbox value="#{article.suiviEnStock}"/>
+                                <h:outputText value="Prix de vente variable"/>
+                                <h:selectBooleanCheckbox value="#{article.changePrix}"/>
+                                <h:outputText value="Type de norme"/>
+                                <h:selectBooleanCheckbox value="#{article.normeFixe}"/>
+                                <h:outputText value="#{lab.L_actif}"/>
+                                <h:selectBooleanCheckbox value="#{article.actif}"/>
+                            </p:panelGrid>                          
+                        </p:tab>
+                        <p:tab title="Tarifs" id="A-tab_tarif" rendered="#{Marticle.renderOnglet}"> 
+                            <div style="width: 45%;float: left; ">
+                                <p:panelGrid columns="4"  id="A-ch_catT">
+                                    <h:outputText value="Catégorie "/>
+                                    <h:selectOneMenu value="#{tarifArt.refCategorie}" style="width:100%" valueChangeListener="#{Marticle.changeVal}" >
+                                        <f:selectItem itemLabel="" itemValue=""/>
+                                        <f:selectItems value="#{McatT.listCatT}" var="cat" itemLabel="#{cat.designation}" itemValue="#{cat.designation}"/>
+                                        <p:ajax update="A-ch_catT"/>
+                                    </h:selectOneMenu>                                    
+                                    <h:outputText value="Tranche  "/>
+                                    <p:selectBooleanCheckbox value="#{Marticle.tranche}" id="A-choix_tranche" valueChangeListener="#{Marticle.openBorne}">
+                                        <p:ajax event="valueChange" update="A-rem A-Prix"/>
+                                    </p:selectBooleanCheckbox> 
+                                    <h:outputText value="Prix "/>
+                                    <pe:inputNumber id="A-Prix" value="#{tarifArt.prix}" style="width: 100%"
+                                                    emptyValue="empty" disabled="#{Marticle.tranche}" />
+                                    <h:outputText value="Remise "/>
+                                    <pe:inputNumber widgetVar="f2" id="A-rem" value="#{tarifArt.remise}" style="width: 50px" maxValue="99"
+                                                    emptyValue="empty" disabled="#{Marticle.tranche}" symbol="%" symbolPosition="s"/>                                    
+                                </p:panelGrid> 
+                                <p:commandButton value="Ajouter" id="A-buton-addTarif" update="A-ta-tarif A-choix_tranche" actionListener="#{Marticle.addTarifGroupe()}" />  
+                            </div>
+                            <div style="width: 49%;margin-left: 47%">
+                                <p:contextMenu for="A-ta-tarif" style="width: 8%; font-size: 1em">
+                                    <p:menuitem value="Supprimer" icon="ui-icon-close" actionListener="#{Marticle.deletTarifGroup()}" update="A-ta-tarif"/> 
+                                </p:contextMenu>
+                                <p:dataTable value="#{article.listTarifArt}" var="ta" rowKey="#{ta.refCategorie}"
+                                             id="A-ta-tarif" selectionMode="single" selection="#{Marticle.selectTarifGroup}"
+                                             paginator="true" rows="5" paginatorAlwaysVisible="false">
+                                    <p:ajax event="rowSelect" listener="#{Marticle.selectTarif}"/>                                   
+                                    <p:column headerText="Catégories " width="100" sortBy="#{ta.refCategorie}">
+                                        #{ta.refCategorie}
+                                    </p:column>                                                                           
+                                    <p:column headerText="Prix" width="100" style="background: #{(ta.prix==0)?'#CCC':blue}">
+                                        <h:outputText value="#{ta.prix}" style="float: right" converter="DN"/>
+                                    </p:column>
+                                    <p:column headerText="Remise" width="40" style="background: #{(ta.remise==0)?'#CCC':blue}">
+                                        <h:outputText value="#{ta.remise}" style="float: right" converter="DN"/>
+                                    </p:column>
+                                    <p:column headerText="Tranche" width="30">
+                                        <h:outputText value="#{(ta.idTranche!=null)?'Tranche':''}"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </div>                             
+                        </p:tab>
+                        <p:tab title="Comptabilité " id="A-tab_compta" rendered="#{Marticle.renderOnglet}">
+                            <p:dataTable value="#{article.listArtCatC}" var="arc" rowKey="#{arc.categorie}" selectionMode="single"
+                                         style="width:97%; float: left" scrollHeight="150" scrollable="true" id="A-tabCatC">
+                                <p:ajax event="rowSelect" listener="#{Marticle.choixArtCatC}"/>                                               
+                                <p:column headerText="Catégorie" width="90">
+                                    <h:outputText value="#{arc.categorie}"/>
+                                </p:column>
+                                <p:column headerText="Compte" width="90">
+                                    <h:outputText value="#{arc.compte}" />
+                                </p:column>
+                                <p:column headerText="Taxe 1" width="100">
+                                    <h:outputText value="#{arc.taxe1}" />
+                                </p:column>
+                                <p:column headerText="Taxe 2" width="100">
+                                    <h:outputText value="#{arc.taxe2}" />
+                                </p:column>
+                                <p:column headerText="Taxe 3" width="100">
+                                    <h:outputText value="#{arc.taxe3}" />
+                                </p:column>                                
+                            </p:dataTable> 
+                            <p:panelGrid columns="6" style="width: 100%" id="A-display-grpe">                                
+                                <h:inputText value="#{articleCatC.categorie}" style="width: 100%" id="A-catC_categorie">
+                                    <p:ajax event="blur" listener="#{Marticle.findCatC(articleCatC.categorie)}" update="@this"/>
+                                </h:inputText>
+                                <h:inputText value="#{articleCatC.compte}" style="width: 100%" id="A-catC_compte">
+                                    <p:ajax event="blur" listener="#{Marticle.findCompte(articleCatC.compte)}"/>
+                                </h:inputText>
+                                <h:inputText value="#{articleCatC.taxe1}" style="width: 100%" id="A-catC_taxe1">
+                                    <p:ajax event="blur" listener="#{Marticle.findTaxe1(articleCatC.taxe1)}"/>
+                                </h:inputText>
+                                <h:inputText value="#{articleCatC.taxe2}" style="width: 100%" id="A-catC_taxe2">
+                                    <p:ajax event="blur" listener="#{Marticle.findTaxe2(articleCatC.taxe2)}"/>
+                                </h:inputText>
+                                <h:inputText value="#{articleCatC.taxe3}" style="width: 100%" id="A-catC_taxe3">
+                                    <p:ajax event="blur" listener="#{Marticle.findTaxe3(articleCatC.taxe3)}"/>
+                                </h:inputText>
+                                <p:commandButton value="ok" actionListener="#{Marticle.addGroupeCompte()}" id="A-catC_badd"/>
+                            </p:panelGrid>                           
+                        </p:tab>
+                        <p:tab title="Stockage " id="A-tab_stock" rendered="#{Marticle.renderOnglet}">
+                            <p:panelGrid columns="6" style="font-size: 10px; background: red">
+                                <h:outputText value="Dépôts "/>
+                                <p:selectOneMenu value="#{artDepot.refDepot}" filter="true" style="width:100%">  
+                                    <f:selectItems value="#{Mdepot.listDepot}" var="dep" itemLabel="#{dep.codeDepot}" itemValue="#{dep.codeDepot}" />                                      
+                                </p:selectOneMenu>
+                                <h:outputText value="Approvissionnement "/>
+                                <h:selectOneMenu id="A-options" value="#{artDepot.modeAppro}" style="width:80%">  
+                                    <f:selectItems value="#{MgroupeProd.modesAppro}" var="mappro" itemLabel="#{mapprolibellee}" itemValue="#{mappro.valeur}" />                                      
+                                </h:selectOneMenu> 
+                                <h:outputText value="Réapprovisionnement "/>
+                                <h:selectOneMenu value="#{artDepot.modeReappro}" valueChangeListener="#{Marticle.choixModeReappro}">  
+                                    <f:selectItems value="#{Marticle.modesReappro}" var="mrappro" itemLabel="#{mrappro.libelle}" itemValue="#{mrappro.valeur}" />                                      
+                                    <p:ajax update="A-inf_dep"/>                                   
+                                </h:selectOneMenu> 
+                            </p:panelGrid> 
+                            <p:panelGrid columns="7" id="A-inf_dep" style="font-size: 10px">
+                                <h:outputText value="Période " rendered="#{Marticle.renderNj}"/>
+                                <pe:inputNumber value="#{artDepot.nombreJour}" style="width: 50px"
+                                                rendered="#{Marticle.renderNj}"/>
+                                <h:outputText value="Stock Min "/>
+                                <pe:inputNumber value="#{artDepot.stockMin}" style="width: 50px"
+                                                emptyValue="empty"/>
+                                <h:outputText value="Stock Max "/>
+                                <pe:inputNumber value="#{artDepot.stockMax}" style="width: 50px"
+                                                emptyValue="empty"/>
+                                <p:commandButton value="Ajouter" id="A-badd-stoc" actionListener="#{Marticle.addDepot()}" update="A-gr-depot"/>
+                            </p:panelGrid> 
+                            <p:contextMenu for="A-gr-depot" style="width: 8%; font-size: 1em">
+                                <p:menuitem value="Supprimer" icon="ui-icon-close" actionListener="#{Marticle.deletTarifGroup()}" update="A-gr-depot"/> 
+                            </p:contextMenu>
+                            <p:dataTable value="#{article.listArtDepot}" var="grd" rowKey="#{grd.refDepot}"
+                                         id="A-gr-depot" selectionMode="single" selection="#{Marticle.selectGroupeDepot}"
+                                         paginator="true" rows="5" paginatorAlwaysVisible="false">
+                                <p:column headerText="Dépots " width="100">
+                                    #{grd.refDepot}
+                                </p:column>  
+                                <p:column headerText="Mode Appro" width="100">
+                                    #{grd.modeAppro}
+                                </p:column>
+                                <p:column headerText="Mode Reappro" width="100">
+                                    #{grd.modeReappro}
+                                </p:column>
+                                <p:column headerText="Periode" width="40" style="background: #{(ta.remise==0)?'#CCC':blue}">
+                                    <h:outputText value="#{grd.nombreJour}" style="float: right" converter="DN"/>
+                                </p:column>
+                                <p:column headerText="Stoc Min" width="40">
+                                    <h:outputText value="#{grd.stockMin}" converter="DN" />
+                                </p:column>
+                                <p:column headerText="Stoc Max" width="40">
+                                    <h:outputText value="#{grd.stockMax}" converter="DN" />
+                                </p:column>
+                            </p:dataTable>
+                        </p:tab>
+                    </p:tabView>                                    
+                </p:outputPanel>
+            </div>            
+        </h:form>
+        
+        <h:form rendered="true" prependId="false">
+            <p:messages id="A-groupP-messages" showSummary="true"  showDetail="true" autoUpdate="true" closable="true" />                        
+            <h:panelGrid columns="2" style="width: 100%;">
+                <p:outputLabel value="Nombre Total :" />
+                <p:outputLabel value="" />                
+                <p:outputLabel value="Articles Actif :" styleClass="lab-sct-name"/>                
+                <p:outputLabel value="xxxx" styleClass="sct-name"/>
+                <p:outputLabel value="Articles Innactif :" styleClass="lab-sct-name"/>
+                <p:outputLabel value="xxxx" styleClass="sct-name"/>
+            </h:panelGrid>
+            <!--><p:outputPanel id="A-art-main" layout="block">
+                <br />    
+                <p:pieChart value="#{Marticle.pieModel}" legendPosition="h" title="Article par groupe" style="width: 95%; height: 20em; overflow: auto"
+                            showDataLabels="true" diameter="100"/> 
+            </p:outputPanel><-->
+        </h:form>
+
+        <h:form rendered="true" prependId="false">
+            <p:outputPanel layout="block">
+                <p:contextMenu for="A-groupP-table">
+                    <p:menuitem icon="ui-icon-delete" value="desactiver" onclick="disable.show()" />
+                    <p:menuitem icon="ui-icon-close" value="supprimer" onclick="supprime.show()" />
+                </p:contextMenu>
+                <p:dataTable value="#{Marticle.listArticle}" var="art" rowKey="#{art.id}" selectionMode="single"
+                             id="A-groupP-table" filteredValue="#{Marticle.listFiltre}" selection="#{Marticle.selectArticle}"
+                             style="width: 98%" >
+                    <p:ajax event="rowSelect" listener="#{Marticle.loadOnView}"/>                
+                    <p:column headerText="Référence" filterBy="#{art.refGroupe}" width="100">
+                        <h:outputText value="#{art.refGroupe}" />
+                    </p:column>
+                    <p:column headerText="Désignation " filterBy="#{art.designation}" width="200">
+                        <h:outputText value="#{art.designation}" />
+                    </p:column>
+                    <p:column headerText="Catégorie" filterBy="#{art.categorie}" width="100">
+                        <h:outputText value="#{art.categorie}" />
+                    </p:column>
+                    <p:column headerText="Groupe " filterBy="#{art.refGroupe}" width="100">
+                        <h:outputText value="#{art.refGroupe}" />
+                    </p:column>
+                    <p:column headerText="PUA" filterBy="#{art.pua}" width="60">
+                        <h:outputText value="#{art.pua}" style="float: right" converter="DN" />
+                    </p:column>
+                    <p:column headerText="PUV" filterBy="#{art.puv}" width="60">
+                        <h:outputText value="#{art.puv}" style="float: right" converter="DN" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_dateSave}" width="100" filterBy="#{art.dateSave}">
+                        <h:outputText value="#{art.dateSave}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_auteur}" width="100" filterBy="#{art.auteur}">
+                        <h:outputText value="#{art.auteur}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_dateLastMod}" width="100" filterBy="#{art.lastDateUpdate}">
+                        <h:outputText value="#{art.lastDateUpdate}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_auteur}" width="100" filterBy="#{art.lastAuteur}">
+                        <h:outputText value="#{art.lastAuteur}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_actif}" style="text-align: center" width="30">
+                        <h:graphicImage  value="#{(art.actif)?'../../resources/img/yes.png':'../../resources/img/no.png'}"  style="width: 10px; height: 10px"/>
+                    </p:column>                    
+                </p:dataTable>  
+            </p:outputPanel>
+        </h:form>
+</ui:composition>

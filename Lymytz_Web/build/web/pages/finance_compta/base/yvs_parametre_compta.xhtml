@@ -1,0 +1,742 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"        
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"     
+                xmlns:ui="http://java.sun.com/jsf/facelets">    
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Paramètres Généraux','modCompta', 'smenParamCompta', true)}
+    </ui:define>         
+    <ui:define name="contents">     
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                verifyDefaultModeEspece();
+            });
+        </script> 
+        #{managedParametre.loadParametreAchat()}
+        #{managedParametre.loadParametreVente()}
+        #{managedParamCompta.loadAll()}
+        #{managedPlanAbonnement.loadAll()}
+        #{managedTypeCout.loadAll(constantes.MOD_COFI)}
+        #{managedCompte.loadAllActif(true)}
+        #{managedNatureCompte.loadAll()}
+        #{managedTypeDocDivers.loadAll(constantes.TYPE_OD)}
+        #{managedJournaux.loadAllJournauxBySociete()}
+        <h:form prependId="false">
+            <p:remoteCommand name="verifyDefaultModeEspece" actionListener="#{managedModeReglement.verifyDefaultModeEspece()}"/>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelTypeDoc" closeOnEscape="true"
+                             message="#{lab.LCF_PGG_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeDocDivers.deleteBean()}" 
+                                 oncomplete="dlgConfirmDelTypeDoc.hide();"  />
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelTypeDoc.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LDB_PTA_liste_compte}" widgetVar="dlgListComptes" modal="true" width="50%" closeOnEscape="true" style="min-height: 250px">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LP_PPG_saisir_compte_g}...." for="txt_cmpte_find_typeCoutCompta"/>
+                    <p:watermark value="#{lab.LP_PPG_saisir_nature_compte}...." for="txt_nature_find_typeCoutCompta"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_typeCoutCompta">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_type_compta" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_typeCoutCompta">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_type_compta" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_type_compta" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_type_compta" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_type_compta"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_type_compta" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cltIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedTypeCout.loadOnViewCompte}"  oncomplete="dlgListComptes.hide()"
+                                update=":main_param_compta:tabview_param_compta:txt_compte_type_cout_compta"/>
+                        <p:column width="15">
+                            <span>#{cltIdx+1}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LP_PPG_numero_g}.">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LCF_PGG_compte_general}">
+                            <span>#{cpt.compteGeneral.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="80">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LDB_PTA_liste_compte}" widgetVar="dlgListCompteA" modal="true" width="50%" closeOnEscape="true" style="min-height: 250px">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LP_PPG_saisir_compte_g}...." for="txt_cmpte_find_plan_abonnement"/>
+                    <p:watermark value="#{lab.LP_PPG_saisir_nature_compte}...." for="txt_nature_find_plan_abonnement"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_plan_abonnement">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_plan_abonnement" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_plan_abonnement">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_plan_abonnement" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_plan_abonnement" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_plan_abonnement" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_plan_abonnement"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_plan_abonnement" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cltIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedPlanAbonnement.loadOnViewCompte}"  oncomplete="dlgListCompteA.hide()"
+                                update=":main_param_compta:tabview_param_compta:txt_compte_plan_abonnement"/>
+                        <p:column width="15">
+                            <span>#{cltIdx+1}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LP_PPG_numero_g}.">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LCF_PGG_compte_general}">
+                            <span>#{cpt.compteGeneral.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="80">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+            <p:dialog header="#{lab.LDB_PTA_liste_compte}" widgetVar="dlgListCompteBR" modal="true" width="50%" closeOnEscape="true" style="min-height: 250px">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LP_PPG_saisir_compte_g}...." for="txt_cmpte_find_benefice_report"/>
+                    <p:watermark value="#{lab.LP_PPG_saisir_nature_compte}...." for="txt_nature_find_benefice_report"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_benefice_report">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_benefice_report" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_benefice_report">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_benefice_report" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_benefice_report" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_benefice_report" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_benefice_report"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_benefice_report" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cltIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedParamCompta.loadOnViewCompteBenefice}"  oncomplete="dlgListCompteBR.hide()"
+                                update=":main_param_compta:tabview_param_compta:txt_compte_benefice_report"/>
+                        <p:column width="15">
+                            <span>#{cltIdx+1}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LP_PPG_numero_g}.">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LCF_PGG_compte_general}">
+                            <span>#{cpt.compteGeneral.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="80">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+            <p:dialog header="#{lab.LDB_PTA_liste_compte}" widgetVar="dlgListComptePR" modal="true" width="50%" closeOnEscape="true" style="min-height: 250px">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LP_PPG_saisir_compte_g}...." for="txt_cmpte_find_perte_report"/>
+                    <p:watermark value="#{lab.LP_PPG_saisir_nature_compte}...." for="txt_nature_find_perte_report"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_perte_report">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_perte_report" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_perte_report">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_perte_report" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_perte_report" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_perte_report" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_perte_report"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_perte_report" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cltIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedParamCompta.loadOnViewComptePerte}"  oncomplete="dlgListComptePR.hide()"
+                                update=":main_param_compta:tabview_param_compta:txt_compte_perte_report"/>
+                        <p:column width="15">
+                            <span>#{cltIdx+1}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LP_PPG_numero_g}.">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LCF_PGG_compte_general}">
+                            <span>#{cpt.compteGeneral.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="80">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteParametre" closeOnEscape="true"
+                             message="#{lab.LCF_PGG_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedParamCompta.deleteBean()}" update=":main_param_compta:tabview_param_compta:form_param_compta"
+                                 oncomplete="dlgConfirmDeleteParametre.hide();collapseForm('param_compta')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteParametre.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteParametreVente" closeOnEscape="true"
+                             message="#{lab.LCF_PGG_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedParametre.deleteBeanVente()}" update=":main_param_compta:tabview_param_compta:form_param_vente_compta" 
+                                 oncomplete="dlgConfirmDeleteParametreVente.hide();collapseForm('param_vente_compta')"/>
+                <p:commandButton type="button" value="#{lab.L_non}" onclick="dlgConfirmDeleteParametreVente.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">            
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteParametreAchat" closeOnEscape="true"
+                             message="#{lab.LCF_PGG_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedParametre.deleteBeanAchat()}" update=":main_param_compta:tabview_param_compta:form_param_achat_compta" 
+                                 oncomplete="dlgConfirmDeleteParametreAchat.hide();collapseForm('param_achat_compta')"/>
+                <p:commandButton type="button" value="#{lab.L_non}" onclick="dlgConfirmDeleteParametreAchat.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTypeCout" closeOnEscape="true"
+                             message="#{lab.LCF_PGG_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeCout.deleteBean()}" update=":main_param_compta:tabview_param_compta:form_type_cout_compta :main_param_compta:tabview_param_compta:data_type_cout_compta"
+                                 oncomplete="dlgConfirmDeleteTypeCout.hide();collapseForm('type_cout_compta')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTypeCout.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTypeCout_" closeOnEscape="true"
+                             message="#{lab.LCF_PGG_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTypeCout.deleteBean_()}" update=":main_param_compta:tabview_param_compta:form_type_cout_compta :main_param_compta:tabview_param_compta:data_type_cout_compta"
+                                 oncomplete="dlgConfirmDeleteTypeCout_.hide();collapseForm('type_cout_compta')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTypeCout_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">            
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeletePlanA" closeOnEscape="true" message="#{lab.LCF_PGG_text2} ?" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedPlanAbonnement.deleteBean_()}" 
+                                 oncomplete="dlgConfirmDeletePlanA.hide();" update=":main_param_compta:tabview_param_compta:form-plan_abonnement :main_param_compta:tabview_param_compta:data-plan_abonnement"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeletePlanA.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="main_param_compta">
+            <div class="part_fix">
+                <div style="width: 100%; font-size: 0.8em">
+
+                </div>
+            </div>
+            <div class="part_scroll">
+                <p:tabView id="tabview_param_compta" style="min-height: 400px">
+                    <p:tab title="#{lab.LCF_PGG_parametres}">
+                        <h:panelGrid id="form_param_compta" columns="4" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0"> 
+                            <f:facet name="header">
+                                <h:panelGrid columns="2" style="width: 100%">
+                                    <span style="font-weight: bold">#{lab.LCF_PGG_parametres_generaux}</span>
+                                    <h:panelGroup style="float: right">
+                                        <p:commandButton value="#{lab.L_supprimer}" id="delete_param_compta_" global="false" rendered="false"
+                                                         onclick="dlgConfirmDeleteParametre.show()" style="float: left"/>
+                                        <p:commandButton value="#{lab.L_enregistrer}" update="form_param_compta" icon="ui-icon-disk"
+                                                         actionListener="#{managedParamCompta.saveNew()}"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </f:facet>
+                            <span>#{lab.LCF_PGG_decimal_arrondi}</span>
+                            <h:panelGroup>
+                                <h:selectBooleanCheckbox value="#{managedParamCompta.param.decimalArrondi}">
+                                    <p:ajax event="valueChange" global="false" update="form_param_compta"/>
+                                </h:selectBooleanCheckbox>
+                                <pe:inputNumber value="#{managedParamCompta.param.valeurArrondi}" disabled="#{!managedParamCompta.param.decimalArrondi}"
+                                                decimalPlaces="0" title="#{lab.LCF_PGG_nombre_chiffre_apres_virgule}"/>
+                            </h:panelGroup>
+                            <span>#{lab.LCF_PGG_converter_monetaire} </span>
+                            <h:panelGroup>
+                                <pe:inputNumber value="#{managedParamCompta.param.converter}" decimalPlaces="0">
+                                    <p:ajax event="blur" global="false" update="txt_apercu_converter_monnaie"/>
+                                </pe:inputNumber>
+                                <h:panelGroup style="float: right;margin-top: 5px">
+                                    <span>#{lab.L_apercu} : </span>
+                                    <h:outputText id="txt_apercu_converter_monnaie" value="1000" converter="#{managedParamCompta.getConverted(managedParamCompta.param.converter)}" style="font-weight: bold"/>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            <span>#{lab.LCF_PGG_mode_arrondi} </span>
+                            <h:selectOneMenu value="#{managedParamCompta.param.modeArrondi}" disabled="#{managedParamCompta.param.decimalArrondi}">
+                                <f:selectItem itemValue="A" itemLabel="#{lab.LCF_PGG_automatique}"/>
+                                <f:selectItem itemValue="S" itemLabel="#{lab.LCF_PGG_superieur}"/>
+                                <f:selectItem itemValue="I" itemLabel="#{lab.LCF_PGG_inferieur}"/>
+                            </h:selectOneMenu>
+                            <span>#{lab.LCF_PGG_multiple_arrondi} </span>
+                            <pe:inputNumber value="#{managedParamCompta.param.multipleArrondi}" disabled="#{managedParamCompta.param.decimalArrondi}" decimalPlaces="0"/>
+                            <span>#{lab.LCF_PGG_montant_seuil_depense_od} </span>
+                            <pe:inputNumber value="#{managedParamCompta.param.montantSeuilOd}" decimalPlaces="0"/>
+                            <span>#{lab.LCF_PGG_montant_seuil_recette_od} </span>
+                            <pe:inputNumber value="#{managedParamCompta.param.montantSeuilRecetteOd}" decimalPlaces="0"/>
+                            <span>Plafond des bon non justifiés</span>
+                            <pe:inputNumber value="#{managedParamCompta.param.plafondBp}" decimalPlaces="0"/>
+                            <span title="Définir le nombre maximale de bp non justifié acceptable">Nombre max de bons non justifiés</span>
+                            <pe:inputNumber value="#{managedParamCompta.param.nbMaxBp}" decimalPlaces="0" style="width: 60px"/>
+                            <span>#{lab.LCF_PGG_taille_compte} </span>
+                            <pe:inputNumber value="#{managedParamCompta.param.tailleCompte}" decimalPlaces="0"/>
+                            <span>#{lab.LCF_PGG_valeur_max_arrondi} </span>
+                            <pe:inputNumber value="#{managedParamCompta.param.valeurLimiteArrondi}" decimalPlaces="0"/>
+                            <span>#{lab.LCF_PGG_ecart_jour_solde_client} </span>
+                            <pe:inputNumber value="#{managedParamCompta.param.ecartDaySoldeClient}" decimalPlaces="0"/>
+                            <span>#{lab.LCF_PGG_nombre_ligne_solde_client} </span>
+                            <pe:inputNumber value="#{managedParamCompta.param.nombreLigneSoldeClient}" decimalPlaces="0"/>
+                            <span>#{lab.LCF_PGG_max_jour_anterieur} </span>
+                            <pe:inputNumber value="#{managedParamCompta.param.jourAnterieur}" decimalPlaces="0" style="width: 30%"/>
+                            <span>#{lab.LCF_PGG_ecart_jour_annulation_piece} </span>
+                            <pe:inputNumber value="#{managedParamCompta.param.jourAnterieurCancel}" decimalPlaces="0"/>
+                            <span>#{lab.LCF_PGG_maj_compta_ope_diverses} </span>
+                            <h:panelGroup>
+                                <h:selectBooleanCheckbox value="#{managedParamCompta.param.majComptaAutoDivers}">
+                                    <p:ajax event="valueChange" global="false" update="maj_compta_statut_divers"/>
+                                </h:selectBooleanCheckbox>
+                                <h:selectOneMenu id="maj_compta_statut_divers" value="#{managedParamCompta.param.majComptaStatutDivers}" disabled="#{!managedParamCompta.param.majComptaAutoDivers}">
+                                    <f:selectItem itemValue="#{constantes.STATUT_DOC_VALIDE}" itemLabel="#{lab.L_valider}"/>
+                                    <f:selectItem itemValue="#{constantes.STATUT_DOC_ENCOUR}" itemLabel="#{lab.L_en_cours}"/>
+                                    <f:selectItem itemValue="#{constantes.STATUT_DOC_PAYER}" itemLabel="#{lab.LCF_PGG_payer}"/>
+                                </h:selectOneMenu>
+                            </h:panelGroup>  
+                            <span>Report à nouveau par agence </span>
+                            <h:selectBooleanCheckbox value="#{managedParamCompta.param.reportByAgence}"/>   
+                            <span>Journal des reports </span> 
+                            <h:selectOneMenu value="#{managedParamCompta.param.journalReport.id}" style="min-width: 120px">
+                                <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                                <f:selectItems value="#{managedJournaux.journaux}" var="jna" itemLabel="#{jna.intitule}" itemValue="#{jna.id}"/>
+                            </h:selectOneMenu>                                        
+                            <span>Compte de bénéfice des reports</span>
+                            <h:panelGroup id="txt_compte_benefice_report">
+                                <h:inputText value="#{managedParamCompta.param.compteBeneficeReport.numCompte}"  style="color: #{managedParamCompta.param.compteBeneficeReport.error?'red':'normal'};width: 200px"> 
+                                    <p:ajax event="valueChange" listener="#{managedParamCompta.searchCompteBenefice()}" update="txt_compte_benefice_report"/>
+                                </h:inputText>
+                                <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 2%" global="false" oncomplete="dlgListCompteBR.show()"/>
+                                <h:outputText value="#{managedParamCompta.param.compteBeneficeReport.intitule}" style="color: #006666; font-size: 0.9em"  />
+                            </h:panelGroup>
+                            <span>Compte de perte des reports</span>
+                            <h:panelGroup id="txt_compte_perte_report">
+                                <h:inputText value="#{managedParamCompta.param.comptePerteReport.numCompte}"  style="color: #{managedParamCompta.param.comptePerteReport.error?'red':'normal'};width: 200px"> 
+                                    <p:ajax event="valueChange" listener="#{managedParamCompta.searchComptePerte()}" update="txt_compte_perte_report"/>
+                                </h:inputText>
+                                <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 2%" global="false" oncomplete="dlgListComptePR.show()"/>
+                                <h:outputText value="#{managedParamCompta.param.comptePerteReport.intitule}" style="color: #006666; font-size: 0.9em"  />
+                            </h:panelGroup>
+                        </h:panelGrid>
+                        <br/>
+                        <h:panelGrid id="form_param_achat_compta" columns="4" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0"> 
+                            <f:facet name="header">
+                                <h:panelGrid columns="2" style="width: 100%">
+                                    <span style="font-weight: bold">#{lab.LCF_PGG_parametre_achat}</span>
+                                    <h:panelGroup style="float: right">
+                                        <p:commandButton value="#{lab.L_supprimer}" id="delete_param_achat_compta" global="false"
+                                                         onclick="dlgConfirmDeleteParametreAchat.show()" style="float: left" icon="ui-icon-trash"/>
+                                        <p:commandButton value="#{lab.L_enregistrer}" update="form_param_achat_compta" icon="ui-icon-disk"
+                                                         actionListener="#{managedParametre.saveNewAchat()}" style="float: right"
+                                                         oncomplete="collapseForm('param_achat_compta')"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>                                    
+                            </f:facet>
+                            <span>#{lab.LCF_PGG_comptabilisation_auto} </span>
+                            <h:panelGroup>                                    
+                                <h:selectBooleanCheckbox value="#{managedParametre.achat.comptabilisationAuto}" style="margin-top: 7px"/>
+                                <h:panelGroup style="float: right">         
+                                    <span>#{lab.LCF_PGG_mode} </span>
+                                    <h:selectOneMenu value="#{managedParametre.achat.comptabilisationMode}">
+                                        <f:selectItem itemLabel="#{lab.LCF_PGG_par_document}" itemValue="D"/>
+                                        <f:selectItem itemLabel="#{lab.LCF_PGG_par_periode}" itemValue="P"/>
+                                    </h:selectOneMenu>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            <span>#{lab.LCF_PGG_journal_par_defaut} </span>
+                            <h:selectOneMenu value="#{managedParametre.achat.journal.id}" style="min-width: 120px">
+                                <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                                <f:selectItems value="#{managedJournaux.journaux}" var="jna" itemLabel="#{jna.intitule}" itemValue="#{jna.id}"/>
+                            </h:selectOneMenu>
+                        </h:panelGrid>
+                        <br/>
+                        <h:panelGrid id="form_param_vente_compta" columns="4" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0"> 
+                            <f:facet name="header">
+                                <h:panelGrid columns="2" style="width: 100%">
+                                    <span style="font-weight: bold">#{lab.LCF_PGG_parametres_vente}</span>
+                                    <h:panelGroup style="float: right">
+                                        <p:commandButton value="#{lab.L_supprimer}" id="delete_param_vente_compta" global="false" icon="ui-icon-trash"
+                                                         onclick="dlgConfirmDeleteParametreVente.show()" style="float: left"/>
+                                        <p:commandButton value="#{lab.L_enregistrer}" update="form_param_vente_compta" icon="ui-icon-disk"
+                                                         actionListener="#{managedParametre.saveNewVente()}" style="float: right"
+                                                         oncomplete="collapseForm('param_vente_compta')"/>
+                                    </h:panelGroup>
+                                </h:panelGrid>  
+                            </f:facet>
+                            <span>#{lab.LCF_PGG_comptabilisation_auto}</span>
+                            <h:panelGroup>                                    
+                                <h:selectBooleanCheckbox value="#{managedParametre.vente.comptabilisationAuto}" style="margin-top: 7px"/>
+                                <h:panelGroup style="float: right">         
+                                    <span>#{lab.LCF_PGG_mode} </span>
+                                    <h:selectOneMenu value="#{managedParametre.vente.comptabilisationMode}">
+                                        <f:selectItem itemLabel="#{lab.LCF_PGG_par_document}" itemValue="D"/>
+                                        <f:selectItem itemLabel="#{lab.LCF_PGG_par_journal} " itemValue="H"/>
+                                        <f:selectItem itemLabel="#{lab.LCF_PGG_par_periode}" itemValue="P"/>
+                                    </h:selectOneMenu>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            <span>#{lab.LCF_PGG_journal_par_defaut} </span>
+                            <h:selectOneMenu value="#{managedParametre.vente.journal.id}" style="min-width: 120px">
+                                <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                                <f:selectItems value="#{managedJournaux.journaux}" var="jnv" itemLabel="#{jnv.intitule}" itemValue="#{jnv.id}"/>
+                            </h:selectOneMenu>
+                        </h:panelGrid>
+                    </p:tab>
+                    <p:tab title="#{lab.LCF_PGG_type_cout}">
+                        <p:outputPanel id="blog_form_type_cout_compta">
+                            <div style="float: left;width: 30%">
+                                <h:panelGrid id="form_type_cout_compta" columns="1" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                                    <span>#{lab.L_libelle} </span>
+                                    <h:inputText value="#{managedTypeCout.typeCout.libelle}" style="width: 100%"/>
+                                    <span>#{lab.L_compte} </span>
+                                    <h:panelGroup id="txt_compte_type_cout_compta">
+                                        <h:inputText value="#{managedTypeCout.typeCout.compte.numCompte}" style="color: #{managedTypeCout.typeCout.compte.error?'red':''};width: 35%">
+                                            <p:ajax event="blur" global="false" listener="#{managedTypeCout.searchCompte()}" update="txt_compte_type_cout_compta"/>
+                                        </h:inputText>  
+                                        <h:outputText value="#{managedTypeCout.typeCout.compte.intitule}"/>                                    
+                                        <p:commandButton icon="ui-icon-note" style="float: right; width: 20px;height: 22px" title="Liste Comptes" global="false"
+                                                         actionListener="#{managedTypeCout.initComptes()}" oncomplete="dlgListComptes.show()"/>
+                                    </h:panelGroup>
+                                    <span>#{lab.LCF_PGG_point_application} </span>
+                                    <h:selectOneMenu value="#{managedTypeCout.typeCout.module}" style="width: 100%" valueChangeListener="#{managedTypeCout.chooseType}">
+                                        <f:selectItem itemValue="" itemLabel="--"/>
+                                        <f:selectItems value="#{constantes.COUTS(constantes.MOD_COFI)}" var="mol" itemValue="#{mol.value}" itemLabel="#{mol.label}"/>
+                                        <p:ajax event="valueChange" global="false" update="data_type_cout_compta"/>
+                                    </h:selectOneMenu>
+                                    <span>#{lab.LCF_PGG_sens} </span>
+                                    <p:commandLink actionListener="#{managedTypeCout.typeCout.setAugmentation(!managedTypeCout.typeCout.augmentation)}" global="false" update="@this"
+                                                   style="margin-top: 3px;border: 2px solid black; border-radius: 5px;padding: 2px;background: #CCC;font-size: 0.8em">
+                                        <h:outputText value="#{managedTypeCout.typeCout.augmentation?'AUGMENTATION':'DIMINUTION'}"/>
+                                    </p:commandLink>
+                                </h:panelGrid>
+                                <div>
+                                    <p:commandButton value="#{lab.L_nouveau}" update="form_type_cout_compta" global="false"
+                                                     actionListener="#{managedTypeCout.resetFiche()}" style="float: left"
+                                                     oncomplete="collapseForm('type_cout_compta')" />
+                                    <p:commandButton value="#{lab.L_enregistrer}" update="form_type_cout_compta data_type_cout_compta"
+                                                     actionListener="#{managedTypeCout.saveNew()}" style="float: right"/>
+                                </div>
+                            </div>
+                            <div style="margin-left:31%;width: 69%">
+                                <h:inputHidden id="input_hide_type_cout_compta" value="#{managedTypeCout.tabIds}"/>
+                                <p:dataTable id="data_type_cout_compta" value="#{managedTypeCout.types}" var="typC"
+                                             rowKey="#{typC.id}" rowIndexVar="modeIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedTypeCout.loadOnView}" update=":main_param_compta:tabview_param_compta:form_type_cout_compta"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedTypeCout.unLoadOnView}" update=":main_param_compta:tabview_param_compta:form_type_cout_compta"/>
+                                    <p:column width="20" headerText="N°">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typC.new_}"/>
+                                        <span>#{modeIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_valeur}">
+                                        <span>#{typC.libelle}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_compte}">
+                                        <span title="#{typC.compte.intitule}">#{typC.compte.numCompte}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LCF_PGG_appli_sur}">
+                                        <span>#{managedTypeCout.giveNameCouts(typC.moduleCout)}</span>
+                                    </p:column>
+                                    <p:column style="width: 7%;text-align: center">
+                                        <h:graphicImage title="#{typC.augmentation?'Augmente':'diminu'} le net à payer" library="img/icones" name="#{typC.augmentation?'plus.png':'moins.png'}" width="15" height="15"/>                                                          
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">                                          
+                                        <p:contextMenu for="btn_option_type_cout_compta" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedTypeCout.deleteBean_(typC)}" oncomplete="dlgConfirmDeleteTypeCout_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_type_cout_compta" type="button"/>
+                                    </p:column> 
+                                    <p:column width="20" style="text-align: center" rendered="false">
+                                        <f:facet name="header">
+                                            <h:selectBooleanCheckbox styleClass="chek_all_line_type_cout_compta" value="false"
+                                                                     onclick="selectionAllLineTab(#{managedTypeCout.types.size()}, 'type_cout_compta')">
+                                            </h:selectBooleanCheckbox>
+                                        </f:facet>
+                                        <h:selectBooleanCheckbox  value="#{typC.selectActif}" styleClass="chek_line_type_cout_compta" 
+                                                                  onclick="selectionLineTab(#{typC.id}, 'type_cout_compta')">
+                                        </h:selectBooleanCheckbox>
+                                    </p:column>
+                                </p:dataTable>
+                                <p:commandButton value="#{lab.L_supprimer}" id="delete_type_cout_compta" global="false" rendered="false"
+                                                 onclick="dlgConfirmDeleteMode.show()" style="float: right"/>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LCF_PGG_nature_compte}">
+                        <p:outputPanel id="blog_form_nature_compte_compta">
+                            <div style="float: left;width: 30%">
+                                <p:outputPanel id="form_nature_compte_compta">
+                                    <h:panelGrid id="form_CompteNat_Cmp" columns="1" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                                        <f:facet name="header">
+                                            <div align="right">
+                                                <span>#{lab.LCF_PGG_nature} : </span>
+                                                <h:selectOneMenu value="#{managedNatureCompte.nature.nature}" styleClass="yvs_noStyle">
+                                                    <f:selectItems value="#{constantes.NATURES_COMPTE}" var="nat" itemValue="#{nat.value}" itemLabel="#{nat.label}"/>
+                                                </h:selectOneMenu>   
+                                            </div>
+                                        </f:facet>
+                                        <span>#{lab.L_intitule}</span>
+                                        <h:inputText value="#{managedNatureCompte.nature.designation}" style="font-weight: bold; color: #006666;width: 99%"/>                                                            
+                                        <span>#{lab.LCF_PGG_repport_nouveau}</span>
+                                        <h:selectOneMenu value="#{managedNatureCompte.nature.typeReport}" style=";width: 99%" >
+                                            <f:selectItem itemValue="AUCUN" itemLabel="#{lab.LCF_PGG_aucun}"/>
+                                            <f:selectItem itemValue="DETAIL" itemLabel="#{lab.LCF_PGG_detail}"/>                        
+                                            <f:selectItem itemValue="SOLDE" itemLabel="#{lab.LCF_PGG_solde}"/>                        
+                                        </h:selectOneMenu>   
+                                        <span>#{lab.LCF_PGG_sens}</span>
+                                        <h:selectOneMenu value="#{managedNatureCompte.nature.sensCompte}" styleClass="yvs_noStyle" style="width: 99%">
+                                            <f:selectItem itemValue="A" itemLabel="#{lab.LCF_PGG_aucun}"/>
+                                            <f:selectItem itemValue="D" itemLabel="#{lab.LCF_PGG_debit}"/>
+                                            <f:selectItem itemValue="C" itemLabel="#{lab.LCF_PGG_credit}"/>
+                                        </h:selectOneMenu>                            
+                                        <p:selectBooleanCheckbox value="#{managedNatureCompte.nature.saisieAnal}" itemLabel="#{lab.LCF_PGG_saisie_analytique}"/>
+                                        <p:selectBooleanCheckbox itemLabel="#{lab.LCF_PGG_saisie_echeance}" value="#{managedNatureCompte.nature.saisieEcheance}" />
+                                        <p:selectBooleanCheckbox itemLabel="#{lab.LCF_PGG_saisie_compte_tiers}" value="#{managedNatureCompte.nature.saisieCompteTiers}" />
+                                        <p:selectBooleanCheckbox itemLabel="#{lab.LCF_PGG_lettrage}" value="#{managedNatureCompte.nature.lettrable}" />
+                                        <f:facet name="footer">
+                                            <p:selectBooleanCheckbox itemLabel="#{lab.L_actif}" value="#{managedNatureCompte.nature.actif}" style="float: right"/>
+                                        </f:facet>
+                                    </h:panelGrid>
+                                    <p:dataTable value="#{managedNatureCompte.nature.radicals}" var="itemRa" rowKey="#{itemRa.id}"
+                                                 selectionMode="single" rowIndexVar="line_rad" id="list_natRadical_Cmp">
+                                        <f:facet name="header">
+                                            <span style="font-size: 0.8em">Radical</span>
+                                            <h:inputText value="#{managedNatureCompte.radical.radical}" style="font-size: 0.8em"/>
+                                            <p:commandButton icon="ui-icon-circle-plus" style="width: 22px; height: 22px" actionListener="#{managedNatureCompte.addRadical()}" 
+                                                             update="list_natRadical_Cmp"/>
+                                        </f:facet>
+                                        <p:column headerText="N°" width="15">
+                                            #{line_rad+1}
+                                        </p:column>
+                                        <p:column headerText="#{lab.LCF_PGG_radical}" style="text-align: center">
+                                            #{itemRa.radical}
+                                        </p:column>
+                                    </p:dataTable>
+                                </p:outputPanel>
+                                <div>
+                                    <p:commandButton value="#{lab.L_nouveau}" update="form_nature_compte_compta" global="false"
+                                                     actionListener="#{managedNatureCompte.resetFiche()}" style="float: left"/>
+                                    <p:commandButton value="#{lab.L_enregistrer}" update="blog_form_nature_compte_compta"
+                                                     actionListener="#{managedNatureCompte.saveNew()}" style="float: right"/>
+                                </div>
+                            </div>
+                            <div style="margin-left:31%;width: 69%">
+                                <p:dataTable value="#{managedNatureCompte.listeNatures}" var="itemNat" rowKey="#{itemNat.id}"
+                                             selectionMode="single" rowIndexVar="line_nat" id="tableNatCpte_Cmp">
+                                    <p:ajax event="rowSelect"  listener="#{managedNatureCompte.loadOnView}" update=":main_param_compta:tabview_param_compta:form_nature_compte_compta" />
+                                    <p:ajax event="rowUnselect"  listener="#{managedNatureCompte.unLoadOnView}" update=":main_param_compta:tabview_param_compta:form_nature_compte_compta" />
+                                    <p:column headerText="N°" width="10">
+                                        #{line_nat+1}
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_designation}" >
+                                        #{itemNat.designation}
+                                    </p:column>
+                                    <p:column headerText="#{lab.LCF_PGG_type_repport}" width="100" style="text-align: center">
+                                        #{itemNat.typeReport}
+                                    </p:column>                            
+                                    <p:column headerText="#{lab.LCF_PGG_sens} " width="80" style="text-align: center">
+                                        #{(itemNat.sensCompte=='D')?'Débit':(itemNat.sensCompte=='C')?'Crédit':'Aucun'}
+                                    </p:column>
+                                    <p:column headerText=" " width="100" style="text-align: center">
+                                        <h:graphicImage library="img" name="#{itemNat.saisieAnal?'A_on.png':'A_off.png'}" title="#{lab.LCF_PGG_saisie_analytique}" />
+                                        <h:graphicImage library="img" name="#{itemNat.saisieEcheance?'E_on.png':'E_off.png'}" title="#{lab.LCF_PGG_saisie_echeance}" />
+                                        <h:graphicImage library="img" name="#{itemNat.saisieCompteTier?'T_on.png':'T_off.png'}" title="#{lab.LCF_PGG_saisie_compte_tiers}" />
+                                        <h:graphicImage library="img" name="#{itemNat.lettrable?'V_on.png':'V_off.png'}" title="#{lab.LCF_PGG_lettre}" />
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_actif}" width="20" style="text-align: center">
+                                        <h:graphicImage library="img" name="#{itemNat.actif?'vu.png':'vu_non.png'}" width="16" height="16" />
+                                    </p:column>
+                                    <p:column headerText="" width="20" style="text-align: center">
+                                        <p:contextMenu styleClass="context_menu" for="cmde_optioNat_Cmp" event="left click">
+                                            <p:menuitem value="#{itemNat.actif?'Désactiver':'Activer'}" icon="#{itemNat.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" actionListener="#{managedNatureCompte.toogleActiveNat(itemNat)}" update="tableNatCpte_Cmp"/>
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedNatureCompte.deleteNature(itemNat)}" update="tableNatCpte_Cmp"/>
+                                        </p:contextMenu>
+                                        <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="cmde_optioNat_Cmp"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LCF_PGG_type_od}">
+                        <div style=" float: left; width: 40%">
+                            <p:watermark for="txt_desc_type_doc" value="#{lab.LCF_PGG_entrer_descriptif}" />
+                            <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" id="form_edit_type_doc" style="width: 100%">
+                                <span>#{lab.LCF_PGG_code_type}</span>
+                                <h:panelGroup>
+                                    <h:inputText value="#{managedTypeDocDivers.typeDoc.libelle}" />
+                                    <p:selectBooleanCheckbox value="#{managedTypeDocDivers.typeDoc.actif}" itemLabel="#{lab.L_actif}" style="float: right;margin-top: 5px" />
+                                </h:panelGroup>
+                                <span>#{lab.LCF_PGG_code_acces}</span>
+                                <h:inputText value="#{managedTypeDocDivers.typeDoc.codeAcces.code}" />                                   
+                                <span>#{lab.LCF_PGG_module}</span>
+                                <h:selectOneMenu value="#{managedTypeDocDivers.typeDoc.module}" styleClass="yvs_nostyle" disabled="true">
+                                    <f:selectItem itemLabel="#{constantes.TYPE_OD_NAME}" itemValue="#{constantes.TYPE_OD}" />
+                                    <f:selectItem itemLabel="#{constantes.TYPE_FA_NAME}" itemValue="#{constantes.TYPE_FA}" />
+                                </h:selectOneMenu>                                  
+                                <f:facet name="footer">
+                                    <h:inputTextarea value="#{managedTypeDocDivers.typeDoc.description}" style="width: 99%" rows="3" title="#{lab.L_description}" id="txt_desc_type_doc"/>
+                                </f:facet>
+                            </h:panelGrid>
+                            <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedTypeDocDivers.saveNew()}" style="float: right"
+                                             update=":main_param_compta:tabview_param_compta:tables_type_doc"/>
+                        </div>
+                        <div style="margin-left: 40%">
+                            <p:dataTable id="tables_type_doc" value="#{managedTypeDocDivers.typesDocDivers}" rowIndexVar="_line" rowKey="#{iTypeD.id}" var="iTypeD"
+                                         selectionMode="single" >
+                                <p:ajax event="rowSelect" listener="#{managedTypeDocDivers.loadOnView}" />
+                                <p:column headerText="N°" width="15" style="text-align: center">
+                                    #{_line+1}
+                                </p:column>
+                                <p:column headerText="#{lab.L_code} ">
+                                    #{iTypeD.libelle}
+                                </p:column>
+                                <p:column headerText="#{lab.L_description} ">
+                                    #{iTypeD.description}
+                                </p:column>
+                                <p:column headerText="#{lab.LCF_PGG_code_acces} ">
+                                    #{iTypeD.codeAcces.code}
+                                </p:column>
+                                <p:column headerText="#{lab.L_actif} " width="15" style="text-align: center">
+                                    <h:graphicImage library="img" name="#{iTypeD.actif?'vu.png':'vu_non.png'}" width="15" height="15" />
+                                </p:column>
+                                <p:column headerText="" width="20" style="text-align: center">
+                                    <p:contextMenu styleClass="context_menu" for="btn_option_type_doc" event="left click">
+                                        <p:menuitem value="#{icaiss.actif?'Désactiver':'Activer'}" icon="#{iTypeD.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" 
+                                                    actionListener="#{managedTypeDocDivers.toogleActiveCaisse(iTypeD)}"  />      
+                                        <p:separator />
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedTypeDocDivers.openToDelete(iTypeD)}"/>
+                                    </p:contextMenu>
+                                    <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_type_doc"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LCF_PGG_plan_abonnement}">
+                        <div style=" float: left; width: 40%">
+                            <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" id="form-plan_abonnement" style="width: 100%">
+                                <span>#{lab.L_designation}</span>                    
+                                <h:inputText value="#{planDecoupage.reference}" style="width: 100%"/>
+                                <span>#{lab.LCF_PGG_base_sur}</span>
+                                <h:selectOneRadio value="#{planDecoupage.basePlan}" styleClass="yvs_nostyle">
+                                    <f:selectItem itemLabel="#{lab.LCF_PGG_un_taux}" itemValue="T" />
+                                    <f:selectItem itemLabel="#{lab.LCF_PGG_une_valeur}" itemValue="V" />
+                                    <f:selectItem itemLabel="#{lab.LCF_PGG_une_duree}" itemValue="D" />
+                                </h:selectOneRadio>
+                                <span>#{lab.L_valeur}</span>
+                                <h:panelGroup>
+                                    <pe:inputNumber value="#{planDecoupage.valeur}" style="width: 100px" />
+                                    <p:selectBooleanCheckbox value="#{planDecoupage.actif}" itemLabel="Actif ?" style="float: right;margin-top: 5px"/>
+                                </h:panelGroup>
+                                <span>#{lab.LCF_PGG_periodicite}</span>                    
+                                <h:selectOneRadio value="#{planDecoupage.periodicite}" styleClass="yvs_nostyle" >
+                                    <f:selectItem itemLabel="#{lab.LCF_PGG_mensuel}" itemValue="M" />
+                                    <f:selectItem itemLabel="#{lab.LCF_PGG_annuel}" itemValue="A" />
+                                </h:selectOneRadio>                                               
+                                <span>#{lab.LCF_PGG_compte_general}</span>
+                                <h:panelGroup id="txt_compte_plan_abonnement">
+                                    <h:inputText value="#{planDecoupage.compte.numCompte}"  style="color: #{planDecoupage.compte.error?'red':'normal'};width: 120px"> 
+                                        <p:ajax event="valueChange" listener="#{managedPlanAbonnement.searchCompte()}" update="txt_compte_plan_abonnement"/>
+                                    </h:inputText>
+                                    <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 2%" global="false" oncomplete="dlgListCompteA.show()"/>
+                                    <h:outputText value="#{planDecoupage.compte.intitule}" style="color: #006666; font-size: 0.9em"  />
+                                </h:panelGroup>
+                            </h:panelGrid>
+                            <p:commandButton value="#{lab.L_nouveau}" icon="ui-icon-document" actionListener="#{managedPlanAbonnement.resetFiche()}" style="float: left"
+                                             update=":main_param_compta:tabview_param_compta:form-plan_abonnement"/>
+                            <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedPlanAbonnement.saveNew()}" style="float: right"
+                                             update=":main_param_compta:tabview_param_compta:data-plan_abonnement"/>
+                        </div>
+                        <div style="margin-left: 40%">
+                            <p:dataTable id="data-plan_abonnement" value="#{managedPlanAbonnement.plans}" rowIndexVar="idsP"
+                                         rowKey="#{iPlan.id}" var="iPlan" selectionMode="single" >
+                                <p:ajax event="rowSelect" listener="#{managedPlanAbonnement.loadOnView}" update=":main_param_compta:tabview_param_compta:form-plan_abonnement"/>
+                                <p:ajax event="rowUnselect" listener="#{managedPlanAbonnement.unLoadOnView}" update=":main_param_compta:tabview_param_compta:form-plan_abonnement"/>
+                                <p:column headerText="N°" width="15" style="text-align: center">
+                                    #{idsP+1}
+                                </p:column>
+                                <p:column headerText="#{lab.L_designation}" width="100" >
+                                    #{iPlan.referencePlan}
+                                </p:column>
+                                <p:column headerText="#{lab.LCF_PGG_base}" width="80" style="text-align: center">
+                                    #{planDecoupage.getRefbase(iPlan.typeValeur)}
+                                </p:column>                    
+                                <p:column headerText="#{lab.L_valeur}" width="80" style="text-align: center">
+                                    <h:outputText value="#{iPlan.valeur}" converter="DN" />
+                                    <h:outputText value=" %" rendered="#{iPlan.typeValeur=='T'}" />
+                                    <h:outputText value=" Fcfa" rendered="#{iPlan.typeValeur=='V'}" />
+                                    <h:outputText value="#{iPlan.periodicite=='M'?' Mois':' Année(s)'}" rendered="#{iPlan.typeValeur=='D'}" />
+                                </p:column>                    
+                                <p:column headerText="#{lab.LCF_PGG_periodicite}" width="80" style="text-align: center">
+                                    #{planDecoupage.getRefPeriodicite(iPlan.periodicite)}
+                                </p:column>                    
+                                <p:column headerText="#{lab.L_actif}" width="30" style="text-align: center">
+                                    <h:graphicImage library="img" name="#{iPlan.actif?'vu.png':'vu_non.png'}" width="16" height="16" />
+                                </p:column>
+                                <p:column width="20" style="text-align: center">
+                                    <p:contextMenu for="btn_option-plan_abonnement" event="left click" style="font-size: 0.8em" styleClass="context_menu">
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedPlanAbonnement.deleteBean_(iPlan)}" oncomplete="dlgConfirmDeletePlanA.show()"/>
+                                    </p:contextMenu>                           
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option-plan_abonnement" type="button"/>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                    </p:tab>
+                </p:tabView>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" id="main_search_param_compta">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find" style="font-size: 1em">
+
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

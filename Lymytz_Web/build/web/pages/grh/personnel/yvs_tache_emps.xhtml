@@ -1,0 +1,333 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"      
+                xmlns:ui="http://java.sun.com/jsf/facelets"> 
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Objectifs','modRh', 'smenTacheEmps', true,managedTacheEmps)}
+    </ui:define>         
+    <ui:define name="content" >
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('tacheEmps');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 150);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+
+            });
+        </script>
+        <h:form prependId="false">
+            <p:confirmDialog showEffect="fade" hideEffect="explode" closeOnEscape="true" >
+                <p:commandButton value="#{lab.L_oui}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+            </p:confirmDialog>
+        </h:form>
+        #{MEmps.loadAllEmployesByAgence(true,true)}
+        #{managedTacheEmps.loadAllTaches()}
+        <h:form prependId="false" id="form_chgEtat_Tach">
+            <p:dialog header="#{lab.LRH_PPT_planifier_realisation_tache}" widgetVar="dlgPlanifTAR" width="40%"
+                      closeOnEscape="true" resizable="false" dynamic="true" modal="true"
+                      footer="#{lab.L_copy}">
+                <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%" id="form_etat_tach" cellpadding="0" cellspacing="0"> 
+                    <f:facet name="header">
+                        <h:panelGroup rendered="#{managedTacheEmps.realiseTache.etatRealisation=='T'}" style="float: right">
+                            <span>#{lab.LRH_PPT_pourcentage_validation} :</span>
+                            <pe:inputNumber value="#{managedTacheEmps.realiseTache.pourcentageValidation}" symbol=" %" decimalPlaces="2" symbolPosition="suffix"
+                                            style="width: 100px"/>
+                        </h:panelGroup>     <br />
+                    </f:facet>
+                    <span>#{lab.LRH_PPT_quantite_a_realiser}</span>
+                    <pe:inputNumber value="#{managedTacheEmps.realiseTache.quantite}" decimalPlaces="2" />                        
+                    <span>#{lab.LRH_PPT_periode} </span>
+                    <h:panelGroup style="width: 100%">
+                        <span>#{lab.L_debut}</span>
+                        <p:calendar value="#{managedTacheEmps.realiseTache.debutRealisation}" pattern="dd-MM-yyyy" size="8"/>                        
+                        <span>#{lab.L_fin}</span>
+                        <p:calendar value="#{managedTacheEmps.realiseTache.finRealisation}" pattern="dd-MM-yyyy" size="8"/>
+                    </h:panelGroup>
+                </h:panelGrid>
+                <p:commandButton value="#{(managedTacheEmps.realiseTache.etatRealisation=='T')?lab.LC_PRS_terminer:lab.LRH_PRS_planifier}" actionListener="#{managedTacheEmps.planifieRealisationTache()}" 
+                                 update=":form_tacheEmps:tab_tacheEmp2" icon="ui-icon-calendar" oncomplete="dlgPlanifTAR.hide()"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-tache-E06"> 
+            <p:dialog header="#{lab.LRH_PPT_montant_tache}" widgetVar="dlgMontantTache" width="400" height="50"
+                      closeOnEscape="true" resizable="false" dynamic="true" modal="true"> 
+                <p:panelGrid columns="3">
+                    <p:outputLabel value="#{lab.L_montant} : "/>
+                    <pe:inputNumber value="#{tacheEmps.taches.montant}" converter="DN">
+                        <p:ajax event="valueChange" global="false"/>
+                    </pe:inputNumber>   
+                    <p:commandButton value="Ok" actionListener="#{managedTacheEmps.saveNewMontantTache()}"/>
+                </p:panelGrid>
+            </p:dialog> 
+        </h:form>
+        <h:form prependId="false" id="form_realiseT_01">         
+            <p:dialog header="#{lab.LDB_PCB_liste_employes_actif}" widgetVar="dlgEmploye" width="85%" height="600"
+                      closeOnEscape="true" resizable="false"  modal="true" footer="#{lab.L_copy}">                    
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('employe_formation');
+                    });
+                </script>
+                <p:inputText value="#{MEmps.matriculeToUpdate}" style="float: left">
+                    <p:ajax event="keyup" listener="#{MEmps.findEmploye(MEmps.matriculeToUpdate, 'dlgEmploye', 'VL-employe-formation')}"
+                            update="gridEmployes_realiseT tabEmployes_realiseT" global="false" process="@this"
+                            oncomplete="collapseGrid('employe_formation');"/>
+                </p:inputText>
+                <div style="float: right" >                        
+                    <h:link onclick="collapseList('employe_formation');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link  onclick="collapseGrid('employe_formation');
+                            return false" title="#{lab.LP_PPG_vue_hieraechique}">
+                        <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                                               
+                </div>         
+                <div style="clear: right"/>  
+                <div class="yvs_list_employe_formation">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                 widgetVar="tabEmployes" id="tabEmployes_realiseT" selectionMode="single"
+                                 scrollable="true" scrollHeight="500" > 
+                        <p:ajax event="rowSelect" listener="#{managedTacheEmps.affecterEmploye_}" />
+                        <p:column headerText="N°" width="15" style="text-align: center">
+                            <h:outputText value="#{line_e+1}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                            <h:outputText value="#{emp.nom} #{emp.prenom}" />
+                        </p:column>                        
+                        <p:column headerText="#{lab.LCF_PSL_matricule}" width="90" style="text-align: center">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PD_poste} " width="200">
+                            <h:outputText value="#{emp.posteActif.intitule}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+                <div class="yvs_grid_employe_formation">
+                    <p:dataGrid value="#{MEmps.listEmployes}" var="emp1" columns="3" 
+                                id="gridEmployes_realiseT" >
+                        <p:panelGrid columns="1"  style="width: 100%">
+                            <f:facet name="header">
+                                <p:commandLink  actionListener="#{managedTacheEmps.affecterEmploye(emp1,false)}"
+                                                >
+                                    <p:graphicImage library="lymytz/documents/docEmps/perso/photo" name="#{(emp1.photos==null)?'user1.png':emp1.photos}" width="100" height="100" />                                                                      
+                                    <f:setPropertyActionListener value="#{emp1}" target="#{managedTacheEmps.employe}" />
+                                </p:commandLink>
+                            </f:facet>
+                        </p:panelGrid>
+                        <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                            <span>#{lab.L_noms_prenoms}</span>
+                            <h:outputText value="#{emp1.prenom} #{emp1.nom}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LRH_PPT_matricule}</span>
+                            <h:outputText value="#{emp1.matricule}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LRH_PD_poste}</span>
+                            <h:outputText value="#{emp1.posteActif.intitule}" style="font-weight: bold; font-size: 1.1em"/> 
+                        </h:panelGrid>
+                    </p:dataGrid>
+                </div>               
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-tache-E02">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgconfirmDeleteTE" closeOnEscape="true"
+                             message="#{lab.LRH_PPT_vouloir_supprimer}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedTacheEmps.deleteBean()}" oncomplete="dlgconfirmDeleteTE.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgconfirmDeleteTE.hide()"/>
+            </p:confirmDialog>
+        </h:form> 
+        <h:form prependId="false" id="form_tacheEmps">
+            <div class="part_fix">
+                <div align="right">                                                           
+                    <h:link onclick="collapseForm('tacheEmps');
+                            return false" title="vue /Employé" style="display: #{(accesRessource.point_viewFormMode)?'inline':'none'}">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link onclick="collapseList('tacheEmps');
+                            return false" title="#{lab.LRH_PP_recapitulatif}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                       
+                </div>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_tacheEmps">
+                    <h:panelGrid columns="4">
+                        <span>#{lab.LRH_PPT_regle_tache}</span>
+                        <h:selectOneMenu value="#{managedTacheEmps.regles.id}" valueChangeListener="#{managedTacheEmps.choixRegleTache}">
+                            <f:selectItem itemLabel="" itemValue="0" />
+                            <f:selectItems value="#{managedTacheEmps.reglesTaches}" var="regT" itemLabel="#{regT.nom}" itemValue="#{regT.id}" />   
+                            <p:ajax event="valueChange" update="chp_Tache"/>
+                        </h:selectOneMenu>
+                        -->                             
+                    </h:panelGrid>
+                    <fieldset><legend>Tâches: #{tacheEmps.taches.codeTache}</legend>
+                        <h:panelGrid columns="1" style="width: 40%; float: left">
+                            <h:panelGrid columns="4" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                                         style="width: 100%">
+                                <span>#{lab.LRH_PT_taches}</span>
+                                <h:selectOneMenu value="#{tacheEmps.taches.id}" id="chp_Tache" valueChangeListener="#{managedTacheEmps.choixTachesEmps}">
+                                    <f:selectItem itemLabel="" itemValue="0" />
+                                    <f:selectItems value="#{managedTacheEmps.regles.listeTache}" var="tach_" itemLabel="#{tach_.taches.moduleTache}" itemValue="#{tach_.id}" />                                
+                                    <p:ajax event="valueChange" update="table_prime_tache_E table_planif_tacheEmps" />
+                                </h:selectOneMenu>
+                                <span>#{lab.L_montant}</span>
+                                <h:inputText value="#{tacheEmps.taches.montant}" disabled="true"/>                                
+                            </h:panelGrid>
+                            <h:panelGroup id="table_prime_tache_E">
+                                <p:dataTable value="#{tacheEmps.taches.primeTache.listTranches}" var="inter" rowIndexVar="line_Tpr"
+                                             rendered="#{tacheEmps.taches.primeTache.listTranches.size()>0}">
+                                    <f:facet name="header">Prime: #{tacheEmps.taches.primeTache.reference}</f:facet>
+                                    <p:column headerText="N°" width="20">#{line_Tpr+1}</p:column>
+                                    <p:column headerText="#{lab.L_quantite}" width="80" style="text-align: center">
+                                        <h:outputText value="#{inter.quantite}" converter="DN"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_valeur}" width="100" style="text-align: center">
+                                        <h:outputText value="#{inter.montant}" converter="DN"/>
+                                        <span style="display: #{(inter.taux)?'inline':none}">%</span>
+                                    </p:column>
+                                </p:dataTable>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                        <div style="margin-left: 40%">
+                            <h:panelGrid columns="5" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                                         id="form_update_planif" style="float: left">
+                                <span>#{lab.LRH_PPT_fin_planification}</span>
+                                <p:calendar value="#{tacheEmps.dateFin}" size="8" pattern="dd-MM-yyyy"/>                                    
+                                <span>#{lab.L_actif}</span>
+                                <p:selectBooleanCheckbox value="#{tacheEmps.actif}" /> 
+                                <p:commandButton actionListener="#{managedTacheEmps.updatePlanifEmployeTache()}" 
+                                                 value="#{lab.L_modifier}" icon="ui-icon-refresh" rendered="#{managedTacheEmps.tacheEmpsSelect!=null}"/>
+                            </h:panelGrid>
+                            <p:commandButton icon="ui-icon-person" title="#{lab.LRH_PPT_text}"
+                                             style="width: 22px; height: 22px; float: right" type="button" onclick="dlgEmploye.show()"/>
+                            <p:inputText value="#{managedTacheEmps.findEmploye}" style="font-size: 0.8em; float: right">
+                                <p:ajax event="keyup" global="false" listener="#{managedTacheEmps.findEmployeFromTacheEmps()}" update=":form_tacheEmps:table_planif_tacheEmps" process="@this" />
+                            </p:inputText>
+                            <p:dataTable value="#{tacheEmps.taches.employes}" var="emplT" id="table_planif_tacheEmps" 
+                                         selection="#{managedTacheEmps.tacheEmpsSelect}" rowIndexVar="line_empT"
+                                         rowKey="#{emplT.id}" selectionMode="single" > 
+                                <p:ajax event="rowSelect" listener="#{managedTacheEmps.loadToUpdatePlanifTacheEmps}" update=":form_tacheEmps:form_update_planif"/>                                    
+                                <p:ajax event="rowUnselect" listener="#{managedTacheEmps.unselectTacheEmps}" update=":form_tacheEmps:form_update_planif"/>
+                                <p:column headerText="N°" width="20" style="text-align: center">
+                                    #{line_empT+1}
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PD_matricule}" width="100" style="text-align: center">
+                                    <h:outputText value="#{emplT.employe.matricule}"/>   
+                                </p:column> 
+                                <p:column headerText="#{lab.L_nom_prenom}" width="200">
+                                    <h:outputText value="#{emplT.employe.nom} #{emplT.employe.prenom} "/>   
+                                </p:column> 
+                                <p:column headerText="#{lab.LRH_PPT_planifier_jusqua}" width="100" style="text-align: center">
+                                    <h:outputText value="#{emplT.dateFin}" converter="DATE" rendered="#{emplT.dateFin!=null}"/>
+                                    <h:outputText value="#{lab.LRH_PPT_permanence}" rendered="#{emplT.dateFin==null}"/>
+                                </p:column>
+                                <p:column headerText="" width="20" style="text-align: center">
+                                    <p:commandButton icon="ui-icon-circle-triangle-e" title="#{lab.LRH_PPT_planifier_realisation_cette_tache}" 
+                                                     update="table_planif_tacheEmps :form_chgEtat_Tach:form_etat_tach"
+                                                     style="width: 22px; height: 22px" actionListener="#{managedTacheEmps.planifieRealisationTache_(emplT)}" />
+                                </p:column> 
+                                <p:column headerText="" width="20" style="text-align: center">
+                                    <p:commandButton icon="ui-icon-circle-minus" title="#{lab.LRH_PPT_deplanifier_employe}" actionListener="#{managedTacheEmps.removeEmployeToPlanif(emplT)}"
+                                                     style="width: 22px; height: 22px" update="table_planif_tacheEmps">
+                                        <!--<p:confirm header="Déplanifier" message="Voulez-vous vraiment déplanifier cet employé !" />-->
+                                    </p:commandButton>
+                                </p:column> 
+                            </p:dataTable>
+                        </div>
+                        <div style="clear: both" />                                                        
+                    </fieldset>                        
+                </div>
+                <div class="yvs_list_tacheEmps">
+                    <div style="float: left">
+                        <h:panelGroup id="panel_statutTAR">
+                            <h:panelGroup rendered="#{managedTacheEmps.selectRealiseTache!=null}">
+                                <p:commandLink value="#{lab.LC_PFA_en_cours}" disabled="#{(managedTacheEmps.selectRealiseTache.statut=='T')}" title="#{lab.LRH_PPT_en_cours_realisation}" update=":main_form_mission:etapes_valide_mission"
+                                               styleClass="#{(managedTacheEmps.selectRealiseTache.statut=='R')?'statu_valide':'etat_formation_true'}" actionListener="#{managedTacheEmps.changeStatutRealisationTache('R')}" style="float: left"/>                        
+                                <p:commandLink value="#{lab.L_annuler}" disabled="#{(managedTacheEmps.selectRealiseTache.statut=='T')}" title="#{lab.LRH_PPT_annuler_realisation_tache}" 
+                                               styleClass="#{(managedTacheEmps.selectRealiseTache.statut=='A')?'statu_valide':'etat_formation_true'}" actionListener="#{managedTacheEmps.changeStatutRealisationTache('A')}" style="float: left">
+                                    <!--<p:confirm header="Annuler la tâche" message="Voulez-vous vraiment annuler la réalisation de cette tâche ?" />-->
+                                </p:commandLink>                        
+                                <p:commandLink value="#{lab.LP_POF_terminer}" disabled="#{(managedTacheEmps.selectRealiseTache.statut=='A')}" title="#{lab.LRH_PPT_tache_terminer}" 
+                                               styleClass="#{(managedTacheEmps.selectRealiseTache.statut=='T')?'statu_valide':'etat_formation_true'}" actionListener="#{managedTacheEmps.changeStatutRealisationTache('T')}" style="float: left"/>                        
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </div>
+                    <p:dataTable value="#{managedTacheEmps.tachesArealiser}" var="item2" widgetVar="tableauTacheEmp2" 
+                                 rowKey="#{item2.id}" selectionMode="single" id="tab_tacheEmp2" selection="#{managedTacheEmps.selectRealiseTache}">
+                        <p:ajax event="rowSelect" update=":form_tacheEmps:panel_statutTAR" />
+                        <p:column headerText="#{lab.LRH_PD_matricule}" width="80" style="text-align: center">
+                            <h:outputText value="#{item2.tache.employe.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PBP_employes}" width="200">
+                            <h:outputText value="#{item2.tache.employe.nom} #{item2.tache.employe.prenom}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PT_taches}" width="200">
+                            <h:outputText value="#{item2.tache.tache.taches.moduleTache}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date__debut}" width="100">
+                            <h:outputText value="#{item2.debutRealisation}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date_fin}" width="100">
+                            <h:outputText value="#{item2.finRealisation}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_quantite}" width="50">
+                            <h:outputText value="#{item2.quantiteRealise}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_statut}" style="text-align: center" width="150">
+                            <span style="display: #{(item2.statut=='A')?'inline':'none'}">#{lab.LCF_PPC_annuler}</span>
+                            <span style="display: #{(item2.statut=='R')?'inline':'none'}">#{lab.LP_PSO_en_cours}</span>
+                            <span style="display: #{(item2.statut=='T')?'inline':'none'}">#{lab.LRH_PPT_terminer_le} <h:outputText value="#{item2.dateRealisation}" converter="DATE" /></span>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <p:commandButton icon="ui-icon-trash" style="width: 22px; height: 22px" />
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+            </div>
+        </h:form> 
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find" style="font-size: 0.8em">
+                <fieldset ><legend>#{lab.LRH_PPT_zone_recherche}</legend>
+                    <h:panelGrid columns="6">
+                        <span>#{lab.LRH_PT_taches}</span>
+                        <p:selectBooleanCheckbox value="#{managedTacheEmps.findTahe}" ><p:ajax update="zf_1" process="@this" global="false" /></p:selectBooleanCheckbox>
+                        <h:selectOneMenu value="#{managedTacheEmps.idTache}" style="display: #{(managedTacheEmps.findTahe)?'inline':'none'}" id="zf_1">
+                            <f:selectItems value="#{managedTacheEmps.listTacheEmps}" var="ite" itemValue="#{ite.id}" itemLabel="#{ite.tache.taches.moduleTache}" />
+                        </h:selectOneMenu>
+                        <span>#{lab.LRH_PPT_employe}</span>
+                        <p:selectBooleanCheckbox value="#{managedTacheEmps.findEmps}" ><p:ajax update="zf_2" process="@this" global="false" /></p:selectBooleanCheckbox>
+                        <h:inputText value="#{managedTacheEmps.textFind}" style="display: #{(managedTacheEmps.findEmps)?'inline':'none'}" id="zf_2">
+                            <p:ajax event="keyup" listener="#{managedTacheEmps.buildQuery()}" update=":form_tacheEmps:tab_tacheEmp2" global="false"
+                                    oncomplete="collapseList('tacheEmps');"/>
+                        </h:inputText>
+                        <span>#{lab.L_statut}</span>
+                        <p:selectBooleanCheckbox value="#{managedTacheEmps.findStatut}" ><p:ajax update="zf_3" process="@this" global="false" /></p:selectBooleanCheckbox>
+                        <p:selectOneRadio value="#{managedTacheEmps.statutFind}" style="display: #{(managedTacheEmps.findStatut)?'inline':'none'}" id="zf_3"
+                                          >
+                            <f:selectItem itemValue="R" itemLabel="#{lab.LC_PFA_en_cours}" />
+                            <f:selectItem itemValue="A" itemLabel="#{lab.LCF_PPC_annuler}" />
+                            <f:selectItem itemValue="T" itemLabel="#{lab.LP_POF_terminer}" />
+                            <p:ajax event="valueChange" listener="#{managedTacheEmps.buildQuery()}" update=":form_tacheEmps:tab_tacheEmp2" global="false"
+                                    oncomplete="collapseList('tacheEmps');"/>
+                        </p:selectOneRadio>
+                    </h:panelGrid>
+                </fieldset>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

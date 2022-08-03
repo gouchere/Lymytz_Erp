@@ -1,0 +1,613 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Ristournes &amp; Bonus','modGescom', 'smenRistourne', true,managedRistourne)}
+    </ui:define> 
+    <ui:define name="contents">
+        #{managedRistourne.loadAll()}
+        #{Marticle.loadActifArticle(true, true)}
+        #{managedFamilleArticle.loadAllActif()}
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('ristourne');
+                collapseForm('plan_ristourne');
+                collapseForm('grille_ristourne');
+            });
+        </script>
+
+        <h:form>
+            <p:remoteCommand name="updateBeanCaisse_" actionListener="#{managedRistourne.updateBean()}"/>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PRB_liste_articles}" widgetVar="dlgListArticle" modal="true" width="50%"  closeOnEscape="true" minHeight="200"> 
+                <h:panelGrid columns="2" style="width: 100%;margin-bottom: -5px;margin-top: -5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <p:outputPanel style="float: left;margin-left: -10px">
+                        <h:inputText value="#{Marticle.numSearch}">
+                            <p:ajax event="valueChange" listener="#{Marticle.addParamReference()}" update="data_articles_tranche_ristourne"/>
+                        </h:inputText>
+                    </p:outputPanel>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(false,false)}" global="false" update="data_articles_tranche_ristourne" icon="ui-icon-circle-triangle-w" disabled="#{Marticle.pa.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{Marticle.pa.currentPage}/#{Marticle.pa.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(true,false)}" global="false" update="data_articles_tranche_ristourne" icon="ui-icon-circle-triangle-e" disabled="#{Marticle.pa.disNext}"/>
+                        <p:selectOneMenu value="#{Marticle.pa.rows}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{Marticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_articles_tranche_ristourne"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </h:panelGrid>
+                <p:dataTable value="#{Marticle.articlesResult}" var="art_" rowKey="#{art_.id}" rowIndexVar="artIdx"
+                             selectionMode="single" id="data_articles_tranche_ristourne">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedRistourne.loadOnViewArticleForTranche}" oncomplete="dlgListArticle.hide()"/>
+                    <p:column headerText="N°" style="width: 0.5%">
+                        <span title="#{art_.designation}">#{artIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference}" style="width: 2%">
+                        <span title="#{art_.designation}">#{art_.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}" style="width: 6%">
+                        <span title="#{art_.designation}">#{art_.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" style="width: 4%">
+                        <span title="#{art_.designation}">#{art_.categorie}</span>
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des plans de ristourne
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="dlg_grille_ristourne">
+            <p:dialog widgetVar="dlgGrilleRistourne" modal="true" width="60%" closeOnEscape="true"> 
+                <f:facet name="header">
+                    <span>#{lab.LC_PRB_grilles_de} #{managedRistourne.selectRistourne.nature=='B'?'bonus':'ristourne'}</span>
+                </f:facet>
+                <p:outputPanel id="blog_form_grille_ristourne">
+                    <h:panelGrid id="form_grille_ristourne" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <f:facet name="header">
+                            <div align="left">
+                                <h:panelGrid columns="2" styleClass="yvs_nostyle" style="float: left;font-weight: bold;margin-top: 5px" cellpadding="0" cellspacing="0">
+                                    <span>#{lab.LC_PRB_base} </span>
+                                    <h:selectOneRadio value="#{managedRistourne.tranche.base}" layout="grid"  styleClass="yvs_nostyle">
+                                        <f:selectItem itemLabel="#{constantes.BASE_QTE} " itemValue="#{constantes.BASE_QTE}" />
+                                        <f:selectItem itemLabel="#{constantes.BASE_CAHT} " itemValue="#{constantes.BASE_CAHT}" />
+                                        <f:selectItem itemLabel="#{constantes.BASE_CATTC} " itemValue="#{constantes.BASE_CATTC}" />
+                                        <p:ajax event="valueChange" global="false"/>
+                                    </h:selectOneRadio>
+                                </h:panelGrid>
+                                <div style="float: right;margin-top: 5px">
+                                    <span>#{lab.LC_PRB_article} </span>
+                                    <h:panelGroup id="select_article_tranche_ristourne">
+                                        <h:inputText value="#{managedRistourne.tranche.article.refArt}" style="color: #{managedRistourne.tranche.article.error?'red':''};width: 100px" 
+                                                     disabled="#{managedRistourne.selectRistourne.nature!='B'}">
+                                            <p:ajax event="valueChange" global="false" listener="#{managedRistourne.searchArticleForTranche()}" update="select_article_tranche_ristourne"/>
+                                        </h:inputText>    
+                                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white" title="#{lab.LC_PRB_liste_articles}" global="false"
+                                                         actionListener="#{managedRistourne.initArticles(true)}" oncomplete="dlgListArticle.show()" 
+                                                         disabled="#{managedRistourne.selectRistourne.nature!='B'}"/>
+                                        <h:outputText value="#{managedRistourne.tranche.article.designation}" style="font-weight: bold; font-size: 0.8em"/> 
+                                    </h:panelGroup> 
+                                </div>
+                            </div>
+                        </f:facet>
+                        <span>#{lab.LC_PRB_interval} </span>
+                        <h:panelGrid columns="2" style="width: 100%;margin-left: -10px" styleClass="yvs_nostyle">
+                            <h:selectBooleanCheckbox value="#{managedRistourne.tranche.unique}" style="float: right">
+                                <p:ajax event="valueChange" global="false"  update="txt_intervale_montant_ristourne"/>
+                            </h:selectBooleanCheckbox>
+                            <h:panelGroup id="txt_intervale_montant_ristourne">
+                                <h:inputText value="#{managedRistourne.tranche.montantMinimal}" disabled="#{!managedRistourne.tranche.unique}" style="width: 200px;text-align: right"/>
+                                <p:spacer style="background: #000" width="5"/>
+                                <h:panelGroup>
+                                    <h:inputText value="#{managedRistourne.tranche.montantMaximal}" disabled="#{!managedRistourne.tranche.unique}" style="width: 200px;text-align: right"
+                                                 id="txt_intervale_montant_ristourne_maximal"/>  
+                                    <p:commandLink value="Max" actionListener="#{managedRistourne.setMaxValueMontantMax()}"/>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                        <span>#{lab.LC_PRB_nature_montant} </span>
+                        <h:selectOneRadio value="#{managedRistourne.tranche.natureMontant}" layout="grid" styleClass="yvs_nostyle">
+                            <f:selectItem itemLabel="#{constantes.NATURE_MTANT} " itemValue="#{constantes.NATURE_MTANT}" />
+                            <f:selectItem itemLabel="#{constantes.NATURE_TAUX} " itemValue="#{constantes.NATURE_TAUX}" />
+                        </h:selectOneRadio>
+                        <span>#{lab.LC_PRB_valeur}</span>
+                        <h:panelGroup>
+                            <h:inputText value="#{managedRistourne.tranche.montantRabais}" style="text-align: right;width: 120px"/>                            
+                            <h:selectOneMenu value="#{managedRistourne.tranche.conditionnement.id}" style="min-width: 120px" title="#{lab.LC_PRB_selectionner_conditionnement}"
+                                             rendered="#{managedRistourne.selectRistourne.nature=='B'}" id="select_unite_article_tranche_bonus">
+                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                <f:selectItems value="#{managedRistourne.tranche.article.conditionnements}" var="un" 
+                                               itemLabel="#{un.unite.reference}" itemValue="#{un.id}"/>
+                                <p:ajax event="valueChange" global="false" listener="#{managedRistourne.chooseConditionnementForTranche()}"/>
+                            </h:selectOneMenu>
+                        </h:panelGroup>
+                        <f:facet name="footer">
+                            <div align="right" class="size-07" style="font-style: italic;">
+                                <p:outputPanel autoUpdate="true">
+                                    <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedRistourne.selectTranche.dateSave}" converter="LD" style="font-weight: bold"/></span>
+                                    <span>#{lab.L_modifier_le} <h:outputText value="#{managedRistourne.selectTranche.dateUpdate}" converter="LD" styleClass="valeur" style="font-weight: bold"/></span>
+                                    <span>#{lab.L_par} <h:outputText value="#{managedRistourne.selectTranche.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                                </p:outputPanel>
+                            </div>
+                        </f:facet>
+                    </h:panelGrid>
+                    <div style="margin-top: 5px">                        
+                        <p:commandButton value="#{lab.L_enregistrer}" id="save_ristourne" actionListener="#{managedRistourne.saveNewTranche()}" icon="ui-icon-circle-plus"
+                                         update="blog_form_grille_ristourne" oncomplete="collapseForm('grille_ristourne')" style="float: right"/>
+                        <p:commandButton value="#{lab.L_nouveau}" id="cancel_ristourne" global="false" actionListener="#{managedRistourne.resetFicheTranche()}"
+                                         update="form_grille_ristourne" oncomplete="collapseForm('grille_ristourne')"/>
+                    </div>
+                    <p:outputPanel>
+                        <h:inputHidden id="input_hide_grille_ristourne" value="#{managedRistourne.tabIds_tranche}"/>
+                        <p:dataTable id="data_grille_ristourne" value="#{managedRistourne.tranches}" var="gril"
+                                     rowKey="#{gril.id}" rowIndexVar="comIdx_" selectionMode="single" >
+                            <p:ajax event="rowSelect" listener="#{managedRistourne.loadOnViewTranche}"/>
+                            <p:ajax event="rowUnselect" listener="#{managedRistourne.unLoadOnViewTranche}"/>
+                            <p:column headerText="N°" style="width: 0.25%">
+                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{gril.new_}"/>
+                                <span>#{comIdx_+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PRB_article}" style="width: 4%" rendered="#{managedRistourne.selectRistourne.nature=='B'}">
+                                <span style="font-weight: bold; font-size: 0.9em" title="#{gril.article.designation}">#{gril.article.refArt}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PRB_valeur_min}" style="text-align: right;width: 1%">
+                                <h:outputText rendered="#{gril.montantMinimal gt 0}" value="#{gril.montantMinimal}" converter="DN"/>
+                                <h:outputText rendered="#{gril.montantMinimal le 0}" value=" #{lab.LC_PRB_min}"/> 
+                                <h:outputText value="#{managedRistourne.selectRistourne.conditionnement.unite.reference}" title="#{managedRistourne.selectRistourne.conditionnement.unite.libelle}"
+                                              style="font-size: 0.6em;color: #003399" rendered="#{managedRistourne.selectRistourne.nature=='B'}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PRB_valeur_max}" style="text-align: right;width: 1.5%">
+                                <h:outputText rendered="#{constantes.MAX_DOUBLE gt gril.montantMaximal}" value="#{gril.montantMaximal}" converter="DN"/>
+                                <h:outputText rendered="#{gril.montantMaximal ge constantes.MAX_DOUBLE}" value=" #{lab.LC_PRB_max}"/> 
+                                <h:outputText value="#{managedRistourne.selectRistourne.conditionnement.unite.reference}" title="#{managedRistourne.selectRistourne.conditionnement.unite.libelle}"
+                                              style="font-size: 0.6em;color: #003399" rendered="#{managedRistourne.selectRistourne.nature=='B'}"/>
+                            </p:column>
+                            <p:column headerText="#{managedRistourne.selectRistourne.nature=='B'?'Bonus':'Ristourne'}" style="text-align: right;width: 2%">
+                                <h:outputText value="#{gril.montantRistourne}" converter="DN"/>
+                                <h:outputText value="#{gril.natureMontant == constantes.NATURE_MTANT?'':'%'}"/>
+                                <h:outputText rendered="#{gril.natureMontant == constantes.NATURE_MTANT and managedRistourne.selectRistourne.nature=='B'}" value="#{gril.conditionnement.unite.reference}"
+                                              title="#{gril.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399" />
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PRB_base}" style="text-align: right;width: 1.5%">
+                                <h:outputText value="#{gril.base}"/>
+                            </p:column>
+                            <p:column style="width: 1%;text-align: center">
+                                <p:contextMenu for="btn_option_grille_ristourne" event="left click" style="font-size: 0.8em">
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedRistourne.deleteBeanTranche_(gril)}" oncomplete="dlgConfirmDeleteTranche_.show()"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_grille_ristourne" type="button"/>
+                            </p:column> 
+                            <p:column style="width: 1%;text-align: center" rendered="false">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_ristourne" value="false"
+                                                             onclick="selectionAllLineTab(#{managedRistourne.tranches.size()}, 'grille_ristourne')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="#{gril.selectActif}" styleClass="chek_line_ristourne" onclick="selectionLineTab(#{gril.id}, 'grille_ristourne')"/>
+                            </p:column>
+                        </p:dataTable>
+                        <p:commandButton value="Supprimer" id="delete_grille_ristourne" global="false" onclick="dlgConfirmDeleteTranche.show()" style="float: right"/>
+                    </p:outputPanel>
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des plans de ristourne
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="dlg_list_plan_ristourne">
+            <p:dialog header="#{lab.LC_PRB_liste_plans_ristourne}" widgetVar="dlgListPlanRistourne" height="450" modal="true" width="50%" closeOnEscape="true"> 
+                <div class="dlg_part_scroll">
+                    <h:panelGrid id="form_plan_ristourne" columns="4" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                        <span>#{lab.L_reference} : </span>
+                        <h:inputText value="#{managedRistourne.plan.reference}"/>
+                        <p:selectBooleanCheckbox itemLabel="Actif" value="#{managedRistourne.plan.actif}"/>
+                        <p:commandButton icon="ui-icon-disk" title="#{lab.LC_PRB_sauvegarder_plan_ristourne}"
+                                         value="Enregistrer" actionListener="#{managedRistourne.saveNew()}" update=":main_ristourne:select_reference_ristourne"/>
+                    </h:panelGrid>
+                    <h:inputHidden id="input_hide_plan_ristourne" value="#{managedRistourne.tabIds}"/>
+                    <p:dataTable id="data_plan_ristourne" value="#{managedRistourne.plans}" var="com" style="max-height: 400px"
+                                 rowKey="#{com.id}" rowIndexVar="comIdx" selectionMode="single">
+                        <p:ajax event="rowSelect" listener="#{managedRistourne.loadOnView}"/>
+                        <p:ajax event="rowUnselect" listener="#{managedRistourne.unLoadOnView}"/>
+                        <p:column headerText="N°" width="15" style="text-align: center">
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{com.new_}"/>
+                            <span>#{comIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_reference}" width="100">
+                            <span>#{com.reference}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center;" width="15">
+                            <p:commandLink style="margin-top: 10px" title="#{(com.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedRistourne.activePlanRistourne(com)}" update="data_plan_ristourne">
+                                <h:graphicImage library="img"  name="#{(com.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                            </p:commandLink>
+                        </p:column>  
+                        <p:column style="text-align: center;" width="15">
+                            <p:contextMenu for="btn_option_plan_ristourne" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="Selectionner" icon="ui-icon-check" actionListener="#{managedRistourne.onSelectPlan(com)}" oncomplete="collapseForm('plan_ristourne');collapseForm('ristourne');dlgListPlanRistourne.hide()"/>
+                                <p:menuitem value="#{com.actif?'Désactiver':'Activer'}" icon="#{com.actif?'ui-icon-circle-check':'ui-icon-circle-close'}" actionListener="#{managedRistourne.toogleActiveRistourne(com)}" update="data_plan_ristourne"/>
+                                <p:separator />
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedRistourne.deleteBean_(com)}" oncomplete="dlgConfirmDelete_.show()"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_plan_ristourne" type="button"/>
+                        </p:column> 
+                        <p:column style="text-align: center;" width="15">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_plan_ristourne" value="false"
+                                                         onclick="selectionAllLineTab(#{managedRistourne.plans.size()}, 'plan_ristourne')">
+                                </h:selectBooleanCheckbox>
+                            </f:facet>
+                            <h:selectBooleanCheckbox  value="#{com.selectActif}" styleClass="chek_line_plan_ristourne" 
+                                                      onclick="selectionLineTab(#{comIdx}, 'plan_ristourne')">
+                            </h:selectBooleanCheckbox>
+                        </p:column>
+                    </p:dataTable> 
+                    <div class="size-08" align="right"  style="font-style: italic;margin-top: 5px">
+                        <p:outputPanel autoUpdate="true">
+                            <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedRistourne.selectPlan.dateSave}" converter="LD" style="font-weight: bold"/></span> 
+                            <span>#{lab.L_modifier_le}<h:outputText value="#{managedRistourne.selectPlan.dateUpdate}" converter="LD" styleClass="valeur" style="font-weight: bold"/></span>
+                            <span>#{lab.L_par} <h:outputText value="#{managedRistourne.selectPlan.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                        </p:outputPanel>
+                    </div>
+                    <p:commandButton value="#{lab.L_supprimer}" id="delete_plan_ristourne" global="false" onclick="dlgConfirmDelete.show()" style="float: right"/>
+                </div>                
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    &copy;Lymytz 2014
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PRB_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRistourne.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LC_PRB_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRistourne.deleteBean_()}" oncomplete="dlgConfirmDelete_.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteCom" closeOnEscape="true"
+                             message="#{lab.LC_PRB_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRistourne.deleteBeanCom()}" oncomplete="dlgConfirmDeleteCom.hide();collapseForm('ristourne')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteCom.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteCom_" closeOnEscape="true"
+                             message="#{lab.LC_PRB_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRistourne.deleteBeanCom_()}" oncomplete="dlgConfirmDeleteCom_.hide();collapseForm('ristourne')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteCom_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTranche" closeOnEscape="true"
+                             message="#{lab.LC_PRB_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRistourne.deleteBeanTranche()}" oncomplete="dlgConfirmDeleteTranche.hide();collapseForm('grille_ristourne')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTranche.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTranche_" closeOnEscape="true"
+                             message="#{lab.LC_PRB_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRistourne.deleteBeanTranche_()}" oncomplete="dlgConfirmDeleteTranche_.hide();collapseForm('grille_ristourne')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteTranche_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_ristourne">    
+            <div class="part_fix">                
+                <p:splitButton value="#{lab.L_enregistrer}" id="save_plan_ristourne" actionListener="#{managedRistourne.saveNewRistourne()}"
+                               icon="ui-icon-circle-plus">
+                    <p:menuitem value="Nouveau" icon="ui-icon-document" actionListener="#{managedRistourne.resetFicheRistourne()}" />
+                    <p:separator />
+                    <p:menuitem value="#{lab.L_supprimer}" id="delete_ristourne" onclick="dlgConfirmDeleteCom.show()" icon="ui-icon-trash"/>
+                </p:splitButton>  
+                <div style="float: right;display: none" >
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('plan_ristourne');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('plan_ristourne');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_plan_ristourne">
+                    <p:outputPanel style="width: 100%; margin: auto; background: white" id="blog_form_ristourne">
+                        <div style="float: left;width: 35%">
+                            <p:outputPanel style="width: 100%; margin: auto; background: white">
+                                <h:panelGrid id="form_ristourne" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <f:facet name="header">
+                                        <div align="left">                                            
+                                            <h:panelGroup style="font-size: 1em;font-weight: bold">
+                                                <span>#{lab.L_plan} : </span>
+                                                <h:selectOneMenu id="select_reference_ristourne" value="#{managedRistourne.ristourne.plan.id}">
+                                                    <f:selectItem itemLabel="---" itemValue="#{0}" noSelectionOption="true"/>
+                                                    <f:selectItems value="#{managedRistourne.plans}" var="pl" itemLabel="#{pl.reference}" itemValue="#{pl.id}"/>
+                                                    <f:selectItem itemLabel="---" itemValue="#{0}" noSelectionOption="true"/>
+                                                    <f:selectItem itemLabel="Plus d'options..." itemValue="#{-1}"/>
+                                                    <p:ajax event="valueChange" listener="#{managedRistourne.choosePlan()}"/>
+                                                </h:selectOneMenu>
+                                            </h:panelGroup>
+                                            <p:selectBooleanCheckbox value="#{managedRistourne.ristourne.forArticle}" itemLabel="#{lab.LC_PRB_par_article} ?" style="float: right;margin-right: 5px; margin-top: 2px">
+                                                <p:ajax event="valueChange" listener="#{managedRistourne.changeByElement()}" update="form_ristourne"/>
+                                            </p:selectBooleanCheckbox>
+                                        </div>
+                                    </f:facet>
+                                    <span style="display: inline-block; width: 100%; height: 95%;" class="bg_cell">&nbsp;</span>
+                                    <h:selectOneRadio value="#{managedRistourne.ristourne.nature}" layout="lineDirection" style="width: 100%;" styleClass="yvs_nostyle">
+                                        <f:selectItem itemLabel="#{lab.LC_PRB_ristourne}" itemValue="#{'R'}" />
+                                        <f:selectItem itemLabel="#{lab.LC_PRB_bonus}" itemValue="#{'B'}" />
+                                        <p:ajax event="valueChange" listener="#{managedRistourne.chooseNature()}" update="value_montant_article_ristourne"/>
+                                    </h:selectOneRadio>
+                                    <h:outputText value="#{managedRistourne.ristourne.forArticle?'Article':'Famille'}"/>
+                                    <h:panelGroup>
+                                        <h:panelGroup id="select_article_ristourne" rendered="#{managedRistourne.ristourne.forArticle}">
+                                            <h:inputText value="#{managedRistourne.ristourne.article.refArt}" style="color: #{managedRistourne.ristourne.article.error?'red':''}" disabled="#{!managedRistourne.ristourne.plan.update}">
+                                                <p:ajax event="valueChange" listener="#{managedRistourne.searchArticle()}" update="select_article_ristourne data_articles_ristourne select_unite_article_ristourne"/>
+                                            </h:inputText>    
+                                            <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.LC_PRB_liste_articles}" global="false"  disabled="#{!managedRistourne.ristourne.plan.update}"
+                                                             actionListener="#{managedRistourne.initArticles(false)}" update="data_articles_ristourne"/>                                        
+                                            <h:outputText value="#{managedRistourne.ristourne.article.designation}" style="font-weight: bold; font-size: 0.8em"/>                                        
+                                        </h:panelGroup> 
+                                        <h:selectOneMenu value="#{managedRistourne.ristourne.famille.id}" style="width: 100%" rendered="#{!managedRistourne.ristourne.forArticle}" >
+                                            <f:selectItem itemLabel="" itemValue="0" noSelectionOption="true"/>
+                                            <f:selectItems value="#{managedFamilleArticle.familles}" var="famA"  itemLabel="#{famA.designation}" itemValue="#{famA.id}" />
+                                            <p:ajax event="valueChange" global="false" listener="#{managedRistourne.chooseFamille()}"/>
+                                        </h:selectOneMenu>                                                                        
+                                    </h:panelGroup>                                                                        
+                                    <h:outputText value="#{lab.LC_PRB_conditionnement}" rendered="#{managedRistourne.ristourne.forArticle}"/>               
+                                    <h:panelGroup id="select_unite_article_ristourne" rendered="#{managedRistourne.ristourne.forArticle}">
+                                        <h:selectOneMenu value="#{managedRistourne.ristourne.conditionnement.id}" style="min-width: 120px" title="#{lab.LC_PRB_selectionner_conditionnement}">
+                                            <f:selectItem itemLabel="--" itemValue="0"/>
+                                            <f:selectItems value="#{managedRistourne.ristourne.article.conditionnements}" var="un" 
+                                                           itemLabel="#{un.unite.reference}" itemValue="#{un.id}"/>
+                                            <p:ajax event="valueChange" global="false" listener="#{managedRistourne.chooseConditionnement()}" update="select_unite_article_ristourne"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText value="#{managedRistourne.ristourne.conditionnement.unite.libelle}" style="font-weight: bold; font-size: 0.8em;margin-left: 5px"/>  
+                                    </h:panelGroup>
+                                    <h:panelGroup>
+                                        <span>#{lab.LC_PRB_dates} </span>
+                                        <h:selectBooleanCheckbox value="#{managedRistourne.ristourne.permanent}" title="#{lab.LC_PRB_permanent}" disabled="#{!managedRistourne.ristourne.plan.update}" style="float:  right">
+                                            <p:ajax event="valueChange" global="false" update="select_dates_ristourne"/>
+                                        </h:selectBooleanCheckbox>
+                                    </h:panelGroup>
+                                    <h:panelGroup id="select_dates_ristourne">
+                                        <span>#{lab.L_du} </span>
+                                        <p:calendar value="#{managedRistourne.ristourne.dateDebut}" navigator="true" pattern="dd-MM-yyyy" disabled="#{managedRistourne.ristourne.permanent or !managedRistourne.ristourne.plan.update}" size="8"/>
+                                        <span> #{lab.L_au} </span>
+                                        <p:calendar value="#{managedRistourne.ristourne.dateFin}" navigator="true" pattern="dd-MM-yyyy" disabled="#{managedRistourne.ristourne.permanent or !managedRistourne.ristourne.plan.update}" size="8"/>
+                                    </h:panelGroup>
+                                    <span>Valeur </span>
+                                    <h:panelGroup id="value_montant_article_ristourne">
+                                        <h:selectOneMenu value="#{managedRistourne.ristourne.natureMontant}" title="#{lab.LC_PRB_nature_montant}">
+                                            <f:selectItem itemLabel="#{constantes.NATURE_MTANT} " itemValue="#{constantes.NATURE_MTANT}" />
+                                            <f:selectItem itemLabel="#{constantes.NATURE_TAUX} " itemValue="#{constantes.NATURE_TAUX}" />
+                                        </h:selectOneMenu>
+                                        <h:inputText value="#{managedRistourne.ristourne.montant}" style="width: 100px;text-align: center"/>  
+                                        <h:panelGroup style="float: right">
+                                            <span style="font-weight: bold">#{lab.LC_PRB_base} : </span>
+                                            <h:selectOneMenu value="#{managedRistourne.ristourne.base}" title="#{lab.LC_PRB_base_ristourne}">
+                                                <f:selectItem itemLabel="#{constantes.BASE_QTE} " itemValue="#{constantes.BASE_QTE}" />
+                                                <f:selectItem itemLabel="#{constantes.BASE_CAHT} " itemValue="#{constantes.BASE_CAHT}" />
+                                                <f:selectItem itemLabel="#{constantes.BASE_CATTC} " itemValue="#{constantes.BASE_CATTC}" />
+                                                <p:ajax event="valueChange" global="false"/>
+                                            </h:selectOneMenu>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                    <h:outputText value="#{lab.LC_PRB_appliquer_article}" rendered="#{!managedRistourne.ristourne.forArticle}"/>
+                                    <p:selectBooleanCheckbox value="#{managedRistourne.ristourne.applyOnArticle}" rendered="#{!managedRistourne.ristourne.forArticle}"/>
+                                    <span>#{lab.L_actif} </span>
+                                    <h:panelGroup>
+                                        <h:selectBooleanCheckbox value="#{managedRistourne.ristourne.actif}" disabled="#{!managedRistourne.ristourne.plan.update}"/>
+                                    </h:panelGroup>   
+                                    <f:facet name="footer">
+                                        <div align="left" class="size-07" style="font-style: italic;">
+                                            <p:outputPanel autoUpdate="true">
+                                                <p>#{lab.L_enregistrer_le} <h:outputText value="#{managedRistourne.selectRistourne.dateSave}" converter="LD" style="font-weight: bold"/></p>
+                                                <span>#{lab.L_modifier_le} <h:outputText value="#{managedRistourne.selectRistourne.dateUpdate}" converter="LD" styleClass="valeur" style="font-weight: bold"/></span>
+                                                <span>#{lab.L_par} <h:outputText value="#{managedRistourne.selectRistourne.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                                            </p:outputPanel>
+                                        </div>
+                                    </f:facet>
+                                </h:panelGrid>                                                            
+                                <p:outputPanel id="data_articles_ristourne">
+                                    <h:panelGroup rendered="#{managedRistourne.listArt}">
+                                        <div style="width: 100%;background: black">
+                                            <span style="color: white">#{lab.LC_PRB_liste_articles}</span>
+                                            <p:commandButton icon="ui-icon-circle-minus" actionListener="#{managedRistourne.setListArt(false)}" update="data_articles_ristourne"
+                                                             style="width: 16px; height: 16px;float: right;margin-top: 0px;float: right;background: white!important" global="false"/>
+                                        </div>
+                                        <p:dataTable value="#{Marticle.articlesResult}" var="art" rowKey="#{art.id}" selectionMode="single">
+                                            <p:ajax event="rowSelect" global="false" listener="#{managedRistourne.loadOnViewArticle}" 
+                                                    update=":main_ristourne:data_articles_ristourne :main_ristourne:form_ristourne"/>
+                                            <p:column filterBy="#{art.refArt}" style="width: 1.5%">
+                                                <span>#{art.refArt}</span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_designation}" style="width: 5%">
+                                                <span>#{art.designation}</span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_categorie}" style="width: 3.5%">
+                                                <span>#{art.categorie}</span>
+                                            </p:column>
+                                        </p:dataTable>
+                                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                            <p:commandButton actionListener="#{Marticle.loadActifArticle(false,false)}" global="false" update="data_articles_ristourne" icon="ui-icon-circle-triangle-w"/>
+                                            <p:outputPanel ><p:outputLabel value="#{Marticle.pa.currentPage}/#{Marticle.totalPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                            <p:commandButton actionListener="#{Marticle.loadActifArticle(true,false)}" global="false" update="data_articles_ristourne" icon="ui-icon-circle-triangle-e"/>
+                                            <p:selectOneMenu value="#{Marticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                                                <f:selectItems value="#{Marticle.paginations}"/>
+                                                <p:ajax event="valueChange" global="false" update="data_articles_ristourne"/>
+                                            </p:selectOneMenu>
+                                        </p:outputPanel>  
+                                    </h:panelGroup>
+                                </p:outputPanel>
+                            </p:outputPanel>
+                        </div>
+                        <div style="margin-left: 36%">
+                            <h:inputHidden id="input_hide_ristourne" value="#{managedRistourne.tabIds_ristourne}"/>
+                            <p:dataTable id="data_ristourne" value="#{managedRistourne.ristournes}" var="com_" rowKey="#{com_.id}" 
+                                         rowIndexVar="comIdx_" selectionMode="single" style="font-size: 1em;max-height: 700px;overflow-y: auto">
+                                <p:ajax event="rowSelect" global="false" listener="#{managedRistourne.loadOnViewCom}"/>
+                                <p:ajax event="rowUnselect" global="false" listener="#{managedRistourne.unLoadOnViewCom}"/>
+                                <p:column headerText="N°" style="text-align: center" width="10">
+                                    <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{com_.new_}"/>
+                                    <span>#{comIdx_+1}</span>
+                                </p:column>
+                                <p:column style="width: 12%" headerText="#{lab.L_reference}">
+                                    <h:outputText value="#{com_.article ne null ? com_.article.refArt : com_.famille.referenceFamille}"/>
+                                    <h:outputText value="#{com_.article ne null ? 'A' : 'F'}" title="#{com_.article ne null ? 'Article' : 'Famille'}" style="float: right"
+                                                  styleClass="style_statut_blue"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PRB_element}" width="200">
+                                    <h:outputText value="#{com_.article ne null ? com_.article.designation : com_.famille.designation}"/>
+                                    <div style="float: right;display: #{com_.conditionnement eq null?'none':'inline'}">
+                                        <h:outputText value="#{com_.conditionnement.unite.reference}" title="#{com_.conditionnement.unite.libelle}" 
+                                                      style="font-size: 0.6em;color: #003399;margin-top: 5px" />
+                                    </div>
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PRB_nature}" style="text-align: center" width="50">
+                                    <span style="font-weight: bold; font-size: 0.9em">#{(com_.nature=='R')?'Ristourne':'Bonus'}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_date_debut}" style="text-align: center;" width="80">
+                                    <h:outputText value="#{com_.dateDebut}" converter="DDMMYYYY" rendered="#{!com_.permanent}"/>
+                                    <h:outputText style="font-size: 0.9em" value="--(#{lab.LC_PRB_permanents})--" rendered="#{com_.permanent}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_date_fin}" style="text-align: center;" width="80">
+                                    <h:outputText value="#{com_.dateFin}" converter="DDMMYYYY" rendered="#{!com_.permanent}"/>
+                                    <h:outputText style="font-size: 0.9em" value="--(#{lab.LC_PRB_permanents})--" rendered="#{com_.permanent}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                                    <p:commandLink style="margin-top: 10px" title="#{(com_.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedRistourne.activeRistourne(com_)}" update="data_ristourne">
+                                        <h:graphicImage library="img"  name="#{(com_.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column style="text-align: center" width="15">
+                                    <p:contextMenu for="btn_option_ristourne" event="left click" style="font-size: 0.8em">
+                                        <p:menuitem value="#{lab.LC_PRB_grille}" icon="ui-icon-note" global="false" 
+                                                    actionListener="#{managedRistourne.initGrilleRistourne(com_)}" 
+                                                    oncomplete="collapseForm('grille_ristourne');dlgGrilleRistourne.show()" update=":dlg_grille_ristourne:blog_form_grille_ristourne"/>
+                                        <p:separator />
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedRistourne.deleteBeanCom_(com_)}" oncomplete="dlgConfirmDeleteCom_.show()"/>
+                                    </p:contextMenu>                           
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_ristourne" type="button"/>
+                                </p:column> 
+                                <p:column style="text-align: center" width="15">
+                                    <f:facet name="header">
+                                        <h:selectBooleanCheckbox styleClass="chek_all_line_ristourne" value="false"
+                                                                 onclick="selectionAllLineTab(#{managedRistourne.ristournes.size()}, 'ristourne')">
+                                        </h:selectBooleanCheckbox>
+                                    </f:facet>
+                                    <h:selectBooleanCheckbox  value="#{com_.selectActif}" styleClass="chek_line_ristourne" onclick="selectionLineTab(#{com_.id}, 'ristourne')"/>
+                                </p:column>
+                            </p:dataTable>
+                            <h:panelGrid columns="4" style="float: left">
+                                <h:panelGroup>
+                                    <h:selectBooleanCheckbox value="#{managedRistourne.addDateSearch}">
+                                        <p:ajax event="valueChange" listener="#{managedRistourne.addParamDate()}" update="date-date_search_ristourne data_ristourne"/>
+                                    </h:selectBooleanCheckbox>
+                                    <h:outputText value="#{lab.LC_PRB_periode}"/>
+                                </h:panelGroup>
+                                <h:outputText value="#{lab.LC_PRB_nature}"/>
+                                <h:outputText value="#{lab.LC_PRB_article}"/>
+                                <h:outputText value="#{lab.LC_PRB_permanent}"/>
+                                <h:panelGroup id="date-date_search_ristourne">
+                                    <p:calendar value="#{managedRistourne.debutSearch}" size="10"  style="background: #ccffff"
+                                                disabled="#{!managedRistourne.addDateSearch}">
+                                        <p:ajax event="valueChange" listener="#{managedRistourne.addParamDate()}" update="data_ristourne"/>
+                                    </p:calendar>
+                                    <p:spacer width="5" style="background: black"/>
+                                    <p:calendar value="#{managedRistourne.finSearch}" size="10" disabled="#{!managedRistourne.addDateSearch}"
+                                                style="background: #ccffff">
+                                        <p:ajax event="valueChange" listener="#{managedRistourne.addParamDate()}" update="data_ristourne"/>
+                                    </p:calendar>
+                                </h:panelGroup>
+                                <h:selectOneMenu value="#{managedRistourne.natureSearch}" style="background: #ccffff">
+                                    <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                                    <f:selectItem itemLabel="#{lab.LC_PRB_ristourne}" itemValue="R"/>
+                                    <f:selectItem itemLabel="#{lab.LC_PRB_bonus}" itemValue="B"/>
+                                    <p:ajax event="valueChange" listener="#{managedRistourne.addParamNature()}" update="data_ristourne"/>
+                                </h:selectOneMenu>
+                                <h:inputText value="#{managedRistourne.articleSearch}" style="background: #ccffff">
+                                    <p:ajax event="valueChange" listener="#{managedRistourne.addParamArticle()}" update="data_ristourne"/>
+                                </h:inputText>
+                                <h:selectOneMenu value="#{managedRistourne.permanentSearch}" style="background: #ccffff">
+                                    <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                                    <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                                    <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                                    <p:ajax event="valueChange" listener="#{managedRistourne.addParamPermanent()}" update="data_ristourne"/>
+                                </h:selectOneMenu>
+                            </h:panelGrid>
+                            <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                <p:commandButton actionListener="#{managedRistourne.loadAllRistourne(false, false)}"  update="data_ristourne" icon="ui-icon-circle-triangle-w" disabled="#{managedRistourne.paginator.disPrev}"/>
+                                <p:outputPanel >
+                                    <p:inplace label="#{managedRistourne.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                        <pe:inputNumber value="#{managedRistourne.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                            <p:ajax event="blur" listener="#{managedRistourne.gotoPagePaginator()}" update="data_ristourne"/>
+                                        </pe:inputNumber>
+                                    </p:inplace><p:outputLabel value="/#{managedRistourne.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                                </p:outputPanel>
+                                <p:commandButton actionListener="#{managedRistourne.loadAllRistourne(true, false)}"  update="data_ristourne" icon="ui-icon-circle-triangle-e" disabled="#{managedRistourne.paginator.disNext}"/>
+                                <p:selectOneMenu value="#{managedRistourne.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedRistourne.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                    <f:selectItems value="#{managedRistourne.paginations}"/>
+                                    <p:ajax event="valueChange"  update="data_ristourne"/>
+                                </p:selectOneMenu>
+                            </p:outputPanel> 
+                        </div>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_plan_ristourne" style="width: 99%; margin: auto; background: white">
+
+                </div> 
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

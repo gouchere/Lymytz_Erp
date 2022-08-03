@@ -1,0 +1,1191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb"> 
+        #{navigations.naviguationApps('Bon Retour Vente','modGescom', 'smenFactureRetourVente', true,managedBonAvoirVente)}
+    </ui:define> 
+    <ui:define name="contents"> 
+        #{managedStockArticle.load(null)} 
+        #{managedClient.doNothing()}   
+        #{Marticle.doNothing()}  
+        #{managedVente.doNothing()}   
+        #{managedLotReception.doNothing()}
+
+        #{managedAgence.loadAllUsable()}
+        #{managedDepot.loadDepotsByAgence()}
+        #{managedBonAvoirVente.loadAll(constantes.TYPE_BRV)}
+        #{managedFactureVente.loadFactureStatut(constantes.ETAT_VALIDE)}
+        #{managedUser.loadActif(true)}
+        #{managedPointVente.loadPointVenteByMax(0)} 
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('contenu_retour_vente');
+                collapseForm('retour_vente');
+            });
+        </script>
+
+        <h:form prependId="false" id="main-agence">
+            <p:dialog widgetVar="dlgAgenceForDepot" header="Selectionner une agence" width="50%" closeOnEscape="true"> 
+                <p:dataTable value="#{managedAgence.agences}" var="ag" rowKey="#{ag.id}" selectionMode="single" id="table_agence" rowIndexVar="line_ag">
+                    <p:ajax event="rowSelect" listener="#{managedDepot.onSelectAgenceForAction}" update=":main_retour_vente:select_depot_retour_vente" oncomplete="dlgAgenceForDepot.hide()"/>
+                    <p:column headerText="#{lab.L_code}" width="200">
+                        <h:outputText value="#{ag.codeagence}"/>
+                    </p:column>                                
+                    <p:column headerText="#{lab.L_designation}">
+                        <h:outputText value="#{ag.designation}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+
+        <h:form>
+            <p:remoteCommand name="updateBeanCaisse_" actionListener="#{managedBonAvoirVente.updateBean()}"/>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des clients
+        *****************************************************************************
+        <-->
+        <h:form prependId="false">                    
+            <p:dialog header="#{lab.LC_PC_liste_clients}" widgetVar="dlgListClients" closeOnEscape="true" width="50%" height="450" modal="true" dynamic="true">   
+                <p:watermark for="txt_search_client_brv" value="#{lab.LC_PC_code_client}" />
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_client_brv" value="#{managedClient.numSearch_}" style="float: left;text-align: center;margin-left: -10px">
+                        <p:ajax event="valueChange" global="false" listener="#{managedClient.searchByNum()}" update="data_client_brv"/>
+                    </h:inputText>   
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedClient.init(false)}" global="false" update="data_client_brv" icon="ui-icon-circle-triangle-w" disabled="#{managedClient.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedClient.paginator.currentPage}/#{managedClient.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedClient.init(true)}" global="false" update="data_client_brv" icon="ui-icon-circle-triangle-e" disabled="#{managedClient.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedClient.max}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedClient.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedClient.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_client_brv"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </h:panelGrid>                               
+                <p:dataTable id="data_client_brv"  value="#{managedClient.clients}" var="clt_" rowKey="#{clt_.id}"
+                             selectionMode="single" rowIndexVar="cltIdx" scrollable="true" scrollHeight="385">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedBonAvoirVente.loadOnViewClient}" oncomplete="dlgListClients.hide()"/>
+                    <p:column headerText="N°" style="width: 10%;">
+                        <span>#{cltIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" style="width: 20%">
+                        <span>#{clt_.codeClient}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PC_nom}">
+                        <span>#{clt_.nom_prenom}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PC_zone}">
+                        <span>#{clt_.tiers.region}</span>
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PA_liste_articles}" widgetVar="dlgListArticle" modal="true" width="70%" height="450" closeOnEscape="true"> 
+                <p:watermark for="txt_search_article_brv" value="Reference article..." />
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_article_brv" value="#{managedStockArticle.article.article.refArt}">
+                        <p:ajax event="valueChange" listener="#{managedStockArticle.searchArticleActifByPoint(false)}" update="data_articles_brv"/>
+                    </h:inputText> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedStockArticle.loadActifArticleByPoint(false, false)}" update="data_articles_brv" icon="ui-icon-circle-triangle-w" disabled="#{managedStockArticle.pv.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedStockArticle.pv.currentPage}/#{managedStockArticle.pv.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedStockArticle.loadActifArticleByPoint(true, false)}" update="data_articles_brv" icon="ui-icon-circle-triangle-e" disabled="#{managedStockArticle.pv.disNext}"/>
+                        <p:selectOneMenu value="#{managedStockArticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedStockArticle._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedStockArticle.paginations}"/>
+                            <p:ajax event="valueChange" update="data_articles_brv"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>
+                <div style="height: 385px">
+                    <p:dataTable id="data_articles_brv" value="#{managedStockArticle.articles}" var="art" rowKey="#{art.id}"
+                                 selectionMode="single" rowIndexVar="line_art" style="overflow-y: auto">
+                        <p:ajax event="rowSelect" listener="#{managedBonAvoirVente.loadOnViewArticles}" oncomplete="dlgListArticle.hide()"/>
+                        <p:column headerText="N°" style="width : 5%">
+                            <span title="#{art.designation}">#{line_art+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_reference}" style="width : 15%">
+                            <span title="#{art.designation}" style="font-size: 0.9em">#{art.refArt}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_designation}" style="width : 45%">
+                            <span title="#{art.designation}" style="font-size: 0.9em">#{art.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_categorie}" style="width : 15%">
+                            <span title="#{art.designation}" style="font-size: 0.9em">#{art.categorie}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_POV_prix_a}" width="10" style="text-align: right; width : 10%">
+                            <h:outputText value="#{art.pua}" title="#{art.designation}" converter="#{managedBonAvoirVente.converter}" style="font-size: 0.9em" />
+                        </p:column>
+                        <p:column headerText="#{lab.LC_POV_prix_v}" width="10" style="text-align: right; width : 10%">
+                            <h:outputText value="#{art.puv}" title="#{art.designation}" converter="#{managedBonAvoirVente.converter}" style="font-size: 0.9em" />
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue de bon de commande
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog position="relative" widgetVar="dlg_filter_factures" header="Filtrer..."
+                      width="40%" >
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">                        
+                    <span>Agence</span>
+                    <h:selectOneMenu value="#{managedFactureVenteV2.agence_}" id="_select_agence2" style="width: 100%">
+                        <f:selectItem itemLabel="" itemValue="0"/>
+                        <f:selectItems value="#{managedAgence.agences}" var="ag"
+                                       itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedFactureVenteV2._chooseAgence()}" 
+                                update=":form_data_fv:data_fv_retour_brv fav-list-point"/>
+                    </h:selectOneMenu>
+                    <span>Numéro facture</span>
+                    <h:inputText id="stat_fav_num_fv" value="#{managedFactureVenteV2.numSearch_}" style="color: #009999">
+                        <p:ajax event="valueChange"  listener="#{managedFactureVenteV2.searchByNum()}" update=":form_data_fv:data_fv_retour_brv"/>
+                    </h:inputText>   
+                    <span>Statut</span>
+                    <h:selectOneMenu value="#{managedFactureVenteV2.statut_}" 
+                                     valueChangeListener="#{managedFactureVenteV2.chooseStatut}" style="min-width: 120px" title="Statut de la facture">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_editable}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                        <f:selectItem itemLabel="#{lab.L_valide}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                        <p:ajax event="valueChange" global="false" update=":form_data_fv:data_fv_retour_brv"/>
+                    </h:selectOneMenu>
+                    <span>Statut Livraison</span>
+                    <h:selectOneMenu value="#{managedFactureVenteV2.statutLivre_}" 
+                                     valueChangeListener="#{managedFactureVenteV2.chooseStatutLivre}" style="min-width: 120px">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_attente}" itemValue="#{constantes.STATUT_DOC_ATTENTE}"/>
+                        <f:selectItem itemLabel="#{lab.L_en_cours}" itemValue="#{constantes.STATUT_DOC_ENCOUR}"/>
+                        <f:selectItem itemLabel="#{lab.L_livrer}" itemValue="#{constantes.STATUT_DOC_LIVRER}"/>
+                        <p:ajax event="valueChange" update=":form_data_fv:data_fv_retour_brv"/>
+                    </h:selectOneMenu>
+                    <span>Client</span>
+                    <h:inputText value="#{managedFactureVenteV2.codeClient_}" id="stat_fav_client">
+                        <p:ajax event="valueChange" listener="#{managedFactureVenteV2.searchByClient()}"
+                                update=":form_data_fv:data_fv_retour_brv"/>
+                    </h:inputText>
+                    <span>Vendeur</span>
+                    <h:inputText value="#{managedFactureVenteV2.codeVendeur_}" id="stat_fav_vendeur">
+                        <p:ajax event="valueChange" listener="#{managedFactureVenteV2._searchVendeur()}"  
+                                update=":form_data_fv:data_fv_retour_brv"/>
+                    </h:inputText>  
+                    <span>Point de vente</span>
+                    <h:selectOneMenu value="#{managedFactureVenteV2.point_}" style="min-width: 120px" id="fav-list-point">
+                        <f:selectItem itemLabel="--#{lab.LDB_PPC_precedent}--" itemValue="-1"/>
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedPointVente.pointsvente_all}" var="_po" 
+                                       itemLabel="#{_po.libelle}" itemValue="#{_po.id}" />  
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItem itemLabel="--#{lab.LDB_PPC_suivant}--" itemValue="-2"/>  
+                        <p:ajax event="valueChange" listener="#{managedFactureVenteV2._choosePoint()}"
+                                update=":form_data_fv:data_fv_retour_brv @this"/>
+                    </h:selectOneMenu>      
+                </h:panelGrid>                                                               
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="form_data_fv">                    
+            <p:dialog header="#{lab.LC_PBRV_liste_facture}" widgetVar="dlgListFactures" closeOnEscape="true" width="90%" modal="true" 
+                      dynamic="true" resizable="false" height="500">                                  
+                <div style="height: 100%">
+                    <div class="dlg_part_fixe">
+                        <p:commandButton type="button" value="Filtrer..." id="brv-filter-btn" onclick="dlg_filter_factures.show()"/>
+                        <p:outputPanel autoUpdate="true" style="float: right;" layout="block" >
+                            <p:commandButton actionListener="#{managedFactureVenteV2.init(false)}"  update=":form_data_fv:data_fv_retour_brv" icon="ui-icon-circle-triangle-w" disabled="#{managedFactureVenteV2.paginator.disPrev}"/>
+                            <p:outputPanel >
+                                <p:inplace label="#{managedFactureVenteV2.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                    <pe:inputNumber value="#{managedFactureVenteV2.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                        <p:ajax event="valueChange" listener="#{managedFactureVenteV2.gotoPagePaginator()}" update=":form_data_fv:data_fv_retour_brv"/>
+                                    </pe:inputNumber>
+                                </p:inplace><p:outputLabel value="/#{managedFactureVenteV2.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                            </p:outputPanel>
+                            <p:commandButton actionListener="#{managedFactureVenteV2.init(true)}"  update=":form_data_fv:data_fv_retour_brv" icon="ui-icon-circle-triangle-e" disabled="#{managedFactureVenteV2.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{managedFactureVenteV2.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedFactureVenteV2.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{managedFactureVenteV2.paginations}"/>
+                                <p:ajax event="valueChange"  update=":form_data_fv:data_fv_retour_brv"  />
+                            </p:selectOneMenu>
+                        </p:outputPanel>
+                    </div>
+                    <div class="dlg_part_scroll" style="clear: right">
+                        <p:dataTable id="data_fv_retour_brv"  value="#{managedFactureVenteV2.documents}" var="bon" rowKey="#{bon.id}"
+                                     selectionMode="single" rowIndexVar="fichfAIdx">
+                            <p:ajax event="rowSelect" global="false" listener="#{managedBonAvoirVente.loadOnViewDoc}" oncomplete="dlgListFactures.hide()"/>
+                            <p:column headerText="N°" style="width: 7%" styleClass="statut_#{bon.statut}">
+                                <span>#{fichfAIdx+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" styleClass="statut_#{bon.statut}">
+                                <span>#{bon.numDoc}</span>
+                                <h:panelGroup style="float: right">
+                                    <h:outputText title="#{lab.LC_PFA_facture_regler}" value="R" rendered="#{bon.statutRegle == constantes.ETAT_REGLE}"
+                                                  style="font-weight: bold;border: 2px solid #666; border-radius: 5px;padding: 2px;background: black;color: white"/>
+                                    <p:spacer width="2" rendered="#{bon.statutLivre == constantes.ETAT_LIVRE}"/>
+                                    <h:outputText title="#{lab.LC_PFA_facture_livrer}" value="L" rendered="#{bon.statutLivre == constantes.ETAT_LIVRE}"
+                                                  style="font-weight: bold;border: 2px solid #666; border-radius: 5px;padding: 2px;background: black;color: white"/>
+                                    <p:spacer width="2" rendered="#{bon.consigner}"/>
+                                    <h:outputText title="#{lab.LC_PCV_facture_consignee}" value="C" rendered="#{bon.consigner}"
+                                                  style="font-weight: bold;border: 2px solid #666; border-radius: 5px;padding: 2px;background: black;color: white"/>
+                                </h:panelGroup>
+                            </p:column>
+                            <p:column headerText="#{lab.L_date} " style="text-align: center" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.enteteDoc.dateEntete}" converter="DATE"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PBRV_client}" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.nom_client}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PBRV_vendeur}" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.enteteDoc.creneau.users.nomUsers}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PBRV_point}" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.enteteDoc.creneau.creneauPoint.point.libelle}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue de la commande liée a la facture
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="data_contenus_fv_brv">
+            <p:dialog widgetVar="dlgContenuFVBRV" modal="true" width="80%"  closeOnEscape="true"> 
+                <f:facet name="header">
+                    <span>#{ab.LC_PBRV_facture_numero} </span>                   
+                    <h:panelGroup rendered="#{managedBonAvoirVente.selectDoc.id gt 0}">
+                        <p:commandLink style="color:white" global="false" value="#{managedBonAvoirVente.selectDoc.documentLie.numDoc}" actionListener="#{managedBonAvoirVente.onSelectDistantObject(managedBonAvoirVente.selectDoc.documentLie)}"/>                        
+                    </h:panelGroup>
+                    <h:panelGroup rendered="#{managedBonAvoirVente.selectDoc != null?managedBonAvoirVente.selectDoc.id le 0:true}">
+                        <span>#{managedBonAvoirVente.facture.numDoc}</span> 
+                    </h:panelGroup>
+                    <p:spacer width="5" height="5" styleClass="#{managedBonAvoirVente.selectDoc.documentLie.statutLivre}" title="Statut : #{managedBonAvoirVente.giveNameStatut(managedBonAvoirVente.selectDoc.documentLie.statutLivre)}"
+                              style="border: 2px solid white; border-radius: 5px;padding: 3px;margin-top: 2px;margin-left: 10px;float: right;cursor: pointer"/>
+                </f:facet>
+                <p:dataTable value="#{managedBonAvoirVente.facture.contenus}" var="y" rowKey="#{y.id}" rowIndexVar="yIdx">
+                    <p:column headerText="N°" style="width: 5%;color: #{y.etat()=='R'?'orange':(y.etat()=='P'?'red':'')};font-style: #{y.etat()!='E'?'italic':''}">
+                        <span title="#{lab.LC_PBRV_numero_serie} : #{y.numSerie}">#{yIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PBRV_ref}. " style="width: 12%;color: #{y.etat()=='R'?'orange':(y.etat()=='P'?'red':'')};font-style: #{y.etat()!='E'?'italic':''}">
+                        <span title="#{lab.LC_PBRV_numero_serie} : #{y.numSerie}">#{y.article.refArt}</span>
+                        <h:graphicImage library="img" name="comment.png" width="15" height="15" rendered="#{y.onComment}" style="float: right" title="#{lab.LC_PBRV_a_ete_commente}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_article}" style="color: #{y.etat()=='R'?'orange':(y.etat()=='P'?'red':'')};font-style: #{y.etat()!='E'?'italic':''}">
+                        <span title="#{lab.LC_PBRV_numero_serie} : #{y.numSerie}">#{y.article.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_qte}" style="width: 8%;text-align: center;color: #{y.etat()=='R'?'orange':(y.etat()=='P'?'red':'')};font-style: #{y.etat()!='E'?'italic':''}">
+                        <h:outputText value="#{y.quantite}" converter="#{managedBonAvoirVente.converterStock}" title="#{lab.LC_PBRV_numero_serie} : #{y.numSerie}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_prix}" style="width: 10%;text-align: right;color: #{y.etat()=='R'?'orange':(y.etat()=='P'?'red':'')};font-style: #{y.etat()!='E'?'italic':''}">
+                        <h:outputText value="#{(y.prix-y.rabais)}" converter="#{managedBonAvoirVente.converter}" title="#{lab.LC_PBRV_numero_serie} : #{y.numSerie}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PBRV_rem}" style="width: 10%;text-align: right;color: #{y.etat()=='R'?'orange':(y.etat()=='P'?'red':'')};font-style: #{y.etat()!='E'?'italic':''}">
+                        <h:outputText value="#{y.remise}" converter="DNS" title="#{lab.LC_PBRV_numero_serie} : #{y.numSerie}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_taxe}" style="width: 10%;text-align: right;color: #{y.etat()=='R'?'orange':(y.etat()=='P'?'red':'')};font-style: #{y.etat()!='E'?'italic':''}">
+                        <h:outputText value="#{y.taxe}" converter="DNS" title="#{lab.LC_PBRV_numero_serie} : #{y.numSerie}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_total}" style="width: 12%;text-align: right;color: #{y.etat()=='R'?'orange':(y.etat()=='P'?'red':'')};font-style: #{y.etat()!='E'?'italic':''}">
+                        <h:outputText value="#{y.prixTotal}" converter="#{managedBonAvoirVente.converter}" title="#{lab.LC_PBRV_numero_serie} : #{y.numSerie}"/>
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des entetes de vente
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgStatut_brv">
+            <p:dialog id="dlgStatut_brv" header="Statut de la facture" modal="true" width="300px" height="20px" closeOnEscape="true" widgetVar="dlgStatut" resizable="false" style="background-color: #A0AFA0"> 
+                <p:outputPanel id="grp_btn_etat_brv" styleClass="yvs_form_of" style="width: 98%;margin: auto">  
+                    <p:commandLink value="#{lab.LC_PBRV_editable}" styleClass="button-stateOF #{(managedBonAvoirVente.docSelect.statut == constantes.ETAT_EDITABLE)?'button-stateOF_actif':''}" 
+                                   disabled="#{!(managedBonAvoirVente.docSelect.statut == constantes.ETAT_VALIDE
+                                               or managedBonAvoirVente.docSelect.statut == constantes.ETAT_ANNULE)}" 
+                                   actionListener="#{managedBonAvoirVente._changeStatut(constantes.ETAT_EDITABLE)}"
+                                   process="@this" update="grp_btn_etat_brv" global="false"/>                                 
+                    <p:commandLink value="#{lab.LC_PBRV_valider}" styleClass="button-stateOF #{(managedBonAvoirVente.docSelect.statut == constantes.ETAT_VALIDE)?'button-stateOF_actif':''}" 
+                                   disabled="#{!(managedBonAvoirVente.docSelect.statut == constantes.ETAT_EDITABLE)}" 
+                                   actionListener="#{managedBonAvoirVente._changeStatut(constantes.ETAT_VALIDE)}"
+                                   process="@this" update="grp_btn_etat_brv" global="false"/>
+                    <p:commandLink value="#{lab.LC_PBRV_annuler}" styleClass="button-stateOF #{(managedBonAvoirVente.docSelect.statut==constantes.ETAT_ANNULE)?'button-stateOF_actif':''}" 
+                                   disabled="#{!(managedBonAvoirVente.docSelect.statut == constantes.ETAT_VALIDE)}" 
+                                   actionListener="#{managedBonAvoirVente._changeStatut(constantes.ETAT_ANNULE)}"
+                                   process="@this" update="grp_btn_etat_brv" global="false"/>
+                    <p:commandLink value="#{(managedBonAvoirVente.docSelect.cloturer)?'Ouvrir':'Cloturer'}" styleClass="button-stateOF" 
+                                   actionListener="#{managedBonAvoirVente._cloturer()}"
+                                   process="@this" update="grp_btn_etat_brv" global="false"/>
+                </p:outputPanel>   
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des entetes de vente
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_plus_option}" width="40%"  closeOnEscape="true" widgetVar="dlgPlusOption" resizable="false"> 
+                <h:panelGrid id="blog_entete_retour_vente" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <h:outputText value="#{lab.L_agence}" rendered="#{acces.multiAgence}"/>
+                    <h:selectOneMenu value="#{managedBonAvoirVente.agence_}" id="_select_agence_brv" style="width: 100%" rendered="#{acces.multiAgence}">
+                        <f:selectItem itemLabel="" itemValue="0"/>
+                        <f:selectItems value="#{managedAgence.listAgence}" var="ag"
+                                       itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedBonAvoirVente._chooseAgence()}" oncomplete="collapseList('retour_vente')" 
+                                update="blog_entete_retour_vente"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.L_depot}"/>
+                    <h:selectOneMenu value="#{managedBonAvoirVente.depot_}" style="width: 100%">
+                        <f:selectItem itemLabel="" itemValue="0"/>
+                        <f:selectItems value="#{managedDepot.depots_all}" var="de"
+                                       itemLabel="#{de.designation}" itemValue="#{de.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedBonAvoirVente._chooseDepot()}" oncomplete="collapseList('retour_vente')"
+                                update="_select_tranche_retour_vente"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.L_point_vente}"/>
+                    <h:selectOneMenu value="#{managedBonAvoirVente.point_}" style="width: 100%">
+                        <f:selectItem itemLabel="" itemValue="0"/>
+                        <f:selectItems value="#{managedPointVente.pointsvente_all}" var="po"
+                                       itemLabel="#{po.libelle}" itemValue="#{po.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedBonAvoirVente._choosePoint()}" oncomplete="collapseList('retour_vente')"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.L_tranche}"/>
+                    <h:selectOneMenu value="#{managedBonAvoirVente.tranche_}" id="_select_tranche_retour_vente" style="width: 100%">
+                        <f:selectItem itemLabel="" itemValue="0"/>
+                        <f:selectItems value="#{managedBonAvoirVente.tranches_point_}" var="tr"
+                                       itemLabel="#{tr.titre}" itemValue="#{tr.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedBonAvoirVente._chooseTranche()}" oncomplete="collapseList('retour_vente')"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.LC_PBRV_client}"/>
+                    <h:inputText value="#{managedBonAvoirVente.codeClient_}" style="width: 100%">
+                        <p:ajax event="valueChange" listener="#{managedBonAvoirVente.searchByClient()}" oncomplete="collapseList('retour_vente')"/>
+                    </h:inputText> 
+                    <h:outputText value="#{lab.LC_PBRV_vendeur}"/>
+                    <h:selectOneMenu value="#{managedBonAvoirVente.users_}" style="width: 100%">
+                        <f:selectItem itemLabel="" itemValue="0"/>
+                        <f:selectItems value="#{managedBonAvoirVente.userss_}" var="us"
+                                       itemLabel="#{us.nomUsers}" itemValue="#{us.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedBonAvoirVente._chooseVendeur()}" oncomplete="collapseList('retour_vente')"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.LC_PBRV_statut}"/>
+                    <h:selectOneMenu value="#{managedBonAvoirVente.statut}"  valueChangeListener="#{managedBonAvoirVente._chooseStatut}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItems value="#{constantes.ETATS_}"/>
+                    </h:selectOneMenu> 
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LC_PBRV_heures}"/>
+                        <h:selectBooleanCheckbox value="#{managedBonAvoirVente.date_}" style="margin-top: 2px;float: right">
+                            <p:ajax event="valueChange" listener="#{managedBonAvoirVente.chooseDateSearch()}" oncomplete="collapseList('retour_vente')"
+                                    update="blog_date_search_retour_vente :main_retour_vente:data_retour_vente"/>
+                        </h:selectBooleanCheckbox>
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_retour_vente">
+                        <pe:timePicker value="#{managedBonAvoirVente.dateDebut_}" disabled="#{!managedBonAvoirVente.date_}" style="width: 80px;text-align: left">
+                            <p:ajax event="timeSelect" listener="#{managedBonAvoirVente.chooseDateSearch()}" update=":main_retour_vente:data_retour_vente" oncomplete="collapseList('retour_vente')"/>
+                        </pe:timePicker>
+                        <p:spacer width="5px" style="background: black"/>
+                        <pe:timePicker value="#{managedBonAvoirVente.dateFin_}" disabled="#{!managedBonAvoirVente.date_}" style="width: 80px;text-align: left">
+                            <p:ajax event="timeSelect" listener="#{managedBonAvoirVente.chooseDateSearch()}" update=":main_retour_vente:data_retour_vente" oncomplete="collapseList('retour_vente')"/>
+                        </pe:timePicker>
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.LC_PBRV_facture}"/>
+                    <h:inputText value="#{managedBonAvoirVente.numFacture}" style="width: 100%">
+                        <p:ajax event="valueChange" listener="#{managedBonAvoirVente.chooseFacture()}" oncomplete="collapseList('retour_vente')"/>
+                    </h:inputText>
+
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LDB_PC_dates}"  />
+                        <h:selectBooleanCheckbox value="#{managedBonAvoirVente.date_up}" title="#{lab.LDB_PC_dates_last_modif}" style="float: right">
+                            <p:ajax event="valueChange" global="false" update="blog_date_search_client" oncomplete="collapseList('retour_vente')" listener="#{managedBonAvoirVente.addParamDates()}"/>
+                        </h:selectBooleanCheckbox>
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_client">
+                        <p:calendar value="#{managedBonAvoirVente.dateDebut_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedBonAvoirVente.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedBonAvoirVente.addParamDates}"  oncomplete="collapseList('retour_vente')" />
+                        </p:calendar>
+                        <p:spacer style="width: 5px;background: black"/>
+                        <p:calendar value="#{managedBonAvoirVente.dateFin_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedBonAvoirVente.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedBonAvoirVente.addParamDates}"  oncomplete="collapseList('retour_vente')"/>
+                        </p:calendar>
+                    </h:panelGroup>
+
+                    <h:outputText value="Ids"/>
+                    <h:inputText value="#{managedBonAvoirVente.idsSearch}" style="width: 100%" title="Entrer les identifiants séparés par des virgules">
+                        <p:ajax event="valueChange" listener="#{managedBonAvoirVente.addParamIds()}" oncomplete="collapseList('retour_vente')"/>
+                    </h:inputText>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main-generer_other">            
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmGenererOther" closeOnEscape="true" message="Voulez-vous generer une equivalence?" header="#{lab.L_confirmation}">
+                <div align="center">
+                    <p:calendar value="#{managedBonAvoirVente.dateGenerer}" size="8" pattern="dd-MM-yyyy" navigator="true">
+                        <p:ajax event="dateSelect" global="false"/>
+                    </p:calendar>                
+                </div>
+                <div align="center">
+                    <p:commandButton value="#{lab.L_oui}" icon="ui-icon-check" actionListener="#{managedBonAvoirVente.onGenererOther()}" oncomplete="dlgConfirmGenererOther.hide()"/>
+                    <p:commandButton type="button" icon="ui-icon-close" value="#{lab.L_non}" onclick="dlgConfirmSoumis.hide()"/>
+                </div>                
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.deleteBean()}" oncomplete="dlgConfirmDelete.hide();collapseList('retour_vente')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.deleteBean_()}" oncomplete="dlgConfirmDelete_.hide();collapseList('retour_vente')"/>
+                <p:commandButton type="button"  value="Non" onclick="dlgConfirmDelete_.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog id="id_confirm_close_brv" hideEffect="explode" widgetVar="dlgConfirmClose" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text2} #{managedBonAvoirVente.selectDoc.cloturer?'dévérrouiller':'vérrouiller'}?" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.cloturer()}" oncomplete="dlgConfirmClose.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmClose.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticle" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.deleteBeanArticle()}" update=":main_retour_vente:blog_form_contenu_retour_vente"
+                                 oncomplete="dlgConfirmDeleteArticle.hide();collapseForm('contenu_retour_vente')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticle.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticle_" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.deleteBeanArticle_()}" update=":main_retour_vente:blog_form_contenu_retour_vente"
+                                 oncomplete="dlgConfirmDeleteArticle_.hide();collapseForm('contenu_retour_vente')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticle_.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticles" closeOnEscape="true"
+                             message="#{lab.LC_PLV_text9}" header="#{lab.L_confirmation}">
+                <div >
+                    <span>#{lab.LC_PFV_memoriser_choix_session}</span>
+                    <p:selectBooleanCheckbox value="#{managedBonAvoirVente.memoriserDeleteContenu}" />
+                </div>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.deleteBeanArticles(true)}" update=":main_retour_vente:blog_form_contenu_retour_vente"
+                                 oncomplete="dlgConfirmDeleteArticles.hide();collapseForm('contenu_retour_vente')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticles.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmAnnuler" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text3}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.annulerOrder(true)}" oncomplete="dlgConfirmAnnuler.hide();collapseForm('ordre_transfert')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmAnnuler.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmRefuser" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text3}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.refuserOrder(true)}" oncomplete="dlgConfirmRefuser.hide();collapseForm('ordre_transfert')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmRefuser.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmSoumis" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.transmisOrder()}" oncomplete="dlgConfirmSoumis.hide();collapseForm('ordre_transfert')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmSoumis.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgSaveEntete" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text5}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.saveNewEntete()}" oncomplete="dlgSaveEntete.hide();collapseForm('retour_vente');collapseForm('contenu_retour_vente')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgSaveEntete.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgResetEntete" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text6}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.resetFicheEntete()}" oncomplete="dlgResetEntete.hide();collapseForm('retour_vente');collapseForm('contenu_retour_vente')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgResetEntete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgCleanEntete" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text7}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.cleanEnteteVente()}" oncomplete="dlgCleanEntete.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgCleanEntete.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgCleanVente" closeOnEscape="true"
+                             message="#{lab.LC_PBRV_text8}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonAvoirVente.cleanVente()}" oncomplete="dlgCleanVente.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgCleanVente.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_retour_vente">    
+            <div class="part_fix">
+                <div style="float: left"> 
+                    <p:splitButton value="#{lab.L_enregistrer}" id="save_retour_vente" icon="ui-icon-disk" 
+                                   actionListener="#{managedBonAvoirVente.saveNew()}" update="blog_form_retour_vente data_retour_vente">
+                        <p:menuitem value="#{lab.L_nouveau}" id="cancel_retour_vente" icon="ui-icon-document" actionListener="#{managedBonAvoirVente.resetFiche()}" update="blog_form_retour_vente" oncomplete="collapseForm('retour_vente');collapseForm('contenu_retour_vente')"/>
+                        <p:separator/>
+                        <p:menuitem icon="ui-icon-refresh" value="Générer avoir" actionListener="#{managedBonAvoirVente.onBuildGenererOther(constantes.TYPE_FAV)}" oncomplete="dlgConfirmGenererOther.show()"/>
+                        <p:separator/>
+                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()" global="false"/>
+                    </p:splitButton>
+                    <p:commandButton value="#{lab.L_supprimer}" id="delete_retour_vente" onclick="dlgConfirmDelete.show()" global="false"/>
+                    <h:panelGroup id="other_retour_vente"> 
+
+                    </h:panelGroup>
+                </div>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedBonAvoirVente.parcoursInAllResult(false)}" update="txt_parc_linear_retour_vente" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('retour_vente')"/>
+                    <h:inputText value="#{managedBonAvoirVente.offset}" style="width: 35px; text-align: center;"  title="Aller au N°..." id="txt_parc_linear_retour_vente"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedBonAvoirVente.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedBonAvoirVente.parcoursInAllResult(true)}" update="txt_parc_linear_retour_vente" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('retour_vente')"/>
+                </h:panelGroup>  
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('retour_vente');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('retour_vente');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_retour_vente">
+                    <p:outputPanel id="blog_form_retour_vente" style="width: 99%; margin: auto; background: white">
+                        <h:panelGrid columns="1" style="width: 100%">
+                            <p:outputPanel id="form_entete_retour_vente">
+                                <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%;margin-bottom: -10px;margin-top: -10px" cellpadding="0" cellspacing="0" rendered="#{managedBonAvoirVente.docVente.update}">
+                                    <h:panelGrid columns="1" styleClass="yvs_nostyle" style="float: left;background: black;color: white; font-size: 0.9em">                                            
+                                        <h:outputText id="txt_reference_document_retour_vente" value="#{managedBonAvoirVente.docVente.numDoc}"/>
+                                    </h:panelGrid>
+                                    <h:panelGroup style="padding: 7px;float: right; position: relative; margin-top: 1%">
+                                        <p:outputPanel id="grp_btn_etat_retour_vente" styleClass="yvs_form_of">  
+                                            <p:commandLink value="#{lab.LC_PBRV_editable}" styleClass="button-stateOF #{(managedBonAvoirVente.docVente.statut == constantes.ETAT_EDITABLE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{!(managedBonAvoirVente.docVente.statut == constantes.ETAT_VALIDE
+                                                                       or managedBonAvoirVente.docVente.statut == constantes.ETAT_ANNULE)}" 
+                                                           actionListener="#{managedBonAvoirVente.annulerOrder(false)}"
+                                                           process="@this" update="grp_btn_etat_retour_vente" />                                 
+                                            <p:commandLink value="#{lab.LC_PBRV_valider}" styleClass="button-stateOF #{(managedBonAvoirVente.docVente.statut == constantes.ETAT_VALIDE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{!(managedBonAvoirVente.docVente.statut == constantes.ETAT_EDITABLE)}" 
+                                                           actionListener="#{managedBonAvoirVente.validerOrder()}"
+                                                           process="@this" update="grp_btn_etat_retour_vente" />
+                                            <p:commandLink value="#{lab.LC_PBRV_annuler}" styleClass="button-stateOF #{(managedBonAvoirVente.docVente.statut==constantes.ETAT_ANNULE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{managedBonAvoirVente.docVente.statut == constantes.ETAT_ANNULE}" 
+                                                           actionListener="#{managedBonAvoirVente.refuserOrder(false)}"
+                                                           process="@this" update="grp_btn_etat_retour_vente" />
+                                        </p:outputPanel>                                                
+                                    </h:panelGroup>                                     
+                                </h:panelGrid> 
+                            </p:outputPanel>
+                            <p:outputPanel>
+                                <div style="width: 40%;float: left">
+                                    <h:panelGrid id="infos_document_retour_vente" styleClass="yvs_table" columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                                        <f:facet name="header">
+                                            <div align="left">
+                                                <p:commandLink id="btnMontantsBRV" global="false" style="float: left;border: 2px solid black; border-radius: 5px;padding: 3px;background: white" title="Montants">
+                                                    <h:graphicImage library="icones" name="ico_facture2.png" width="15" height="15"/>  
+                                                </p:commandLink>
+                                                <h:panelGroup style="margin-left: 10px"> 
+                                                    <h:panelGroup>                                                        
+                                                        <p:selectBooleanCheckbox value="#{managedBonAvoirVente.docVente.fromFacture}" style="float:left;margin-left: 5px;margin-top: 3px">               
+                                                            <p:ajax event="valueChange" listener="#{managedBonAvoirVente.changeSource()}" update="infos_document_retour_vente form_contenu_retour_vente"/>                                                    
+                                                        </p:selectBooleanCheckbox>
+                                                        <span style="float:left;margin-top: 2px">#{lab.LC_PBRV_rattacher_facture}</span>
+                                                    </h:panelGroup>
+                                                    <p:commandButton icon="ui-icon-cart" style="width: 20px;height: 22px;margin-left: 10px" title="#{lab.LC_PBRV_contenu_facture}" global="false"
+                                                                     update=":data_contenus_fv_brv" oncomplete="dlgContenuFVBRV.show()" disabled="#{!managedBonAvoirVente.docVente.update}"/>
+                                                    <h:inputText id="select_document_facture_brv" value="#{managedBonAvoirVente.facture.numDoc}" style="width: 150px;color: #{managedBonAvoirVente.facture.error?'red':''}"
+                                                                 disabled="#{!managedBonAvoirVente.docVente.fromFacture or managedBonAvoirVente.docVente.update}">                
+                                                        <p:ajax event="valueChange" global="false" listener="#{managedBonAvoirVente.searchFacture()}" update="data_contenu_fv_brv"/>                                                        
+                                                    </h:inputText>
+                                                    <h:outputText value="#{managedBonAvoirVente.facture.nom_client}" style="margin-left: 5px;font-size: 0.9em"/>
+                                                    <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.LC_PBRV_liste_facture}" oncomplete="dlgListFactures.show()"
+                                                                     disabled="#{!managedBonAvoirVente.docVente.fromFacture or managedBonAvoirVente.docVente.update}" global="false"/>
+                                                </h:panelGroup>
+                                            </div>
+                                        </f:facet>
+                                        <span>#{lab.LC_PBRV_date_facture} </span>
+                                        <h:panelGroup rendered="#{managedBonAvoirVente.docVente.fromFacture}">
+                                            <h:outputText value="#{managedBonAvoirVente.docVente.documentLie.enteteDoc.dateEntete}" converter="DATE"/>
+                                            <span> #{lab.L_a} </span>
+                                            <h:outputText value="#{managedBonAvoirVente.docVente.documentLie.heureDoc}" converter="TIME"/>
+                                        </h:panelGroup>
+                                        <h:panelGroup rendered="#{!managedBonAvoirVente.docVente.fromFacture}">
+                                            <p:calendar value="#{managedBonAvoirVente.docVente.enteteDoc.dateEntete}" pattern="dd-MM-yyyy" navigator="true" size="10">       
+                                                <p:ajax event="dateSelect" global="false"/>
+                                            </p:calendar>
+                                            <span> #{lab.L_a} </span>
+                                            <pe:timePicker value="#{managedBonAvoirVente.docVente.heureDoc}" style="width: 100px"/>
+                                        </h:panelGroup>
+                                        <span>#{lab.LC_PBRV_client} </span>       
+                                        <h:panelGroup id="txt_client_retour_vente">
+                                            <h:inputText value="#{managedBonAvoirVente.docVente.client.nom_prenom}" rendered="#{managedBonAvoirVente.docVente.fromFacture}" style="width: 95%" readonly="true"/>
+                                            <h:panelGroup rendered="#{!managedBonAvoirVente.docVente.fromFacture}">
+                                                <h:inputText value="#{managedBonAvoirVente.docVente.client.codeClient}" style="color: #{managedBonAvoirVente.docVente.client.error?'red':''}"
+                                                             disabled="#{managedBonAvoirVente.docVente.statut != constantes.ETAT_EDITABLE}">
+                                                    <p:ajax event="valueChange" listener="#{managedBonAvoirVente.searchClient()}" update="txt_client_retour_vente"/>
+                                                </h:inputText>    
+                                                <h:outputText value="#{managedBonAvoirVente.docVente.nomClient}" style="margin-left: 5px"/>
+                                                <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.LC_PPL_liste_client}" global="false"
+                                                                 disabled="#{managedBonAvoirVente.docVente.statut != constantes.ETAT_EDITABLE}"  oncomplete="dlgListClients.show()"/>
+                                            </h:panelGroup>
+                                        </h:panelGroup>                                 
+                                        <span>#{lab.LC_PBRV_point_vente} </span>
+                                        <h:panelGroup id="txt_pv_retour_vente">
+                                            <h:panelGroup rendered="#{managedBonAvoirVente.docVente.fromFacture}">
+                                                <h:inputText value="#{managedBonAvoirVente.docVente.enteteDoc.point.libelle}" style="width: 50%" readonly="true"/>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText value="#{managedBonAvoirVente.docVente.enteteDoc.tranchePoint.heureDebut}" converter="TIME"/>
+                                                    <span>- </span>
+                                                    <h:outputText value="#{managedBonAvoirVente.docVente.enteteDoc.tranchePoint.heureFin}" converter="TIME"/>
+                                                </h:panelGroup>
+                                            </h:panelGroup>
+                                            <h:panelGroup rendered="#{!managedBonAvoirVente.docVente.fromFacture}">
+                                                <h:selectOneMenu value="#{managedBonAvoirVente.docVente.enteteDoc.point.id}" disabled="#{managedBonAvoirVente.docVente.enteteDoc.id gt 0}"
+                                                                 style="width: 95%" valueChangeListener="#{managedBonAvoirVente.choosePoint_}">
+                                                    <f:selectItem itemLabel="--" itemValue="0"/>
+                                                    <f:selectItems value="#{managedPointVente.pointsvente}" var="poi" itemLabel="#{poi.libelle}" itemValue="#{poi.id}" />  
+                                                    <f:selectItem itemLabel="--" itemValue="0"/>
+                                                    <p:ajax event="valueChange" update="select_depot_retour_vente txt_livreur_retour_vente @this"/>
+                                                </h:selectOneMenu> 
+                                            </h:panelGroup>
+                                        </h:panelGroup>
+                                        <span>#{lab.LC_PBRV_vendeur} </span>
+                                        <h:panelGroup id="txt_livreur_retour_vente">
+                                            <h:inputText value="#{managedBonAvoirVente.docVente.enteteDoc.users.nomUsers}" style="width: 95%" rendered="#{managedBonAvoirVente.docVente.fromFacture}" readonly="true"/>
+                                            <h:panelGroup rendered="#{!managedBonAvoirVente.docVente.fromFacture}">
+                                                <h:selectOneMenu value="#{managedBonAvoirVente.docVente.enteteDoc.users.id}" disabled="#{managedBonAvoirVente.docVente.enteteDoc.id gt 0}"
+                                                                 valueChangeListener="#{managedBonAvoirVente.chooseVendeur}" style="width: 95%">
+                                                    <f:selectItem itemLabel="--" itemValue="0"/>
+                                                    <f:selectItems value="#{managedBonAvoirVente.vendeurs}" var="vend_" itemLabel="#{vend_.nomUsers}" itemValue="#{vend_.id}" />                                
+                                                    <p:ajax event="valueChange" update="select_depot_retour_vente @this"/>
+                                                </h:selectOneMenu> 
+                                            </h:panelGroup>
+                                        </h:panelGroup>
+                                        <h:outputText value="#{lab.LC_PBRV_depot}"/>
+                                        <h:panelGroup>
+                                            <h:selectOneMenu value="#{managedBonAvoirVente.docVente.depot.id}" id="select_depot_retour_vente"
+                                                             disabled="#{managedBonAvoirVente.docVente.statut != constantes.ETAT_EDITABLE}"
+                                                             style="min-width: #{managedAgence.agences.size() gt 1?'160px':'95%'}; max-width: #{managedAgence.agences.size() gt 1?'300px':'95%'}">
+                                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                                <f:selectItems value="#{managedDepot.depots}" var="idep" 
+                                                               itemLabel="#{idep.designation}" itemValue="#{idep.id}" />                                
+                                                <p:ajax event="valueChange" listener="#{managedBonAvoirVente.chooseDepotLivraison()}"/>
+                                            </h:selectOneMenu> 
+                                            <p:commandLink value="Selectionner agence" onclick="dlgAgenceForDepot.show()" global="false" rendered="#{managedAgence.agences.size() gt 1}"/>
+                                        </h:panelGroup>
+                                        <h:outputText value="#{lab.L_tranche}"/>
+                                        <h:selectOneMenu id="select_tranche_retour_vente" value="#{managedBonAvoirVente.docVente.tranche.id}" style="width: 95%" 
+                                                         disabled="#{managedBonAvoirVente.docVente.statut != constantes.ETAT_EDITABLE}">
+                                            <f:selectItem itemLabel="--" itemValue="0"/>
+                                            <f:selectItems value="#{managedBonAvoirVente.tranches_retour}" var="trh" 
+                                                           itemLabel="#{trh.titre}" itemValue="#{trh.id}" />                                
+                                            <p:ajax event="valueChange" listener="#{managedBonAvoirVente.chooseTrancheLivraison()}"/>
+                                        </h:selectOneMenu> 
+                                        <span>#{lab.LC_PBRV_date_detour}</span>                                        
+                                        <p:calendar value="#{managedBonAvoirVente.docVente.dateLivraison}" pattern="dd-MM-yyyy" size="8"
+                                                    disabled="#{managedBonAvoirVente.docVente.statut != constantes.ETAT_EDITABLE}">       
+                                            <p:ajax event="dateSelect" listener="#{managedBonAvoirVente.chooseDateLivraison()}"/>
+                                        </p:calendar>
+                                        <span>#{lab.L_reference} </span>
+                                        <h:inputText id="txt_reference_retour_vente" value="#{managedBonAvoirVente.docVente.numPiece}" style="width: 95%"
+                                                     disabled="#{managedBonAvoirVente.docVente.statut != constantes.ETAT_EDITABLE}"/>
+                                    </h:panelGrid>
+                                    <p:overlayPanel for="btnMontantsBRV" hideEffect="fade" style="width: 35%;background: black;color: white">
+                                        <p:outputPanel id="blog_form_montant_doc_brv">
+                                            <h:panelGrid columns="2" style="width: 100%;font-weight: bolder;margin-top: 5px;color: white">
+                                                <span>#{lab.LC_PBRV_total_ht}</span>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText value="#{managedBonAvoirVente.docVente.montantHT}" converter="#{managedBonAvoirVente.converter}"/>
+                                                    <span style="font-size: small"> Fcfa</span>
+                                                </h:panelGroup>
+                                                <span>#{lab.LC_PBRV_total_remise_article}</span>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText value="#{managedBonAvoirVente.docVente.montantRemise}" converter="DNS"/>
+                                                    <span style="font-size: small"> Fcfa</span>
+                                                </h:panelGroup>
+                                                <span>#{lab.LC_PBRV_total_taxe}</span>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText value="#{managedBonAvoirVente.docVente.montantTaxe}" converter="DNS"/>
+                                                    <span style="font-size: small"> Fcfa</span>
+                                                </h:panelGroup>
+                                                <span style="color: #E9FBF9">#{lab.LC_PBRV_total_ttc}</span>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText value="#{managedBonAvoirVente.docVente.montantTTC}" converter="#{managedBonAvoirVente.converter}" style="color: #E9FBF9"/>
+                                                    <span style="font-size: small;color: #E9FBF9"> Fcfa</span>
+                                                </h:panelGroup>
+                                                <span style="color: #E9FBF9">#{lab.LC_PBRV_total_remise_facture}</span>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText value="#{managedBonAvoirVente.docVente.montantRemises}" converter="#{managedBonAvoirVente.converter}" style="color: #E9FBF9"/>
+                                                    <span style="font-size: small;color: #E9FBF9"> Fcfa</span>
+                                                </h:panelGroup>
+                                                <span style="color: #E9FBF9">#{lab.LC_PBRV_total_couts_supp}</span>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText value="#{managedBonAvoirVente.docVente.montantCS}" converter="#{managedBonAvoirVente.converter}" style="color: #E9FBF9"/>
+                                                    <span style="font-size: small;color: #E9FBF9"> Fcfa</span>
+                                                </h:panelGroup>
+                                                <span>#{lab.LC_PBRV_total_facture}</span>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText value="#{managedBonAvoirVente.docVente.montantTotal}" converter="#{managedBonAvoirVente.converter}"/>
+                                                    <span style="font-size: small"> Fcfa</span>
+                                                </h:panelGroup>
+                                            </h:panelGrid>
+                                        </p:outputPanel>
+                                    </p:overlayPanel>
+                                </div>
+                                <div style="width: 59%;margin-left: 41%">
+                                    <p:outputPanel autoUpdate="true">
+                                        <p:outputPanel rendered="#{managedBonAvoirVente.docVente.fromFacture}">
+                                            <div style="background: #666;color: white;width: 100%;font-size: 1.2em">
+                                                <span>
+                                                    #{lab.LC_PBRV_contenu_facture_vente}
+                                                </span>
+                                            </div>
+                                            <p:dataTable id="data_contenu_fv_brv" value="#{managedBonAvoirVente.contenus_fv}" var="artC" rowKey="#{artC.id}" 
+                                                         rowIndexVar="artCIdx" selectionMode="single" scrollable="true" scrollHeight="165">
+                                                <p:ajax event="rowSelect" listener="#{managedBonAvoirVente.loadOnViewArticle}" update=":main_retour_vente:form_contenu_retour_vente"/>
+                                                <p:ajax event="rowUnselect" listener="#{managedBonAvoirVente.unLoadOnViewArticle}" update=":main_retour_vente:form_contenu_retour_vente"/>
+                                                <p:column filterBy="#{artC.article.refArt}" style="width: 18%">
+                                                    <span>#{artC.article.refArt}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_article}">
+                                                    <span>#{artC.article.designation}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_qte}" style="width: 8%;text-align: center">
+                                                    <h:outputText value="#{artC.quantite}" converter="#{managedBonAvoirVente.converterStock}"/>
+                                                    <span title="#{artC.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{artC.conditionnement.unite.reference}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LC_PBRV_puv}" style="width: 13%;text-align: right">
+                                                    <h:outputText value="#{artC.prix}" converter="#{managedBonAvoirVente.converter}"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LC_PBRV_rem}." style="width: 13%;text-align: right">
+                                                    <h:outputText value="#{artC.remise}" converter="DNS"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_total}" style="width: 13%;text-align: right">
+                                                    <h:outputText value="#{artC.prixTotal}" converter="#{managedBonAvoirVente.converter}"/>
+                                                </p:column>
+                                            </p:dataTable>
+                                        </p:outputPanel>
+                                        <p:outputPanel rendered="#{!managedBonAvoirVente.docVente.fromFacture}">
+                                            <h1 style="padding-left: 10px">Détails du produit</h1>
+                                            <div style="float: left; width: 59%; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;
+                                                 border-bottom: 2px solid #bbb; padding-left: 10px; padding-bottom: 10px; padding-top: 5px">
+                                                <span style="font-weight: bold;color: #000">
+                                                    #{managedBonAvoirVente.contenu.article.designation}
+                                                </span>
+                                                <p:outputPanel rendered="#{accesRessource.base_view_article_pua}" layout="block" style="padding-top: 10px; padding-bottom: 10px">
+                                                    <h:outputText value="Prix d'achat = " />
+                                                    <h:outputText value="#{managedBonAvoirVente.contenu.conditionnement.prixAchat}" converter="#{managedBonAvoirVente.converter}" style="font-weight: bold;color: #000"/>
+                                                    <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                                </p:outputPanel>
+                                                <p:outputPanel rendered="#{accesRessource.base_view_article_puv}" layout="block" style="padding-top: 10px; padding-bottom: 10px">
+                                                    <h:outputText value="Prix de vente = " />
+                                                    <h:outputText value="#{managedBonAvoirVente.contenu.conditionnement.prix}" converter="#{managedBonAvoirVente.converter}" style="font-weight: bold;color: #000"/>
+                                                    <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                                </p:outputPanel>
+                                                <p:outputPanel rendered="#{accesRessource.base_view_article_pr}" layout="block" style="padding-top: 10px; padding-bottom: 10px">
+                                                    <h:outputText value="#{lab.LC_PFA_cout_unitaire_stock} = " />
+                                                    <h:outputText value="#{managedBonAvoirVente.contenu.article.pr}" converter="#{managedBonAvoirVente.converter}"  style="font-weight: bold;color: #000"/>
+                                                    <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                                </p:outputPanel>
+                                                <p:outputPanel layout="block" style="padding-top: 10px; padding-bottom: 10px">
+                                                    <h:outputText value="#{managedBonAvoirVente.contenu.article.stock}" converter="#{managedBonAvoirVente.converterStock}" style="font-weight: bold;color: #000"/>
+                                                    <h:outputText value=" #{managedBonAvoirVente.contenu.conditionnement.unite.reference} #{lab.LC_PFV_en_stock}"/>
+                                                </p:outputPanel>
+                                            </div>
+                                            <div style="margin-left: 61%;" align="center">
+                                                <h:graphicImage id="img_article" style="max-width: 100%;max-height: 180px" value="data:image/#{Marticle.photoArticle(managedBonAvoirVente.contenu.article)[1]};base64,#{Marticle.photoArticle(managedBonAvoirVente.contenu.article)[0]}"/>
+                                            </div>
+                                        </p:outputPanel>
+
+                                    </p:outputPanel>
+                                </div>
+                            </p:outputPanel>
+                            <p:outputPanel id="blog_form_contenu_retour_vente">
+                                <h:panelGrid class="headline_data" columns="2" styleClass="yvs_nostyle" style="width: 100%;">
+                                    <b><span> #{lab.LC_PBRV_contenus}</span></b>
+                                </h:panelGrid> 
+                                <h:panelGrid id="form_contenu_retour_vente" columns="1" style="width: 100%; border: none" styleClass="yvs_table">
+                                    <f:facet name="header">
+                                        <div class="zone_editPC" >
+                                            <h:panelGrid columns="1" styleClass="yvs_nostyle" style="width: 100%;background: white;border: 2px solid #045491!important; border-radius: 5px">  
+                                                <f:facet name="header" id="desc_contenu_retour_vente">
+                                                    <h:panelGrid columns="2" style="font-size: 0.9em;width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" rendered="#{managedBonAvoirVente.selectArt}">
+                                                        <h:panelGroup style="float: left">
+                                                            <span style="font-weight: bold;color: #000">#{managedBonAvoirVente.contenu.article.designation}</span>
+                                                            <span>#{lab.LC_PBRV_vendu_a} </span>
+                                                            <h:outputText value="#{managedBonAvoirVente.contenu.article.puv}" converter="#{managedBonAvoirVente.converter}" style="font-weight: bold;color: #000"/>
+                                                            <span>Fcfa  </span>
+                                                        </h:panelGroup>
+                                                        <h:panelGroup style="float: right">
+                                                            <h:outputText value="#{managedBonAvoirVente.contenu.article.stock}" converter="#{managedBonAvoirVente.converterStock}" style="font-weight: bold;color: #000"/>
+                                                            <h:outputText value=" #{managedBonAvoirVente.contenu.conditionnement.unite.reference}"/>
+                                                            <span> #{lab.LC_PBRV_en_stock} </span>
+                                                        </h:panelGroup>
+                                                    </h:panelGrid>
+                                                </f:facet>  
+                                                <h:panelGrid columns="4" style="width: 100%;font-size: 0.8em" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                                    <f:facet name="header">
+                                                        <div align="left">
+                                                            <h:panelGroup rendered="#{managedBonAvoirVente.docVente.fromFacture}">
+                                                                <span>#{lab.LC_PBRV_recalculer_taxe}</span>
+                                                                <h:selectBooleanCheckbox value="#{managedBonAvoirVente.recalculTaxe}" valueChangeListener="#{managedBonAvoirVente.apllyOrNotTaxes}" >
+                                                                    <p:ajax event="valueChange" update="txt_total_contenu_brv txt_taxes_contenu_brv"/>
+                                                                </h:selectBooleanCheckbox>
+                                                            </h:panelGroup>
+                                                            <h:panelGroup rendered="#{!managedBonAvoirVente.docVente.fromFacture}">
+                                                                <span> #{lab.L_article} </span>
+                                                                <h:inputText id="txt_article_facture_vente" value="#{managedBonAvoirVente.contenu.article.refArt}" style="color: #{managedBonAvoirVente.contenu.article.error?'red':''}" disabled="#{managedBonAvoirVente.contenu.update}" tabindex="10">
+                                                                    <p:ajax event="valueChange" listener="#{managedBonAvoirVente.searchArticle()}" update="form_contenu_retour_vente"/>
+                                                                </h:inputText>    
+                                                                <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white;margin-top: 5px" title="Liste Articles" global="false"
+                                                                                 onclick="dlgListArticle.show()" disabled="#{managedBonAvoirVente.contenu.update}"/>
+                                                                <h:selectOneMenu value="#{managedBonAvoirVente.contenu.conditionnement.id}" style="min-width: 120px" title="#{lab.LDB_PA_selectionner_conditionnement}">
+                                                                    <f:selectItem itemLabel="--" itemValue="0"/>
+                                                                    <f:selectItems value="#{managedBonAvoirVente.contenu.article.conditionnements}" var="un" 
+                                                                                   itemLabel="#{un.unite.reference}" itemValue="#{un.id}"/>
+                                                                    <p:ajax event="valueChange" global="false" listener="#{managedBonAvoirVente.chooseConditionnement()}" update="form_contenu_retour_vente"/>
+                                                                </h:selectOneMenu>
+                                                            </h:panelGroup>
+                                                        </div>
+                                                    </f:facet>
+                                                    <span>#{lab.L_prix} </span>
+                                                    <h:panelGroup id="txt_puv_contenu_brv">
+                                                        <h:inputText value="#{managedBonAvoirVente.contenu.prix}" style="width: 30%;text-align: right" title="Reste dû" disabled="true">
+                                                            <p:ajax event="valueChange" global="false" update="txt_total_contenu_brv txt_taxes_contenu_brv" listener="#{managedBonAvoirVente.onPrixOrQteBlur()}" />
+                                                        </h:inputText>
+                                                        <span> / </span>
+                                                        <h:outputText value="#{managedBonAvoirVente.contenu_fv.prix}" style="width: 25%;text-align: right" converter="#{managedBonAvoirVente.converter}"/>
+                                                    </h:panelGroup>
+                                                    <span>#{lab.L_quantite} </span>
+                                                    <h:panelGroup>
+                                                        <pe:inputNumber value="#{managedBonAvoirVente.contenu.quantite}" style="width: 30%;text-align: right" title="Reste dû" >
+                                                            <p:ajax event="valueChange" global="false" update="txt_total_contenu_brv txt_taxes_contenu_brv" listener="#{managedBonAvoirVente.onPrixOrQteBlur()}" />
+                                                        </pe:inputNumber>
+                                                        <span> / </span>
+                                                        <h:outputText value="#{managedBonAvoirVente.contenu_fv.quantite}" style="width: 25%;text-align: right" converter="#{managedBonAvoirVente.converterStock}" />  
+                                                    </h:panelGroup>
+                                                    <span>#{lab.L_remise} </span>
+                                                    <h:panelGroup>
+                                                        <pe:inputNumber value="#{managedBonAvoirVente.contenu.remise}" style="width: 30%;text-align: right" 
+                                                                        title="Reste dû" disabled="true"/>
+                                                        <span> / </span>
+                                                        <h:outputText value="#{managedBonAvoirVente.contenu_fv.remise}" style="width: 25%;text-align: right" converter="DNS"/>
+                                                    </h:panelGroup>
+                                                    <span>#{lab.L_taxe} </span>
+                                                    <h:panelGroup id="txt_taxes_contenu_brv">
+                                                        <pe:inputNumber value="#{managedBonAvoirVente.contenu.taxe}" 
+                                                                        style="width: 30%;text-align: right" title="Reste dû" disabled="#{managedBonAvoirVente.recalculTaxe}">
+                                                            <p:ajax event="valueChange" global="false" update="txt_total_contenu_brv txt_taxes_contenu_brv" listener="#{managedBonAvoirVente.onTaxeBlur()}" />
+                                                        </pe:inputNumber>
+                                                        <span> / </span>
+                                                        <h:outputText value="#{managedBonAvoirVente.contenu_fv.taxe}" style="width: 25%;text-align: right" converter="DNS"/>  
+                                                    </h:panelGroup>
+                                                </h:panelGrid> 
+                                                <f:facet name="footer">
+                                                    <div style="width: 100%" align="center">
+                                                        <div style="float: left;margin-top: 3px;margin-left: 5px">
+                                                            <h:outputText value="#{lab.LC_PRA_lot} : " rendered="#{managedBonAvoirVente.contenu.article.requiereLot}"/>
+                                                            <h:selectOneMenu id="select_lot_contenu_brv" value="#{managedBonAvoirVente.contenu.lot.id}" style="width: 200px"
+                                                                             rendered="#{managedBonAvoirVente.contenu.article.requiereLot}" title="Indiquer un numéro de lot associé à l'article dans la facture">
+                                                                <f:selectItem itemLabel="--Selectionnez un lot--" itemValue="0"/>
+                                                                <f:selectItems value="#{managedBonAvoirVente.contenu.lots}" var="lo" itemLabel="#{lo.numero}" itemValue="#{lo.id}"/>
+                                                                <p:ajax event="valueChange" listener="#{managedBonAvoirVente.chooseLotReception()}"/>
+                                                            </h:selectOneMenu>
+                                                        </div>
+                                                        <span>#{lab.LC_PBRV_prix_total} </span>
+                                                        <h:panelGroup id="txt_total_contenu_brv">
+                                                            <pe:inputNumber value="#{managedBonAvoirVente.contenu.prixTotal}" style="width: 20%;text-align: right"
+                                                                            title="Reste dû" disabled="true"/>
+                                                            <span> / </span>
+                                                            <h:outputText value="#{managedBonAvoirVente.contenu_fv.prixTotal}" style="width: 20%;text-align: right" converter="#{managedBonAvoirVente.converter}"  />  
+                                                        </h:panelGroup>                    
+                                                        <p:commandButton id="save_contenu_retour_vente" icon="ui-icon-circle-plus" style="margin-left: 5%" oncomplete="collapseForm('contenu_retour_vente')"
+                                                                         update="blog_form_contenu_retour_vente" actionListener="#{managedBonAvoirVente.saveNewArticle()}"/>   
+                                                    </div>                                                             
+                                                </f:facet>       
+                                            </h:panelGrid> 
+                                        </div>
+                                    </f:facet>
+                                    <p:outputPanel>
+                                        <h:inputHidden id="input_hide_contenu_retour_vente" value="#{managedBonAvoirVente.tabIds_article}"/>
+                                        <p:dataTable id="data_contenu_retour_vente" value="#{managedBonAvoirVente.contenus}" var="artf" rowKey="#{artf.id}" 
+                                                     rowIndexVar="artfIdx" selection="#{managedBonAvoirVente.selectContenus}">
+                                            <p:ajax event="rowSelect"  listener="#{managedBonAvoirVente.loadOnViewContenu}" update=":main_retour_vente:form_contenu_retour_vente"/>
+                                            <p:ajax event="rowUnselect"  listener="#{managedBonAvoirVente.unLoadOnViewContenu}" update=":main_retour_vente:form_contenu_retour_vente"/>
+                                            <p:column style="width: 30px" headerText="N°">
+                                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{artf.new_}"/>
+                                                <span title="#{managedBonAvoirVente.currentParam.useLotReception ? managedBonAvoirVente.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lot.numero)}" >
+                                                    #{artfIdx+1}
+                                                </span>
+                                                <h:graphicImage title="#{lab.LC_PBRV_suivi_stock}" library="img"  name="bookmark.png" width="15" height="15" rendered="#{artf.mouvStock}" style="float: right"/>
+                                            </p:column>
+                                            <p:column filterBy="#{artf.article.refArt}" style="width: 15%">
+                                                <span title="#{managedBonAvoirVente.currentParam.useLotReception ? managedBonAvoirVente.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lot.numero)}" >
+                                                    #{artf.article.refArt}
+                                                </span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_article}">
+                                                <span title="#{managedBonAvoirVente.currentParam.useLotReception ? managedBonAvoirVente.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lot.numero)}" >
+                                                    #{artf.article.designation}
+                                                </span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.LC_PLV_lot}" style="text-align: center;width: 10%" rendered="#{managedBonAvoirVente.currentParam.useLotReception}">
+                                                <span title="#{managedBonAvoirVente.ldf.format(artf.dateSave)}">
+                                                    #{artf.lot.numero}
+                                                </span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_qte}" style="text-align: right;width: 10%">
+                                                <span title="#{managedBonAvoirVente.currentParam.useLotReception ? managedBonAvoirVente.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lot.numero)}" >
+                                                    <h:outputText value="#{artf.quantite}" converter="#{managedBonAvoirVente.converterStock}"/>
+                                                </span>
+                                                <span title="#{artf.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{artf.conditionnement.unite.reference}</span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_prix}" style="text-align: right;width: 12%">
+                                                <span title="#{managedBonAvoirVente.currentParam.useLotReception ? managedBonAvoirVente.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lot.numero)}" >
+                                                    <h:outputText value="#{artf.prix}" converter="#{managedBonAvoirVente.converter}"/>
+                                                </span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.LC_PBRV_rem}" style="text-align: right;width: 10%">
+                                                <span title="#{managedBonAvoirVente.currentParam.useLotReception ? managedBonAvoirVente.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lot.numero)}" >
+                                                    <h:outputText value="#{artf.remise}" converter="DNS"/>
+                                                </span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.LC_PBRV_taxes}" style="text-align: right;width: 10%">
+                                                <span title="#{managedBonAvoirVente.currentParam.useLotReception ? managedBonAvoirVente.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lot.numero)}" >
+                                                    <h:outputText value="#{artf.taxe}" converter="DNS"/>
+                                                </span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_total}" style="text-align: right;width: 14%">
+                                                <span title="#{managedBonAvoirVente.currentParam.useLotReception ? managedBonAvoirVente.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lot.numero)}" >
+                                                    <h:outputText value="#{artf.prixTotal}" converter="#{managedBonAvoirVente.converter}"/>
+                                                </span>
+                                            </p:column>
+                                            <p:column style="width: 20px;text-align: center">
+                                                <f:facet name="header">
+                                                    <p:contextMenu for="btn_option_contenu_retour_vente_head" event="left click" style="font-size: 0.8em;width: 200px">
+                                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedBonAvoirVente.deleteBeanArticles(false)}"/>
+                                                    </p:contextMenu>                           
+                                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_retour_vente_head" type="button"/>
+                                                </f:facet>
+                                                <p:contextMenu for="btn_option_contenu_retour_vente" event="left click" style="font-size: 0.8em;width: 200px" >
+                                                    <p:menuitem value="#{artf.mouvStock?'Désactiver':'Activer'} le suivi en stock" icon="ui-icon-star" global="false" actionListener="#{managedBonAvoirVente.activeMouvStock(artf)}"
+                                                                update="data_contenu_retour_vente"/>
+                                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedBonAvoirVente.deleteBeanArticle_(artf)}" oncomplete="dlgConfirmDeleteArticle_.show()"/>
+                                                </p:contextMenu>                           
+                                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_retour_vente" type="button"/>
+                                            </p:column> 
+                                            <p:column selectionMode="multiple" style="width:16px;text-align:center"/>  
+                                        </p:dataTable>
+                                    </p:outputPanel>                     
+                                </h:panelGrid>
+                            </p:outputPanel>
+                        </h:panelGrid>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_retour_vente" style="width: 99%; margin: auto; background: white">
+                    <div class="part_list">
+                        <h:inputHidden id="input_hide_retour_vente" value="#{managedBonAvoirVente.tabIds}"/>
+                        <p:dataTable id="data_retour_vente" value="#{managedBonAvoirVente.documents}" var="bon" rowKey="#{bon.id}"
+                                     selectionMode="single" rowIndexVar="bonIdx" selection="#{managedBonAvoirVente.selectDoc}">
+                            <p:ajax event="rowSelect" listener="#{managedBonAvoirVente.loadOnView}" update=":main_retour_vente:input_hide_retour_vente"
+                                    oncomplete="collapseForm('retour_vente');collapseForm('contenu_retour_vente')"/>
+                            <p:column headerText="N°" width="30" styleClass="statut_#{bon.statut}">
+                                <h:graphicImage title="Cloturer" library="img" name="blocked.png" width="15" height="15" rendered="#{bon.cloturer}"/>  
+                                <span>#{bonIdx+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" styleClass="statut_#{bon.statut}">
+                                <span>#{bon.numDoc}</span>
+                                <h:outputText value="#{lab.LC_PBRV_vide}" style="float: right;color: blue;font-style: italic;font-size: 0.8em" rendered="#{0>=bon.contenus.size()}"/>                                
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PBRV_clients}" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.client.nom_prenom}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PBRV_depot}" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.depotLivrer.designation}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PBRV_date_doc}" style="text-align: center;width: 10%" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.dateLivraison}" converter="DDMMYYYY"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PBRV_facture}" styleClass="statut_#{bon.statut}">
+                                <span>#{bon.documentLie.numDoc}</span>
+                                <p:spacer width="10px" style="float: right;margin-top: 2px" styleClass="#{bon.documentLie.statutRegle}" title="STATUT : #{managedBonAvoirVente.giveNameStatut(bon.documentLie.statutRegle)}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PBRV_vendeur}" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.enteteDoc.creneau.users.nomUsers}"/>
+                            </p:column>
+                            <p:column width="20" style="text-align: center" styleClass="statut_#{bon.statut}">
+                                <p:contextMenu for="btn_option_retour_vente" event="left click" style="font-size: 0.8em">
+                                    <p:menuitem icon="ui-icon-document" value="#{lab.LC_PBRV_voir_facture}" actionListener="#{managedBonAvoirVente.setSelectDoc(bon)}" global="false" update=":data_contenus_fv_brv" oncomplete="dlgContenuFVBRV.show()" rendered="#{bon.documentLie.id > 0}"/>
+                                    <p:menuitem value="#{bon.cloturer?'Dévérrouiller':'Vérrouiller'}" icon="#{bon.cloturer?'ui-icon-unlocked':'ui-icon-locked'}" 
+                                                global="false" actionListener="#{managedBonAvoirVente.cloturer(bon)}" oncomplete="dlgConfirmClose.show()"/>
+                                    <p:menuitem value="#{lab.LC_PBRV_generer_fac_avoir}" title="#{lab.LC_PBRV_generer_fac_avoir_partir_bon}" actionListener="#{managedBonAvoirVente.generatedFAvoirFromBRetour(bon)}"
+                                                rendered="#{bon.documentLie ne null and bon.documentLie.id gt 0}"/>
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print"  actionListener="#{managedBonAvoirVente.print(bon, true)}" ajax="false"/>
+                                    <p:menuitem value="#{lab.L_telecharger_sans_entete}" icon="ui-icon-print"  actionListener="#{managedBonAvoirVente.print(bon, false)}" ajax="false"/>
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedBonAvoirVente.deleteBean_(bon)}" oncomplete="dlgConfirmDelete_.show()"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_retour_vente" type="button"/>
+                            </p:column> 
+                            <p:column width="25" style="text-align: center" styleClass="statut_#{bon.statut}">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_retour_vente" value="false"
+                                                             onclick="selectionAllLineTab(#{managedBonAvoirVente.documents.size()}, 'retour_vente')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="#{bon.selectActif }" styleClass="chek_line_retour_vente" 
+                                                          onclick="selectionLineTab(#{bonIdx}, 'retour_vente')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                        </p:dataTable>                               
+                        <span class="nbSelectretour_vente" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                            <p:commandButton actionListener="#{managedBonAvoirVente.init(false)}" global="false" update="data_retour_vente" icon="ui-icon-circle-triangle-w" disabled="#{managedBonAvoirVente.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{managedBonAvoirVente.paginator.currentPage}/#{managedBonAvoirVente.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton actionListener="#{managedBonAvoirVente.init(true)}" global="false" update="data_retour_vente" icon="ui-icon-circle-triangle-e" disabled="#{managedBonAvoirVente.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{managedBonAvoirVente.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedBonAvoirVente.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{managedBonAvoirVente.paginations}"/>
+                                <p:ajax event="valueChange" global="false" update="data_retour_vente"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel>  
+                    </div>                                                         
+                </div> 
+                <!-->
+                 *****************************************************************************
+                 Vue Grid
+                 *****************************************************************************
+                <-->
+                <div class="yvs_grid_retour_vente" style="width: 99%; margin: auto; background: white">
+
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_livraison_vente display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedBonAvoirVente.selectDoc.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedBonAvoirVente.selectDoc.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedBonAvoirVente.selectDoc.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div> 
+                <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="2" cellpadding="0" cellspacing="0">
+                        <h:panelGrid columns="8" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                            <h:outputText value="" />
+                            <h:outputText value="#{lab.L_date}" />
+                            <h:outputText value="#{lab.LC_PBRV_depots}" />
+                            <h:outputText value="#{lab.LC_PBRV_livreur}" />
+                            <h:outputText value="#{lab.LC_PBRV_statut}" />
+                            <h:outputText value="#{lab.L_reference}" />
+                            <h:outputText value="" />
+                            <span>&nbsp;</span>
+                            <p:commandButton icon="ui-icon-bullet" style="width: 22px; height: 22px" />
+                            <h:panelGrid columns="2">
+                                <h:selectBooleanCheckbox value="#{managedBonAvoirVente.date_}" valueChangeListener="#{managedBonAvoirVente.choixParamDate}">
+                                    <p:ajax event="valueChange" oncomplete="collapseList('retour_vente')"
+                                            update="blog_date_search_entete_retour_vente"/>
+                                </h:selectBooleanCheckbox>
+                                <h:panelGroup id="blog_date_search_entete_retour_vente">
+                                    <p:calendar value="#{managedBonAvoirVente.dateDebut}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedBonAvoirVente.date_}" size="10" style="font-size: 0.8em">
+                                        <p:ajax event="dateSelect" listener="#{managedBonAvoirVente.addParamDate}" oncomplete="collapseList('retour_vente')"/>
+                                    </p:calendar>
+                                    <p:spacer width="5px" style="background: black"/>
+                                    <p:calendar value="#{managedBonAvoirVente.dateFin}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedBonAvoirVente.date_}" size="10" style="font-size: 0.8em">
+                                        <p:ajax event="dateSelect" listener="#{managedBonAvoirVente.addParamDate}" oncomplete="collapseList('retour_vente')"/>
+                                    </p:calendar>
+                                </h:panelGroup>
+                            </h:panelGrid>
+                            <h:selectOneMenu value="#{managedBonAvoirVente.depotSearch}" style="min-width: 120px">
+                                <f:selectItem itemLabel="" itemValue="0"/>
+                                <f:selectItems value="#{managedDepot.depots_all}" var="de"
+                                               itemLabel="#{de.designation}" itemValue="#{de.id}"/>
+                                <p:ajax event="valueChange" listener="#{managedBonAvoirVente.chooseDepotLivr()}" oncomplete="collapseList('retour_vente')"/>
+                            </h:selectOneMenu>
+                            <h:inputText value="#{managedBonAvoirVente.codeLivreur_}" style="min-width: 120px">
+                                <p:ajax event="keyup" listener="#{managedBonAvoirVente.addParamLivreur(managedBonAvoirVente.codeLivreur_)}" oncomplete="collapseList('retour_vente')"/>
+                            </h:inputText>
+                            <h:selectOneMenu value="#{managedBonAvoirVente.statut_}" 
+                                             valueChangeListener="#{managedBonAvoirVente.chooseStatut}" style="min-width: 120px">
+                                <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                                <f:selectItem itemLabel="#{managedBonAvoirVente.giveNameStatut(constantes.ETAT_VALIDE)}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                                <f:selectItem itemLabel="#{managedBonAvoirVente.giveNameStatut(constantes.ETAT_EDITABLE)}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                                <f:selectItem itemLabel="#{managedBonAvoirVente.giveNameStatut(constantes.ETAT_ANNULE)}" itemValue="#{constantes.ETAT_ANNULE}"/>
+                                <p:ajax event="valueChange" update=":main_retour_vente:data_retour_vente" oncomplete="collapseList('retour_vente')"/>
+                            </h:selectOneMenu>
+                            <h:inputText value="#{managedBonAvoirVente.numSearch_}">
+                                <p:ajax event="valueChange" listener="#{managedBonAvoirVente.searchByNum()}" oncomplete="collapseList('retour_vente')"/>
+                            </h:inputText>
+                            <p:commandLink style="border: 2px solid black; border-radius: 5px;padding: 2px;font-size: 0.8em" 
+                                           onclick="dlgPlusOption.show()" type="button"  value="Avancées"/>
+                        </h:panelGrid>                        
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right">
+                        <p:commandLink onclick="dlgCleanVente.show()" global="false" style="border: 2px solid black; border-radius: 5px;padding: 3px;" 
+                                       title="#{lab.LC_PBRV_nettoyage_stock}">
+                            <h:graphicImage library="img" name="clean.png" width="15" height="18"/>  
+                        </p:commandLink>
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

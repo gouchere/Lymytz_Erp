@@ -1,0 +1,426 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">  
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Gestion des niveaux d\'acces','modDonneBase', 'smenNiveauAcces', true,managedNiveauAcces)}
+    </ui:define>         
+    <ui:define name="contents">
+        <h:form prependId="false">
+            <p:confirmDialog showEffect="fade" hideEffect="explode">
+                <p:commandButton value="Oui" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="Non" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+            </p:confirmDialog> 
+        </h:form>
+        #{managedSociete.loadByGroupe()}   
+        #{managedNiveauAcces.loadAll()}   
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgListNiveauAcces" width="60%" closeOnEscape="true" header="Liste des niveaux d'accès" modal="true">
+                <p:dataTable id="table-select_niveau_acces" value="#{managedNiveauAcces.listNiveauAcces}" var="nive" rowKey="#{nive.id}"
+                             selection="#{managedNiveauAcces.listSelectNiveauAcces}" style="max-height: 100%; overflow-y: auto">
+                    <p:column headerText="Designation" styleClass="#{nive.exist?'line_actiftrue':'_'}">
+                        <p:outputLabel value="#{nive.designation}"/>
+                    </p:column>
+                    <p:column headerText="Description">
+                        <p:outputLabel value="#{nive.description}"/>
+                    </p:column>                            
+                    <p:column headerText="Grade" width="50" style="text-align: center">
+                        <p:outputLabel value="#{nive.grade.reference}" title="#{nive.grade.libelle}"/>
+                    </p:column>
+                    <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                </p:dataTable>
+                <f:facet name="footer">
+                    <p:commandButton value="Copier" style="float: right" actionListener="#{managedNiveauAcces.copyAcces()}"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_fusionn_niveauDroit">
+            <p:dialog widgetVar="dlgConfirmFusion" header="Fusionner" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_niveauDroit" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>Voulez-vous fusionner le niveau : </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedNiveauAcces.fusionneTo}"/>
+                    <span>avec le(s) niveau(x) :</span>
+                    <c:forEach items="#{managedNiveauAcces.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>Cette opération est irreversible</span>
+                </h:panelGrid>
+                <p:commandButton value="OUI" actionListener="#{managedNiveauAcces.fusionner(false)}" style="float: right"  
+                                 oncomplete="dlgConfirmFusion.hide();collapseForm('niveauDroit')"  update=":form_form_niveauA:table_niveauA"/> 
+            </p:dialog>
+        </h:form> 
+        <h:form prependId="false" id="form_form_niveauA">
+            <p:dialog widgetVar="dlgNiveauAcces" width="60%" height="600" closeOnEscape="true" header="Gérer les niveaux d'accès"
+                      id="form_niveau_acces_00" modal="true">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('niveauDroit');
+                    });
+                </script>
+                <div class="dlg_part_fixe">
+                    <div style="float: left">
+                        <p:commandButton value="Enregistrer" actionListener="#{managedNiveauAcces.saveNew()}"  
+                                         id="save_niveauDroit" update=":form_form_niveauA:table_niveauA"/>
+                        <p:commandButton value="Nouveau" actionListener="#{managedNiveauAcces.resetFiche()}" 
+                                         id="cancel_niveauDroit" update=":form_form_niveauA:body_dlg_niveau_acces"/>
+                        <p:splitButton type="button" value="Options" id="option_niveauDroit" style="font-size: 0.8em">
+                            <p:menuitem value="Fusionner" icon="ui-icon-refresh" actionListener="#{managedNiveauAcces.fusionner(true)}" global="false"
+                                        oncomplete="dlgConfirmFusion.show()" update=":main_fusionn_niveauDroit:blog_fusionner_niveauDroit"/>
+                        </p:splitButton>
+                    </div>
+                    <div style="float: right">                            
+                        <h:link onclick="collapseForm('niveauDroit');
+                                return false" title="vue liste">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>              
+                        <h:link  onclick="collapseList('niveauDroit');
+                                return false" title="vue hiérarchique">
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>                           
+                    </div>                        
+                </div>
+                <div class="dlg_part_scroll" style="clear: both">
+                    <div class="yvs_form_niveauDroit">
+                        <h:panelGrid id="body_dlg_niveau_acces" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <span>Designation</span>
+                            <h:inputText value="#{niveauAcces.designation}" style="width: 98%"/>
+                            <span>Grade</span>
+                            <h:selectOneMenu value="#{niveauAcces.grade}" style="width: 98%">
+                                <f:selectItem itemLabel="" itemValue="0"/>
+                                <f:selectItems value="#{managedNiveauAcces.grades}" var="grd" itemLabel="[#{grd.reference}] #{grd.libelle}" itemValue="#{grd.id}"/>
+                            </h:selectOneMenu>
+                            <span>Description</span>
+                            <p:inputTextarea value="#{niveauAcces.description}" rows="3" style="width: 98%"/>
+                            <span>Faire hériter des droits du niveau </span>
+                            <h:selectOneMenu value="#{managedNiveauAcces.parent.id}" disabled="#{niveauAcces.id gt 0}" style="min-width: 120px">
+                                <f:selectItem itemLabel="" itemValue="0"/>
+                                <f:selectItems value="#{managedNiveauAcces.listNiveauAcces}" var="nivp" itemLabel="#{nivp.designation}" itemValue="#{nivp.id}"/>
+                            </h:selectOneMenu>
+                        </h:panelGrid>
+                    </div>
+                    <div class="yvs_list_niveauDroit">
+                        <h:inputHidden id="input_hide_niveauDroit" value="#{managedNiveauAcces.tabIds}"/>
+                        <p:dataTable value="#{managedNiveauAcces.listNiveauAcces}" var="nive" rowKey="#{nive.id}" selection="#{managedNiveauAcces.selectedNiveau}"
+                                     selectionMode="single" id="table_niveauA" style="max-height: 100%; overflow-y: auto" rowIndexVar="nivIdx">
+                            <p:ajax event="rowSelect" listener="#{managedNiveauAcces.loadOnView}" oncomplete="collapseForm('niveauDroit')" />
+                            <p:column headerText="Designation" >
+                                <p:outputLabel value="#{nive.designation}"/>
+                            </p:column>
+                            <p:column headerText="Description">
+                                <p:outputLabel value="#{nive.description}"/>
+                            </p:column>                            
+                            <p:column headerText="Grade" width="50" style="text-align: center">
+                                <p:outputLabel value="#{nive.grade.reference}" title="#{nive.grade.libelle}"/>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:commandButton icon="ui-icon-trash" actionListener="#{managedNiveauAcces.deleteBean(nive)}" 
+                                                 style="width: 22px; height: 22px" update=":form_form_niveauA:table_niveauA">
+                                    <!--<p:confirm header="Supprimer un niveau" message="Confirmez-vous la suppression de ce niveau d'accès? " />-->
+                                </p:commandButton>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_niveauDroit" value="false"
+                                                             onclick="selectionAllLineTab(#{managedNiveauAcces.listNiveauAcces.size()}, 'niveauDroit')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="true" styleClass="chek_line_niveauDroit" 
+                                                          onclick="selectionLineTab(#{nivIdx}, 'niveauDroit')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:commandButton icon="ui-icon-arrowthick-1-s" style="width: 22px; height: 22px" title="Charger les droits correspondants sur la vue"
+                                                 actionListener="#{managedNiveauAcces.chooseOneNiveauAcces()}" rendered="#{managedNiveauAcces.vueListeNiveau}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>                                       
+                <p:outputPanel autoUpdate="true">                    
+                    <div class="yvs_form_niveauDroit" align="right" style="color: #666; font-size: 0.7em; font-style: italic">
+                        <span style="float: left">Enregistré Le <h:outputText value="#{managedNiveauAcces.selectedNiveau.dateSave}" converter="LD" style="font-weight: bold"/></span>
+                        <span>Modifier Le <h:outputText value="#{managedNiveauAcces.selectedNiveau.dateUpdate}" converter="LD" style="font-weight: bold"/></span>
+                        <span>Par <h:outputText value="#{managedNiveauAcces.selectedNiveau.author.users.nomUsers}" style="font-weight: bold"/></span>
+                    </div>
+                </p:outputPanel>
+                <f:facet name="footer">
+                    &copy;Lymytz 2014
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgModule" width="40%"  closeOnEscape="true" id="dlg_niveau_module"
+                      dynamic="true" resizable="false" modal="true" header="Creation des modules">
+                <p:ajax event="close" listener="#{managedNiveauAcces.closeDlgModule()}" global="false"/>
+                <p:panelGrid columns="2" style="width: 100%" >
+                    <h:outputText value="Designation : "/>
+                    <p:inputText value="#{managedNiveauAcces.module.libelle}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="Reference : "/>
+                    <p:inputText value="#{managedNiveauAcces.module.reference}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="Description : "/>
+                    <p:inputTextarea value="#{managedNiveauAcces.module.description}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputTextarea>
+                </p:panelGrid>
+                <p:commandButton value="Enregistrer" style="width: 100%" oncomplete="dlgModule.hide()" 
+                                 actionListener="#{managedNiveauAcces.saveNewModule()}"/>
+                <f:facet name="footer">
+                    @Lymytz
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgPage" width="50%" closeOnEscape="true" id="dlg_niveau_page"
+                      dynamic="true" resizable="false" modal="true" header="Creation des pages">
+                <p:ajax event="close" listener="#{managedNiveauAcces.closeDlgPage()}" global="false"/>
+                <p:panelGrid columns="2" style="width: 100%">
+                    <h:outputText value="Designation : "/>
+                    <p:inputText value="#{managedNiveauAcces.pageModule.libelle}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="Reference : "/>
+                    <p:inputText value="#{managedNiveauAcces.pageModule.reference}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="Description : "/>
+                    <p:inputTextarea value="#{managedNiveauAcces.pageModule.description}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputTextarea>
+                </p:panelGrid>
+                <p:commandButton value="Enregistrer" style="float: right" oncomplete="dlgPage.hide()"
+                                 actionListener="#{managedNiveauAcces.saveNewPage()}"/>
+                <f:facet name="footer">
+                    @Lymytz
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgRessource" width="40%"  closeOnEscape="true" id="dlg_niveau_ressource"
+                      dynamic="true" resizable="false" modal="true" header="Creation des Ressources">
+                <p:ajax event="close" listener="#{managedNiveauAcces.closeDlgRessource()}" global="false"/>
+                <p:panelGrid columns="2" style="width: 100%">
+                    <h:outputText value="Designation : "/>
+                    <p:inputText value="#{managedNiveauAcces.ressourcePage.libelle}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="Reference : "/>
+                    <p:inputText value="#{managedNiveauAcces.ressourcePage.reference}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputText>
+                    <h:outputText value="Description : "/>
+                    <p:inputTextarea value="#{managedNiveauAcces.ressourcePage.description}" style="width: 100%">
+                        <p:ajax event="blur" global="false"/>
+                    </p:inputTextarea>
+                </p:panelGrid>
+                <p:commandButton value="Enregistrer" style="width: 100%" oncomplete="dlgRessource.hide()"  
+                                 actionListener="#{managedNiveauAcces.saveNewRessource()}"/>
+                <f:facet name="footer">
+                    @Lymytz
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <div class="part_fix">
+            <h:form prependId="false" id="head_niveau_acces">
+                <h:panelGrid columns="2">
+                    <p:outputLabel value="Niveau d'acces"/>
+                    <p:outputLabel value=""/>
+                    <h:selectOneMenu value="#{managedNiveauAcces.societe}" valueChangeListener="#{managedNiveauAcces.chooseSocietes}" style="min-width: 120px">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedSociete.listSociete}" var="ste" 
+                                       itemValue="#{ste.id}" itemLabel="#{ste.codeAbreviation}"/>
+                        <p:ajax event="valueChange"  process="@this" update="select_niveau_acces_niv"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu id="select_niveau_acces_niv" value="#{niveauAcces.id}" valueChangeListener="#{managedNiveauAcces.chooseNiveauAcces}">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedNiveauAcces.listNiveauAcces}" var="niv" 
+                                       itemValue="#{niv.id}" itemLabel="#{niv.designation}"/>
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItem itemValue="-1" itemLabel="Plus de choix..."/>
+                        <p:ajax event="valueChange"  process="@this" update=":body_niveau_00:body_niveau_01"/>
+                    </h:selectOneMenu>
+                </h:panelGrid>
+            </h:form> 
+        </div>
+        <div class="part_scroll">
+            <h:form prependId="false" id="body_niveau_00">
+                <p:accordionPanel id="body_niveau_01" style="width: 99%;">
+                    <p:tab title="Modules" id="tab_niveau_acces_module">
+                        <p:panel  style="width: 100%;">
+                            <p:dataTable value="#{managedNiveauAcces.listModule}" var="modul" rowKey="#{modul.id}" selectionMode="single"
+                                         id="tabl_niveau_module">
+                                <p:ajax event="rowSelect" listener="#{managedNiveauAcces.loadOnViewModule}"/>
+                                <p:ajax event="rowUnselect" listener="#{managedNiveauAcces.unLoadOnViewModule}"/>
+                                <p:column style="width:16px" rendered="true">
+                                    <p:commandLink actionListener="#{managedNiveauAcces.updateBeanModule(modul)}"  title="Modifier la ressource">
+                                        <h:graphicImage library="img/icones" name="update.png" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column style="width:16px" rendered="true">
+                                    <p:commandLink actionListener="#{managedNiveauAcces.deleteBeanModule(modul)}" >
+                                        <h:graphicImage library="img/icones" name="delete.png" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column headerText="Designation">
+                                    <p:outputLabel value="#{modul.libelle}"/>
+                                </p:column>
+                                <p:column headerText="Description">
+                                    <p:outputLabel value="#{modul.description}"/>
+                                </p:column>
+                                <p:column headerText="Nb. ress." width="15" >
+                                    <p:outputLabel value="#{modul.pageModuleList.size()}"/>
+                                </p:column>
+                                <p:column width="15" style="text-align: center">
+                                    <p:commandLink actionListener="#{managedNiveauAcces.checkModule(modul)}" >
+                                        <h:graphicImage library="img" name="#{(modul.acces)?'yes.png':'no.png'}" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column width="15" style="text-align: center">
+                                    <p:contextMenu for="btn_option_droit_mod"  event="left click" style="width: 210px">
+                                        <p:menuitem value="Attribuer" icon="ui-icon-check" actionListener="#{managedNiveauAcces.buildForCopyAcces('M', modul)}"
+                                                    oncomplete="dlgListNiveauAcces.show()"/>
+                                        <p:menuitem value="Activer toutes les pages" icon="ui-icon-check" actionListener="#{managedNiveauAcces.activeAllPage(modul, true)}"/>
+                                        <p:menuitem value="Désactiver toutes les pages" icon="ui-icon-closethick" actionListener="#{managedNiveauAcces.activeAllPage(modul, false)}"/>
+                                    </p:contextMenu>
+                                    <p:commandButton icon="ui-icon-gear" type="button" style="width: 18px; height: 18px; background: #FFF !important" id="btn_option_droit_mod"/>
+                                </p:column>
+                            </p:dataTable>
+                            <f:facet name="footer">                                
+                                <p:commandLink actionListener="#{managedNiveauAcces.newBeanModule()}" rendered="true">
+                                    <p:outputLabel value="Nouveau..."/>
+                                </p:commandLink>
+                            </f:facet>
+                        </p:panel> 
+                    </p:tab>
+                    <p:tab title="Pages" id="tab_niveau_acces_page"> 
+                        <h:panelGrid style="width: 100%; margin: 0px" styleClass="yvs_nostyle">
+                            <f:facet name="header">
+                                <h:inputText value="#{managedNiveauAcces.pageF}" >
+                                    <p:ajax event="keyup" listener="#{managedNiveauAcces.findInPage(managedNiveauAcces.pageF)}" update="tabl_niveau_page" global="false"/>
+                                </h:inputText>
+                            </f:facet>
+                            <p:dataTable value="#{managedNiveauAcces.listPage}" var="pag" rowKey="#{pag.id}" selectionMode="single"
+                                         id="tabl_niveau_page">
+                                <p:ajax event="rowSelect" listener="#{managedNiveauAcces.loadOnViewPage}"/>
+                                <p:ajax event="rowUnselect" listener="#{managedNiveauAcces.unLoadOnViewPage}"/>
+                                <p:column style="width:16px" rendered="true">                                    
+                                    <p:commandLink actionListener="#{managedNiveauAcces.updateBeanPage(pag)}" title="Modifier la ressource" >
+                                        <h:graphicImage library="img/icones" name="update.png" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column style="width:16px" rendered="true">
+                                    <p:commandLink actionListener="#{managedNiveauAcces.deleteBeanPage(pag)}" >
+                                        <h:graphicImage library="img/icones" name="delete.png" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column headerText="Référence">
+                                    <p:outputLabel value="#{pag.reference}"/>
+                                </p:column>
+                                <p:column headerText="Designation">
+                                    <p:outputLabel value="#{pag.libelle}"/>
+                                </p:column>
+                                <p:column headerText="Description">
+                                    <p:outputLabel value="#{pag.description}"/>
+                                </p:column> 
+                                <p:column headerText="Nb. ress." width="15" >
+                                    <p:outputLabel value="#{pag.ressourcesPageList.size()}"/>
+                                </p:column>
+                                <p:column style="width:16px; text-align: center">
+                                    <p:commandLink actionListener="#{managedNiveauAcces.checkPage(pag)}" >
+                                        <h:graphicImage library="img" name="#{(pag.acces)?'yes.png':'no.png'}" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column style="width:16px; text-align: center">
+                                    <f:facet name="header">
+                                        <p:contextMenu for="btn_option_droit" event="left click">
+                                            <p:menuitem icon="ui-icon-circle-plus" value="Attribuer tous" actionListener="#{managedNiveauAcces.checkAllPage(false)}"/>
+                                            <p:menuitem icon="ui-icon-circle-minus" value="Rétirer tous" actionListener="#{managedNiveauAcces.checkAllPage(true)}"/>
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" type="button" style="width: 18px; height: 18px; background: #FFF !important" id="btn_option_droit"/>
+                                    </f:facet> 
+                                    <p:contextMenu for="btn_option_droit_pag"  event="left click" style="width: 250px">
+                                        <p:menuitem value="Attribuer à d'autres niveaux" icon="ui-icon-note" actionListener="#{managedNiveauAcces.buildForCopyAcces('P', pag)}"
+                                                    oncomplete="dlgListNiveauAcces.show()"/>
+                                        <p:menuitem value="Activer toutes les ressources" icon="ui-icon-check" actionListener="#{managedNiveauAcces.activeAllRessource(pag, true)}"/>
+                                        <p:menuitem value="Désactiver toutes les ressources" icon="ui-icon-closethick" actionListener="#{managedNiveauAcces.activeAllRessource(pag, false)}"/>
+                                    </p:contextMenu>
+                                    <p:commandButton icon="ui-icon-gear" type="button" style="width: 18px; height: 18px; background: #FFF !important" id="btn_option_droit_pag"/>
+                                </p:column>
+                            </p:dataTable>
+                            <f:facet name="footer">                                
+                                <p:commandLink actionListener="#{managedNiveauAcces.newBeanPage()}" rendered="true">
+                                    <p:outputLabel value="Nouvelle..."/>
+                                </p:commandLink>
+                            </f:facet>
+                        </h:panelGrid>
+                    </p:tab> 
+                    <p:tab title="Ressources" id="tab_niveau_acces_ressource">
+                        <p:panel style="width: 100%">
+                            <p:dataTable value="#{managedNiveauAcces.listRessource}" var="ress" rowKey="#{ress.id}" selectionMode="single"
+                                         id="tabl_niveau_ressource">
+                                <p:ajax event="rowSelect" listener="#{managedNiveauAcces.loadOnViewRessource}"/>
+                                <p:ajax event="rowUnselect" listener="#{managedNiveauAcces.unLoadOnViewRessource}"/>
+                                <p:column style="width:16px" rendered="true">
+                                    <p:commandLink actionListener="#{managedNiveauAcces.updateBeanRessource(ress)}"  title="Modifier la ressource">
+                                        <h:graphicImage library="img/icones" name="update.png" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column style="width:16px" rendered="true">
+                                    <p:commandLink actionListener="#{managedNiveauAcces.deleteBeanRessource(ress)}" >
+                                        <h:graphicImage library="img/icones" name="delete.png" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column headerText="Code">
+                                    <p:outputLabel value="#{ress.reference}"/>
+                                </p:column>
+                                <p:column headerText="Designation">
+                                    <p:outputLabel value="#{ress.libelle}"/>
+                                </p:column>
+                                <p:column headerText="Description">
+                                    <p:outputLabel value="#{ress.description}"/>
+                                </p:column>
+                                <p:column style="width:16px;text-align: center">
+                                    <p:commandLink actionListener="#{managedNiveauAcces.checkRessource(ress)}">
+                                        <h:graphicImage library="img" name="#{(ress.acces)?'yes.png':'no.png'}" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                                <p:column style="width:16px;text-align: center">
+                                    <f:facet name="header">
+                                        <p:contextMenu for="btn_option_droit1"  event="left click">
+                                            <p:menuitem value="Attribuer tous" icon="ui-icon-circle-plus" actionListener="#{managedNiveauAcces.checkAllRessource(false)}"/>
+                                            <p:menuitem value="Rétirer tous" icon="ui-icon-circle-minus" actionListener="#{managedNiveauAcces.checkAllRessource(true)}"/>
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" type="button" style="width: 18px; height: 18px; background: #FFF !important" id="btn_option_droit1"/>
+                                    </f:facet>
+                                    <p:contextMenu for="btn_option_droit_res"  event="left click" style="width: 250px">
+                                        <p:menuitem value="Attribuer à d'autres niveaux" icon="ui-icon-note" actionListener="#{managedNiveauAcces.buildForCopyAcces('R', ress)}"
+                                                    oncomplete="dlgListNiveauAcces.show()"/>
+                                    </p:contextMenu>
+                                    <p:commandButton icon="ui-icon-gear" type="button" style="width: 18px; height: 18px; background: #FFF !important" id="btn_option_droit_res"/>
+                                </p:column>
+                            </p:dataTable>
+                            <f:facet name="footer">                                
+                                <div style="font-size: 0.8em">
+                                    <p:commandLink actionListener="#{managedNiveauAcces.newBeanRessource()}" rendered="true">
+                                        <p:outputLabel value="Nouvelle..."/>
+                                    </p:commandLink>
+                                    <h:selectOneMenu value="#{managedNiveauAcces.idPageF}" id="select_page_nva" valueChangeListener="#{managedNiveauAcces.filterRessByPage}">
+                                        <f:selectItem itemValue="#{null}" itemLabel="" />
+                                        <f:selectItems value="#{managedNiveauAcces.listPage}" var="ipag" itemValue="#{ipag.id}" itemLabel="#{ipag.libelle}" />
+                                        <p:ajax event="valueChange" />
+                                    </h:selectOneMenu>
+                                </div>
+                            </f:facet>
+                        </p:panel>
+                    </p:tab>
+                </p:accordionPanel>
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>

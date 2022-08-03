@@ -1,0 +1,1004 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Entrées Stock','modGescom', 'smenEntree', true,managedOtherTransfert)}
+    </ui:define> 
+    <ui:define name="contents">         
+        <style type="text/css">
+            .part_fix{
+                height: 70px !important;
+            }
+        </style>
+        #{Marticle.doNothing()}
+        #{managedLotReception.doNothing()}
+
+        #{managedAgence.loadAllUsable()}
+        #{managedDepot.loadDepotsByAgence()}
+        #{managedOtherTransfert.loadAll(true)}
+        #{managedStockArticle.load(null)}
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('entree_stock');
+                collapseForm('contenu_entree_stock');
+            });
+        </script>
+
+        <h:form prependId="false" id="main-agence">
+            <p:dialog widgetVar="dlgAgenceForDepot" header="Selectionner une agence" width="50%" closeOnEscape="true"> 
+                <p:dataTable value="#{managedAgence.agences}" var="ag" rowKey="#{ag.id}" selectionMode="single" id="table_agence" rowIndexVar="line_ag">
+                    <p:ajax event="rowSelect" listener="#{managedDepot.onSelectAgenceForAction}" update=":main_entree_stock:select_depot_entree_stock" oncomplete="dlgAgenceForDepot.hide()"/>
+                    <p:column headerText="#{lab.L_code}" width="200">
+                        <h:outputText value="#{ag.codeagence}"/>
+                    </p:column>                                
+                    <p:column headerText="#{lab.L_designation}">
+                        <h:outputText value="#{ag.designation}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:dialog header="Ajouter un lot de reception" widgetVar="dlgAddLotReception" modal="true" closeOnEscape="true"> 
+                <p:outputPanel id="blog_lot_reception">
+                    <ui:include src="../param/lot_reception/form.xhtml" /> 
+                    <div>
+                        <p:commandButton value="#{lab.L_nouveau}" icon="ui-icon-document" actionListener="#{managedLotReception.resetFiche()}" style="float: left"
+                                         update="blog_lot_reception"/>
+                        <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedOtherTransfert.saveLotReception()}" style="float: right"
+                                         oncomplete="dlgAddLotReception.hide()"/>
+                    </div>
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_plus_option}" width="40%"  closeOnEscape="true" widgetVar="dlgPlusOption" resizable="false"> 
+                <h:panelGrid id="blog_more_entree_stock" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <h:outputText value="#{lab.L_cloturer}" />
+                    <h:selectOneMenu value="#{managedOtherTransfert.cloturer_}" valueChangeListener="#{managedOtherTransfert.chooseCloturer}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" global="false" update=":main_entree_stock:data_entree_stock" oncomplete="collapseList('entree_stock')"/>
+                    </h:selectOneMenu>
+
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LDB_PC_dates}"  />
+                        <h:selectBooleanCheckbox value="#{managedOtherTransfert.date_up}" title="#{lab.LDB_PC_dates_last_modif}" style="float: right">
+                            <p:ajax event="valueChange" global="false" update="blog_date_search_client"  listener="#{managedOtherTransfert.addParamDates()}" oncomplete="collapseList('entree_stock')" />
+                        </h:selectBooleanCheckbox>
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_client">
+                        <p:calendar value="#{managedOtherTransfert.dateDebut_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedOtherTransfert.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedOtherTransfert.addParamDates}" update=":main_entree_stock:data_entree_stock" oncomplete="collapseList('entree_stock')"/>
+                        </p:calendar>
+                        <p:spacer style="width: 5px;background: black"/>
+                        <p:calendar value="#{managedOtherTransfert.dateFin_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedOtherTransfert.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedOtherTransfert.addParamDates}" update=":main_entree_stock:data_entree_stock" oncomplete="collapseList('entree_stock')"/>
+                        </p:calendar>
+                    </h:panelGroup>
+
+
+                    <h:outputText value="Ids"/>
+                    <h:inputText value="#{managedOtherTransfert.idsSearch}" style="width: 100%" title="#{lab.LDB_PA_text1}">
+                        <p:ajax event="valueChange" listener="#{managedOtherTransfert.addParamIds()}" oncomplete="collapseGrid('entree_stock')"/>
+                    </h:inputText>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_liste_article}" widgetVar="dlgListArticle" modal="true" width="50%"  closeOnEscape="true"> 
+                <p:watermark for="txt_search_article_en_stock" value="#{lab.L_reference_article}..." />
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_article_en_stock" value="#{managedStockArticle.article.article.refArt}">
+                        <p:ajax event="valueChange" global="false" listener="#{managedStockArticle.searchArticleActifByDepot(false)}" update="data_articles_entree_stock"/>
+                    </h:inputText> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedStockArticle.loadActifArticleByDepot(false, false)}" global="false" update="data_articles_entree_stock" icon="ui-icon-circle-triangle-w" disabled="#{managedStockArticle.pa.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedStockArticle.pa.currentPage}/#{managedStockArticle.pa.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedStockArticle.loadActifArticleByDepot(true, false)}" global="false" update="data_articles_entree_stock" icon="ui-icon-circle-triangle-e" disabled="#{managedStockArticle.pa.disNext}"/>
+                        <p:selectOneMenu value="#{managedStockArticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedStockArticle.choosePaginatorAchat}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedStockArticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_articles_entree_stock"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>
+                <p:dataTable id="data_articles_entree_stock" value="#{managedStockArticle.articlesResult}" var="art" rowKey="#{art.id}"
+                             selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false"  rowIndexVar="line_a">
+                    <p:ajax event="rowSelect"  listener="#{managedOtherTransfert.loadOnViewArticle}" oncomplete="dlgListArticle.hide()"/>
+                    <p:column  headerText="N°" width="20">
+                        <span title="#{art.article.designation}">#{line_a+1}</span>
+                    </p:column>
+                    <p:column  headerText="#{lab.L_reference}" style="width: 10%">
+                        <span title="#{art.article.designation}">#{art.article.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}">
+                        <span title="#{art.article.designation}">#{art.article.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" style="width: 4%">
+                        <span title="#{art.article.designation}">#{art.article.categorie}</span>
+                    </p:column>
+                </p:dataTable>                
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+            <p:dialog header="#{lab.L_liste_article}" widgetVar="dlgListConditionnement" modal="true" width="70%" height="450" closeOnEscape="true"> 
+                <p:dataTable id="data_conditionnements_entree_vente" value="#{managedStockArticle.conditionnements}" var="art" rowIndexVar="artLine"
+                             rowKey="#{art.id}" selectionMode="single">
+                    <p:ajax event="rowSelect" listener="#{managedOtherTransfert.loadOnViewConditionnement}" oncomplete="dlgListConditionnement.hide()"/>
+                    <p:column headerText="N°" width="20" style="text-align: center">
+                        #{artLine+1}
+                    </p:column>                                                        
+                    <p:column headerText="#{lab.L_reference}" width="100">
+                        <span style="font-weight: bold">#{art.article.refArt}</span>
+                    </p:column>
+                    <p:column  headerText="#{lab.L_designation}" width="150"> 
+                        #{art.article.designation}
+                    </p:column>
+                    <p:column headerText="#{lab.L_unite}" width="100">
+                        #{art.unite.libelle}                                
+                        <span style="font-weight: bold">[#{art.unite.reference}]</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" width="100" style="text-align: center">
+                        #{art.article.categorie}
+                    </p:column>
+                    <p:column  headerText="#{lab.LC_PES_prix_v}" width="80"  style="text-align: right">                                                            
+                        <h:outputText value="#{art.prix}"  converter="DN" />                                                            
+                    </p:column>
+                    <p:column  headerText="#{lab.LC_PES_prix_a}" width="80"  style="text-align: right">                                                            
+                        <h:outputText value="#{art.prixAchat}"  converter="DN" />                                                            
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">                    
+            <p:dialog header="#{lab.L_telecharger}" widgetVar="dlgPrint" resizable="false" closeOnEscape="true" modal="true" footer="&copy; Lymytz 2014">       
+                <h:panelGrid columns="3" style="width: 100%; font-size: 0.8em" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <f:facet name="header">
+                        <div align="right">
+                            <p:selectBooleanCheckbox value="#{managedOtherTransfert.withHeader}" itemLabel="Avec entête ?">
+                                <p:ajax event="valueChange" global="false"/>
+                            </p:selectBooleanCheckbox>
+                        </div>
+                    </f:facet>
+                    <span>#{lab.LC_PES_valoriser_ecarts} </span>
+                    <p:selectOneMenu value="#{managedOtherTransfert.valeurBy}" label="#{lab.LC_PES_valorisation_prix}">
+                        <f:selectItem itemLabel="#{lab.LC_PES_prix_entree}" itemValue="E"/>
+                        <f:selectItem itemLabel="#{lab.LC_PES_prix_vente} " itemValue="V"/>
+                        <f:selectItem itemLabel="#{lab.LC_PES_prix_achat} " itemValue="A"/>
+                        <f:selectItem itemLabel="#{lab.LC_PES_prix_revient} " itemValue="R"/>
+                    </p:selectOneMenu>
+                    <p:commandButton value="#{lab.L_telecharger}" icon="ui-icon-print" ajax="false" actionListener="#{managedOtherTransfert.print(managedOtherTransfert.selectDoc, true)}" oncomplete="dlgPrint.hide()"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue de creation des catégories comptable
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PES_creation_categorie_comptable}" widgetVar="dlgAddCategorieComp" 
+                      modal="true" width="25%"  closeOnEscape="true"> 
+                <p:panelGrid columns="2" style="width: 98%;margin: auto" id="form_categorie_taxe_entree_stock">
+                    <span>#{lab.LC_PES_code_appel}</span>
+                    <h:inputText value="#{managedOtherTransfert.categorie.codeAppel}"/>
+                    <span>#{lab.LC_PES_code_categorie} </span>
+                    <h:inputText value="#{managedOtherTransfert.categorie.codeCategorie}"/>                    
+                    <span>#{lab.LC_PES_nature}</span>
+                    <h:inputText value="#{managedOtherTransfert.categorie.nature}"/>
+                </p:panelGrid>
+                <p:commandButton actionListener="#{managedOtherTransfert.saveNewCategorie()}" style="width: 100%"
+                                 update="form_categorie_taxe_entree_stock" oncomplete="dlgAddCategorieComp.hide()"
+                                 value="#{lab.L_enregistrer}"/>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue de creation des catégories comptable
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PES_commentaire}" widgetVar="dlgAddCommentaire" modal="true" width="26%"  closeOnEscape="true"> 
+                <h:inputTextarea value="#{managedOtherTransfert.commentaire}" style="width: 99%" rows="5" id="txt_commentaire_contenu_entree_stock"/>
+                <p:commandButton actionListener="#{managedOtherTransfert.addCommentaireContenu()}" style="width: 99%"
+                                 oncomplete="dlgAddCommentaire.hide()" value="#{lab.L_enregistrer}"/>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PES_modifier_prix_entree}" widgetVar="dlgUpdatePrix" modal="true" width="26%"  closeOnEscape="true"> 
+                <h:inputText value="#{managedOtherTransfert.selectContenu.prix}" id="txt_prix_contenu_entree_stock"/>
+                <p:commandButton actionListener="#{managedOtherTransfert.applyNewPrix()}"
+                                 oncomplete="dlgUpdatePrix.hide()" value="#{lab.L_appliquer}" icon="ui-icon-circle-check"/>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmChangeInventaireByCancel" closeOnEscape="true" header="#{lab.L_attention}"
+                             message="#{lab.LC_PES_text1}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedOtherTransfert.cancelOrderByForce()}"
+                                 oncomplete="dlgConfirmChangeInventaireByCancel.hide()" update=":main_entree_stock:grp_btn_etat_entree_stock"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" type="button" onclick="dlgConfirmChangeInventaireByCancel.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog widgetVar="dlgConfirmChangeInventaireByEdit" closeOnEscape="true" header="#{lab.L_attention}"
+                             message="#{lab.LC_PES_text1}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedOtherTransfert.editerOrderByForce()}"
+                                 oncomplete="dlgConfirmChangeInventaireByEdit.hide()" update=":main_entree_stock:grp_btn_etat_entree_stock"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" type="button" onclick="dlgConfirmChangeInventaireByEdit.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog widgetVar="dlgConfirmChangeInventaireByValid" closeOnEscape="true" header="#{lab.L_attention}"
+                             message="#{lab.LC_PES_text1}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedOtherTransfert.validerOrderByForce()}"
+                                 oncomplete="dlgConfirmChangeInventaireByValid.hide()" update=":main_entree_stock:grp_btn_etat_entree_stock"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" type="button" onclick="dlgConfirmChangeInventaireByValid.hide()"/>
+            </p:confirmDialog>
+        </h:form> 
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticle" closeOnEscape="true"
+                             message="#{lab.LC_PES_text2}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOtherTransfert.deleteBeanContenu()}" oncomplete="dlgConfirmDeleteArticle.hide();collapseForm('contenu_entree_stock')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticle.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticle_" closeOnEscape="true"
+                             message="#{lab.LC_PES_text2}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOtherTransfert.deleteBeanContenu_()}" oncomplete="dlgConfirmDeleteArticle_.hide();collapseForm('contenu_entree_stock')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticle_.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticles" closeOnEscape="true"
+                             message="#{lab.LC_PLV_text9}" header="#{lab.L_confirmation}">
+                <div >
+                    <span>#{lab.LC_PFV_memoriser_choix_session}</span>
+                    <p:selectBooleanCheckbox value="#{managedOtherTransfert.memoriserDeleteContenu}" />
+                </div>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOtherTransfert.deleteBeanArticles(true)}" 
+                                 oncomplete="dlgConfirmDeleteArticles.hide();collapseForm('contenu_entree_stock')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticles.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PES_text2}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOtherTransfert.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LC_PES_text2}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOtherTransfert.deleteBean_()}" oncomplete="dlgConfirmDelete_.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete_.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog id="id_confirm_close_es" hideEffect="explode" widgetVar="dlgConfirmClose" closeOnEscape="true"
+                             message="#{lab.LC_PES_text4} #{managedOtherTransfert.selectDoc.cloturer?'dévérrouiller':'vérrouiller'}?" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOtherTransfert.cloturer()}" oncomplete="dlgConfirmClose.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmClose.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgCleanStock" closeOnEscape="true"
+                             message="#{lab.LC_PES_text3}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOtherTransfert.cleanStock()}" oncomplete="dlgCleanStock.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgCleanStock.hide()"/>
+            </p:confirmDialog>
+        </h:form>  
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.L_confirmation}" width="40%" widgetVar="dlgValidDocAll" message="#{lab.LCF_POD_text8}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedOtherTransfert.validerOrderAll()}" oncomplete="dlgValidDocAll.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgValidDocAll.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_entree_stock"> 
+            <h:inputHidden id="input_hide_entree_stock" value="#{managedOtherTransfert.tabIds}"/>
+            <div class="part_fix">
+                <div style="float: left;width: 15%">
+                    <p:splitButton value="#{lab.L_enregistrer}" id="save_entree_stock" actionListener="#{managedOtherTransfert.saveNew()}" 
+                                   icon="ui-icon-disk">
+                        <p:menuitem value="#{lab.L_nouveau}" id="cancel_entree_stock"  actionListener="#{managedOtherTransfert.resetFiche()}" update="blog_form_entree_stock" oncomplete="collapseForm('entree_stock');collapseForm('contenu_entree_stock')"
+                                    icon="ui-icon-document"/>
+                        <p:menuitem value="#{lab.L_modifier}" rendered="false" id="update_entree_stock" actionListener="#{managedOtherTransfert.updateBean()}" oncomplete="collapseForm('entree_stock');return false"/>
+                        <p:separator />
+                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()" global="false"/>
+                    </p:splitButton>
+                    <p:splitButton value="Valider" id="delete_entree_stock" icon="ui-icon-check" onclick="dlgValidDocAll.show()"  global="false" style="font-size: 0.8em">
+                        <p:menuitem value="#{lab.LC_PES_reconstruire_reference}" icon="ui-icon-refresh" actionListener="#{managedOtherTransfert.reBuildNumero()}" update=":main_entree_stock:data_entree_stock"/>
+                         <p:separator />
+                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()" global="false"/>
+                    </p:splitButton>
+                </div>
+                <div style="float: right;width: 18%">
+                    <div style="float: right">
+                        <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('entree_stock');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <p:spacer />
+                        <h:link title="#{lab.L_mode_liste}" onclick="collapseList('entree_stock');
+                                return false" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>              
+                        <p:spacer />        
+                        <h:link title="#{lab.L_mode_consultation}" onclick="collapseGrid('entree_stock');
+                                return false">
+                            <p:graphicImage library="icones" name="ico_arbre.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link> 
+                    </div>
+                    <h:panelGroup style="float: right">
+                        <p:commandButton actionListener="#{managedOtherTransfert.parcoursInAllResult(false)}" update="txt_parc_linear_entree_stock" icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('entree_stock')"/>
+                        <h:inputText value="#{managedOtherTransfert.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_entree_stock"/>
+                        <p:outputPanel autoUpdate="true">                        
+                            <p:outputLabel value="/#{managedOtherTransfert.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedOtherTransfert.parcoursInAllResult(true)}" update="txt_parc_linear_entree_stock"  icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('entree_stock')"/>
+                    </h:panelGroup> 
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_entree_stock">
+                    <p:outputPanel id="blog_form_entree_stock" style="width: 99%; margin: auto; background: white">
+                        <h:panelGrid columns="1" style="width: 100%; font-size: 0.9em">
+                            <p:outputPanel id="form_entete_entree_stock">
+                                <h:panelGrid columns="3" styleClass="yvs_nostyle" style="width: 100%;margin-bottom: -5px;margin-top: -5px" cellpadding="0" cellspacing="0" rendered="#{managedOtherTransfert.docStock.update}">
+                                    <h:panelGrid columns="3" styleClass="yvs_nostyle" style="float: left;font-size: large;background: black;color: white">                                             
+                                        <span style="font-size: initial">#{lab.L_numero} : </span>
+                                        <h:outputText id="txt_reference_document_entree_stock" value="#{managedOtherTransfert.docStock.numDoc}"/>
+                                        <h:outputText value="#{managedOtherTransfert.docStock.id}" styleClass="style_identifiant" style="text-align: center;margin-top: 5px!important"/>
+                                    </h:panelGrid> 
+                                    <h:panelGroup style="float: right">                                               
+                                        <p:outputPanel id="grp_btn_etat_entree_stock" styleClass="yvs_form_of">                                              
+                                            <p:commandLink value="#{lab.L_editable}" styleClass="button-stateOF #{(managedOtherTransfert.docStock.statut == constantes.ETAT_EDITABLE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{!(managedOtherTransfert.docStock.statut == constantes.ETAT_VALIDE
+                                                                       or managedOtherTransfert.docStock.statut == constantes.ETAT_ANNULE)}"
+                                                           actionListener="#{managedOtherTransfert.editer()}"
+                                                           process="@this" update="grp_btn_etat_entree_stock" />
+                                            <p:commandLink value="#{(managedOtherTransfert.docStock.statut==constantes.ETAT_VALIDE)?'VALID&Eacute;':'VALIDER'}" styleClass="button-stateOF #{(managedOtherTransfert.docStock.statut==constantes.ETAT_VALIDE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{(managedOtherTransfert.docStock.statut != constantes.ETAT_EDITABLE)}" 
+                                                           actionListener="#{managedOtherTransfert.valider()}"
+                                                           process="@this" update="grp_btn_etat_entree_stock" />
+                                            <p:commandLink value="#{(managedOtherTransfert.docStock.statut==constantes.ETAT_ANNULE)?'ANNUL&Eacute;':'ANNULER'}" styleClass="button-stateOF #{(managedOtherTransfert.docStock.statut==constantes.ETAT_ANNULE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{(managedOtherTransfert.docStock.statut != constantes.ETAT_VALIDE)}"  rendered="false"
+                                                           actionListener="#{managedOtherTransfert.annuler(false)}"
+                                                           process="@this" update="grp_btn_etat_entree_stock" />
+                                        </p:outputPanel>                                                 
+                                    </h:panelGroup>                                     
+                                </h:panelGrid> 
+                            </p:outputPanel>
+                            <p:outputPanel style="width: 100%" id="form_entree_stock">
+                                <div style="width: 61%;float: left">     
+                                    <p:outputPanel id="infos_document_entree_stock" style="width: 100%">
+                                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                            <span>#{lab.LC_PES_nature} </span>
+                                            <h:selectOneMenu id="select_nature_entree_stock" value="#{managedOtherTransfert.docStock.nature}" disabled="#{managedOtherTransfert.docStock.statut eq constantes.ETAT_VALIDE}">
+                                                <f:selectItems value="#{managedOtherTransfert.typesOpe}" var="typOp" itemLabel="#{typOp}" itemValue="#{typOp}"/> 
+                                                <p:ajax event="valueChange" global="false" listener="#{managedOtherTransfert.chooseNature()}"/>
+                                            </h:selectOneMenu>
+                                            <span>#{lab.L_depot} </span>  
+                                            <h:panelGroup>
+                                                <h:selectOneMenu value="#{managedOtherTransfert.depot}" disabled="#{managedOtherTransfert.docStock.statut != constantes.ETAT_EDITABLE}"
+                                                                 id="select_depot_entree_stock" style="min-width: 200px">
+                                                    <f:selectItem itemLabel="--" itemValue="0"/>
+                                                    <f:selectItems value="#{managedDepot.depots}" var="dep" 
+                                                                   itemLabel="#{dep.designation}" itemValue="#{dep.id}" />                                 
+                                                    <p:ajax event="valueChange"  listener="#{managedOtherTransfert.chooseDepot()}" update="select_creneau_depot_entree_stock"/>
+                                                </h:selectOneMenu>
+                                                <p:commandLink value="Selectionner agence" onclick="dlgAgenceForDepot.show()" global="false" rendered="#{managedAgence.agences.size() gt 1}"/>
+                                                <p:commandLink id="btnOperationES" global="false" style="border: 2px solid black; border-radius: 5px;padding: 3px;background: white; float: right" title="#{lab.LC_PES_operation_depot}">
+                                                    <h:graphicImage library="icones" name="ico_list.png" width="15" height="15"/>  
+                                                </p:commandLink>
+                                            </h:panelGroup> 
+                                            <span>#{lab.LC_PES_creneau} </span>  
+                                            <h:selectOneMenu value="#{managedOtherTransfert.tranche}" disabled="#{(managedOtherTransfert.docStock.statut != constantes.ETAT_EDITABLE)}"
+                                                             id="select_creneau_depot_entree_stock" style="min-width: 200px">
+                                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                                <f:selectItems value="#{managedOtherTransfert.tranches}" var="cren" 
+                                                               itemLabel="#{cren.semiReference}" itemValue="#{cren.id}" />                                 
+                                                <p:ajax event="valueChange" global="false" listener="#{managedOtherTransfert.chooseCreneau()}"/>
+                                            </h:selectOneMenu> 
+                                            <span>#{lab.L_date} </span>
+                                            <p:calendar value="#{managedOtherTransfert.docStock.dateDoc}" navigator="true" pattern="dd-MM-yyyy" size="10" 
+                                                        disabled="#{managedOtherTransfert.docStock.statut != constantes.ETAT_EDITABLE}">
+                                                <p:ajax event="dateSelect" global="false" listener="#{managedOtherTransfert.chooseDate()}" update="select_creneau_depot_entree_stock"/>
+                                            </p:calendar>
+                                            <span title="#{lab.LC_PES_numero_piece_externe}">#{lab.L_reference}</span>
+                                            <h:inputText value="#{managedOtherTransfert.docStock.numPiece}" title="#{lab.LC_PES_numero_piece_externe}" style="min-width: 120px"
+                                                         disabled="#{managedOtherTransfert.docStock.statut != constantes.ETAT_EDITABLE}"/>
+                                            <span title="#{lab.LC_PES_source_document}" style="font-weight: bold">#{lab.LC_PES_source}</span>
+                                            <h:panelGroup >
+                                                <h:inputText value="#{managedOtherTransfert.docStock.documentLie.numDoc}" title="#{lab.LC_PES_numero_piece_externe}" style="font-weight: bold"
+                                                             disabled="true"/>
+                                                <span title="#{lab.LC_PES_activer_maj_prix_moyen}">#{lab.LC_PES_activer_maj_pr}</span>
+                                                <p:selectBooleanCheckbox value="#{managedOtherTransfert.docStock.majPr}" >
+                                                    <p:ajax event="valueChange" global="false" />
+                                                </p:selectBooleanCheckbox>
+                                            </h:panelGroup>
+                                            <f:facet name="footer">                                                
+                                                <span style="margin-left: 8px">Description</span>
+                                                <h:inputTextarea value="#{managedOtherTransfert.docStock.description}" style="width: 100%" rows="2"
+                                                                 disabled="#{managedOtherTransfert.docStock.statut != constantes.ETAT_EDITABLE}"/>
+                                            </f:facet>
+                                        </h:panelGrid>
+                                        <p:overlayPanel for="btnOperationES" hideEffect="fade" style="width: 35%">
+                                            <p:dataTable id="data_operation_depot_entree" value="#{managedOtherTransfert.operations}" var="op" rowKey="#{op.id}">
+                                                <p:column headerText="#{lab.L_type}" >
+                                                    <span>#{op.type}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LC_PES_operation}" >
+                                                    <span>#{op.operation}</span>
+                                                </p:column>
+                                            </p:dataTable>
+                                        </p:overlayPanel>
+                                    </p:outputPanel>
+                                </div>
+                                <div style="margin-left: 62%">    
+                                    <p:outputPanel id="desc_artcile_entree_stock" layout="block" style="margin: auto; background: white">
+                                        <h1 style="padding-left: 10px">Détails du produit</h1>
+                                        <div style="float: left; width: 59%; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;
+                                             border-bottom: 2px solid #bbb; padding-left: 10px; padding-bottom: 10px; padding-top: 5px">
+                                            <span style="font-weight: bold;color: #000">
+                                                #{managedOtherTransfert.contenu.article.designation}
+                                            </span>
+                                            <p:outputPanel rendered="#{accesRessource.base_view_article_pua}" layout="block" style="padding-top: 10px; padding-bottom: 10px">
+                                                <h:outputText value="Prix d'achat = " />
+                                                <h:outputText value="#{managedOtherTransfert.contenu.conditionnement.prixAchat}" converter="#{managedOtherTransfert.converter}" style="font-weight: bold;color: #000"/>
+                                                <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                            </p:outputPanel>
+                                            <p:outputPanel rendered="#{accesRessource.base_view_article_puv}" layout="block" style="padding-top: 10px; padding-bottom: 10px">
+                                                <h:outputText value="Prix de vente = " />
+                                                <h:outputText value="#{managedOtherTransfert.contenu.conditionnement.prix}" converter="#{managedOtherTransfert.converter}" style="font-weight: bold;color: #000"/>
+                                                <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                            </p:outputPanel>
+                                            <p:outputPanel rendered="#{accesRessource.base_view_article_pr}" layout="block" style="padding-top: 10px; padding-bottom: 10px">
+                                                <h:outputText value="#{lab.LC_PFA_cout_unitaire_stock} = " />
+                                                <h:outputText value="#{managedOtherTransfert.contenu.article.pr}" converter="#{managedOtherTransfert.converter}"  style="font-weight: bold;color: #000"/>
+                                                <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                            </p:outputPanel>
+                                            <p:outputPanel layout="block" style="padding-top: 10px; padding-bottom: 10px">
+                                                <h:outputText value="#{managedOtherTransfert.contenu.article.stock}" converter="#{managedOtherTransfert.converterStock}" style="font-weight: bold;color: #000"/>
+                                                <h:outputText value=" #{managedOtherTransfert.contenu.conditionnement.unite.reference} #{lab.LC_PFV_en_stock}"/>
+                                            </p:outputPanel>
+                                        </div>
+                                        <div style="margin-left: 61%;" align="center">
+                                            <h:graphicImage id="img_article" style="max-width: 100%;max-height: 180px" value="data:image/#{Marticle.photoArticle(managedOtherTransfert.contenu.article)[1]};base64,#{Marticle.photoArticle(managedOtherTransfert.contenu.article)[0]}"/>
+                                        </div>                                        
+                                    </p:outputPanel>    
+                                    <p:outputPanel id="chp_entree_stock_net_a_payer" layout="block" style="background: #FFF;padding-top:-5px">
+                                        <h:panelGrid columns="1" style="font-size: 0.9em;width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                            <h:outputText value="#{accesRessource.gescom_entree_view_totaux?'Total :':'---'}"/>
+                                            <h:outputText value="---" rendered="#{!accesRessource.gescom_entree_view_totaux}"/>
+                                            <h:panelGroup rendered="#{accesRessource.gescom_entree_view_totaux}">
+                                                <h:outputText value="#{managedOtherTransfert.docStock.montantTotal}" converter="#{managedOtherTransfert.converter}" style="color: dodgerblue;font-weight: bold"/>       
+                                                <span style="font-size: 0.8em">#{managedOtherTransfert.currentScte.devise}</span>
+                                            </h:panelGroup>  
+                                        </h:panelGrid>  
+                                    </p:outputPanel>
+                                </div>
+                            </p:outputPanel>
+                            <h:panelGrid class="headline_data" columns="2" styleClass="yvs_nostyle" style="width: 100%">
+                                <b><span> #{lab.LC_PES_contenus}</span></b>
+                            </h:panelGrid> 
+                            <h:panelGrid id="blog_form_contenu_entree_stock" columns="1" style="width: 100%; border: none" styleClass="yvs_table">
+                                <f:facet name="header">
+                                    <div class="zone_editPC" >
+                                        <p:focus id="fcs_article_entree_stock" for="txt_article_entree_stock"/>
+                                        <h:panelGrid id="form_contenu_entree_stock" columns="1" style="width: 100%;background: white;border: 2px solid #045491!important; border-radius: 5px; font-size: 0.9em" cellpadding="0" cellspacing="0">  
+                                            <h:panelGrid columns="#{managedOtherTransfert.contenu.article.requiereLot?'8':'7'}" styleClass="yvs_nostyle" style="font-size: 0.9em" cellpadding="0" cellspacing="0">  
+                                                <h:outputText value="#{lab.L_article}" style="margin-left: #{managedOtherTransfert.contenu.id gt 0 ? '50px': '0px'}"/>
+                                                <h:outputText value="#{lab.L_conditionnement}"/>
+                                                <h:outputText value="#{lab.L_quantite}" />
+                                                <h:outputText value="#{lab.L_prix}"/>
+                                                <h:outputText value="#{lab.LC_PES_maj_pr}" title="#{lab.LC_PES_maj_prix_moyen}"/>
+                                                <h:outputText value="#{lab.LC_PES_lot}"  rendered="#{managedOtherTransfert.contenu.article.requiereLot}"/>
+                                                <h:outputText value="#{lab.L_total}"/>
+                                                <h:outputText value=""/>     
+                                                <h:panelGroup>
+                                                    <h:outputText value="#{managedOtherTransfert.contenu.id}" rendered="#{managedOtherTransfert.contenu.id gt 0}" style="font-weight: bold" styleClass="style_identifiant"/>
+                                                    <h:inputText id="txt_article_entree_stock" value="#{managedOtherTransfert.contenu.article.refArt}" style="color: #{managedOtherTransfert.contenu.article.error?'red':''}" tabindex="10">
+                                                        <p:ajax event="valueChange" listener="#{managedOtherTransfert.searchArticle()}" update="form_contenu_entree_stock desc_artcile_entree_stock"/>
+                                                    </h:inputText>    
+                                                    <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.L_liste_article}" global="false"
+                                                                     actionListener="#{managedOtherTransfert.initArticles()}" oncomplete="dlgListArticle.show()"/>
+                                                </h:panelGroup>
+                                                <h:selectOneMenu value="#{managedOtherTransfert.contenu.conditionnement.id}" style="min-width: 120px" title="#{lab.LC_PES_selectionnner_conditionnement}" tabindex="15">
+                                                    <f:selectItem itemLabel="--" itemValue="0"/>
+                                                    <f:selectItems value="#{managedOtherTransfert.contenu.article.conditionnements}" var="un" 
+                                                                   itemLabel="#{un.unite.reference}" itemValue="#{un.id}"/>
+                                                    <p:ajax event="valueChange" listener="#{managedOtherTransfert.chooseConditionnement()}" update="desc_artcile_entree_stock txt_prix_contenu_entree_stock_1 txt_total_contenu_entree_stock"/>
+                                                </h:selectOneMenu>
+                                                <pe:inputNumber value="#{managedOtherTransfert.contenu.quantite}" tabindex="20" style="width: 100px;text-align: right">
+                                                    <p:ajax event="blur" global="false" listener="#{managedOtherTransfert.calculePrixTotal()}" update="txt_total_contenu_entree_stock"/>
+                                                </pe:inputNumber>
+                                                <pe:inputNumber id="txt_prix_contenu_entree_stock_1" value="#{managedOtherTransfert.contenu.prix}" tabindex="30" style="width: 100px;text-align: right">
+                                                    <p:ajax event="blur" global="false" listener="#{managedOtherTransfert.calculePrixTotal()}" update="txt_total_contenu_entree_stock"/>
+                                                </pe:inputNumber>
+                                                <p:selectBooleanCheckbox value="#{managedOtherTransfert.contenu.calculPr}"> 
+                                                    <p:ajax event="valueChange" global="false"/>
+                                                </p:selectBooleanCheckbox>
+                                                <h:inputText id="select_lot_entree_stock" value="#{managedOtherTransfert.contenu.lotSortie.numero}" style="color: #{managedOtherTransfert.contenu.lotSortie.id lt 1?'red':''}"
+                                                             rendered="#{managedOtherTransfert.contenu.article.requiereLot}">
+                                                    <p:ajax event="valueChange" listener="#{managedOtherTransfert.findLotReception(managedOtherTransfert.contenu)}" update="@this"/>
+                                                </h:inputText>
+                                                <h:panelGroup>
+                                                    <h:inputText id="txt_total_contenu_entree_stock" value="#{managedOtherTransfert.contenu.prixTotal}" readonly="true" tabindex="40" style="width: 150px;text-align: right"
+                                                                 converter="#{managedOtherTransfert.converter}"/>
+                                                    <span style="font-size: 0.8em">#{managedFactureAchat.currentScte.devise}</span>
+                                                </h:panelGroup>
+                                                <p:commandButton id="save_contenu_entree_stock" icon="ui-icon-circle-plus" value="Ajouter" oncomplete="collapseForm('contenu_entree_stock')"
+                                                                 update="form_contenu_entree_stock data_contenu_entree_stock fcs_article_entree_stock" actionListener="#{managedOtherTransfert.saveNewContenu()}" tabindex="25"/>
+                                            </h:panelGrid>  
+                                        </h:panelGrid>  
+                                    </div>
+                                </f:facet>
+                                <p:outputPanel>
+                                    <h:inputHidden id="input_hide_contenu_entree_stock" value="#{managedOtherTransfert.tabIds_contenu}"/>
+                                    <p:dataTable id="data_contenu_entree_stock" value="#{managedOtherTransfert.docStock.contenus}" var="artf" rowKey="#{artf.id}" 
+                                                 rowIndexVar="artfIdx" selection="#{managedOtherTransfert.selectContenus}" style="font-size: 0.9em">
+                                        <p:ajax event="rowSelect" listener="#{managedOtherTransfert.loadOnViewContenu}"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedOtherTransfert.unLoadOnViewContenu}"/>
+                                        <p:column headerText="N°" style="width: 30px">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{artf.new_}"/>
+                                            <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                                #{artfIdx+1}
+                                            </span>
+                                        </p:column>
+                                        <p:column headerText="ID" style="width: 30px">
+                                            <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                                #{artf.id}
+                                            </span>
+                                        </p:column>
+                                        <p:column  headerText="#{lab.L_reference}" style="width: 15%">
+                                            <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                                #{artf.article.refArt}
+                                            </span>
+                                            <h:graphicImage library="img" name="comment.png" width="15" height="15" rendered="#{artf.onComment}" style="float: right" title="a été commenté"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_article}">
+                                            <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                                #{artf.article.designation}
+                                            </span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LC_PES_lot}" style="text-align: center;width: 10%" rendered="#{managedOtherTransfert.currentParam.useLotReception}">
+                                            <span >#{artf.lotEntree.numero}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_quantite}" style="text-align: right;width: 10%">
+                                            <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                                <h:outputText value="#{artf.quantite}" converter="#{managedOtherTransfert.converterStock}"/>
+                                            </span>
+                                            <span title="#{artf.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{artf.conditionnement.unite.reference}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_prix}" style="text-align: right;width: 10%">
+                                            <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                                <h:outputText value="#{artf.prix}" converter="#{managedOtherTransfert.converter}"/>
+                                            </span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LC_PES_montant_total}" style="text-align: right;width: 12%" rendered="#{accesRessource.gescom_entree_view_totaux}">
+                                            <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                                <h:outputText value="#{artf.prixTotal}" converter="#{managedOtherTransfert.converter}"/>
+                                            </span>
+                                        </p:column>
+                                        <p:column style="text-align: center;width: 30px">
+                                            <p:commandLink style="width: 80%" styleClass="contenu contenu_#{artf.statut}" actionListener="#{managedOtherTransfert.changeStatutLine(artf)}" global="false"
+                                                           value="#{artf.statut}" title="Statut : #{managedOtherTransfert.giveNameStatut(artf.statut)}" update="data_contenu_entree_stock"/>
+                                        </p:column>
+                                        <p:column style="width: 20px;text-align: center">
+                                            <f:facet name="header">
+                                                <p:contextMenu for="btn_option_head_contenu_entree_stock" event="left click" style="font-size: 0.8em;width: 220px">
+                                                    <p:menuitem id="menu-search_contenu_es" value="#{lab.LC_PES_recherche}" icon="ui-icon-search" global="false"/>
+                                                    <p:separator style="width: 98%;margin: auto"/>
+                                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedLivraisonVente.deleteBeanArticles(false)}"/>
+                                                </p:contextMenu>
+                                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_head_contenu_entree_stock" type="button"/>
+                                                <p:overlayPanel for="menu-search_contenu_es" hideEffect="fade" style="width: 200px;background: black;color: white">
+                                                    <h:inputText value="#{managedOtherTransfert.articleContenu}" style="width:100%">
+                                                        <p:ajax event="blur" listener="#{managedOtherTransfert.findContenusByArticle()}" update="data_contenu_entree_stock"/>
+                                                    </h:inputText>
+                                                </p:overlayPanel>
+                                            </f:facet>
+                                            <p:contextMenu for="btn_option_contenu_entree_stock" event="left click" style="font-size: 0.8em;width: 200px" styleClass="context_menu">
+                                                <p:menuitem value="#{lab.LC_PES_commentaire}" icon="ui-icon-comment" global="false" actionListener="#{managedOtherTransfert.addCommentaireContenu(artf)}" oncomplete="dlgAddCommentaire.show()"/>
+                                                <p:menuitem value="#{artf.calculPr?'Désactiver':'Activer'} le calcul du pr" icon="#{artf.calculPr?'ui-icon-pause':'ui-icon-play'}"
+                                                            actionListener="#{managedOtherTransfert.changeCalculPr(artf)}" update="data_contenu_entree_stock"/>
+                                                <p:menuitem value="#{(artf.statut==constantes.ETAT_EDITABLE)?'Valider':'Editable'}" icon="#{(artf.statut==constantes.ETAT_EDITABLE)?'ui-icon-circle-check':'ui-icon-circle-close'}" 
+                                                            actionListener="#{managedOtherTransfert.toogleCancelContentDoc(artf)}" update="data_contenu_entree_stock"/>
+                                                <p:menuitem value="#{lab.LC_PES_modifier_prix}" icon="ui-icon-refresh"  actionListener="#{managedOtherTransfert.updatePrix_(artf)}" /> 
+                                                <p:separator />
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedOtherTransfert.deleteBeanContenu_(artf)}" oncomplete="dlgConfirmDeleteArticle_.show()"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_entree_stock" type="button"/>
+                                        </p:column> 
+                                        <p:column selectionMode="multiple" style="width:16px;text-align:center"/>  
+                                    </p:dataTable>
+                                </p:outputPanel>
+                            </h:panelGrid>                                                            
+                        </h:panelGrid>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_entree_stock" style="width: 100%; margin: auto">
+                    <div class="part_list">
+                        <p:contextMenu for="data_entree_stock" event="left click" styleClass="context_menu"> 
+                            <p:menuitem icon="ui-icon-grip-solid-horizontal" value="#{lab.LC_PES_supprimer_doublons}" actionListener="#{managedOtherTransfert.removeDoublon()}" global="false"/>
+                        </p:contextMenu>
+                        <p:dataTable id="data_entree_stock" value="#{managedOtherTransfert.documents}" var="bon" rowKey="#{bon.id}" 
+                                     rowIndexVar="bonIdx" selectionMode="single" selection="#{managedOtherTransfert.selectDoc}"
+                                     paginator="true" rows="100" paginatorAlwaysVisible="false">
+                            <p:ajax event="rowSelect"  listener="#{managedOtherTransfert.loadOnView}" update=":main_entree_stock:input_hide_entree_stock"
+                                    oncomplete="collapseForm('entree_stock');collapseForm('contenu_entree_stock');collapseForm('cout_entree_stock')"/>
+                            <p:ajax event="rowToggle" listener="#{managedOtherTransfert.displayContent(bon)}" global="false"/>   
+                            <p:column width="30" >
+                                <p:rowToggler/>
+                            </p:column>         
+                            <p:column headerText="N°" style="width: 7%" styleClass="statut_#{bon.statut}">
+                                <h:graphicImage title="#{lab.L_cloturer}" library="img" name="blocked.png" width="15" height="15" rendered="#{bon.cloturer}"/>      
+                                <span title="#{bon.dateSave.toString()}">#{bonIdx+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" style="width: 15%" styleClass="statut_#{bon.statut}">
+                                <span title="#{bon.dateSave.toString()}">#{bon.numDoc}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_date}" style="width: 10%;text-align: center" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.dateDoc}" converter="DDMMYYYY" title="#{bon.dateSave.toString()}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_depot}" styleClass="statut_#{bon.statut}">
+                                <h:outputText title="#{bon.dateSave.toString()}" value="#{bon.destination.designation}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PES_creneau}" styleClass="statut_#{bon.statut}">
+                                <h:outputText value="#{bon.creneauDestinataire.semiReference}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PES_nature}" style="width: 14%" styleClass="statut_#{bon.statut}">
+                                <span title="#{bon.dateSave.toString()}">#{bon.nature}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PES_numero_externe}" styleClass="statut_#{bon.statut}" sortBy="#{bon.numPiece}">
+                                <span>#{bon.numPiece}</span>
+                            </p:column>
+                            <p:column width="20" style="text-align: center" styleClass="statut_#{bon.statut}">
+                                <p:contextMenu for="btn_option_entree_stock" event="left click" style="font-size: 0.8em" styleClass="context_menu">
+                                    <p:menuitem value="#{bon.cloturer?'Dévérrouiller':'Vérrouiller'}" icon="#{bon.cloturer?'ui-icon-unlocked':'ui-icon-locked'}" 
+                                                global="false" actionListener="#{managedOtherTransfert.cloturer(bon)}"  oncomplete="dlgConfirmClose.show()"/>
+                                    <p:menuitem value="#{lab.LC_PES_supprimer_doublons}" icon="ui-icon-grip-solid-horizontal" actionListener="#{managedOtherTransfert.removeDoublon(bon)}" global="false"
+                                                title="#{lab.LC_PES_suppression_articles_doublons_fiche}"/>
+                                    <p:menuitem value="Valider" icon="ui-icon-check" actionListener="#{managedOtherTransfert.validerOrderOne(bon, true, true)}" update="data_entree_stock"/>  
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedOtherTransfert.setSelectDoc(bon)}" oncomplete="dlgPrint.show()"/>
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedOtherTransfert.deleteBean_(bon)}" oncomplete="dlgConfirmDelete_.show()"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_entree_stock" type="button"/>
+                            </p:column> 
+                            <p:column width="25" style="text-align: center" styleClass="statut_#{bon.statut}">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_entree_stock" value="false"
+                                                             onclick="selectionAllLineTab(#{managedOtherTransfert.documents.size()}, 'entree_stock')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="#{bon.selectActif}" styleClass="chek_line_entree_stock" title="#{bon.dateSave.toString()}" 
+                                                          onclick="selectionLineTab(#{bonIdx}, 'entree_stock')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                            <p:rowExpansion>
+                                <p:dataTable id="dt_row_ex_#{bon.id}" value="#{bon.contenus}" var="artf" rowKey="#{artf.id}" rowIndexVar="artfIdx">
+                                    <p:column headerText="N°" style="width: 30px">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{artf.new_}"/>
+                                        <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                            #{artfIdx+1}
+                                        </span>
+                                    </p:column>
+                                    <p:column headerText="ID" style="width: 30px">
+                                        <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                            #{artf.id}
+                                        </span>
+                                    </p:column>
+                                    <p:column  headerText="#{lab.L_reference}" style="width: 15%">
+                                        <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                            #{artf.article.refArt}
+                                        </span>
+                                        <h:graphicImage library="img" name="comment.png" width="15" height="15" rendered="#{artf.onComment}" style="float: right" title="a été commenté"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_article}">
+                                        <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                            #{artf.article.designation}
+                                        </span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PES_lot}" style="text-align: center;width: 10%" rendered="#{managedOtherTransfert.currentParam.useLotReception}">
+                                        <span >#{artf.lotEntree.numero}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_quantite}" style="text-align: right;width: 10%">
+                                        <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                            <h:outputText value="#{artf.quantite}" converter="#{managedOtherTransfert.converterStock}"/>
+                                        </span>
+                                        <span title="#{artf.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{artf.conditionnement.unite.reference}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_prix}" style="text-align: right;width: 10%">
+                                        <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                            <h:outputText value="#{artf.prix}" converter="#{managedOtherTransfert.converter}"/>
+                                        </span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PES_montant_total}" style="text-align: right;width: 12%" rendered="#{accesRessource.gescom_entree_view_totaux}">
+                                        <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                            <h:outputText value="#{artf.prixTotal}" converter="#{managedOtherTransfert.converter}"/>
+                                        </span>
+                                    </p:column>
+                                    <p:column style="text-align: center;width: 30px">
+                                        <p:commandLink style="width: 80%" styleClass="contenu contenu_#{artf.statut}" actionListener="#{managedOtherTransfert.changeStatutLine(artf)}" global="false"
+                                                       value="#{artf.statut}" title="Statut : #{managedOtherTransfert.giveNameStatut(artf.statut)}" update="data_contenu_entree_stock"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:rowExpansion>
+                        </p:dataTable>   
+                        <span class="nbSelectentree_stock" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                            <p:commandButton actionListener="#{managedOtherTransfert.init(false)}"  update="data_entree_stock" icon="ui-icon-circle-triangle-w" disabled="#{managedOtherTransfert.paginator.disPrev}"/>
+                            <p:outputPanel >
+                                <p:inplace label="#{managedOtherTransfert.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                    <pe:inputNumber value="#{managedOtherTransfert.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                        <p:ajax event="blur" listener="#{managedOtherTransfert.gotoPagePaginator()}" update="data_entree_stock"/>
+                                    </pe:inputNumber>
+                                </p:inplace><p:outputLabel value="/#{managedOtherTransfert.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                            </p:outputPanel>
+                            <p:commandButton actionListener="#{managedOtherTransfert.init(true)}" update="data_entree_stock" icon="ui-icon-circle-triangle-e" disabled="#{managedOtherTransfert.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{managedOtherTransfert.nbMax}" label="Nombre max Résultat" valueChangeListener="#{managedOtherTransfert.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{managedOtherTransfert.paginations}"/>
+                                <p:ajax event="valueChange"  update="data_entree_stock"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel> 
+                    </div>
+                </div> 
+                <div class="yvs_grid_entree_stock" style="width: 100%; margin: auto">
+                    <div class="part_list">
+                        <p:dataTable id="data_contenus_entree_stock" value="#{managedOtherTransfert.all_contenus}" var="artf" rowKey="#{artf.id}" 
+                                     rowIndexVar="artfIdx" selectionMode="single" style="font-size: 0.9em">
+                            <p:ajax event="rowSelect" global="false" listener="#{managedOtherTransfert.loadOnViewContent}"  oncomplete="collapseForm('entree_stock');collapseForm('contenu_entree_stock');collapseForm('cout_entree_stock')"/>
+                            <p:column headerText="N°" style="width: 30px" styleClass="statut_#{artf.statut}">
+                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{artf.new_}"/>
+                                <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                    #{artfIdx+1}
+                                </span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" style="width: 12%;" styleClass="statut_#{artf.statut}">
+                                <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                    #{artf.article.refArt}
+                                </span>
+                                <h:graphicImage library="img" name="comment.png" width="15" height="15" rendered="#{artf.onComment}" style="float: right" title="a été commenté"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_article}" styleClass="statut_#{artf.statut}">
+                                <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                    #{artf.article.designation}
+                                </span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PES_lot}" style="text-align: center;width: 10%" rendered="#{managedOtherTransfert.currentParam.useLotReception}">
+                                <span >#{artf.lotEntree.numero}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_quantite}" style="text-align: right;width: 10%" styleClass="statut_#{artf.statut}">
+                                <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                    <h:outputText value="#{artf.quantite}" converter="#{managedOtherTransfert.converterStock}"/>
+                                </span>
+                                <span title="#{artf.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{artf.conditionnement.unite.reference}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_prix}" style="text-align: right;width: 10%" styleClass="statut_#{artf.statut}">
+                                <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                    <h:outputText value="#{artf.prix}" converter="#{managedOtherTransfert.converter}"/>
+                                </span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PES_document}" style="width: 10%;" styleClass="statut_#{artf.statut}">
+                                <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                    #{artf.docStock.numDoc}
+                                </span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_depot}" style="width: 12%;" styleClass="statut_#{artf.statut}">
+                                <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                    #{artf.docStock.destination.designation}
+                                </span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PES_montant_total}" style="text-align: right;width: 10%" styleClass="statut_#{artf.statut}">
+                                <span title="#{managedOtherTransfert.currentParam.useLotReception ? managedOtherTransfert.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lotEntree.numero)}" >
+                                    <h:outputText value="#{artf.prixTotal}" converter="#{managedOtherTransfert.converter}"/>
+                                </span>
+                            </p:column>
+                        </p:dataTable>
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                            <p:commandButton actionListener="#{managedOtherTransfert.loadContenus(false, false)}" global="false" update="data_contenus_entree_stock" icon="ui-icon-circle-triangle-w" disabled="#{managedOtherTransfert.p_contenu.disPrev}"/>
+                            <p:outputPanel >
+                                <p:inplace label="#{managedOtherTransfert.p_contenu.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                    <pe:inputNumber value="#{managedOtherTransfert.p_contenu.page}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                        <p:ajax event="valueChange" listener="#{managedOtherTransfert.gotoPagePaginatorContenu()}" update="data_contenus_entree_stock"/>
+                                    </pe:inputNumber>
+                                </p:inplace><p:outputLabel value="/#{managedOtherTransfert.p_contenu.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                            </p:outputPanel>
+                            <p:commandButton actionListener="#{managedOtherTransfert.loadContenus(true, false)}" global="false" update="data_contenus_entree_stock" icon="ui-icon-circle-triangle-e" disabled="#{managedOtherTransfert.p_contenu.disNext}"/>
+                            <p:selectOneMenu value="#{managedOtherTransfert.p_contenu.rows}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedOtherTransfert.choosePaginatorContenu}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{managedOtherTransfert.paginations}"/>
+                                <p:ajax event="valueChange" global="false" update="data_contenus_entree_stock" />
+                            </p:selectOneMenu>
+                        </p:outputPanel> 
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false"  >            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="cacher"/>  
+            <div class="zone_find">
+                <div class="yvs_form_entree_stock display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedOtherTransfert.selectDoc.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedOtherTransfert.selectDoc.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedOtherTransfert.selectDoc.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <div id="zone_search_entree_stock">
+                    <h:panelGrid  columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                        <h:panelGrid columns="7" style="float: left; font-size: 1.0em" id="entree_fiche_zone_search" cellpadding="0" cellspacing="0">
+                            <span>&nbsp;</span>
+                            <h:panelGroup>
+                                <h:selectBooleanCheckbox value="#{managedOtherTransfert.date_}">
+                                    <p:ajax event="valueChange" listener="#{managedOtherTransfert.chooseDateSearch()}" update="blog_date_search_entree_stock :main_entree_stock:data_entree_stock" oncomplete="collapseList('entree_stock')"/>
+                                </h:selectBooleanCheckbox>
+                                <h:outputText value="#{lab.L_date}" />
+                            </h:panelGroup>
+                            <h:outputText value="#{lab.L_agence}" />
+                            <h:outputText value="#{lab.L_depot}" />
+                            <h:panelGroup>
+                                <h:outputText value="#{lab.L_statut}" style="float:left;margin-top: 2px"/>
+                                <h:selectOneMenu value="#{managedOtherTransfert.egaliteStatut}" style="float:right;margin-right: 5px;">
+                                    <f:selectItem itemLabel="#{lab.L_egale}" itemValue="="/>
+                                    <f:selectItem itemLabel="#{lab.L_different}" itemValue="!="/>
+                                    <p:ajax event="valueChange" update=":main_entree_stock:data_entree_stock" listener="#{managedOtherTransfert.addParamStatut()}" oncomplete="collapseList('entree_stock')"/>
+                                </h:selectOneMenu>  
+                            </h:panelGroup>
+                            <h:outputText value="#{lab.L_reference}" />
+                            <h:outputText value="" />
+                            <p:commandButton icon="ui-icon-bullet" update="entree_fiche_zone_search :main_entree_stock:data_entree_stock" style="width: 22px; height: 22px" actionListener="#{managedOtherTransfert.clearParams()}"/>
+                            <h:panelGroup id="blog_date_search_entree_stock">
+                                <p:calendar value="#{managedOtherTransfert.dateDebut_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOtherTransfert.date_}" size="10" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedOtherTransfert.chooseDateSearch()}" update=":main_entree_stock:data_entree_stock" oncomplete="collapseList('entree_stock')"/>
+                                </p:calendar>
+                                <p:spacer width="5px" style="background: black"/>
+                                <p:calendar value="#{managedOtherTransfert.dateFin_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOtherTransfert.date_}" size="10" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedOtherTransfert.chooseDateSearch()}" update=":main_entree_stock:data_entree_stock" oncomplete="collapseList('entree_stock')"/>
+                                </p:calendar>
+                            </h:panelGroup>
+                            <h:selectOneMenu value="#{managedOtherTransfert.agence_}" style="min-width: 120px">
+                                <f:selectItems value="#{managedAgence.listAgence}" var="ag"
+                                               itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                                <p:ajax event="valueChange" listener="#{managedOtherTransfert.chooseAgenceSearch()}" update="search-select_depot_entree_stock" oncomplete="collapseList('entree_stock')"/>
+                            </h:selectOneMenu>
+                            <h:selectOneMenu value="#{managedOtherTransfert.depotSearch}" style="min-width: 120px" id="search-select_depot_entree_stock">
+                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                <f:selectItems value="#{managedDepot.depots_all}" var="depS" itemLabel="#{depS.designation}" itemValue="#{depS.id}" />                                 
+                                <p:ajax event="valueChange" listener="#{managedOtherTransfert.chooseDepotSearch()}" oncomplete="collapseList('entree_stock')"/>
+                            </h:selectOneMenu> 
+                            <h:selectOneMenu value="#{managedOtherTransfert.statut_}"  valueChangeListener="#{managedOtherTransfert.chooseStatut}" style="min-width: 120px">
+                                <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                                <f:selectItem itemLabel="#{lab.L_editable}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                                <f:selectItem itemLabel="#{lab.L_annuler}" itemValue="#{constantes.ETAT_ANNULE}"/>
+                                <f:selectItem itemLabel="#{lab.L_valider}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                                <p:ajax event="valueChange" update=":main_entree_stock:data_entree_stock" oncomplete="collapseList('entree_stock')"/>
+                            </h:selectOneMenu>
+                            <h:inputText value="#{managedOtherTransfert.numSearch_}">
+                                <p:ajax event="valueChange" listener="#{managedOtherTransfert.searchByNum()}" oncomplete="collapseList('entree_stock')"/>
+                            </h:inputText>
+                            <p:splitButton value="#{lab.L_rechercher}" actionListener="#{managedOtherTransfert.loadAllTransfert(true, true)}" icon="ui-icon-search">
+                                <p:menuitem value="Plus d'options" icon="ui-icon-plus" onclick="dlgPlusOption.show()"  global="false"/>
+                                <p:menuitem value="Analyser" icon="ui-icon-search" oncomplete="dlgAnalyseQuery.show()"
+                                            actionListener="#{managedOtherTransfert.setInstance(managedOtherTransfert)}"/>
+                            </p:splitButton>
+                        </h:panelGrid>
+                        <h:panelGroup style="float: right"> 
+                            <p:commandLink onclick="dlgCleanStock.show()" global="false" style="border: 2px solid black; border-radius: 5px;padding: 3px;" title="#{lab.LC_PES_nettoyage_stock}">
+                                <h:graphicImage library="img" name="clean.png" width="15" height="18"/>  
+                            </p:commandLink>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                </div>
+                <div id="zone_find_entree_stock">
+                    <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                        <h:panelGrid columns="6" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                            <h:panelGroup>
+                                <h:selectBooleanCheckbox value="#{managedOtherTransfert.dateContenu}" style="float: left;margin-left: 5px">
+                                    <p:ajax event="valueChange" listener="#{managedOtherTransfert.findByDateContenu()}" oncomplete="collapseGrid('entree_stock')"
+                                            update="blog_date_search_entree_stock_"/>
+                                </h:selectBooleanCheckbox>
+                                <h:outputText value="#{lab.L_date}" />
+                            </h:panelGroup>
+                            <h:outputText value="#{lab.L_agence}" />
+                            <h:outputText value="#{lab.L_depot}" />
+                            <h:outputText value="#{lab.L_article}" />
+                            <h:outputText value="#{lab.L_statut}" />
+                            <h:outputText value="#{lab.L_reference}" />
+                            <h:panelGroup id="blog_date_search_entree_stock_">
+                                <p:calendar value="#{managedOtherTransfert.dateDebutContenu}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOtherTransfert.dateContenu}" size="10" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedOtherTransfert.addParamDateContenu}" oncomplete="collapseGrid('entree_stock')"/>
+                                </p:calendar>
+                                <p:spacer width="5px" style="background: black"/>
+                                <p:calendar value="#{managedOtherTransfert.dateFinContenu}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOtherTransfert.dateContenu}" size="10" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedOtherTransfert.addParamDateContenu}" oncomplete="collapseGrid('entree_stock')"/>
+                                </p:calendar>
+                            </h:panelGroup> 
+                            <h:selectOneMenu value="#{managedOtherTransfert.agenceContenu}" style="min-width: 120px">
+                                <f:selectItems value="#{managedAgence.listAgence}" var="ag"
+                                               itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                                <p:ajax event="valueChange" listener="#{managedOtherTransfert.addParamAgenceSearch()}" update="search-select_depot_entree_stock_contenu" oncomplete="collapseGrid('entree_stock')"/>
+                            </h:selectOneMenu>
+                            <h:selectOneMenu value="#{managedOtherTransfert.depotContenu}" id="search-select_depot_entree_stock_contenu" style="min-width: 120px">
+                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                <f:selectItems value="#{managedDepot.depots_all}" var="depS" itemLabel="#{depS.designation}" itemValue="#{depS.id}" />                                 
+                                <p:ajax event="valueChange" listener="#{managedOtherTransfert.addParamDepotSearch()}" oncomplete="collapseGrid('entree_stock')"
+                                        update=":main_entree_stock:data_entree_stock"/>
+                            </h:selectOneMenu> 
+                            <h:inputText value="#{managedOtherTransfert.article}" style="min-width: 120px">
+                                <p:ajax event="valueChange" listener="#{managedOtherTransfert.addParamArticle()}" oncomplete="collapseGrid('entree_stock')"/>
+                            </h:inputText>
+                            <h:selectOneMenu value="#{managedOtherTransfert.statutContenu}" style="min-width: 120px">
+                                <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                                <f:selectItem itemLabel="#{managedOtherTransfert.giveNameStatut(constantes.ETAT_VALIDE)}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                                <f:selectItem itemLabel="#{managedOtherTransfert.giveNameStatut(constantes.ETAT_EDITABLE)}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                                <f:selectItem itemLabel="#{managedOtherTransfert.giveNameStatut(constantes.ETAT_ANNULE)}" itemValue="#{constantes.ETAT_ANNULE}"/>
+                                <p:ajax event="valueChange" listener="#{managedOtherTransfert.addParamStatuts()}" oncomplete="collapseGrid('entree_stock')"/>
+                            </h:selectOneMenu>
+                            <h:inputText value="#{managedOtherTransfert.reference}">
+                                <p:ajax event="valueChange" listener="#{managedOtherTransfert.addParamReference()}" oncomplete="collapseGrid('entree_stock')"/>
+                            </h:inputText>
+                        </h:panelGrid>
+                        <h:panelGroup style="float: right">
+                            <p:contextMenu for="btn_option_search_entree_contenu_stock" event="left click" style="font-size: 0.8em;width: 230px">
+                                <p:menuitem value="#{lab.LC_PES_listtings}" icon="ui-icon-print" title="Télécharger le listing des entrees"
+                                            actionListener="#{managedOtherTransfert.printListing()}" ajax="false"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_search_entree_contenu_stock" type="button"/>
+                        </h:panelGroup>
+                    </h:panelGrid>  
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

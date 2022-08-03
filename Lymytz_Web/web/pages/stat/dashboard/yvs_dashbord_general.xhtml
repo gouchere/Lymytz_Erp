@@ -1,0 +1,259 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Tableaux de bord','modStat', 'smenDashBoardStat', true)}
+    </ui:define> 
+    <ui:define name="contents">
+        <script type="text/javascript">
+            var list = false;
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                definedTab();
+            });
+            function definedTab() {
+                definedTabView('tabview', $('#tabNotActive').val(), ($('#nombreEtat').val() > 1 ? (($('body').find('.part_scroll').height()) / 2) - 30 :(($('body').find('.part_scroll').height()) - 30)), 4, 30);
+            }
+        </script> 
+        #{managedBonProvisoire.doNothing()}
+        #{managedFournisseur.doNothing()}
+        #{managedCaisses.doNothing()}
+        #{managedPointVente.doNothing()}
+        #{managedPointLivraison.doNothing()}
+        #{managedClasseStat.doNothing()}
+        #{managedClient.doNothing()}
+        #{managedDepot.doNothing()}
+        #{managedUser.doNothing()}
+        #{managedFamilleArticle.doNothing()}
+        #{managedAgence.loadAgence()}
+        #{managedBordStatistique.loadAll()}
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des clients
+        *****************************************************************************
+        <-->  
+
+        <h:form prependId="false" id="main_parametres_stat">                    
+            <p:dialog header="#{lab.LS_PDG_parametrer_etats_visible}" widgetVar="dlgParametre" closeOnEscape="true" width="50%" modal="true">                            
+                <p:dataTable id="data_parametres_stat" value="#{managedBordStatistique.parametres}" var="prs" rowKey="#{prs.id}" rowIndexVar="pIdx"
+                             paginator="true" rows="15" paginatorAlwaysVisible="false"  rowsPerPageTemplate="15,30,45,60,75,90"
+                             paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+                    <p:column headerText="N°" style="width: 20px">
+                        <span>#{pIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_libelle}" filterBy="#{prs.dashboard.libelle}" styleClass="#{prs.id gt 0?'line_actiftrue':'_'}">
+                        <span>#{prs.dashboard.libelle}</span>
+                    </p:column>     
+                    <p:column headerText="#{lab.L_groupe}" filterBy="#{prs.dashboard.groupe}" styleClass="#{prs.id gt 0?'line_actiftrue':'_'}" style="text-align: center;width: 100px">
+                        <span>#{prs.dashboard.groupe}</span>
+                    </p:column>     
+                    <p:column headerText="#{ab.LMP_PMF_visible}" style="width: 20px;text-align: center">
+                        <p:commandLink title="#{(prs.active)?lab.LRH_PRS_invisible:lab.LMP_PMF_visible}" disabled="#{prs.id lt 1}" oncomplete="definedTab()"
+                                       actionListener="#{managedBordStatistique.activeParametre(prs)}" update="data_parametres_stat :main_resume">
+                            <h:graphicImage library="img"  name="#{(prs.active)?'vu.png':'vu_non.png'}" width="15" height="20"/>
+                        </p:commandLink>
+                    </p:column>                          
+                    <p:column style="text-align: center;width: 20px">
+                        <p:commandButton update="data_parametres_stat :main_resume" icon="#{prs.id gt 0?'ui-icon-circle-minus':'ui-icon-circle-plus'}" 
+                                         style="width: 22px; height: 22px" actionListener="#{managedBordStatistique.actionParametre(prs)}"
+                                         oncomplete="definedTab()" disabled="#{!prs.acces}"/>
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Début du formulaire
+        *****************************************************************************
+        <-->
+        <h:form prependId="false" id="main_resume"> 
+            <p:dialog header="#{lab.L_plus_option}" widgetVar="dlgPlusOption" closeOnEscape="true" width="50%">                            
+                <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:outputText value="#{lab.L_famille} : " rendered="#{managedBordStatistique.addFamille()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.famille}" rendered="#{managedBordStatistique.addFamille()}" style="width: 100%">
+                        <f:selectItem itemValue="#{0}" itemLabel="--"/>
+                        <f:selectItems value="#{managedFamilleArticle.familles}" var="fa_01" itemValue="#{fa_01.id}" itemLabel="#{fa_01.designation}"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.LS_PDG_classe} : " rendered="#{managedBordStatistique.addClasse()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.classe}" rendered="#{managedBordStatistique.addClasse()}" style="width: 100%">
+                        <f:selectItem itemValue="#{0}" itemLabel="--"/>
+                        <f:selectItems value="#{managedClasseStat.classesStat}" var="ca_01" itemValue="#{ca_01.id}" itemLabel="#{ca_01.designation}"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.L_point_vente} : " rendered="#{managedBordStatistique.addPoint()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.point}" rendered="#{managedBordStatistique.addPoint()}" style="width: 100%">
+                        <f:selectItem itemValue="#{0}" itemLabel="--"/>
+                        <f:selectItems value="#{managedPointVente.pointsvente}" var="pv_01" itemValue="#{pv_01.id}" itemLabel="#{pv_01.libelle}"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.LCF_PMV_vendeur} : " rendered="#{managedBordStatistique.addVendeur()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.users}"  rendered="#{managedBordStatistique.addVendeur()}" style="width: 100%">
+                        <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                        <f:selectItems value="#{managedUser.listAllUser}" var="vd" itemLabel="#{vd.nomUsers}" itemValue="#{vd.id}"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.LCF_PMV_client} : " rendered="#{managedBordStatistique.addClient()}"/>
+                    <h:panelGroup id="client-stat_dashboard" rendered="#{managedBordStatistique.addClient()}">
+                        <h:inputText value="#{managedBordStatistique.client.codeClient}" style="color:#{managedBordStatistique.client.error?'red':''}" >
+                            <p:ajax event="valueChange" global="false" listener="#{managedBordStatistique.searchClient()}" update="client-stat_dashboard"/>
+                        </h:inputText> 
+                        <h:outputText value="#{managedBordStatistique.client.nom_prenom}"/>
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.L_depot} : " rendered="#{managedBordStatistique.addDepot()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.depot}" rendered="#{managedBordStatistique.addDepot()}" style="width: 100%">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedDepot.depots_all}" var="depSd" itemLabel="#{depSd.designation}" itemValue="#{depSd.id}" />   
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>   
+                    <h:outputText value="#{lab.LP_PPG_site} : " rendered="#{managedBordStatistique.addSite()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.site}" rendered="#{managedBordStatistique.addSite()}" style="width: 100%">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedSiteProduction.sites}" var="sitS" itemLabel="#{sitS.designation}" itemValue="#{sitS.id}" />   
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.LC_PC_zone} : " rendered="#{managedBordStatistique.addZone()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.zone}" rendered="#{managedBordStatistique.addZone()}" style="width: 100%">
+                        <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                        <f:selectItems value="#{managedPointLivraison.points}" var="ipt" itemLabel="#{ipt.libelle}[#{ipt.ville.libele}]" itemValue="#{ipt.id}"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.L_categorie} : " rendered="#{managedBordStatistique.addCategorie()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.categorie}" rendered="#{managedBordStatistique.addCategorie()}" style="width: 100%">
+                        <f:selectItem itemValue="#{null}" itemLabel="--"/>
+                        <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" /> 
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>  
+                    <h:outputText value=" #{lab.L_article} : " rendered="#{managedBordStatistique.addArticle()}"/>
+                    <h:panelGroup id="blog_bord_article" rendered="#{managedBordStatistique.addArticle()}">
+                        <h:inputText value="#{managedBordStatistique.article.refArt}" style="color: #{managedBordStatistique.article.error?'red':''}">
+                            <p:ajax event="valueChange" global="false" listener="#{managedBordStatistique.searchArticle()}"/>
+                        </h:inputText>
+                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white;margin-top: 5px" title="#{lab.LC_PFV_liste_articles}" global="false"
+                                         onclick="dlgListArticle.show()"/>
+                        <h:selectOneMenu value="#{managedBordStatistique.unite}" style="min-width: 200px">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedBordStatistique.article.conditionnements}" var="cod" itemLabel="#{cod.unite.reference}" itemValue="#{cod.id}" />   
+                            <p:ajax event="valueChange" process="@this" global="false" />
+                        </h:selectOneMenu> 
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.LC_PTBS_grouper_par} : " rendered="#{managedBordStatistique.addGroupeBy()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.groupBy}" rendered="#{managedBordStatistique.addGroupeBy()}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.L_article.toUpperCase()}" itemValue="A" />
+                        <f:selectItem itemLabel="#{lab.L_famille.toUpperCase()}" itemValue="F" />
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.LC_PTBV_cumule} : " rendered="#{managedBordStatistique.addCumule()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.cumule}" rendered="#{managedBordStatistique.addCumule()}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.LC_PTBV_cumule_par} : " rendered="#{managedBordStatistique.addCumulerBy()}"/>
+                    <h:panelGroup rendered="#{managedBordStatistique.addCumulerBy()}">
+                        <h:selectOneMenu value="#{managedBordStatistique.cumulBy}">
+                            <f:selectItem itemLabel="#{lab.LS_PDG_non_cumule}" itemValue="#{0}"/>
+                            <f:selectItem itemLabel="#{lab.L_article}" itemValue="#{1}"/>
+                            <f:selectItem itemLabel="#{lab.LCF_PAC_clients}" itemValue="#{2}"/>
+                            <f:selectItem itemLabel="#{lab.LS_PDG_article_vendeurs}" itemValue="#{3}"/>
+                            <p:ajax event="valueChange" global="false" update="option_type_listing"/>
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu id="option_type_listing" value="#{managedBordStatistique.vueType}" disabled="#{managedBordStatistique.cumulBy ne 1}">
+                            <f:selectItem itemLabel="#{lab.LS_PDG_vue_sous_tableau_simple}" itemValue="#{0}"/>
+                            <f:selectItem itemLabel="#{lab.LS_PDG_vue_sous_tableau_date}" itemValue="#{1}"/>
+                            <f:selectItem itemLabel="#{lab.LS_PDG_vue_sous_tableau_article}" itemValue="#{2}" itemDisabled="#{managedBordStatistique.periode ne null}"/>
+                            <p:ajax event="valueChange" process="@this" global="false" />
+                        </h:selectOneMenu> 
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.LC_PTBV_prix_inferieur} : " rendered="#{managedBordStatistique.addPrixLower()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.typeListing}" rendered="#{managedBordStatistique.addPrixLower()}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.LC_PTBV_rien.toLowerCase()}" itemValue=""/>
+                        <f:selectItem itemLabel="#{lab.LMP_PIE_prix_revient}" itemValue="R"/>
+                        <f:selectItem itemLabel="#{lab.LC_PCC_prix_minimal}" itemValue="M"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.LC_PTBS_valoriser_par} : " rendered="#{managedBordStatistique.addValoriserBy()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.valoriserBy}" rendered="#{managedBordStatistique.addValoriserBy()}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.LC_PTBS_prix_vente}" itemValue="V"/>
+                        <f:selectItem itemLabel="#{lab.LC_PTBS_prix_achat}" itemValue="A"/>
+                        <f:selectItem itemLabel="#{lab.LC_PTBS_prix_revient}" itemValue="R"/>
+                        <f:selectItem itemLabel="#{lab.LC_PTBS_prix_production}" itemValue="P"/>  
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.L_nature} : " rendered="#{managedBordStatistique.addNature()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.nature}" rendered="#{managedBordStatistique.addNature()}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.LC_PTBV_articles}" itemValue="A"/>
+                        <f:selectItem itemLabel="#{lab.LDB_PA_classes.toUpperCase()}" itemValue="C"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.LC_PTBV_par_famille} : " rendered="#{managedBordStatistique.addByFamille()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.byFamille}" rendered="#{managedBordStatistique.addByFamille()}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <h:outputText value="#{lab.LC_PTBV_par_point} : " rendered="#{managedBordStatistique.addByPoint()}"/>
+                    <h:selectOneMenu value="#{managedBordStatistique.byPoint}" rendered="#{managedBordStatistique.addByPoint()}">
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" process="@this" global="false"/>
+                    </h:selectOneMenu> 
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+            <h:inputHidden id="nombreEtat" value="#{managedBordStatistique.nombreEtat}"/>
+            <h:inputHidden id="tabNotActive" value="#{managedBordStatistique.tabNotActive}"/>
+            <div id="tabview">
+                <div class="tabview_top" style="background: black;color: white;width: 100%">
+                    <h:panelGrid columns="5" style="float: left;color: white;font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                        <h:outputText value=""/>
+                        <h:outputText value="#{lab.L_agence}"/>
+                        <h:outputText value="#{lab.L_dates}"/>
+                        <h:outputText value="#{lab.LC_PTBC_periodicite}"/>
+                        <h:outputText value=""/>
+                        <p:commandButton icon="ui-icon-gear" style="background: white!important;height: 26px;width: 26px" oncomplete="dlgParametre.show()"
+                                         actionListener="#{managedBordStatistique.loadParametres()}" update=":main_parametres_stat:data_parametres_stat"/>
+                        <h:selectOneMenu value="#{managedBordStatistique.agence}" style="max-width: 160px">
+                            <f:selectItem itemValue="#{0}" itemLabel="--"/>
+                            <f:selectItems value="#{managedAgence.listAgence}" var="ag_01" itemValue="#{ag_01.id}" itemLabel="#{ag_01.designation}"/>
+                        </h:selectOneMenu>
+                        <h:panelGroup>                                                                            
+                            <p:calendar value="#{managedBordStatistique.dateDebut}" pattern="dd-MM-yyyy" size="8" navigator="true"/>
+                            <p:calendar value="#{managedBordStatistique.dateFin}" pattern="dd-MM-yyyy" size="8" navigator="true"/>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedBordStatistique.periode}">
+                            <f:selectItem itemValue="#{null}" itemLabel="TOUT"/>
+                            <f:selectItem itemValue="J" itemLabel="#{lab.LP_PTB_journalier}"/>
+                            <f:selectItem itemValue="S" itemLabel="#{lab.LP_PTB_hebdomadaire}"/>
+                            <f:selectItem itemValue="M" itemLabel="#{lab.LP_PTB_mensuel}"/>
+                            <f:selectItem itemValue="T" itemLabel="#{lab.LP_PTB_trimistriel}"/>
+                            <f:selectItem itemValue="A" itemLabel="#{lab.LP_PTB_annuel}"/>
+                            <p:ajax event="valueChange" global="false" update="option_type_listing"/>
+                        </h:selectOneMenu>
+                        <p:commandLink style="border: 2px solid white; border-radius: 5px;padding: 2px;color: white" global="false" 
+                                       onclick="dlgPlusOption.show()" disabled="#{!managedBordStatistique.displayMoreOption()}" value="#{lab.L_plus_option}"/>
+                    </h:panelGrid>
+                    <div class="checkbox" style="float: right"/>
+                </div>
+                <div class="tabview_content part_scroll" style="width: 100%">  
+                    <c:forEach id="dashboard"  items="#{managedBordStatistique.dashboards}" var="dash" varStatus="loop">
+                        <f:subview id="thing_#{loop.index}">
+                            <ui:include src="#{dash.page}"/>
+                        </f:subview>
+                    </c:forEach>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

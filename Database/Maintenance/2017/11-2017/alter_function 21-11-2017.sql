@@ -1,0 +1,3 @@
+INSERT INTO yvs_ressources_page(reference_ressource, libelle, description, page_module) VALUES('ra_activer','Activer/Désactiver une ration','Activer ou désactiver une ration',89);
+INSERT INTO yvs_ressources_page(reference_ressource, libelle, description, page_module) VALUES('ra_distribuer','Distribuer une ration','Distribuer une ration',89);
+INSERT INTO yvs_ressources_page(reference_ressource, libelle, description, page_module) VALUES('ra_controle_fiche','Controler une fiche de ration','Controler une fiche de ration',89);

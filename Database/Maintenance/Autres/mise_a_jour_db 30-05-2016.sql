@@ -1,0 +1,3 @@
+- Renommer la table yvs_cout_mission en yvs_grh_cout
+-Ajouter employé à la table mission
+-supprimer de la table mission la colone societe

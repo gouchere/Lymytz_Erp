@@ -1,0 +1,295 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Dépôts','modGescom', 'smenDepotCom', true,managedDepot)}
+    </ui:define>   
+    <ui:define name="contents">
+        #{managedDepot.loadAllEmplacement(true, true)}        
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('emplacement');
+            });
+        </script>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+
+
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddArticleEmplacement" width="80%" header="#{lab.LDB_PE_liste_articles_depot}"  resizable="false"
+                      height="650">                                                                      
+
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddEmplacement" width="40%" header="#{lab.LDB_PE_creer_nouvel_emplacement}" footer="&copy;2014" closeOnEscape="true"
+                      >
+                <h:panelGrid id="form_emplacement_depot" columns="2" style="width: 100%" styleClass="yvs_table"
+                             cellpadding="0" cellspacing="0"> 
+                    <f:facet name="header">
+                        <div align="right">
+                            <span>#{lab.L_defaut} </span>
+                            <h:selectBooleanCheckbox value="#{managedDepot.emplacement.defaut}"/>                                                 
+                        </div>
+                    </f:facet>
+                    <span>#{lab.LDB_PE_depot}</span>
+                    <h:selectOneMenu value="#{managedDepot.emplacement.depot.id}" >
+                        <f:selectItem itemLabel="" itemValue="" />
+                        <f:selectItems value="#{managedDepot.depots_all}" var="idep" itemLabel="#{idep.designation}" itemValue="#{idep.id}" />
+                    </h:selectOneMenu>
+                    <span>#{lab.LDB_PE_code}</span>
+                    <h:inputText value="#{managedDepot.emplacement.code}"/>
+                    <span>#{lab.LDB_PE_designation}</span>
+                    <h:inputText value="#{managedDepot.emplacement.designation}"/>             
+                    <span>#{lab.LDB_PE_parent} </span>
+                    <h:selectOneMenu value="#{managedDepot.emplacement.parent.id}" style="min-width: 200px">
+                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>   
+                        <f:selectItems value="#{managedDepot.emplacementsParents}" var="emplaP" 
+                                       itemLabel="#{emplaP.designation}" itemValue="#{emplaP.id}"/>                           
+                        <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseEmplacementParent()}"/>
+                    </h:selectOneMenu>  
+                </h:panelGrid> 
+                <span>#{lab.LDB_PE_description}</span>
+                <h:inputTextarea value="#{managedDepot.emplacement.description}" id="txt_desc_empl_depot" rows="3" style="width: 100%"/>
+                <div style="margin-top: 5px">
+                    <p:commandButton id="cancel_emplacement_depot" value="Nouveau" style="float: left" oncomplete="collapseForm('emplacement_depot')"
+                                     update="form_emplacement_depot txt_desc_empl_depot" actionListener="#{managedDepot.resetFicheEmplacement()}" global="false"/>
+                    <p:commandButton id="save_emplacement_depot" value="Enregistrer" actionListener="#{managedDepot.saveNewEmplacement(false)}"
+                                     update="form_emplacement_depot txt_desc_empl_depot :main_depot:data_emplacement_depot" style="float: right"/>
+                </div>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgChangeAbbreviation" closeOnEscape="true"
+                             message="#{lab.LDB_PE_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" global="false" actionListener="#{managedDepot.changeAbbreviation()}" oncomplete="dlgChangeAbbreviation.hide()"/>
+                <p:commandButton value="#{lab.L_non}" global="false" actionListener="#{managedDepot.changeAbbreviation_()}" oncomplete="dlgChangeAbbreviation.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteEmplacement_" closeOnEscape="true"
+                         message="#{lab.LDB_PE_text2}" header="#{lab.L_confirmation}">
+            <p:commandButton value="#{lab.L_oui}" actionListener="#{managedDepot.deleteBeanEmplacement_()}" update=":main_depot:data_emplacement_depot"
+                             oncomplete="dlgConfirmDeleteEmplacement_.hide();collapseForm('depot');;collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+            <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteEmplacement_.hide()"/>
+        </p:confirmDialog>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_depot">    
+            <div class="part_fix">
+                <p:commandButton value="#{lab.L_enregistrer}" id="save_depot" actionListener="#{managedDepot.saveNew()}"
+                                 icon="ui-icon-disk"/>
+                <p:commandButton value="#{lab.L_nouveau}" id="cancel_depot" actionListener="#{managedDepot.resetFiche()}" icon="ui-icon-document"
+                                 oncomplete="collapseForm('depot');;collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot');collapseForm('creneau');collapseForm('operation')"/>                     
+                <p:commandButton value="#{lab.L_modifier}" rendered="false" id="update_depot" actionListener="#{managedDepot.updateBean()}" oncomplete="collapseForm('depot');return false"/>
+                <p:commandButton value="#{lab.L_supprimer}" id="delete_depot" onclick="dlgConfirmDelete.show()" global="false"/>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedDepot.parcoursInAllResult(false)}" update="txt_parc_linear_depot"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('depot')"/>
+                    <h:inputText value="#{managedDepot.offset}" style="width: 35px; text-align: center;"  title="Aller au N°..." id="txt_parc_linear_depot"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedDepot.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                    </p:outputPanel>
+                    <p:commandButton actionListener="#{managedDepot.parcoursInAllResult(true)}" update="txt_parc_linear_depot" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('depot')"/>
+                </h:panelGroup>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('depot');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('depot');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_emplacement">                          
+                    <h:inputHidden id="input_hide_emplacement_depot" value="#{managedDepot.tabIds_emplacement}"/>
+                    <div class="w_45 left" >
+                        <p:commandButton styleClass="right" icon="ui-icon-circle-plus" value="#{lab.LDB_PE_creer_emplacement}" 
+                                         onclick="dlgAddEmplacement.show()"/>                    
+                        <p:dataTable id="data_emplacement_depot" value="#{managedDepot.emplacements}" var="empla" rowKey="#{empla.id}" 
+                                     rowIndexVar="emplaIdx" selectionMode="single" style="clear: right">
+                            <p:ajax event="rowSelect"  listener="#{managedDepot.loadArticleEmplacement}" update="@this :main_depot:data_article_emplacement_depot"/>
+                            <p:ajax event="rowUnselect"  listener="#{managedDepot.unLoadOnViewEmplacement}" />
+                            <p:column style="width: 8%" headerText="N°">
+                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{empla.new_}"/>
+                                <span>#{emplaIdx+1}</span>
+                                <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{empla.id eq managedDepot.selectEmplacement.id}"/>
+                            </p:column>
+                            <p:column headerText="Id">
+                                <span>#{empla.id}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PE_code}">
+                                <span>#{empla.code}</span>
+                                <h:graphicImage title="#{lab.LDB_PE_emplacement_principal_depot}" rendered="#{empla.defaut}" library="icones" name="favoris.png" width="18" height="18"  
+                                                styleClass="right"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PE_designation}">
+                                <h:outputText value="#{empla.designation}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PE_depots}">
+                                <h:outputText value="#{empla.depot.designation}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_actif}" style="width: 8%;text-align: center">
+                                <p:commandLink title="#{(empla.actif)?'Desactiver':'Activer'}" global="false" 
+                                               actionListener="#{managedDepot.activeEmplacement(empla)}" update="data_emplacement_depot">
+                                    <h:graphicImage library="img"  name="#{(empla.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                </p:commandLink>
+                            </p:column>
+                            <p:column style="width: 5%;text-align: center">
+                                <p:contextMenu for="btn_option_emplacement_depot" event="left click" style="font-size: 0.8em">
+                                    <p:menuitem value="#{empla.actif?'Désactiver':'Activer'}" icon="#{empla.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" actionListener="#{managedDepot.toogleActiveEmplacement(empla)}" 
+                                                update="data_emplacement_depot"/>
+                                    <p:menuitem value="#{lab.LDB_PE_telecharger_inventaire}" icon="ui-icon-arrowthickstop-1-s" actionListener="#{managedDepot.printInventaire(empla, false)}" ajax="false"/>
+                                    <p:separator/>
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedDepot.deleteBeanEmplacement_(empla)}" 
+                                                oncomplete="dlgConfirmDeleteEmplacement_.show()"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_emplacement_depot" type="button"/>
+                            </p:column> 
+                            <p:column style="width: 5%;text-align: center" rendered="false">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_article_depot" value="false"
+                                                             onclick="selectionAllLineTab(#{managedDepot.emplacements.size()}, 'emplacement_depot')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="#{empla.selectActif}" styleClass="chek_line_article_depot" 
+                                                          onclick="selectionLineTab(#{empla.id}, 'emplacement_depot')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                    <div class="ml_45" >
+                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                            <p:splitButton value="#{lab.L_appliquer}" icon="ui-icon-disk" actionListener="#{managedDepot.applyArticleEmplacement(true)}"
+                                           update="data_article_emplacement_depot">
+                                <p:menuitem value="#{lab.L_appliquer}" actionListener="#{managedDepot.applyArticleEmplacement(true)}"
+                                            update="data_article_emplacement_depot"/>
+                                <p:menuitem value="#{lab.L_retirer}" actionListener="#{managedDepot.applyArticleEmplacement(false)}"
+                                            update="data_article_emplacement_depot"/>
+                            </p:splitButton>
+                            <h:panelGroup styleClass="right">
+                                <p:watermark for="txt_search_art" value="#{lab.LDB_PE_article}..." />
+                                <p:watermark for="txt_search_fart" value="#{lab.LDB_PE_famille_article}..." />
+                                <p:watermark for="txt_search_art" value="#{lab.LDB_PE_article}..." />
+                                <h:inputText title="#{lab.LDB_PE_reference_article}" value="#{managedDepot.refArt}"  id="txt_search_art"
+                                             style="width: 180px;background: #009999;color:white;text-align: center;margin-left: -10px">
+                                    <p:ajax event="valueChange" update="data_article_emplacement_depot" 
+                                            listener="#{managedDepot.loadAFilterByArticle(managedDepot.refArt, managedDepot.refFamille)}"/>
+                                </h:inputText>
+                                <h:inputText title="#{lab.LDB_PE_reference_article}" value="#{managedDepot.refFamille}"  id="txt_search_fart"
+                                             style="width: 180px;background: #009999;color:white;text-align: center;margin-left: -10px">
+                                    <p:ajax event="valueChange" update="data_article_emplacement_depot" 
+                                            listener="#{managedDepot.loadAFilterByArticle(managedDepot.refArt, managedDepot.refFamille)}" />
+                                </h:inputText>
+                            </h:panelGroup>
+                        </h:panelGrid>    
+                        <p:dataTable id="data_article_emplacement_depot" value="#{managedDepot.articles}" var="artf" rowKey="#{artf.id}" 
+                                     rowIndexVar="artfIdx" scrollHeight="650"
+                                     selection="#{managedDepot.selectionsArticles}" liveScroll="true" scrollRows="100" rows="100" scrollable="true" lazy="true">                                 
+                            <p:column width="20" >
+                                <p:commandButton icon="#{artf.emplacement.id gt 0?'ui-icon-minusthick':'ui-icon-plusthick'}" style="width: 22px;height: 22px"
+                                                 actionListener="#{managedDepot.saveNewArticleEmplacement(artf)}" update="data_article_emplacement_depot" global="false"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PE_article}"  styleClass="#{artf.emplacement.id gt 0?'line_actiftrue':'_'}" width="100">
+                                <h:outputText value="#{artf.article.article.refArt}" />
+                            </p:column>                    
+                            <p:column headerText="#{lab.LDB_PE_designation}"  styleClass="#{artf.emplacement.id gt 0?'line_actiftrue':'_'}">
+                                <h:outputText value="#{artf.article.article.designation}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PE_famille}" width="100">
+                                <h:outputText  value="#{artf.article.article.famille.designation}"/>
+                            </p:column>
+                            <p:column selectionMode="multiple" width="20" style="text-align: center"/>
+                        </p:dataTable>
+                    </div>
+                    <p:commandButton id="delete_emplacement_depot" value="#{lab.L_supprimer}" style="float: right" rendered="false"
+                                     onclick="dlgConfirmDeleteEmplacement.show()" global="false"/>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_depot" style="width: 99%; margin: auto; background: white">
+
+                </div>   
+            </div>                
+        </h:form>
+    </ui:define>  
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="cacher"/>  
+            <div class="zone_find">
+                <div class="yvs_form_depot display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedDepot.selectDepot.dateSave}" converter="LD" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedDepot.selectDepot.dateUpdate}" converter="LD" styleClass="valeur" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedDepot.selectDepot.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid  columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="4" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.LDB_PE_agence}" />
+                        <h:outputText value="#{lab.LDB_PE_type}" />
+                        <h:outputText value="#{lab._actif}" />
+                        <h:outputText value="#{lab.LDB_PE_reference}" />
+                        <h:selectOneMenu value="#{managedDepot.agenceSearch}" valueChangeListener="#{managedDepot.addParamAgence}">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                            <p:ajax event="valueChange" oncomplete="collapseList('depot')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedDepot.typeSearch}"  valueChangeListener="#{managedDepot.addParamType}">
+                            <f:selectItem itemLabel="--" itemValue=""/>
+                            <f:selectItem itemLabel="#{constantes.PRODUCTION}" itemValue="#{constantes.PRODUCTION}"/>
+                            <f:selectItem itemLabel="#{constantes.ACHAT}" itemValue="#{constantes.ACHAT}"/>
+                            <f:selectItem itemLabel="#{constantes.VENTE}" itemValue="#{constantes.VENTE}"/>
+                            <f:selectItem itemLabel="#{constantes.TRANSFERT}" itemValue="#{constantes.TRANSFERT}"/>
+                            <f:selectItem itemLabel="#{constantes.RESERVATION}" itemValue="#{constantes.RESERVATION}"/>
+                            <f:selectItem itemLabel="#{constantes.TECHNIQUE}" itemValue="#{constantes.TECHNIQUE}"/>
+                            <f:selectItem itemLabel="#{constantes.RETOUR}" itemValue="#{constantes.RETOUR}"/>
+                            <p:ajax event="valueChange" oncomplete="collapseList('depot')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedDepot.actifSearch}" valueChangeListener="#{managedDepot.addParamActif}">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" oncomplete="collapseList('depot')"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedDepot.codeSearch}" style="width: 140px">
+                            <p:ajax event="valueChange" listener="#{managedDepot.addParamCode(managedDepot.codeSearch)}"  oncomplete="collapseList('depot')"/>
+                        </h:inputText>
+                    </h:panelGrid>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

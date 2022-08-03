@@ -1,0 +1,1009 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"     
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Règle de salaires','modRh', 'smenRegleSalaire', true,managedRegleSalaire)}
+    </ui:define>         
+    <ui:define name="contents">
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('regleSalaire');
+                initRegle_();
+            });
+            function displayAll() {
+                $('.All').css('display', 'inline');
+                $('.One').css('display', 'none');
+            }
+            function displayOne() {
+                $('.All').css('display', 'none');
+                $('.One').css('display', 'inline');
+            }
+        </script>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LRH_PRS_liste_comptes}" widgetVar="dlgCmpteG" width="60%" height="600" closeOnEscape="true"
+                      footer="&copy; Lymytz" >
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PP_saisir_compte_g}" for="txt_cmpte_find_reg_s"/>
+                    <p:watermark value="#{lab.LDB_PP_saisir_nature_compte}" for="txt_nature_find_reg_s"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_reg_s">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="table_cptG_reg_s" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_reg_s">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="table_cptG_reg_s" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="table_cptG_reg_s" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="table_cptG_reg_s" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="table_cptG_reg_s"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll"> 
+                    <p:dataTable value="#{managedCompte.listComptes}" var="cptG" emptyMessage="#{lab.LDB_PTT_aucun_compte}"
+                                 rowIndexVar="line_cg" rowKey="#{cptG.id}" selectionMode="single" id="table_cptG_reg_s">
+                        <p:ajax event="rowSelect" listener="#{managedRegleSalaire.choisirCompte}" 
+                                update=":form_regle_salaire:tab-regle-salaire:txt_num_c_reg_salaire"
+                                oncomplete="dlgCmpteG.hide()"/>
+                        <p:column headerText="N°" width="20" style="text-align: center">
+                            #{line_cg+1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_numero}" width="100" >
+                            #{cptG.numCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="200" >
+                            #{cptG.intitule}
+                        </p:column>
+                        <p:column headerText="#{lab.L_type}" width="100" >
+                            #{cptG.typeCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_repport}" width="100" >
+                            #{cptG.typeReport}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_compte_g}." width="100" >
+                            #{cptG.compteGeneral.numCompte}
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+
+
+
+        </h:form>
+        <h:form>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteCategorie" closeOnEscape="true"
+                             message="#{lab.LRH_PRS_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRegleSalaire.deleteCategorie(ietemC)}"  update=":form_list_catReg:table-cat-elt-sal"
+                                 oncomplete="dlgConfirmDeleteCategorie.hide();"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteCategorie.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LRH_PRS_liste_comptes}" widgetVar="dlgCmpteG_" width="60%" height="600" closeOnEscape="true"
+                      footer="&copy; Lymytz" >
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PP_saisir_compte_g}" for="txt_cmpte_find_reg_s_"/>
+                    <p:watermark value="#{lab.LDB_PP_saisir_nature_compte}" for="txt_nature_find_reg_s_"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_reg_s_">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="table_cptG_reg_s_" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_reg_s_">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="table_cptG_reg_s_" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="table_cptG_reg_s_" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="table_cptG_reg_s_" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="table_cptG_reg_s_"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable value="#{managedCompte.listComptes}" var="cptG_" emptyMessage="#{lab.LDB_PTT_aucun_compte}"
+                                 rowIndexVar="line_cg" rowKey="#{cptG_.id}" selectionMode="single" id="table_cptG_reg_s_">
+                        <p:ajax event="rowSelect" listener="#{managedRegleSalaire.choisirCompte_}" 
+                                update=":form_regle_salaire:tab-regle-salaire:txt_num_c_reg_salaire_"
+                                oncomplete="dlgCmpteG_.hide()"/>
+                        <p:column headerText="N°" width="20" style="text-align: center">
+                            #{line_cg+1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_numero}" width="100" >
+                            #{cptG_.numCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="200" >
+                            #{cptG_.intitule}
+                        </p:column>
+                        <p:column headerText="#{lab.L_type}" width="100" >
+                            #{cptG_.typeCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_repport}" width="100" >
+                            #{cptG_.typeReport}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_compte_g}." width="100" >
+                            #{cptG_.compteGeneral.numCompte}
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PRS_evaluer_regle_salaire}" widgetVar="dlgEvalRegle" width="40%"
+                      closeOnEscape="true" footer="&copy;Lymytz 2014" >
+                <span style="display: none">#{MEmps.listBanques.size()} #{managedSalaire.totalPage}</span>
+                <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PRS_employe_matricule}</span>
+                    <h:panelGroup>
+                        <h:inputText value="#{managedRegleSalaire.employe.matricule}" >
+                            <p:ajax event="blur" global="false" update="chp_name_empoye_test" listener="#{managedRegleSalaire.findEmploye}"/>
+                        </h:inputText>                        
+                        <h:outputText value="#{managedRegleSalaire.employe.nom} #{managedRegleSalaire.employe.prenom}" id="chp_name_empoye_test"/>
+                    </h:panelGroup>
+                    <span>#{lab.LRH_PRS_periode} </span>
+                    <h:panelGroup>
+                        <p:calendar value="#{managedRegleSalaire.debut}" pattern="dd-MM-yyyy" size="8"/>
+                        <p:calendar value="#{managedRegleSalaire.fin}" pattern="dd-MM-yyyy" size="8"/>
+                    </h:panelGroup>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.LRH_PRS_evaluer}" title="#{lab.LRH_PRS_evaluer_regle_salaire}" actionListener="#{managedRegleSalaire.evaluateRegle()}" />
+                <p:outputPanel autoUpdate="true" layout="inline">
+                    <span style="float: right">#{managedRegleSalaire.selectedElement.nom} <h:outputText value="#{managedRegleSalaire.resultEvaluation}" /></span>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.LRH_PRS_modifier_regle}" message="#{lab.LRH_PRS_text1}"
+                             widgetVar="dlgConfirmImport">
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmImport.hide()" type="button"
+                                 />
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRegleSalaire.importOne(e,true)}" oncomplete="dlgConfirmImport.hide()"
+                                 update=":form_regle_salaire:table_regleSalaire :form_regle_salaire:grid_regleSalaire" process="@this"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PRS_text2}" widgetVar="dlgRegToImport" width="80%" closeOnEscape="true"
+                      footer="&copy; Lymytz 2014">
+                <div class="dlg_part_fixe">
+                    <p:commandButton icon="ui-icon-circle-arrow-s" style="width: 23px; height: 23px" title="#{lab.LRH_PRS_tout_importer}"
+                                     update=":form_regle_salaire:table_regleSalaire :form_regle_salaire:grid_regleSalaire" process="@this" 
+                                     actionListener="#{managedRegleSalaire.importAll()}"
+                                     oncomplete="dlgRegToImport.hide()"/>
+                    <p:commandButton icon="ui-icon-arrowrefresh-1-w" style="width: 23px; height: 23px; float: right" title="#{lab.LRH_PRS_retourner_societes}" type="button"
+                                     onclick="dlgTransfertRegle.show();
+                                             dlgRegToImport.hide()" />
+                </div>
+                <div class="dlg_part_scroll" style="clear: right">
+                    <p:dataTable value="#{managedRegleSalaire.listRegleImport}" var="regI"  id="table_regle_to_import"
+                                 selectionMode="single" rowKey="#{regI.id}" rowIndexVar="line_R"
+                                 style="max-height: 500px; overflow-y: auto">
+                        <p:column width="20" headerText="N°" style="text-align: center">
+                            <p:graphicImage library="icones" name="drapeau.png" rendered="#{tReg.regleConge}" width="15" height="15"/>
+                            #{line_R+1}
+                        </p:column>                           
+                        <p:column headerText="#{lab.L_designation} " width="250" >
+                            #{regI.nom}
+                        </p:column>
+                        <p:column headerText="#{lab.L_code} " width="110" >
+                            #{regI.code}
+                        </p:column> 
+                        <p:column headerText="#{lab.L_categorie} " width="80">
+                            #{regI.categorie.designation}
+                        </p:column> 
+                        <p:column headerText="#{lab.LRH_PRS_numero_sequence}" width="70">
+                            #{regI.numSequence}
+                        </p:column> 
+                        <p:column headerText="#{lab.LRH_PRS_rubriques}" width="130">
+                            #{regI.rubrique.designation}
+                        </p:column> 
+                        <p:column width="25">                               
+                            <p:commandButton icon="ui-icon-circle-minus" update="table_regle_to_import" process="@this" actionListener="#{managedRegleSalaire.removeRToListImport(regI)}"  style="width: 20px; height: 20px" title="#{lab.LRH_PRS_enlever}"/>
+                        </p:column>
+                        <p:column width="25">                               
+                            <p:commandButton icon="ui-icon-circle-arrow-s" style="width: 20px; height: 20px" title="#{lab.L_importer}"
+                                             update=":form_regle_salaire:table_regleSalaire :form_regle_salaire:grid_regleSalaire" process="@this" 
+                                             actionListener="#{managedRegleSalaire.importOne(regI,false)}"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.L_confirmation} !" message="#{lab.LRH_PRS_text3}"
+                             widgetVar="dlgConfirmSave" closeOnEscape="true" >
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRegleSalaire.saveNewRegle(true)}" process="@this" oncomplete="dlgConfirmSave.hide()" />
+                <p:commandButton value="#{lab.L_non}" type="button"  global="false" onclick="dlgConfirmSave.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgConfirmRegConge" width="30%" header="#{lab.LRH_PRS_definir_regle_conge}" modal="true" closeOnEscape="true"
+                      resizable="false" >
+                <p >
+                    <h:outputText value="#{lab.LRH_PRS_text4}" />
+                    <h:outputText value="#{lab.LRH_PRS_text5}" />
+                </p>
+                <h:panelGrid columns="2">
+                    <p:commandButton value="#{lab.L_annuler}" type="button" onclick="dlgConfirmRegConge.hide()"/>
+                    <p:commandButton value="#{lab.L_continuer}" actionListener="#{managedRegleSalaire.definirRegleConge()}" oncomplete="dlgConfirmRegConge.hide()"/>
+                </h:panelGrid>
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        #{managedRegleSalaire.loadAll()}
+        <!-->Liste des élément à exclure de la base de calcul des allocations congé<-->
+        <h:form prependId="false" id="form-rs-001">                
+            <p:dialog header="#{lab.LRH_PRS_liste_regles_exclure_base_conge}" closeOnEscape="true" 
+                      width="40%" height="500" widgetVar="dlgListRegle001">
+                <div align="right"><p:inplace label="Find..." id="inplace_search_elt"><h:inputText /></p:inplace></div>
+                <p:dataTable value="#{managedRegleSalaire.listeRegle}" var="reg2_" filteredValue="#{managedRegleSalaire.listRegleImport}"
+                             selectionMode="single" rowKey="#{reg2_.id}" rowIndexVar="lineReg_1_" id="table_elt_exludeConge">                        
+                    <p:column headerText="N°" width="25" >
+                        #{lineReg_1_+1}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PRS_nom_regle}" >
+                        <h:outputText value="#{reg2_.nom}" />
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PRS_code_regle}" >
+                        <h:outputText value="#{reg2_.code}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" >
+                        <h:outputText value="#{reg2_.categorie.designation}" />
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PRS_exclu}" width="25">
+                        <p:commandLink title="#{lab.LRH_PRS_text6}" actionListener="#{managedRegleSalaire.exludeEltInBaseConge(reg2_,false,lineReg_1_)}">
+                            <h:graphicImage library="img" name="vu.png" width="15" height="15" rendered="#{reg2_.excludeInConge}"/>
+                        </p:commandLink>
+                        <p:commandButton title="#{lab.LRH_PRS_text7}" icon="ui-icon-circle-close" rendered="#{!reg2_.excludeInConge}" 
+                                         actionListener="#{managedRegleSalaire.exludeEltInBaseConge(reg2_,true,lineReg_1_)}"
+                                         style="width: 90%;height: 90%"/>
+                    </p:column>
+                </p:dataTable>      
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="form_memo_regle">
+            <p:dialog position="right top"  width="50%" height="300" widgetVar="dlgOperandes"
+                      showHeader="none" draggable="true" resizable="true" closeOnEscape="true">
+                <div style="width: 100%; height: 100%; overflow-y: auto; ">
+                    <p:outputPanel id="memo_regle">
+                        <h:panelGroup style="width: 100%; "  >                                                                               
+                            <div class="title_symbol" style="display: #{(managedRegleSalaire.listElt.size()==0)?'none':'block'}">#{lab.LRH_PRS_operateurs}</div>
+                            <span class="signes_op" onclick="completeExpr('+')">+</span>
+                            <span class="signes_op" onclick="completeExpr('/')">&divide;</span>
+                            <span class="signes_op" onclick="completeExpr('-')">-</span>
+                            <span class="signes_op" onclick="completeExpr('*')">*</span>
+                            <span class="signes_op" onclick="completeExpr('(')">(</span>
+                            <span class="signes_op" onclick="completeExpr(')')">)</span>
+                            <span class="signes_op" onclick="completeExpr('{')">{</span>
+                            <span class="signes_op" onclick="completeExpr('}')">}</span>
+                            <span class="signes_op" onclick="completeExpr('&amp;')">&amp;</span><span class="signes_op">|</span>
+                            <span class="signes_op" onclick="completeExpr('SI')">SI</span><span class="signes_op" onclick="completeExpr('SINON')">SINON</span>
+                            <span class="signes_op" onclick="completeExpr('SINONSI')">SINONSI</span><br/> 
+                            <div class="title_symbol" style="display: #{(managedRegleSalaire.listElt.size()==0)?'none':'block'}">#{lab.LRH_PRS_regle_salaire}</div>
+                            <ui:repeat value="#{managedRegleSalaire.listElt}" var="elt">
+                                <span class="signes_op" onclick="completeExpr('#{elt.valeur}')" title="#{elt.libelle}">#{elt.valeur}</span>
+                            </ui:repeat>
+                            <div class="title_symbol" style="display: #{(managedRegleSalaire.listEltPrime.size()==0)?'none':'block'}">#{lab.LRH_PRS_primes}</div>
+                            <ui:repeat value="#{managedRegleSalaire.listEltPrime}" var="eltp" >
+                                <span class="signes_op" onclick="completeExpr('#{eltp.valeur}')" title="#{eltp.libelle}">#{eltp.valeur}</span>
+                            </ui:repeat>
+                            <div class="title_symbol" style="display: #{(managedRegleSalaire.listRetenue.size()==0)?'none':'block'}">#{lab.LRH_PRS_retenues}</div>
+                            <ui:repeat value="#{managedRegleSalaire.listRetenue}" var="eltr" >
+                                <span class="signes_op" onclick="completeExpr('#{eltr.valeur}')" title="#{eltr.libelle}">#{eltr.valeur}</span>
+                            </ui:repeat>
+                            <div class="title_symbol" style="display: #{(managedRegleSalaire.listConstante.size()==0)?'none':'block'}">#{lab.LRH_PRS_constantes}</div>
+                            <ui:repeat value="#{managedRegleSalaire.listConstante}" var="eltc" >
+                                <span class="signes_op" onclick="completeExpr('#{eltc.valeur}')" title="#{eltc.libelle}">#{eltc.valeur}</span>
+                            </ui:repeat>                                                                                                                                                                                                                      
+                        </h:panelGroup>
+                    </p:outputPanel>
+                </div>
+            </p:dialog>
+        </h:form>
+        <!-->Gestion des rubriques bulletin<-->
+        <h:form prependId="false" id="form_rubrique_salaire">
+            <p:dialog header="Gérer les rubriques" widgetVar="dlgRubrique" closeOnEscape="true" width="40%" modal="true"  hideEffect="slide">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseForm('rubrique_salaire');
+                    });</script>
+                <div class="dlg_part_fixe">
+                    <div style="float: left">
+                        <p:splitButton value="#{lab.L_enregistrer}" actionListener="#{managedRegleSalaire.createNewRubrique()}"
+                                       update="table_regS_rubrique regS_form_rubrique" oncomplete="collapseForm('rubrique_salaire')" 
+                                       icon="ui-ico-disk">
+                            <p:menuitem value="#{lab.L_nouveau}" actionListener="#{managedRegleSalaire.newRubrique()}"
+                                        update="regS_form_rubrique" oncomplete="collapseForm('rubrique_salaire')"
+                                        icon="ui-ico-document" />
+                        </p:splitButton> 
+                    </div>
+                    <div align="right">
+                        <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('rubrique_salaire');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <h:link onclick="collapseList('rubrique_salaire');
+                                return false" title="#{lab.L_mode_liste}" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>
+                    </div>
+                </div>
+                <div class="dlg_part_scroll" style="clear: both">
+                    <div class="yvs_form_rubrique_salaire">
+                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0" id="regS_form_rubrique">                        
+                            <p:outputLabel value="#{lab.L_code}" />
+                            <h:inputText value="#{managedRegleSalaire.rubrique.code}" />
+                            <p:outputLabel value="#{lab.L_designation}" />
+                            <h:inputText value="#{managedRegleSalaire.rubrique.designation}" />                                     
+                        </h:panelGrid>
+                    </div>
+                    <div class="yvs_list_rubrique_salaire">
+                        <p:dataTable value="#{managedRegleSalaire.listRubrique}" var="itemRub" 
+                                     rowKey="#{itemRub.id}" selectionMode="single" id="table_regS_rubrique">
+                            <p:ajax event="rowSelect" listener="#{managedRegleSalaire.loadOnRubrique}" oncomplete="collapseForm('rubrique_salaire')" update=":form_rubrique_salaire:regS_form_rubrique"/>
+                            <p:ajax event="rowUnselect" listener="#{managedRegleSalaire.unLoadOnRubrique}" oncomplete="collapseForm('rubrique_salaire')" update=":form_rubrique_salaire:regS_form_rubrique"/>
+                            <p:column headerText="#{lab.L_code}">
+                                <h:outputText value="#{itemRub.code}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_designation}">
+                                <h:outputText value="#{itemRub.designation}" />
+                            </p:column>
+                            <p:column headerText="" width="20" style="text-align: center">
+                                <p:contextMenu for="btn_rubrique_salaire" event="left click" >
+                                    <p:menuitem value="#{lab.LRH_PRS_selectionner}" icon="ui-icon-clipboard" actionListener="#{managedRegleSalaire.selectRubrique(itemRub)}"
+                                                oncomplete="dlgRubrique.hide()" update=":form_regle_salaire:input_select_rubrique"/>
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedRegleSalaire.deleteRubrique(itemRub)}" update="table_regS_rubrique"/>
+                                </p:contextMenu>
+                                <p:commandButton type="button" icon="ui-icon-gear" id="btn_rubrique_salaire" style="width: 20px; height: 20px" />
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_regle_pays">
+            <p:dialog header="#{lab.LRH_PPT_liste_societes}" width="40%"  widgetVar="dlgTransfertRegle" closeOnEscape="true">
+                <p:dataTable value="#{managedRegleSalaire.listSociete}" var="scte" 
+                             selectionMode="single" rowKey="#{scte.id}" id="table_reg_societe">
+                    <p:ajax event="rowSelect" listener="#{managedRegleSalaire.transfertRegle}"  oncomplete="dlgTransfertRegle.hide()"
+                            global="false"  process="@this"/>
+                    <p:column headerText="#{lab.LRH_PC_raison_sociale}" >
+                        <h:outputText value="#{scte.name}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" >
+                        <h:outputText value="#{scte.codeAbreviation}" />
+                    </p:column>
+                </p:dataTable>  
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-rs-01">    
+            <p:confirmDialog showEffect="fade" hideEffect="explode">
+                <p:commandButton value="#{lab.L_oui}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+            </p:confirmDialog>
+            <p:dialog header="#{lab.LRH_PRS_liste_des_regles_salariales}"
+                      width="80%" height="500" widgetVar="dlgListRegle" closeOnEscape="true">
+                <p:dataTable value="#{managedRegleSalaire.listeRegle}" var="reg1" filteredValue="#{managedRegleSalaire.listRegleImport}"
+                             selectionMode="single" rowKey="#{reg1.id}"  rowIndexVar="lineReg_0">
+                    <p:ajax event="rowSelect" listener="#{managedRegleSalaire.choixRegleQ}" oncomplete="dlgListRegle.hide()"
+                            update=":form_regle_salaire:tab-regle-salaire:reg_sal_baseQte"/>
+                    <p:column headerText="N°" width="25" >
+                        #{lineReg_0+1}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PRS_nom_regle}" filterBy="#{reg1.nom}" filterMatchMode="contains" >
+                        <h:outputText value="#{reg1.nom}" />
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PRS_code_regle}" filterBy="#{reg1.code}">
+                        <h:outputText value="#{reg1.code}" />
+                    </p:column>
+                </p:dataTable>  
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-rs-02">
+            <p:dialog header="#{lab.LRH_PRS_liste_des_regles_salariales}" closeOnEscape="true" 
+                      width="80%" height="500" widgetVar="dlgListRegle1">
+                <p:dataTable value="#{managedRegleSalaire.listeRegle}" var="reg2" filteredValue="#{managedRegleSalaire.listRegleImport}"
+                             selectionMode="single" rowKey="#{reg2.id}" rowIndexVar="lineReg_1">
+                    <p:ajax event="rowSelect" listener="#{managedRegleSalaire.choixRegle1}" 
+                            update=":form_regle_salaire:tab-regle-salaire:reg_sal_basePrcentage" oncomplete="dlgListRegle1.hide()"/>
+                    <p:column headerText="N°" width="25" >
+                        #{lineReg_1+1}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PRS_nom_regle}" filterBy="#{reg2.nom}">
+                        <h:outputText value="#{reg2.nom}" />
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PRS_code_regle}" filterBy="#{reg2.code}">
+                        <h:outputText value="#{reg2.code}" />
+                    </p:column>
+                </p:dataTable>      
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PRS_text8}"
+                             widgetVar="dlgDeleteRegle" width="300" header="#{lab.L_supprimer}!" style="background: white">
+                <h:panelGrid columns="2" >
+                    <p:commandButton value="#{lab.L_oui}" actionListener="#{managedRegleSalaire.delete()}" 
+                                     style="width: 99%; margin: auto" oncomplete="dlgDeleteRegle.hide()" 
+                                     update=":form_regle_salaire:table_regleSalaire :form_regle_salaire:grid_regleSalaire :form_regle_salaire:input_hide_regleSalaire"/>
+                    <p:commandButton value="#{lab.L_non}" onclick="dlgDeleteRegle.hide()" style="width: 100%; margin: auto"/>
+                </h:panelGrid>
+            </p:confirmDialog>
+        </h:form>            
+        <h:form prependId="false" id="form_list_catReg">
+            <p:dialog header="#{lab.LC_PCOM_liste_categories}" widgetVar="dlgListCategorie"
+                      closeOnEscape="true" width="70%" modal="true"
+                      hideEffect="slide">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseForm('categorieReg');
+                    });</script>
+                <div class="part_fix">
+                    <div style="float: left">
+                        <p:splitButton type="button" value="#{lab.L_options}" id="option_categorieReg" style="font-size: 0.8em">
+                            <p:menuitem value="#{lab.L_fusionner}" icon="ui-icon-refresh" actionListener="#{managedRegleSalaire.fusionnerCategorie(true)}"
+                                        oncomplete="dlgConfirmFusionCategorie.show()" update=":main_regle_salaire:blog_categorie_salaire"/>
+                        </p:splitButton>
+                    </div>
+                    <div style="float: right">
+                        <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('categorieReg');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <h:link onclick="collapseList('categorieReg');
+                                return false" title="#{lab.L_mode_liste}" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>
+                    </div>
+                </div>
+                <div class="part_scroll" >
+                    <div class="yvs_form_categorieReg">
+                        <h:panelGrid columns="2" style="width: 95%; margin: auto" id="grille-add-cat-reg"
+                                     styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <span>#{lab.L_codeCategorie}</span>
+                            <h:inputText value="#{managedRegleSalaire.newCategorie.code}" />
+                            <span>#{lab.L_designation}</span>
+                            <h:inputText value="#{managedRegleSalaire.newCategorie.designation}" />
+                            <span>#{lab.L_description}</span>
+                            <h:inputTextarea style="width: 100%" rows="10" value="#{managedRegleSalaire.newCategorie.description}" />                 
+                            <span>#{lab.L_actif}</span>
+                            <p:selectBooleanCheckbox value="#{managedRegleSalaire.newCategorie.actif}" style="float: right"/>
+                            <span>#{lab.LRH_PRS_text9}</span>
+                            <p:selectBooleanCheckbox value="#{managedRegleSalaire.newCategorie.defaultPrime}" style="float: right"/>
+                            <span>#{lab.LRH_PRS_text10}</span>
+                            <p:selectBooleanCheckbox value="#{managedRegleSalaire.newCategorie.defaultretenue}" style="float: right"/>
+                        </h:panelGrid>
+                        <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedRegleSalaire.createNewCategorie()}"
+                                         style="float: right; margin-right: 7%" update="table-cat-elt-sal"/>                            
+                    </div>
+                    <div class="yvs_list_categorieReg">
+                        <h:inputHidden value="#{managedRegleSalaire.tabIds}" id="input_hide_categorieReg" />
+                        <p:dataTable value="#{managedRegleSalaire.listCategorie}" var="ietemC" selection="#{managedRegleSalaire.selectedCategorie}"
+                                     rowKey="#{ietemC.id}" selectionMode="single" id="table-cat-elt-sal" rowIndexVar="idxCat">
+                            <p:ajax event="rowSelect" listener="#{managedRegleSalaire.selectCategorie}" oncomplete="dlgListCategorie.hide()"/>
+                            <p:column headerText="#{lab.L_designation}">
+                                <h:outputText value="#{ietemC.designation}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_code}">
+                                <h:outputText value="#{ietemC.codeCategorie}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_description}">
+                                <h:outputText value="#{ietemC.description}" />
+                            </p:column>
+                            <p:column headerText="" width="20">
+                                <h:outputText value="P" rendered="#{ietemC.defaultPrime}"/>
+                                <h:outputText value="R" rendered="#{ietemC.defaultRetenue}"/>
+                            </p:column>
+                            <p:column headerText="" width="20" style="text-align: center">
+                                <h:graphicImage library="img" name="#{ietemC.actif?'vu.png':'vu_non.png'}" width="18" height="18"/>
+                            </p:column>
+                            <p:column headerText="" style="text-align: center" width="20">
+                                <p:contextMenu  for="u" event="left click" >
+                                    <p:menuitem value="#{lab.LRH_PRS_modifier_ligne}" icon="ui-icon-pencil" title="#{lab.LRH_PRS_ajouter_structure}" oncomplete="collapseForm('categorieReg')" actionListener="#{managedRegleSalaire.selectCategorieToUpdate(ietemC)}" update=":form_list_catReg:grille-add-cat-reg"/>                                    
+                                    <p:menuitem value="#{ietemC.actif?lab.L_desactiver:lab.L_activer}" title="#{!ietemC.actif?lab.LRH_PRS_rendre_element_actif:lab.LRH_PRS_desactiver_element}" 
+                                                icon="#{ietemC.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" actionListener="#{managedRegleSalaire.toogleActives(ietemC)}"/>
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedRegleSalaire.deleteCategorie(ietemC)}" oncomplete="dlgConfirmDeleteCategorie.show()" />
+                                </p:contextMenu>
+                                <p:commandButton  title="#{ietemC.description}"  type="button"
+                                                  icon="ui-icon-gear" id="u" style="width: 20px; height: 20px" />
+                                <p:tooltip for="u" value=""/>
+                            </p:column>
+                            <p:column  width="25" style="text-align: center">
+                                <f:facet name="header"> 
+                                    <h:selectBooleanCheckbox value="false" class="chek_all_line_categorieReg" onclick="selectionAllLineTab(#{managedRegleSalaire.listCategorie.size()}, 'categorieReg')"/>
+                                </f:facet>
+                                <h:selectBooleanCheckbox value="false" class="chek_line_categorieReg" onclick="selectionLineTab(#{idxCat}, 'categorieReg')"/>
+                            </p:column>
+                        </p:dataTable>
+                        <h:panelGrid columns="2" style="float: right">  
+                            <span class="nbSelectcategorieReg" style="font-size: .8em; font-style: italic; color: #828c95"></span>
+                        </h:panelGrid>
+                    </div>
+                </div>                
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PRS_structure_salaire}" closeOnEscape="true" width="600"
+                      height="500" resizable="false" widgetVar="dlgLierStruct">
+                <p:dataTable value="#{managedRegleSalaire.listeStructure}" var="str" id="tab-rs-lierS"
+                             rowKey="#{str.id}" selection="#{managedRegleSalaire.selectedStructure}">
+                    <p:column selectionMode="multiple" width="30" />
+                    <p:column headerText="#{lab.LRH_PRS_nom_structure}">
+                        <h:outputText value="#{str.nom}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}">
+                        <h:outputText value="#{str.code}"/> 
+                    </p:column>
+                </p:dataTable>
+                <p:commandButton value="#{lab.LDB_PCB_lier}" icon="ui-icon-link" style="float: right" styleClass="One"
+                                 actionListener="#{managedRegleSalaire.liaisonRegle()}" />
+                <p:commandButton value="#{lab.LDB_PCB_lier} la sélection" icon="ui-icon-link" style="float: right" styleClass="All"
+                                 actionListener="#{managedRegleSalaire.liaisonManyRegle()}" />
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="main_regle_salaire">
+            <p:dialog widgetVar="dlgConfirmFusion" header="#{lab.L_fusionner}" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_regle_salaire" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PRS_voules_vous_fusionner} : </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedRegleSalaire.fusionneTo}"/>
+                    <span>#{lab.LRH_PRS_avec_element} :</span>
+                    <c:forEach items="#{managedRegleSalaire.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LRH_PRS_cette_operation_irreversible}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui.toUpperCase()}" actionListener="#{managedRegleSalaire.fusionner(false)}" oncomplete="dlgConfirmFusion.hide()"
+                                 update=":form_regle_salaire:table_regleSalaire :form_regle_salaire:grid_regleSalaire" style="float: right" /> 
+            </p:dialog>
+            <p:dialog widgetVar="dlgConfirmFusionCategorie" header="#{lab.L_fusionner}" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_categorie_salaire" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PRS_fusioner_categorie} : </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedRegleSalaire.fusionneCategorieTo}"/>
+                    <span>#{lab.LRH_PRS_avec_categorie} :</span>
+                    <c:forEach items="#{managedRegleSalaire.fusionnesCategorieBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LRH_PRS_cette_operation_irreversible}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui.toUpperCase()}" actionListener="#{managedRegleSalaire.fusionnerCategorie(false)}" oncomplete="dlgConfirmFusionCategorie.hide()"
+                                 update=":form_regle_salaire:table_regleSalaire :form_regle_salaire:grid_regleSalaire" style="float: right" /> 
+            </p:dialog>
+        </h:form> 
+        <h:form prependId="false" id="form_regle_salaire">               
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_enregistrer}" actionListener="#{managedRegleSalaire.saveNew(true)}" icon="ui-icon-disk"
+                               id="save_regleSalaire" update="table_regleSalaire grid_regleSalaire">                                       
+                    <p:menuitem value="#{(managedRegleSalaire.enSaisie)?lab.L_annuler:lab.L_nouveau}" 
+                                actionListener="#{managedRegleSalaire.resetFiche()}" icon="ui-icon-document"
+                                id="cancel_regleSalaire" update="grid_form_res" global="false" process="@this"/>
+                    <p:separator />
+                    <p:menuitem value="#{lab.L_supprimer}" onclick="dlgDeleteRegle.show()" global="false" icon="ui-icon-trash" />
+
+                </p:splitButton>
+
+                <p:splitButton value="#{lab.L_fusionner}" icon="ui-icon-refresh" id="delete_regleSalaire" actionListener="#{managedRegleSalaire.fusionner(true)}"
+                               oncomplete="dlgConfirmFusion.show()" update=":main_regle_salaire:blog_regle_salaire" style="font-size: 0.8em;">
+                    <p:menuitem value="#{lab.LRH_PRS_ajouter_structure}" icon="ui-icon-extlink" 
+                                onclick="dlgLierStruct.show();
+                                        displayAll();" global="false"/>            
+                    <p:separator />
+                    <p:menuitem value="#{lab.L_supprimer}" onclick="dlgDeleteRegle.show()" global="false" icon="ui-icon-trash" />
+                </p:splitButton>  
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedRegleSalaire.parcoursInAllResult(false)}" update="txt_parc_linear_regleSalaire table_regleSalaire" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('regleSalaire')"/>
+                    <h:inputText value="#{managedRegleSalaire.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_regleSalaire"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedRegleSalaire.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedRegleSalaire.parcoursInAllResult(true)}" update="txt_parc_linear_regleSalaire table_regleSalaire" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('regleSalaire')"/>
+                </h:panelGroup>                
+                <div style="float: right">
+                    <p:splitButton  icon="ui-icon-star" title="#{lab.LRH_PRS_importer_exporter_depuis_autre_societe}"
+                                    type="button" global="false" style="float: left">
+                        <p:menuitem value="#{lab.L_importer}" update=":form_regle_pays:table_reg_societe"
+                                    icon="ui-icon-circle-arrow-s"  global="false"  onclick="dlgTransfertRegle.show()"
+                                    />            
+                        <p:menuitem value="#{lab.L_exporter}" global="false"
+                                    icon="ui-icon-circle-arrow-n" />
+                        <p:menuitem value="Param congé" global="false" onclick="dlgListRegle001.show()" update=":form-rs-001:inplace_search_elt"
+                                    icon="ui-icon-arrow-4" />
+                    </p:splitButton>
+                    <h:inputHidden value="#{managedRegleSalaire.chaineSelectRegle}" id="input_hide_regleSalaire" />
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('regleSalaire');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('regleSalaire');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link  onclick="collapseGrid('regleSalaire');
+                            return false" title="#{lab.L_mode_hierrachique}">
+                        <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>                
+                <div style="clear: right"></div>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_regleSalaire">
+                    <p:outputPanel style="width: 98%; margin: auto" styleClass="yvs_table" id="grid_form_res" >                            
+                        <div style="width: 90%; float: left">
+                            <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                <f:facet name="header">
+                                    <h:outputText value="#{elementSalaire.id}" style="padding: 2px; border: 1px solid #FFF; background: #333; color: #FFF; float: right" />
+                                </f:facet>                                                                        
+                                <span>#{lab.LRH_PRS_nom_regle}</span>
+                                <h:inputText value="#{elementSalaire.nom}" style="width: 99%" />
+                                <span>#{lab.L_code}</span>
+                                <h:panelGroup id="elt_s_rename_code">
+                                    <h:inputText value="#{elementSalaire.code}" id="codeCat-es" >
+                                        <p:ajax event="blur" listener="#{managedRegleSalaire.findOneElement(elementSalaire.code)}"/>
+                                    </h:inputText>                                    
+                                    <p:commandLink global="false" actionListener="#{managedRegleSalaire.setActiveRename(!managedRegleSalaire.activeRename)}" update="elt_s_rename_code">
+                                        <h:graphicImage library="img" name="pointe.png" width="15" height="15"/>
+                                    </p:commandLink>
+                                    <h:inputText value="#{elementSalaire.newCode}" rendered="#{managedRegleSalaire.activeRename}"/>
+                                    <p:commandButton value="Appliquer" style="font-size: 0.8em" actionListener="#{managedRegleSalaire.appyRenameVar()}" rendered="#{managedRegleSalaire.activeRename}"/>
+                                </h:panelGroup>
+                                <span>#{lab.L_categorie}</span>
+                                <h:panelGroup>
+                                    <h:selectOneMenu value="#{elementSalaire.categorie.id}"  id="cat-regle-salaire"
+                                                     onchange="openDialog(dlgListCategorie, $(this))">
+                                        <f:selectItem  itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                        <f:selectItems  value="#{managedRegleSalaire.listCategorie}" var="catR" itemValue="#{catR.id}" itemLabel="#{catR.codeCategorie}" itemDisabled="#{!catR.actif}"/>
+                                        <f:selectItem  itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                        <f:selectItem  itemValue="-1" itemLabel="#{lab.L_avancees}..." />
+                                    </h:selectOneMenu>
+                                    <span>#{lab.LRH_PRS_sequence}</span>
+                                    <h:inputText value="#{elementSalaire.numSequence}" title="#{lab.LRH_PRS_necessaire_pour_elements_visible_bulletin}"/>
+                                </h:panelGroup>                                                                                                            
+                                <span>#{lab.L_description}</span>
+                                <h:inputTextarea   cols="55" rows="5" value="#{elementSalaire.description}" />
+                            </h:panelGrid>
+                        </div>                                
+                        <h:panelGrid columns="10" styleClass="yvs_nostyle" style="width: 100%; background: white">
+                            <p:outputLabel value="#{lab.L_actif}" />
+                            <h:selectBooleanCheckbox value="#{elementSalaire.actif}" />
+                            <span>#{lab.LRH_PRS_retenue}</span>
+                            <h:selectBooleanCheckbox value="#{elementSalaire.retenue}" valueChangeListener="#{managedRegleSalaire.choixRetenue}">
+                                <p:ajax event="valueChange" global="false" process="@this" update="tab-regle-salaire:grid-regle-s0"/>
+                            </h:selectBooleanCheckbox>
+                            <span>#{lab.LRH_PRS_visible_sur_bulletin}</span>
+                            <h:selectBooleanCheckbox value="#{elementSalaire.visibleSurBulletin}" />
+                            <span>#{lab.LRH_PRS_rubrique}</span>
+                            <h:selectOneMenu value="#{elementSalaire.rubrique.id}" onchange="choixRubrique($(this))"
+                                             id="input_select_rubrique">
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>  
+                                <f:selectItems  value="#{managedRegleSalaire.listRubrique}" var="rub_" 
+                                                itemValue="#{rub_.id}" itemLabel="#{rub_.designation}" />
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/> 
+                                <f:selectItem  itemValue="-1" itemLabel="#{lab.L_avancees}..." />
+                            </h:selectOneMenu>
+                            <div style="float: right">
+                                <span>#{lab.LRH_PRS_regle_pour_allocation_conge}</span>
+                                <h:selectBooleanCheckbox value="#{elementSalaire.regleConge}"/>
+                            </div>
+                        </h:panelGrid>                          
+                        <p:tabView id="tab-regle-salaire" style="clear: right">
+                            <p:tab title="#{lab.LRH_PRS_general}"> 
+                                <p:panelGrid columns="2" style="width: 100%" id="grid-regle-s0">                                         
+                                    <p:outputLabel value="#{lab.LRH_PRS_nature_montant}" />
+                                    <h:panelGroup>
+                                        <h:selectOneMenu value="#{elementSalaire.typeMontant}" 
+                                                         valueChangeListener="#{managedRegleSalaire.choixTypeMontant}">
+                                            <f:selectItem itemValue="0" itemLabel="" />
+                                            <f:selectItem itemValue="1" itemLabel="#{lab.LRH_PRS_valeur_fixe}" />
+                                            <f:selectItem itemValue="2" itemLabel="#{lab.LRH_PRS_pourcentage}" />
+                                            <f:selectItem itemValue="4" itemLabel="#{lab.L_quantite}" />
+                                            <f:selectItem itemValue="3" itemLabel="#{lab.LRH_PRS_expression_algébrique}" />
+                                            <p:ajax event="valueChange" update="grid-regle-s0 :form_memo_regle:memo_regle" global="false"/>
+                                        </h:selectOneMenu> 
+                                        <p:commandButton icon="ui-icon-circle-check" type="button" onclick="dlgOperandes.show()"
+                                                         style="float: right" title="#{lab.LRH_PRS_verifier_validite_expression}"/>
+                                    </h:panelGroup>                                                       
+                                    <p:outputLabel value="#{lab.LRH_PRS_expression_algébrique}" rendered="#{managedRegleSalaire.displayExpR}"/>                                        
+                                    <h:inputTextarea rows="20" value="#{elementSalaire.expressionRegle}" id="txarea-expr"
+                                                     rendered="#{managedRegleSalaire.displayExpR}" style="background: #99ccff;margin-right: 3px; width: 100%" />                                             
+                                    <p:outputLabel value="#{managedRegleSalaire.labelPourcentage}" rendered="#{managedRegleSalaire.displayPourcentage}"/>
+                                    <h:selectOneMenu value="#{elementSalaire.basePourcentage.id}" id="reg_sal_basePrcentage"
+                                                     rendered="#{managedRegleSalaire.displayPourcentage}"
+                                                     onchange="choixBasePourcentage($(this))" >
+                                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>  
+                                        <f:selectItems  value="#{managedRegleSalaire.listeRegle}" var="reg01" 
+                                                        itemValue="#{reg01.id}" itemLabel="#{reg01.nom} [#{reg01.code}]" />
+                                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/> 
+                                        <f:selectItem  itemValue="-1" itemLabel="#{lab.L_plus}" /> 
+                                    </h:selectOneMenu> 
+                                    <p:outputLabel value="#{lab.L_quantite}" rendered="#{managedRegleSalaire.displayQuantite}"/>
+                                    <h:selectOneMenu value="#{elementSalaire.expQuantite.id}" id="reg_sal_baseQte"
+                                                     rendered="#{managedRegleSalaire.displayQuantite}"
+                                                     onchange="choixBaseQte($(this))" >
+                                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>  
+                                        <f:selectItems  value="#{managedRegleSalaire.listeRegle}" var="reg11" 
+                                                        itemValue="#{reg11.id}" itemLabel="#{reg11.nom} [#{reg11.code}]" />
+                                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/> 
+                                        <f:selectItem  itemValue="-1" itemLabel="#{lab.L_plus}" noSelectionOption="true"/> 
+                                    </h:selectOneMenu>  
+                                    <p:outputLabel value="#{managedRegleSalaire.labelMontant}" rendered="#{managedRegleSalaire.displayMontant}" />
+                                    <pe:inputNumber value="#{elementSalaire.montant}"  valueChangeListener="#{managedRegleSalaire.saisiePourcentage}"
+                                                    rendered="#{managedRegleSalaire.displayMontant}" >
+                                        <p:ajax event="blur" update="taux-salarial" global="false"/>
+                                    </pe:inputNumber>
+                                    <p:outputLabel value="#{lab.LRH_PRS_taux_patronale}" rendered="#{managedRegleSalaire.displayOther}" />
+                                    <pe:inputNumber value="#{elementSalaire.tauxPatronale}" rendered="#{managedRegleSalaire.displayOther}" >
+                                        <p:ajax event="blur" global="false"/>
+                                    </pe:inputNumber>
+                                    <p:outputLabel value="#{lab.LRH_PRS_taux_salarial} " rendered="#{managedRegleSalaire.displayOther}" />
+                                    <pe:inputNumber value="#{elementSalaire.tauxSalarial}" id="taux-salarial"
+                                                    rendered="#{managedRegleSalaire.displayOther}" >
+                                        <p:ajax event="blur" global="false"/>
+                                    </pe:inputNumber>
+                                </p:panelGrid>
+                            </p:tab>
+                            <p:tab title="#{lab.LRH_PRS_comptabilite}" >
+                                <h:panelGrid columns="2" style="width: 100%">
+                                    <h:panelGrid columns="2" style="width: 100%">
+                                        <span>#{lab.LRH_PRS_compte_general_charge}</span>
+                                        <h:panelGroup id="txt_num_c_reg_salaire">
+                                            <h:inputText value="#{elementSalaire.compteCharge.numCompte}" style="color: #{elementSalaire.compteCharge.error?'#990000':'inherit'}">
+                                                <p:ajax event="blur" global="false" listener="#{managedRegleSalaire.ecouteSaisieCG(elementSalaire.compteCharge.numCompte)}" update="txt_num_c_reg_salaire element_saisi_compte_tiers"/>
+                                            </h:inputText>
+                                            <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 2%" type="button" onclick="dlgCmpteG.show()"/>
+                                            <h:outputText value="#{elementSalaire.compteCharge.intitule}" style="color: #006666; font-size: 0.9em"  />
+                                        </h:panelGroup>
+                                        <span>#{lab.LRH_PRS_compte_cotisation_taxes}</span> 
+                                        <h:panelGroup id="txt_num_c_reg_salaire_" >
+                                            <h:inputText value="#{elementSalaire.compteCotisation.numCompte}" style="color: #{elementSalaire.compteCotisation.error?'#990000':'inherit'}">
+                                                <p:ajax event="blur" global="false" listener="#{managedRegleSalaire.ecouteSaisieCG_(elementSalaire.compteCotisation.numCompte)}" update="txt_num_c_reg_salaire_ element_saisi_compte_tiers"/>
+                                            </h:inputText>                                        
+                                            <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 2%" type="button" onclick="dlgCmpteG_.show()"/>
+                                            <h:outputText value="#{elementSalaire.compteCotisation.intitule}" style="color: #006666; font-size: 0.9em"  />
+                                        </h:panelGroup>
+                                    </h:panelGrid>
+                                    <h:panelGroup>
+                                        <span>#{lab.LRH_PRS_compte_ties_requis} ?</span>
+                                        <h:selectBooleanCheckbox id="element_saisi_compte_tiers" value="#{elementSalaire.saisiCompteTiers}" />
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </p:tab>
+                        </p:tabView>
+                    </p:outputPanel>
+                </div>
+                <div class="yvs_list_regleSalaire">
+                    <p:contextMenu for="table_regleSalaire">
+                        <p:menuitem value="#{lab.LRH_PRS_definir_regle_conge}" icon="ui-icon-flag" onclick="dlgConfirmRegConge.show()"/>
+                        <p:menuitem value="#{lab.LRH_PRS_evaluer_pour}..." icon="ui-icon-flag" onclick="dlgEvalRegle.show()"/>
+                    </p:contextMenu>
+                    <p:dataTable value="#{managedRegleSalaire.listeRegle}" var="tReg"
+                                 selectionMode="single" id="table_regleSalaire" selection="#{managedRegleSalaire.selectedElement}"
+                                 rowKey="#{tReg.id}" rowIndexVar="lineReg">
+                        <p:ajax event="rowSelect" listener="#{managedRegleSalaire.selectRegle}" 
+                                update=":form_regle_salaire:grid_form_res table_regleSalaire :form_regle_salaire:input_hide_regleSalaire" process="@this"/>
+                        <p:column width="30" headerText="N°" >
+                            <p:graphicImage library="icones" name="drapeau.png" rendered="#{tReg.regleConge}" width="15" height="15"
+                                            title="#{tReg.expressionRegle}"/>
+                            <p:graphicImage library="img" name="pointe.png" width="15" height="15" rendered="#{elementSalaire.id eq tReg.id}"
+                                            title="#{tReg.expressionRegle}"/>
+                            #{lineReg+1}
+                        </p:column>                           
+                        <p:column headerText="#{lab.L_designation} " width="250">
+                            <span  title="#{tReg.expressionRegle}" style="color: #{tReg.actif?'inherit':'#790000'}">#{tReg.nom}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_code} " width="120">
+                            <span  title="#{tReg.expressionRegle}" style="color: #{tReg.actif?'inherit':'#790000'}">#{tReg.code}</span>
+                        </p:column> 
+                        <p:column headerText="#{lab.L_categorie} " width="120">
+                            <span  title="#{tReg.expressionRegle}" style="color: #{tReg.actif?'inherit':'#790000'}">#{tReg.categorie.designation}</span>
+                        </p:column> 
+                        <p:column headerText="#{lab.LRH_PRS_numero_sequence}" width="70">
+                            <span  title="#{tReg.expressionRegle}" style="color: #{tReg.actif?'inherit':'#790000'}"> #{tReg.numSequence}</span>
+                        </p:column> 
+                        <p:column headerText="#{lab.LRH_PRS_rubriques}" width="90">
+                            <span  title="#{tReg.expressionRegle}" style="color: #{tReg.actif?'inherit':'#790000'}">#{tReg.rubrique.designation}</span>
+                        </p:column> 
+                        <p:column width="50" style="text-align: center">                               
+                            <f:facet name="header">
+                                <h:outputText value="#{lab.LRH_PRS_visible_b}." />
+                                <h:selectBooleanCheckbox value="false" />
+                            </f:facet>
+                            <p:commandLink process="@this" actionListener="#{managedRegleSalaire.toogleVisibleOnBulletin(tReg)}"
+                                           update=":form_regle_salaire:table_regleSalaire">
+                                <h:graphicImage  library="img" name="#{(tReg.visibleBulletin)?'vu.png':'vu_non.png'}"  title="#{(!tReg.visibleBulletin)?lab.LRH_PRS_visible_sur_bulletin:lab.LRH_PRS_non_visible_sur_bulletin}" width="20"/>
+                            </p:commandLink>
+                        </p:column>
+                        <p:column  width="35" style="text-align: center">     
+                            <f:facet name="header"><h:outputText value="#{lab.LRH_PRS_gains}" />
+                                <h:selectBooleanCheckbox value="false" /></f:facet>
+                            <p:commandLink process="@this" actionListener="#{managedRegleSalaire.toogleEltGain(tReg)}"
+                                           update=":form_regle_salaire:table_regleSalaire">
+                                <h:graphicImage  library="icones" name="#{(!tReg.retenue)?'in.png':'out.png'}"  title="#{(!tReg.retenue)?'élément de gain':'élément de retenue'}" style="width: 15px; height: 15px"/>
+                            </p:commandLink>
+                        </p:column>
+                        <p:column  width="21" style="text-align: center">
+                            <p:contextMenu for="btn_showDesc" event="left click" >
+                                <p:menuitem value="#{lab.LRH_PRS_structure_s}." icon="ui-icon-clipboard" title="#{lab.LRH_PRS_ajouter_structure}"
+                                            actionListener="#{managedRegleSalaire.openViewToAddInStructure(tReg)}" oncomplete="displayOne()"/>
+                                <p:menuitem value="#{tReg.actif?lab.L_desactiver:lab.L_activer}" icon="#{tReg.actif?'ui-icon-circle-close':'ui-icon-circle-check'}"  actionListener="#{managedRegleSalaire.toogleActive(tReg)}"/>
+                                <p:menuitem value="#{tReg.visibleBulletin?lab.LRH_PRS_desactiver_invisible_b:lab.LRH_PRS_activer_invisible_b}" title="#{!tReg.visibleBulletin?lab.LRH_PRS_rendre_element_visible_buletin_paye:lab.LRH_PRS_ne_pas_afficher_element_visible_buletin_paye}" 
+                                            icon="#{tReg.visibleBulletin?'ui-icon-circle-close':'ui-icon-circle-check'}" actionListener="#{managedRegleSalaire.toogleVisibleOnBulletin(tReg)}"/>
+                            </p:contextMenu>
+                            <p:commandButton  title="#{tReg.descriptionElement}"  type="button"
+                                              icon="ui-icon-gear" id="btn_showDesc" style="width: 20px; height: 20px" />
+                            <p:tooltip for="btn_showDesc" value=""/>
+                        </p:column>
+                        <p:column  width="25" style="text-align: center">
+                            <f:facet name="header"> <h:selectBooleanCheckbox value="false" 
+                                                                             class="chek_all_line_regleSalaire" onclick="selectionAllLineTab(#{managedRegleSalaire.listeRegle.size()}, 'regleSalaire')"/></f:facet>
+                            <h:selectBooleanCheckbox value="false" class="chek_line_regleSalaire" onclick="selectionLineTab(#{lineReg}, 'regleSalaire')"/>
+                        </p:column>
+                    </p:dataTable>  
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedRegleSalaire.pagineResult(false)}" update="table_regleSalaire" icon="ui-icon-circle-triangle-w" disabled="#{managedRegleSalaire.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedRegleSalaire.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedRegleSalaire.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedRegleSalaire.gotoPagePaginator()}" update=":form_regle_salaire:grid_regleSalaire :form_regle_salaire:table_regleSalaire"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedRegleSalaire.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedRegleSalaire.pagineResult(true)}" update="table_regleSalaire" icon="ui-icon-circle-triangle-e" disabled="#{managedRegleSalaire.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedRegleSalaire.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedRegleSalaire.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedRegleSalaire.paginations}"/>
+                            <p:ajax event="valueChange" update="table_regleSalaire"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </div>
+                <div class="yvs_grid_regleSalaire">
+                    <p:dataTable value="#{managedRegleSalaire.listRegleCagorie}" var="reglCat" rowKey="#{reglCat.id}"
+                                 id="grid_regleSalaire">
+                        <p:column headerText="#{lab.LRH_PRS_element_salaires}">
+                            <h:outputText value="#{reglCat.designation}" style="font-weight: bold;font-size: 1.4em;"/>  
+                            <p:dataGrid value="#{reglCat.elementsSalaires}" var="regle" 
+                                        columns="3" rendered="#{managedRegleSalaire.displayGrille}"
+                                        >          
+                                <h:panelGrid columns="2" style="height: 140px" styleClass="yvs_table"
+                                             cellpadding="0" cellspacing="0">
+                                    <f:facet name="header" >
+                                        <h:selectBooleanCheckbox value="false" styleClass="chek_line_regleSalaire" onchange="selectionLineTab(#{lineReg}, 'regleSalaire')"/><br/>
+                                        <p:commandLink actionListener="#{managedRegleSalaire.selectedChooseRegle(regle)}"
+                                                       oncomplete="collapseForm('regleSalaire');" update=":form_regle_salaire:grid_form_res" process="@this">                                                
+                                            <f:setPropertyActionListener value="#{regle}" target="#{managedRegleSalaire.selectedElement}"  />                        
+                                            <h:outputText value="#{regle.nom}"/>
+                                        </p:commandLink>                                       
+                                    </f:facet>                                       
+                                    <h:outputText value="#{lab.L_code} :"/>
+                                    <h:outputText value="#{regle.code}"/>
+                                    <h:outputText value="#{lab.LRH_PRS_nature} : "/>
+                                    <h:panelGroup styleClass="yvs_nostyle_without_padding" >
+                                        <p:outputLabel value="#{lab.LRH_PRS_retenue}" />
+                                        <h:graphicImage  library="img" name="#{(regle.retenue)?'yes.png':'no.png'}" />
+                                        <p:outputLabel value="#{lab.LRH_PRS_gains}" />
+                                        <h:graphicImage  library="img" name="#{(!regle.retenue)?'yes.png':'no.png'}"  />
+                                    </h:panelGroup>                
+                                    <h:outputText value="#{lab.L_montant}" rendered="#{regle.typeMontant==1}"/>
+                                    <h:outputText value="#{regle.montant}" rendered="#{regle.typeMontant==1}"/>
+                                    <h:outputText value="#{lab.LRH_PRS_pourcentage}" rendered="#{regle.typeMontant==2}"/>
+                                    <h:panelGrid columns="1" rendered="#{regle.typeMontant==2}" styleClass="yvs_nostyle_without_padding">
+                                        <h:outputText value="#{lab.LCF_PGG_base}: #{regle.basePourcentage.nom}" />
+                                        <h:outputText value="#{lab.LRH_PRS_patronale}: #{regle.poucentagePatronale}%" />
+                                        <h:outputText value="#{lab.LRH_PRS_salariale}: #{regle.poucentageSalarial} %" />
+                                    </h:panelGrid>
+                                    <h:outputText value="#{lab.LRH_PRS_expression}" rendered="#{regle.typeMontant==3}"/>
+                                    <h:outputText value="#{regle.expressionRegle}" rendered="#{regle.typeMontant==3}"/>
+                                    <h:outputText value="#{lab.L_quantite}" rendered="#{regle.typeMontant==4}"/>
+                                    <h:outputText value="#{regle.basePourcentage.nom} * #{regle.quantite    .nom}" rendered="#{regle.typeMontant==4}"/>
+                                </h:panelGrid>                     
+                            </p:dataGrid>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <div class="gridNav">
+                    <h:panelGrid columns="2" style="float: right" id="grid-btn-regS">  
+                        <span class="nbSelectregleSalaire" style="font-size: .8em; font-style: italic; color: #828c95"></span>
+                    </h:panelGrid>
+                </div>
+            </div>            
+        </h:form>
+    </ui:define> 
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">
+                <div class="yvs_form_regleSalaire display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedRegleSalaire.selectedElement.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedRegleSalaire.selectedElement.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedRegleSalaire.selectedElement.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="6" style="font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.LRH_PRS_regle}" />
+                        <h:outputText value="#{lab.L_categorie}" />
+                        <h:outputText value="#{lab.LRH_PRS_rubrique}" />
+                        <h:outputText value="#{lab.L_actif}" />
+                        <h:outputText value="#{lab.LRH_PRS_visible_b}."  title="#{lab.LRH_PRS_elemnt_visible_sur_buletin}"/>
+                        <h:outputText value="#{lab.LRH_PRS_formule}"  title="#{lab.LRH_PRS_truver_element_contenants_code_variable}"/>
+                        <p:inputText value="#{managedRegleSalaire.textFind}">
+                            <p:ajax event="blur" listener="#{managedRegleSalaire.findRegleSalaire(managedRegleSalaire.textFind)}" 
+                                    update=":form_regle_salaire:grid_regleSalaire :form_regle_salaire:table_regleSalaire" oncomplete="collapseList('regleSalaire');"/>
+                        </p:inputText>
+                        <h:selectOneMenu value="#{managedRegleSalaire.idCategorieF}"  
+                                         valueChangeListener="#{managedRegleSalaire.findByCategorie}">
+                            <f:selectItem  itemValue="0" itemLabel="" noSelectionOption="true"/>
+                            <f:selectItems  value="#{managedRegleSalaire.listCategorie}" var="catR_" itemValue="#{catR_.id}" itemLabel="#{catR_.codeCategorie}" />
+                            <p:ajax event="valueChange"   update=":form_regle_salaire:grid_regleSalaire :form_regle_salaire:table_regleSalaire" oncomplete="collapseList('regleSalaire');"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedRegleSalaire.idRubriqueF}" valueChangeListener="#{managedRegleSalaire.findByRubrique}">
+                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>  
+                            <f:selectItems  value="#{managedRegleSalaire.listRubrique}" var="rub__" 
+                                            itemValue="#{rub__.id}" itemLabel="#{rub__.designation}" />
+                            <p:ajax event="valueChange"   update=":form_regle_salaire:grid_regleSalaire :form_regle_salaire:table_regleSalaire" oncomplete="collapseList('regleSalaire');"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedRegleSalaire.actifF}" valueChangeListener="#{managedRegleSalaire.findByActif}">
+                            <f:selectItem itemValue="#{null}"  itemLabel="#{lab.L_tout}"/>  
+                            <f:selectItem itemValue="#{true}" itemLabel="#{lab.L_actif}"/>  
+                            <f:selectItem itemValue="#{false}" itemLabel="#{lab.L_inactif}"/>
+                            <p:ajax event="valueChange"   update=":form_regle_salaire:grid_regleSalaire :form_regle_salaire:table_regleSalaire" oncomplete="collapseList('regleSalaire');"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedRegleSalaire.visibleF}" valueChangeListener="#{managedRegleSalaire.findByVisibleB}">
+                            <f:selectItem itemValue="#{null}"  itemLabel="#{lab.L_tout}"/>  
+                            <f:selectItem itemValue="#{true}" itemLabel="#{lab.LP_PN_visible}"/>  
+                            <f:selectItem itemValue="#{false}" itemLabel="#{lab.LRH_PRS_invisible}"/>
+                            <p:ajax event="valueChange"   update=":form_regle_salaire:grid_regleSalaire :form_regle_salaire:table_regleSalaire" oncomplete="collapseList('regleSalaire');"/>
+                        </h:selectOneMenu>
+                        <p:inputText value="#{managedRegleSalaire.formuleF}">
+                            <p:ajax event="valueChange" listener="#{managedRegleSalaire.findByExpressionRegle(managedRegleSalaire.formuleF)}" 
+                                    update=":form_regle_salaire:grid_regleSalaire :form_regle_salaire:table_regleSalaire" oncomplete="collapseList('regleSalaire');"/>
+                        </p:inputText>
+                    </h:panelGrid>   
+                </h:panelGrid>   
+            </div>
+        </h:form>
+
+
+    </ui:define>
+</ui:composition>

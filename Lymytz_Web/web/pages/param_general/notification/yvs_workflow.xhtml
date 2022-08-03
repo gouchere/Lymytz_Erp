@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml" 
+                xmlns:h="http://java.sun.com/jsf/html" 
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Workflow de validation','modParam', 'smenWorkflow', true,managedWorkflow)}
+    </ui:define>  
+    <ui:define name="contents">
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('agence');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>  
+        <h:form prependId="false" >                
+            <p:confirmDialog closeOnEscape="true" showEffect="fade" hideEffect="explode" header="#{lab.LMP_PW_modifier_premiere_etape}"
+                             widgetVar="dlgMoveFirstStepe_" message="#{lab.LMP_PW_text} ">
+                <p:commandButton value="#{lab.L_oui}"  styleClass="ui-confirmdialog-yes" icon="ui-icon-check"  oncomplete="dlgMoveFirstStepe_.hide()"
+                                 actionListener="#{managedWorkflow.fixFirstStepe(false)}"/>
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" onclick="dlgMoveFirstStepe_.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog closeOnEscape="true" showEffect="fade" hideEffect="explode" header="#{lab.LMP_PW_modifier_premiere_etape}"
+                             widgetVar="dlgDeleteStepe_" message="#{lab.LMP_PW_text} ">
+                <p:commandButton value="#{lab.L_oui}"  styleClass="ui-confirmdialog-yes" icon="ui-icon-check"  oncomplete="dlgDeleteStepe_.hide()"
+                                 actionListener="#{managedWorkflow.fixFirstStepe(false)}"/>
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" onclick="dlgDeleteStepe_.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog closeOnEscape="true" showEffect="fade" hideEffect="explode" header="#{lab.LMP_PW_activer_desactiver_etape}"
+                             widgetVar="dlgActiveStepe_"  message="#{lab.LMP_PW_text1}">
+                <p:commandButton value="#{lab.L_oui}"  styleClass="ui-confirmdialog-yes" icon="ui-icon-check"  oncomplete="dlgActiveStepe_.hide()"
+                                 actionListener="#{managedWorkflow.fixFirstStepe(false)}"/>
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" onclick="dlgActiveStepe_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" >                
+            <p:confirmDialog closeOnEscape="true" showEffect="fade" hideEffect="explode" header="#{lab.LMP_PW_modifier_premiere_etape}"
+                             widgetVar="dlgMoveFirstStepe" message="#{lab.LMP_PW_text} ">
+                <p:commandButton value="#{lab.L_oui}"  styleClass="ui-confirmdialog-yes" icon="ui-icon-check"  oncomplete="dlgMoveFirstStepe.hide()"
+                                 actionListener="#{managedWorkflow.createStepeValidation(true)}"
+                                 update=":form_wf:tableEtapeWorkflow"/>
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" onclick="dlgMoveFirstStepe.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" >                
+            <p:confirmDialog showEffect="fade" hideEffect="explode" closeOnEscape="true" >
+                <p:commandButton value="#{lab.L_oui}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgDefineEtapeSvte" header="#{lab.LMP_PW_liste_etape}" width="40%" footer="#{lab.L_copy}">
+                <p:dataTable value="#{managedWorkflow.etapesSuivantes}" var="etapeS" selectionMode="single"
+                             rowKey="#{etapeS.id}" id="tableEtapeSvte" 
+                             rowIndexVar="line_">
+                    <p:ajax event="rowSelect" listener="#{managedWorkflow.affecteEtapeSuivante}" 
+                            oncomplete="dlgDefineEtapeSvte.hide()"/>
+                    <p:column headerText="N°" width="50">
+                        #{line_+1}
+                    </p:column>
+                    <p:column headerText="#{lab.LMP_PW_statut_document} ">
+                        #{etapeS.labelStatut}
+                    </p:column>
+                    <p:column headerText="#{lab.LMP_PW_titre_etape}">
+                        #{etapeS.titreEtape}
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            #{managedWorkflow.loadAllNiveauAcces()} 
+            #{managedTypeDocDivers.loadAll()}
+            #{managedOtherTransfert.doNothing()}
+            <p:dialog header="#{lab.LC_PPG_liste_niveau_acces}" widgetVar="dlgNiveauAcces" width="50%"
+                      modal="true" closeOnEscape="true" footer="&copy;Lymytz 2014"> 
+                <p:dataTable value="#{managedWorkflow.selectionEtapeValidation.autorisations}" var="niv" selectionMode="multiple"
+                             rowKey="#{niv.id}" id="tableEtapeDroitValid" rowIndexVar="line_"
+                             selection="#{managedWorkflow.selectionNiveauAcces}">
+                    <p:ajax event="rowSelect" listener="#{managedWorkflow.toogleDroitValidDoc}" 
+                            update="tableEtapeDroitValid" />
+                    <p:column headerText="N° " width="20">
+                        #{line_+1}
+                    </p:column>
+                    <p:column headerText="Id" width="25">
+                        #{niv.niveauAcces.id}
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation} " width="100"> 
+                        #{niv.niveauAcces.designation}
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PPG_grade}" width="50" style="text-align: center">
+                        #{niv.niveauAcces.grade.reference}
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PPG_valide}" width="50" style="text-align: center">
+                        <h:graphicImage library="img" name="#{(niv.canValide)?'yes.png':'no.png'}" />
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PPG_notifier}" width="50" style="text-align: center">
+                        <h:graphicImage library="img" name="#{(niv.canNotify)?'yes.png':'no.png'}" />
+                    </p:column>
+                    <p:column headerText="" width="30" style="text-align: center">
+                        <p:contextMenu event="left click" for="opt_btn_workflow" styleClass="context_menu">
+                            <p:menuitem value="#{niv.canNotify?lab.LMP_PW_ne_pas_notifier:lab.LMP_PW_notifier}" actionListener="#{managedWorkflow.toogleNotifieValid(niv)}" update="tableEtapeDroitValid"/>
+                            <p:menuitem value="#{niv.canValide?lab.LMP_PW_ne_peut_valider:lab.LMP_PW_peut_valider}" actionListener="#{managedWorkflow.toogleDroitValidDoc_(niv)}" update="tableEtapeDroitValid"/>
+                        </p:contextMenu>
+                        <p:commandButton icon="ui-icon-gear" type="button" style="width: 22px; height: 22px" id="opt_btn_workflow" />
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_wf">
+            #{managedWorkflow.initModelDocument()}
+            <h:panelGroup id="form_edit_etapes_V">
+                <span>#{lab.LMP_PW_model_document}</span>
+                <h:selectOneMenu value="#{managedWorkflow.modelDoc.id}" style="margin-left: 15%"
+                                 valueChangeListener="#{managedWorkflow.choixModelDocument}">
+                    <f:selectItem itemLabel=" " itemValue="0" />
+                    <f:selectItems value="#{managedWorkflow.listModel}" var="imod" itemValue="#{imod.id}"
+                                   itemLabel="#{imod.titreDoc}" />
+                    <p:ajax event="valueChange" update="tableEtapeWorkflow select_nature_workflow form_etape_workflow select_type_doc_div_workflow"  process="@this"/>
+                </h:selectOneMenu> 
+                <h:panelGroup id="select_nature_workflow">
+                    <h:selectOneMenu value="#{managedWorkflow.nature}" rendered="#{managedWorkflow.displayNature}">
+                        <f:selectItems value="#{managedWorkflow.natures}" var="nat" itemValue="#{nat}" itemLabel="#{nat}" />
+                        <p:ajax event="valueChange" listener="#{managedWorkflow.chooseNature()}" update="tableEtapeWorkflow txt_etape_svte"  process="@this"/>
+                    </h:selectOneMenu>                     
+                </h:panelGroup>
+                <h:panelGroup id="select_type_doc_div_workflow">
+                    <h:outputText value="Type de document" rendered="#{managedWorkflow.displayTypeDocDiv}"/>
+                    <h:selectOneMenu value="#{managedWorkflow.typeDoc}" rendered="#{managedWorkflow.displayTypeDocDiv}" style="min-width: 120px">
+                        <f:selectItem itemValue="#{-1}" itemLabel="--" />
+                        <f:selectItems value="#{managedTypeDocDivers.typesDocDivers}" var="ty_" itemValue="#{ty_.id}" itemLabel="#{ty_.libelle}" />
+                        <p:ajax event="valueChange" listener="#{managedWorkflow.chooseTypeDocDivers()}" update="tableEtapeWorkflow txt_etape_svte"  process="@this"/>
+                    </h:selectOneMenu>                     
+                </h:panelGroup>
+                <h:panelGroup id="select_type_doc_sortie_workflow">
+                    <h:outputText value="#{lab.LMP_PW_type_document}" rendered="#{managedWorkflow.displayTypeDocSortie}"/>
+                    <h:selectOneMenu value="#{managedWorkflow.typeDoc}" rendered="#{managedWorkflow.displayTypeDocSortie}" style="min-width: 120px">
+                        <f:selectItem itemValue="#{-1}" itemLabel="--" />
+                        <f:selectItems value="#{managedOtherTransfert.natures}" var="nat_" itemValue="#{nat_.id}" itemLabel="#{nat_.nature}" />
+                        <p:ajax event="valueChange" listener="#{managedWorkflow.chooseTypeDocSorties()}" 
+                                update="tableEtapeWorkflow txt_etape_svte"  process="@this"/>
+                    </h:selectOneMenu>                     
+                </h:panelGroup>
+                <p:commandLink  title="Synchroniser">
+                    <h:graphicImage library="img/icones" name="update.png" />
+                </p:commandLink>
+                <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <h:panelGrid id="form_etape_workflow" columns="14" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <span>#{lab.L_statut}</span>
+                        <h:inputText value="#{managedWorkflow.etapeValidation.labelStatu}" />
+                        <span>#{lab.LM_PTC_titre}</span>
+                        <h:inputText value="#{managedWorkflow.etapeValidation.titreEtape}" />
+                        <h:panelGroup id="first_stepeWorkflow" >
+                            <h:graphicImage library="icones" name="1.png" width="18" height="18" title="etape N°1" alt="etape 1"/>
+                            <p:selectBooleanCheckbox value="#{managedWorkflow.etapeValidation.firstEtape}" />
+                        </h:panelGroup>
+                        <h:panelGroup id="next_stepeWorkflow">
+                            <h:outputText value="#{lab.LMP_PW_etape_suivante}"  />
+                            <h:selectOneMenu value="#{managedWorkflow.etapeValidation.idEtapeSuivante}" id="txt_etape_svte">
+                                <f:selectItem itemLabel=" " itemValue="0" />
+                                <f:selectItems value="#{managedWorkflow.etapesSuivantes}" var="etSvt" itemLabel="#{etSvt.labelStatut}" itemValue="#{etSvt.id}" />
+                            </h:selectOneMenu>
+                        </h:panelGroup>
+                        <span>#{lab.L_actif}</span>
+                        <p:selectBooleanCheckbox value="#{managedWorkflow.etapeValidation.actif}" >
+                            <p:ajax event="valueChange" update="next_stepeWorkflow" process="@this" />
+                        </p:selectBooleanCheckbox>
+                        <h:outputText value="#{lab.LMP_PW_reglement}" rendered="#{managedWorkflow.modelDoc.definedReglement}"/>
+                        <p:selectBooleanCheckbox value="#{managedWorkflow.etapeValidation.reglementHere}" rendered="#{managedWorkflow.modelDoc.definedReglement}">
+                            <p:ajax event="valueChange" update="next_stepeWorkflow" process="@this" global="false"/>
+                        </p:selectBooleanCheckbox>
+                        <h:outputText value="#{lab.LMP_PW_livraison}" rendered="#{managedWorkflow.modelDoc.definedLivraison}"/>
+                        <p:selectBooleanCheckbox value="#{managedWorkflow.etapeValidation.livraisonHere}" rendered="#{managedWorkflow.modelDoc.definedLivraison}">
+                            <p:ajax event="valueChange" update="next_stepeWorkflow" process="@this" global="false"/>
+                        </p:selectBooleanCheckbox>
+                        <h:outputText value="#{lab.LMP_PW_editable}" rendered="#{managedWorkflow.modelDoc.definedUpdate}" title="#{lab.LMP_PW_text2}"/>
+                        <p:selectBooleanCheckbox value="#{managedWorkflow.etapeValidation.canUpdateHere}" rendered="#{managedWorkflow.modelDoc.definedUpdate}" >
+                            <p:ajax event="valueChange" update="next_stepeWorkflow" process="@this" global="false" />
+                        </p:selectBooleanCheckbox> 
+                        <span>#{lab.LMP_PW_ordre}</span>
+                        <h:inputText value="#{managedWorkflow.etapeValidation.ordre}" style="width: 50px"/>
+                    </h:panelGrid> 
+                    <p:commandButton value="#{lab.L_ajouter}" icon="ui-icon-circle-plus" style="float: right" 
+                                     actionListener="#{managedWorkflow.createStepeValidation(false)}" update="tableEtapeWorkflow txt_etape_svte" />
+                </h:panelGrid> 
+            </h:panelGroup>                         
+            <p:contextMenu for="tableEtapeWorkflow">
+                <p:menuitem value="#{lab.LMP_PW_fixe_premiere_etape}" actionListener="#{managedWorkflow.fixFirstStepe(true)}" icon="ui-icon-radio-off"
+                            update="tableEtapeWorkflow"/>
+                <p:menuitem value="#{lab.LMP_PW_fixe_derniere_etape}" actionListener="#{managedWorkflow.fixLastStepe(true)}" icon="ui-icon-bullet"
+                            update="tableEtapeWorkflow"/>
+            </p:contextMenu>
+            <p:dataTable value="#{managedWorkflow.modelDoc.etapesValidation}" var="etape" selectionMode="single"
+                         rowKey="#{etape.id}" id="tableEtapeWorkflow" selection="#{managedWorkflow.selectionEtapeValidation}"
+                         rowIndexVar="line_">
+                <p:ajax event="rowSelect" listener="#{managedWorkflow.selectionneEtapes}" update=":form_wf:form_edit_etapes_V" />
+                <p:column headerText="N°" width="50" style="text-align: center" styleClass="line_valide_#{etape.firstEtape}">                   
+                    <h:graphicImage library="img" name="#{(etape.actif)?'vu.png':'vu_non.png'}" width="16" height="15" />
+                    #{etape.ordreEtape}
+                </p:column>
+                <p:column headerText="#{lab.LMP_PW_nature_doc} " styleClass="line_valide_#{etape.firstEtape}" rendered="#{managedWorkflow.displayTypeDocSortie}">
+                    #{etape.natureDoc.nature}
+                </p:column>
+                <p:column headerText="#{lab.LMP_PW_type_doc} " styleClass="line_valide_#{etape.firstEtape}" rendered="#{managedWorkflow.displayTypeDocDiv}">
+                    #{etape.typeDocDivers.libelle}
+                </p:column>
+                <p:column headerText="#{lab.LMP_PW_statut_document} " styleClass="line_valide_#{etape.firstEtape}">
+                    #{etape.labelStatut}
+                </p:column>
+                <p:column headerText="#{lab.LMP_PW_titre_etape}" styleClass="line_valide_#{etape.firstEtape}">
+                    #{etape.titreEtape}
+                </p:column>
+                <p:column headerText="#{lab.LMP_PW_prochaine_etape} " styleClass="line_valide_#{etape.firstEtape}">
+                    #{etape.etapeSuivante.labelStatut}
+                    <p:commandButton icon="ui-icon-circle-arrow-e"  style="width: 22px; height: 22px; float: right"
+                                     actionListener="#{managedWorkflow.openDlgChoixEtapeSvte(etape)}" title="#{lab.LMP_PW_modifier_etape_suivante}"/>
+                </p:column>
+                <p:column headerText="#{lab.LMP_PW_autorisation} " width="60" style="text-align: center">
+                    <p:commandButton  icon="ui-icon-key" actionListener="#{managedWorkflow.choixLineEtape(etape)}" title="#{lab.LC_PPG_text9}" style="width: 22px; height: 22px"/>
+                </p:column>
+                <p:column headerText="R" width="30" style="text-align: center" rendered="#{managedWorkflow.modelDoc.definedReglement}">                    
+                    <h:graphicImage library="img" name="#{(etape.reglementHere)?'vu.png':'vu_non.png'}" width="16" height="15"/>
+                </p:column>
+                <p:column headerText="L" width="30" style="text-align: center" rendered="#{managedWorkflow.modelDoc.definedLivraison}">                    
+                    <h:graphicImage library="img" name="#{(etape.livraisonHere)?'vu.png':'vu_non.png'}" width="16" height="15"/>
+                </p:column>
+                <p:column headerText="M" width="30" style="text-align: center" rendered="#{managedWorkflow.modelDoc.definedUpdate}">                    
+                    <h:graphicImage library="img" name="#{(etape.canUpdateHere)?'vu.png':'vu_non.png'}" width="16" height="15"/>
+                </p:column>
+                <p:column headerText=" " width="20" style="text-align: center">
+                    <p:contextMenu for="btn-opt-workflow" event="left click">
+                        <p:menuitem value="#{etape.actif?lab.L_desactiver:lab.L_activer}" icon="#{etape.actif?'ui-icon-close':'ui-icon-check'}" 
+                                    actionListener="#{managedWorkflow.toggleActivEtapeValidation(etape)}"
+                                    update="tableEtapeWorkflow" />
+                        <p:separator />
+                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedWorkflow.deleteEtapeValidation(etape)}" 
+                                    update="tableEtapeWorkflow" process="@this"/>
+                    </p:contextMenu>
+                    <p:commandButton type="button" icon="ui-icon-gear" actionListener="#{managedWorkflow.deleteEtapeValidation(etape)}" 
+                                     update="tableEtapeWorkflow" styleClass="button_gear" id="btn-opt-workflow" />
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </ui:define>
+</ui:composition>

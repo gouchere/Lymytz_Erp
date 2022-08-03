@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Solde Progressif','modStat', 'smenStatSoldeClient', true)}
+    </ui:define>  
+    #{managedAgence.loadAgence()}
+    <ui:define name="contents"> 
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                definedTabView('tabview', '', ((($('body').find('.part_scroll').height())) - 20), 2, 30);
+            });
+        </script>
+        <h:form prependId="false" id="main_journal_vente">
+            <div id="tabview">
+                <div class="tabview_top part_fix" style="background: black;color: white;width: 100%">
+                    <h:panelGrid columns="4" style="float: left;color: white;font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.L_agence} : "/>
+                        <h:outputText value="#{lab.L_dates} : "/>
+                        <h:outputText value="#{lab.LP_PTB_periodicite} : "/>
+                        <h:outputText value="#{lab.LC_PTBV_par_famille} : "/>
+                        <h:selectOneMenu value="#{managedBordStatistique.agence}">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0"/>
+                            <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:selectOneMenu>
+                        <h:panelGroup >
+                            <p:calendar value="#{managedBordStatistique.dateDebut}" navigator="true" pattern="dd-MM-yyyy" size="8"/>
+                            <p:calendar value="#{managedBordStatistique.dateFin}" navigator="true" pattern="dd-MM-yyyy" size="8"/>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedBordStatistique.periode}">
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}"/>
+                            <f:selectItem itemValue="A" itemLabel="#{lab.LP_PTB_annuel}"/>
+                            <f:selectItem itemValue="T" itemLabel="#{lab.LP_PTB_trimistriel}"/>
+                            <f:selectItem itemValue="M" itemLabel="#{lab.LP_PTB_mensuel}"/>
+                            <f:selectItem itemValue="S" itemLabel="#{lab.LP_PTB_hebdomadaire}"/>
+                            <f:selectItem itemValue="J" itemLabel="#{lab.LP_PTB_journalier}"/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedBordStatistique.byFamille}">
+                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        </h:selectOneMenu> 
+                    </h:panelGrid>
+                    <div class="checkbox" style="float: right">
+
+                    </div>
+                </div>
+                <div class="tabview_content part_scroll" style="width: 100%">
+                    <div id="tabview1" class="block_slide">
+                        <span class="block_slide_title">
+                            <span class="slide_title">#{lab.LS_PMA_solde_progressif}</span>  
+                        </span> 
+                        <div class="zone_slide">
+                            <p:dataTable id="data_journal_solde_client" value="#{managedBordStatistique.soldeClients.lignes}" var="row_6" rowIndexVar="iRowC"
+                                         style="width: 100%;overflow-x: auto">
+                                <p:columnGroup type="header">
+                                    <p:row>
+                                        <p:column style="width: 15%" headerText="#{lab.LC_POV_clients}" rowspan="2"/>
+                                        <c:forEach items="#{managedBordStatistique.soldeClients.colonnes}" var="head_s" varStatus="_head">
+                                            <p:column headerText="#{head_s.valeur}" rendered="#{head_s.valeur eq 'SI' or head_s.valeur eq 'SF'}" rowspan="2"/>
+                                            <p:column headerText="#{head_s.valeur}" rendered="#{head_s.valeur ne 'SI' and head_s.valeur ne 'SF'}" colspan="4"/>
+                                        </c:forEach>
+                                    </p:row>
+                                    <p:row>
+                                        <c:forEach items="#{managedBordStatistique.soldeClients.colonnes}" var="head_s" varStatus="_head">
+                                            <p:column headerText="#{lab.LS_PMA_ca}" rendered="#{head_s.valeur ne 'SI' and head_s.valeur ne 'SF'}"/>
+                                            <p:column headerText="#{lab.LS_PMA_vers}" rendered="#{head_s.valeur ne 'SI' and head_s.valeur ne 'SF'}"/>
+                                            <p:column headerText="#{lab.LC_PTBVs_ecart.toUpperCase()}" rendered="#{head_s.valeur ne 'SI' and head_s.valeur ne 'SF'}"/>
+                                            <p:column headerText="#{lab.LC_PTBVs_solde.toUpperCase()}" rendered="#{head_s.valeur ne 'SI' and head_s.valeur ne 'SF'}"/>
+                                        </c:forEach>
+                                    </p:row>
+                                </p:columnGroup>   
+                                <p:column styleClass="ui-widget-header" style="width: 15%">
+                                    <h:outputText value="#{row_6.valeur}" title="#{row_6.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.soldeClients.displayName}"/>
+                                    <h:outputText value="#{row_6.libelle}" title="#{row_6.valeur}" style="cursor: pointer" rendered="#{managedBordStatistique.soldeClients.displayName}"/>
+                                </p:column>
+                                <c:forEach items="#{managedBordStatistique.soldeClients.colonnes}" var="col" varStatus="iHeadC">
+                                    <p:column style="text-align: right">
+                                        <h:outputText value="#{managedBordStatistique.soldeClients.valeur(iRowC, iHeadC.index)}" converter="#{managedBordStatistique.converter}"/>
+                                    </p:column>
+                                    <p:column style="text-align: right" rendered="#{col.valeur ne 'SI' and col.valeur ne 'SF'}">
+                                        <h:outputText value="#{managedBordStatistique.soldeClients.valeur(iRowC, iHeadC.index, 'qte')}" converter="#{managedBordStatistique.converter}"/>
+                                    </p:column>
+                                    <p:column style="text-align: right" rendered="#{col.valeur ne 'SI' and col.valeur ne 'SF'}">
+                                        <h:outputText value="#{managedBordStatistique.soldeClients.valeur(iRowC, iHeadC.index, 'attente')}" converter="#{managedBordStatistique.converter}"
+                                                      style="color: #{managedBordStatistique.soldeClients.valeur(iRowC, iHeadC.index, 'attente') lt 0 ? 'red' : 'green'}"/>
+                                    </p:column>
+                                    <p:column style="text-align: right" rendered="#{col.valeur ne 'SI' and col.valeur ne 'SF'}">
+                                        <h:outputText value="#{managedBordStatistique.soldeClients.valeur(iRowC, iHeadC.index, 'taux')}" converter="#{managedBordStatistique.converter}"
+                                                      style="color: #{managedBordStatistique.soldeClients.valeur(iRowC, iHeadC.index, 'taux') lt 0 ? 'red' : 'green'}"/>
+                                    </p:column>
+                                </c:forEach>
+                                <p:columnGroup type="footer">
+                                    <p:row>
+                                        <p:column footerText="#{lab.LP_PTB_totaux}"/>
+                                        <c:forEach items="#{managedBordStatistique.soldeClients.colonnes}" var="head_s" varStatus="iHeadC">
+                                            <p:column style="text-align: right">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedBordStatistique.soldeClients.sumColonne(iHeadC.index, managedBordStatistique.soldeClients.type)}" converter="#{managedBordStatistique.converter}"/>
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column style="text-align: right" rendered="#{head_s.valeur ne 'SI' and head_s.valeur ne 'SF'}">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedBordStatistique.soldeClients.sumColonne(iHeadC.index,'qte')}" converter="#{managedBordStatistique.converter}"/>
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column style="text-align: right" rendered="#{head_s.valeur ne 'SI' and head_s.valeur ne 'SF'}">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedBordStatistique.soldeClients.sumColonne(iHeadC.index,'attente')}" converter="#{managedBordStatistique.converter}"/>
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column style="text-align: right" rendered="#{head_s.valeur ne 'SI' and head_s.valeur ne 'SF'}">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedBordStatistique.soldeClients.sumColonne(iHeadC.index,'taux')}" converter="#{managedBordStatistique.converter}"/>
+                                                </f:facet>
+                                            </p:column>
+                                        </c:forEach>
+                                    </p:row>
+                                </p:columnGroup>  
+                            </p:dataTable>
+                        </div>
+                        <div class="zone_bottom">
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px;float: left;margin-right: 5px" id="btn_opt_journal_solde_client" type="button"/>
+                            <p:contextMenu for="btn_opt_journal_solde_client" event="left click" styleClass="context_menu" style="width: 210px">
+                                <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadSoldeClients()}" update="data_journal_solde_client"/>
+                                <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.downloadSoldeClients()}" ajax="false"/>
+                            </p:contextMenu>
+                            <h:panelGroup style="float: right">
+                                <p:watermark for="txt_search_solde_clt" value="#{lab.L_rechercher}" />
+                                <h:panelGroup style="float: right"> 
+                                    <h:inputText value="#{managedBordStatistique.soldeClients.varSearch}" id="txt_search_solde_clt" style="float: right">
+                                        <p:ajax event="keyup" listener="#{managedBordStatistique.soldeClients.filter()}" update="data_journal_solde_client"  global="false"/>
+                                    </h:inputText>
+
+                                    <p:selectBooleanCheckbox value="#{managedBordStatistique.soldeClients.displayName}" itemLabel="Afficher nom">
+                                        <p:ajax event="valueChange" global="false" update="data_journal_solde_client"/>
+                                    </p:selectBooleanCheckbox>                                
+                                </h:panelGroup>  
+                            </h:panelGroup>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

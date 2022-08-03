@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" 
+      template="yvs_home.xhtml" 
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui" 
+      xmlns:pe="http://primefaces.org/ui/extensions"  
+      xmlns:f="http://java.sun.com/jsf/core"  
+      xmlns:ui="http://java.sun.com/jsf/facelets">     
+    <ui:composition template="./../../../WEB-INF/template/template.xhtml">
+        <ui:define name="contents"> 
+            <h:outputScript library="js/donne_de_base" name="param_db.js" /> 
+            <script type="text/javascript">
+                $(function() {
+                    collapseForm('planPrelevGlobal'); 
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                });
+            </script>
+            
+            #{managedPlanPrelevement.resetPage()}
+            #{managedPlanPrelevement.loadAll()}          
+
+            <h:form prependId="false" id="form-plan-prelevement-01">               
+                <p:confirmDialog showEffect="fade" hideEffect="explode">
+                    <p:commandButton value="Oui" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                    <p:commandButton value="Non" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+                </p:confirmDialog>
+            </h:form>
+
+            <h:form prependId="false" id="form-plan-prelevement-00">
+                <div class="part_fix">
+                    <h:panelGrid columns="2" style="float: left">
+                        <p:commandButton value="Enregistrer" icon="ui-icon-circle-check" actionListener="#{managedPlanPrelevement.saveNew()}"
+                                         update=":form-plan-prelevement-00:table_prelevementG"  id="save_planPrelevGlobal"/>
+                        <p:commandButton value="Nouveau" icon="ui-icon-circle-new" actionListener="#{managedPlanPrelevement.resetFiche()}"
+                                         update=":form-plan-prelevement-00:form_prelevementG"  id="cancel_planPrelevGlobal"/> 
+                        <p:commandButton value="Supprimer" icon="ui-icon-trash" update=":form-plan-prelevement-00:table_prelevementG"
+                                         id="delete_planPrelevGlobal"  actionListener="#{managedPlanPrelevement.deleteBean()}">
+                            <!--<p:confirm header="Supprimer !" message="Voulez-vous vraiment supprimer ce plan de retenu?" />-->
+                        </p:commandButton> 
+                    </h:panelGrid>                                              
+                    <div style="float: right">
+                        <h:link title="mode création" onclick="collapseForm('planPrelevGlobal');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="25" height="30" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <h:link onclick="collapseList('planPrelevGlobal');
+                                return false" title="vue liste" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="25" height="30" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link> 
+                    </div>
+                    <div style="clear: right"/>
+                    <h:inputHidden id="input_hide_planPrelevGlobal" value="#{managedPlanPrelevement.chaineSelectPlan}" />
+                </div>
+                <div class="part_scroll">
+                    <div class="yvs_form_planPrelevGlobal">
+                        <p:panelGrid columns="1" id="form_prelevementG">
+                            <h:panelGrid columns="2" style="width: 25%;margin-top: 2%">
+                                <span>Reference</span>
+                                <h:inputText value="#{planPrelevement.reference}" />
+                                <span>Base:</span>
+                                <h:selectOneMenu value="#{planPrelevement.baseInterval}" >
+                                    <f:selectItem itemValue="0" itemLabel="" />
+                                    <f:selectItem itemValue="1" itemLabel="Salaire" />
+                                    <f:selectItem itemValue="2" itemLabel="Dette" />
+                                </h:selectOneMenu>
+                            </h:panelGrid>
+                            <h:panelGrid columns="7" id="panel-detail-plan-add" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                <span>Borne Minimal</span>
+                                <pe:inputNumber value="#{managedPlanPrelevement.detailPlan.borneMinimal}" style="width: 100px"/>
+                                <span>Borne Maximale</span>
+                                <pe:inputNumber value="#{managedPlanPrelevement.detailPlan.borneMaximal}" style="width: 100px">
+                                </pe:inputNumber>
+                                <p:outputLabel value="Taux (%):"/>
+                                <pe:inputNumber value="#{managedPlanPrelevement.detailPlan.valeur}" symbol="%"
+                                                symbolPosition="suffix" style="width: 50px"/>
+                                <p:commandButton value="#{managedPlanPrelevement.nameBtnVueDetail}" 
+                                                 actionListener="#{managedPlanPrelevement.addDetailPlan()}"
+                                                 update=":form-plan-prelevement-00:tab-detail-plan"/>                                
+                            </h:panelGrid>
+                            <h:panelGrid columns="1" id="tab-detail-plan">
+                                <p:dataTable value="#{managedPlanPrelevement.listDetailPlanPrelevement}" var="det1" rowKey="#{det1.id}"
+                                             selectionMode="single">                              
+                                    <p:ajax event="rowSelect" listener="#{managedPlanPrelevement.loadOnViewDetail}"/>
+                                    <p:ajax event="rowUnselect" listener="#{managedPlanPrelevement.unLoadOnViewDetail}"/>
+                                    <p:column headerText="Borne Minimal" filterMatchMode="contains"> 
+                                        <h:outputText value="#{det1.borneMinimal}" converter="DN"/>
+                                    </p:column>                    
+                                    <p:column headerText="Borne Maximal" filterMatchMode="contains"> 
+                                        <h:outputText value="#{det1.borneMaximal}" converter="DN"/>
+                                    </p:column>  
+                                    <p:column headerText="Taux" filterMatchMode="contains"> 
+                                        <h:outputText value="#{det1.valeur}" converter="DN"/>
+                                    </p:column>
+                                </p:dataTable>
+                                <f:facet name="footer">
+                                    <p:outputLabel id="footer-detail-plan-move" rendered="#{managedPlanPrelevement.selectViewDetail}">
+                                        <p:commandButton value="Supprimer" actionListener="#{managedPlanPrelevement.removeDetailPlan()}"/>
+                                    </p:outputLabel>
+                                </f:facet>
+                            </h:panelGrid>
+                        </p:panelGrid>
+                    </div>
+                    <div class="yvs_list_planPrelevGlobal">
+                        <p:dataTable value="#{managedPlanPrelevement.listPlanPrelevement}" var="plan"
+                                     widgetVar="tableauPlanPrelevement"  id="table_prelevementG"
+                                     rowKey="#{plan.id}" selectionMode="single" rowIndexVar="line_prelevG"> 
+                            <p:ajax event="rowSelect" listener="#{managedPlanPrelevement.loadOnView}" 
+                                    update=":form-plan-prelevement-00:form_prelevementG" oncomplete="collapseForm('planPrelevGlobal');"/>
+                            <p:column style="width:16px">
+                                #{line_prelevG+1}
+                            </p:column>
+                            <p:column style="width:16px">
+                                <p:rowToggler />
+                            </p:column>   
+                            <p:column headerText="Reference" filterMatchMode="contains"> 
+                                <h:outputText value="#{plan.reference}"/>
+                            </p:column>
+                            <p:column headerText="Base Interval" filterMatchMode="contains"> 
+                                <h:outputText value="#{plan.nameBaseInterval}"/>
+                            </p:column>
+                            <p:column headerText="Total Interval" filterMatchMode="contains"> 
+                                <h:outputText value="#{plan.listDetail.size()}" converter="DN"/>
+                            </p:column>
+                            <p:column width="25">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox value="false" class="chek_all_line_planPrelevGlobal" onclick="selectionAllLineTab(#{managedPlanPrelevement.listPlanPrelevement.size()}, 'planPrelevGlobal')"/>
+                                </f:facet>
+                                <h:selectBooleanCheckbox value="false" class="chek_line_planPrelevGlobal" onclick="selectionLineTab(#{line_prelevG}, 'planPrelevGlobal')"/>
+                            </p:column>
+                            <p:rowExpansion>
+                                <p:dataTable value="#{plan.listDetail}" var="det" rowKey="#{det.id}" style="text-align: left">                        
+                                    <p:column headerText="Borne Minimal" filterMatchMode="contains"> 
+                                        <h:outputText value="#{det.borneMinimal}" converter="DN"/>
+                                    </p:column>                    
+                                    <p:column headerText="Borne Maximal" filterMatchMode="contains"> 
+                                        <h:outputText value="#{det.borneMaximal}" converter="DN"/>
+                                    </p:column>  
+                                    <p:column headerText="Taux" filterMatchMode="contains"> 
+                                        <h:outputText value="#{det.baseTaux}" converter="DN"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:rowExpansion>
+                        </p:dataTable>
+                    </div>
+                </div>                
+            </h:form>
+        </ui:define>
+    </ui:composition>
+</html>

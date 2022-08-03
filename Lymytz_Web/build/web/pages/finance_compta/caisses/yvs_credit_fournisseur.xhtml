@@ -1,0 +1,565 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">      
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Crédit Fournisseur','modCompta', 'smenCreditFsseur', true)} 
+    </ui:define>        
+    <ui:define name="contents">
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 135);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('credit_fournisseur');
+                slideShow('zone_show_credit_fournisseur', 250);
+            });
+        </script>          
+        #{managedReglementAchat.doNothing()}
+        #{managedReglementVente.doNothing()}
+        #{managedFactureAchat.loadAllFacture(true, true)}
+        #{managedModeReglement.loadModels('C')}  
+        #{managedCaisses.loadAllCaisseActif(true)}  
+        #{managedOperationFournisseur.loadAll('C')}  
+        #{managedTypeCout.loadAll(constantes.MOD_COFI)}
+        #{managedJournaux.loadAllJournaux()}
+
+        <h:form prependId="false">
+            <p:dialog hideEffect="explode" widgetVar="dglEtatComptabilised" closeOnEscape="true" resizable="false" width="25%">
+                <p:commandButton value="#{lab.LCF_PCF_tous_credits}" actionListener="#{managedOperationClient.verifyComptabilised(null)}" style="width: 99%"/>
+                <p:commandButton value="#{lab.LCF_PCF_credits_comptabiliser}" actionListener="#{managedOperationClient.verifyComptabilised(true)}" style="width: 99%"/>
+                <p:commandButton value="#{lab.LCF_PCF_credits_non_comptabiliser}" actionListener="#{managedOperationClient.verifyComptabilised(false)}" style="width: 99%"/>
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des fournisseurs
+        *****************************************************************************
+        <-->  
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LCF_PCF_statistiques}" width="20%"  closeOnEscape="true" widgetVar="dlgStatistiques" resizable="false"> 
+                <h:panelGrid id="blog_stats_credit_fournisseur" style="width: 100%" columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:outputText value="#{managedOperationFournisseur.countEditable}" style="font-weight: bold"/>
+                        <h:outputText value=" #{lab.LCF_PCF_credit_attente}"/>
+                    </h:panelGroup>
+                    <h:outputText value="#{managedOperationFournisseur.valueEditable}" converter="DN" style="float: right"
+                                  styleClass="statut_#{managedOperationFournisseur.giveStringStatut(constantes.ETAT_ATTENTE)}"/>
+                    <h:panelGroup>
+                        <h:outputText value="#{managedOperationFournisseur.countEncours}" style="font-weight: bold"/>
+                        <h:outputText value="#{lab.LCF_PCF_credit_en_cours}"/>
+                    </h:panelGroup>
+                    <h:outputText value="#{managedOperationFournisseur.valueEncours}" converter="DN" style="float: right"
+                                  styleClass="statut_#{managedOperationFournisseur.giveStringStatut(constantes.ETAT_ENCOURS)}"/>
+                    <h:panelGroup>
+                        <h:outputText value="#{managedOperationFournisseur.countValide}" style="font-weight: bold"/>
+                        <h:outputText value="#{lab.LCF_PCF_credit_valider}"/>
+                    </h:panelGroup>
+                    <h:outputText value="#{managedOperationFournisseur.valueValide}" converter="DN" style="float: right"
+                                  styleClass="statut_#{managedOperationFournisseur.giveStringStatut(constantes.ETAT_REGLE)}"/>
+                    <h:panelGroup>
+                        <h:outputText value="#{managedOperationFournisseur.countAnnuler}" style="font-weight: bold"/>
+                        <h:outputText value="#{lab.LCF_PCF_credit_annuler}"/>
+                    </h:panelGroup>
+                    <h:outputText value="#{managedOperationFournisseur.valueAnnuler}" converter="DN" style="float: right"
+                                  styleClass="statut_#{managedOperationFournisseur.giveStringStatut(constantes.ETAT_ANNULE)}"/>
+                </h:panelGrid>                
+                <f:facet name="footer"> 
+
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">                    
+            <p:dialog header="#{lab.LC_PA_liste_fournisseurs}" widgetVar="dlgListFournisseurs" closeOnEscape="true" width="50%" height="450" modal="true" dynamic="true">   
+                <p:watermark for="txt_search_fournisseur_credit_fournisseur" value="#{lab.L_codeFournisseur}..." />
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_fournisseur_credit_fournisseur" value="#{managedFournisseur.numSearch_}" style="float: left;text-align: center;margin-left: -10px">
+                        <p:ajax event="keyup" global="false" listener="#{managedFournisseur.searchByNum()}" update="data_fournisseur_credit_fournisseur"/>
+                    </h:inputText>   
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedFournisseur.loadAllFournisseur(false, false)}" global="false" update="data_fournisseur_credit_fournisseur" icon="ui-icon-circle-triangle-w" disabled="#{managedFournisseur.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedFournisseur.paginator.currentPage}/#{managedFournisseur.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedFournisseur.loadAllFournisseur(true, false)}" global="false" update="data_fournisseur_credit_fournisseur" icon="ui-icon-circle-triangle-e" disabled="#{managedFournisseur.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedFournisseur.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedFournisseur.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedFournisseur.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_fournisseur_credit_fournisseur"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </h:panelGrid>                               
+                <p:dataTable id="data_fournisseur_credit_fournisseur"  value="#{managedFournisseur.fournisseurs}" var="clt_" rowKey="#{clt_.id}"
+                             selectionMode="single" rowIndexVar="cltIdx" scrollable="true" scrollHeight="385">
+                    <p:ajax event="rowSelect" listener="#{managedOperationFournisseur.loadOnViewFournisseur}" oncomplete="dlgListFournisseurs.hide()"/>
+                    <p:column headerText="N°" style="width: 10%;">
+                        <span>#{cltIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" style="width: 20%">
+                        <span>#{clt_.codeFsseur}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_nom}">
+                        <span>#{clt_.nom_prenom}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PC_zone}">
+                        <span>#{clt_.tiers.region}</span>
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmAnnuleDoc" closeOnEscape="true"
+                             message="#{lab.LCF_PCF_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOperationFournisseur.annulerCredit(managedOperationFournisseur.suspendCredit)}" oncomplete="dlgConfirmAnnuleDoc.hide()"
+                                 update=":main_credit_fournisseur:grp_btn_etat_credit_fournisseur"/>
+                <p:commandButton type="button" value="#{lab.L_non}" onclick="dlgConfirmAnnuleDoc.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmAnnulePiece" closeOnEscape="true"
+                             message="#{lab.LCF_PCF_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOperationFournisseur.forceCancelCompte()}" oncomplete="dlgConfirmAnnulePiece.hide()"
+                                 update=":main_credit_fournisseur:grp_btn_etat_credit_fournisseur"/>
+                <p:commandButton type="button" value="#{lab.L_non}" onclick="dlgConfirmAnnulePiece.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgComptabiliseDoc" message="#{lab.LCF_PCF_text1}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.comptabiliserCreditFournisseur(managedOperationFournisseur.selectCredit, true, true)}"
+                                 update=":main_credit_fournisseur:data_credit_fournisseur :main_credit_fournisseur:grp_btn_etat_credit_fournisseur :main_credit_fournisseur:data_reglement_credit_fa" 
+                                 oncomplete="dlgComptabiliseDoc.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgComptabiliseDoc.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgUnComptabiliseDoc" message="#{lab.LCF_PCF_text2}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.unComptabiliserCreditFournisseur(managedOperationFournisseur.selectCredit, true)}"
+                                 update=":main_credit_fournisseur:data_credit_fournisseur :main_credit_fournisseur:grp_btn_etat_credit_fournisseur :main_credit_fournisseur:data_reglement_credit_fa"
+                                 oncomplete="dlgUnComptabiliseDoc.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgUnComptabiliseDoc.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgComptabilisePiece" message="#{lab.LCF_PCF_text3}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.comptabiliserCaisseCreditAchat(managedOperationFournisseur.selectReglement, true, true)}"
+                                 update=":main_credit_fournisseur:data_reglement_credit_fa" oncomplete="dlgComptabilisePiece.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgComptabilisePiece.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgUnComptabilisePiece" message="#{lab.LCF_PCF_text4}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.unComptabiliserCaisseCreditAchat(managedOperationFournisseur.selectReglement, true)}"
+                                 update=":main_credit_fournisseur:data_reglement_credit_fa" oncomplete="dlgUnComptabilisePiece.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgUnComptabilisePiece.hide()" />
+            </p:confirmDialog>
+        </h:form>        
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgRefuserDoc" closeOnEscape="true"
+                             message="#{lab.LCF_PCF_text5}" header="#{lab.L_confirmation}">
+                <div >
+                    <span>#{lab.LCF_PCF_text6}</span>
+                    <p:selectBooleanCheckbox value="#{managedOperationFournisseur.needConfirmationCredit}" />
+                </div>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOperationFournisseur.annulerCredit(true)}" oncomplete="dlgRefuserDoc.hide()"
+                                 update=":main_credit_fournisseur:grp_btn_etat_credit_fournisseur"/>
+                <p:commandButton type="button" value="#{lab.L_non}" onclick="dlgRefuserDoc.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgAnnulerDoc" closeOnEscape="true"
+                             message="#{lab.LCF_PCF_text8}" header="#{lab.L_confirmation}">
+                <div >
+                    <span>#{lab.LCF_PCF_text6}</span>
+                    <p:selectBooleanCheckbox value="#{managedOperationFournisseur.needConfirmationCredit}" />
+                </div>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOperationFournisseur.annulerCredit(false)}" oncomplete="dlgAnnulerDoc.hide()"
+                                 update=":main_credit_fournisseur:grp_btn_etat_credit_fournisseur"/>
+                <p:commandButton type="button" value="#{lab.L_non}" onclick="dlgAnnulerDoc.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LCF_PCF_text7}" header="#{lab.L_confirmation}">
+                <p:selectBooleanCheckbox value="#{managedOperationFournisseur.memory_choix_delete_credit}" itemLabel="#{lab.LCF_PCF_text6}" style="float: left"/>
+                <h:panelGroup style="float: right">
+                    <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedOperationFournisseur.deleteBeanCredit()}" oncomplete="dlgConfirmDelete.hide();"/>
+                    <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgConfirmDelete.hide()" />
+                </h:panelGroup>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeletePiece" closeOnEscape="true"
+                             message="#{lab.LCF_PCF_text7}" header="#{lab.L_confirmation}">
+                <p:selectBooleanCheckbox value="#{managedOperationFournisseur.memory_choix_delete_reglement}" itemLabel="#{lab.LCF_PCF_text6}" style="float: left"/>
+                <h:panelGroup style="float: right">
+                    <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOperationFournisseur.deleteBeanReglement()}" oncomplete="dlgConfirmDeletePiece.hide();"/>
+                    <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgConfirmDeletePiece.hide()" />
+                </h:panelGroup>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form_pptes_compta">
+            <p:dialog  width="60%" widgetVar="dlgPpteCompta" closeOnEscape="true" header="Pièces comptable">
+                <ui:include src="../../finance_compta/compta_general/yvs_schema_compta.xhtml" />
+                <f:facet name="footer">
+                    &copy;Lymytz 2014
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_credit_fournisseur">             
+            <div class="part_fix">
+                <div style="float: left;width: 20%">
+                    <p:splitButton value="#{lab.L_enregistrer}" id="save_credit_fournisseur" actionListener="#{managedOperationFournisseur.saveNew()}" icon="ui-icon-disk"
+                                   oncomplete="collapseForm('credit_fournisseur'); slideShow('zone_show_acompte_fournisseur', 250); slideShow('zone_show_credit_fournisseur', 250)"
+                                   >
+                        <p:menuitem value="#{lab.L_nouveau}" id="cancel_credit_fournisseur" global="false" actionListener="#{managedOperationFournisseur.resetFiche()}"  icon="ui-icon-document"
+                                    oncomplete="collapseForm('credit_fournisseur'); slideShow('zone_show_acompte_fournisseur', 250); slideShow('zone_show_credit_fournisseur', 250)"/>
+                        <p:separator />
+                        <p:menuitem value="#{lab.L_supprimer}"  onclick="dlgConfirmDelete.show()" global="false" icon="ui-icon-trash"/>
+                    </p:splitButton>
+                    <p:commandButton value="#{lab.L_supprimer}" id="delete_credit_fournisseur" onclick="dlgConfirmDelete.show()" type="button" icon="ui-icon-trash"/>
+                </div> 
+                <h:panelGroup style="margin-left: 25%">  
+                    <p:commandButton actionListener="#{managedOperationFournisseur.parcoursInAllResult(false)}" 
+                                     update="txt_parc_linear_credit_fournisseur :main_credit_fournisseur:data_credit_fournisseur" icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('credit_fournisseur')"/>
+                    <h:inputText value="#{managedOperationFournisseur.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_credit_fournisseur"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedOperationFournisseur.paginators.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold"/>
+                    </p:outputPanel>
+                    <p:commandButton actionListener="#{managedOperationFournisseur.parcoursInAllResult(true)}" 
+                                     update="txt_parc_linear_credit_fournisseur :main_credit_fournisseur:data_credit_fournisseur" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('credit_fournisseur')"/>
+                </h:panelGroup> 
+                <div style="float: right">                     
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('credit_fournisseur');
+                            return false;">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>          
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('credit_fournisseur');
+                            return false;" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                   
+                </div> 
+                <div style="clear: right"/>                
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_credit_fournisseur" style="margin: auto; background: white;">
+                    <p:outputPanel id="blog_credit_fournisseur">
+                        <p:outputPanel id="blog_entete_credit_fournisseur">
+                            <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%;margin-bottom: -10px;margin-top: -10px" cellpadding="0" cellspacing="0" rendered="#{managedOperationFournisseur.credit.id gt 0}">
+                                <h:panelGrid columns="2" styleClass="yvs_nostyle" style="float: left;font-size: large;background: black;color: white">                                            
+                                    <span style="font-size: initial">#{lab.L_numero} : </span>
+                                    <h:outputText id="txt_reference_document_credit_fournisseur" value="#{managedOperationFournisseur.credit.numReference}"/>
+                                </h:panelGrid>
+                                <h:panelGroup id="grp_btn_etat_credit_fournisseur" style="padding: 7px;float: right; position: relative; margin-top: 1%">
+                                    <p:commandLink value="#{lab.L_en_attente}" styleClass="#{(managedOperationFournisseur.credit.statut == constantes.STATUT_DOC_ATTENTE)?'statut_valide':'etat_formation_true'}" 
+                                                   disabled="#{!(managedOperationFournisseur.credit.statut == constantes.STATUT_DOC_VALIDE
+                                                               or managedOperationFournisseur.credit.statut == constantes.STATUT_DOC_ANNULE)}" 
+                                                   actionListener="#{managedOperationFournisseur.editableCredit()}"
+                                                   process="@this" update="grp_btn_etat_credit_fournisseur" global="false"/>                                 
+                                    <p:commandLink value="#{lab.L_valider}" styleClass="#{(managedOperationFournisseur.credit.statut == constantes.STATUT_DOC_VALIDE)?'statut_valide':'etat_formation_true'}" 
+                                                   disabled="#{!(managedOperationFournisseur.credit.statut == constantes.STATUT_DOC_ATTENTE)}" 
+                                                   actionListener="#{managedOperationFournisseur.validerCredit()}"
+                                                   process="@this" update="grp_btn_etat_credit_fournisseur" global="false"/>
+                                    <p:commandLink value="#{lab.L_annulers}" styleClass="#{(managedOperationFournisseur.credit.statut==constantes.STATUT_DOC_ANNULE)?'statut_valide':'etat_formation_true'}" 
+                                                   disabled="#{managedOperationFournisseur.credit.statut == constantes.STATUT_DOC_ANNULE}" 
+                                                   actionListener="#{managedOperationFournisseur.refuserCredit()}"
+                                                   process="@this" update="grp_btn_etat_credit_fournisseur" global="false"/>
+                                    <p:commandLink value="#{((managedOperationFournisseur.isComptabiliseBeanCredit(managedOperationFournisseur.credit))?lab.L_comptabilise:lab.L_comptabiliser)}"
+                                                   type="button" styleClass="#{(managedOperationFournisseur.credit.comptabilise)?'statut_valide':'etat_formation_true'}"
+                                                   onclick="dlgComptabiliseDoc.show()" rendered="#{managedOperationFournisseur.credit.statut==constantes.STATUT_DOC_VALIDE}" global="false" id="btn_comptabilised_credit_fournisseur"/>
+                                    <p:contextMenu for="btn_comptabilised_credit_fournisseur" style="font-size: 0.7em">
+                                        <p:menuitem icon="ui-icon-circle-arrow-w" value="#{lab.LC_PFA_proprietes}" actionListener="#{managedSaisiePiece.displayPieceComptable(managedOperationFournisseur.credit.id, constantes.SCR_CREDIT_ACHAT)}" 
+                                                    update=":form_pptes_compta:table_pptes_compta" oncomplete="dlgPpteCompta.show()"/>
+                                        <p:separator style="width: 100%" />
+                                        <p:menuitem icon="ui-icon-circle-arrow-w" value="#{lab.L_annuler}" onclick="dlgUnComptabiliseDoc.show()" disabled="#{!managedOperationFournisseur.credit.comptabilise}"/>
+                                    </p:contextMenu>
+                                </h:panelGroup> 
+                            </h:panelGrid>
+                            <div  style="clear: both"/>                      
+                        </p:outputPanel>
+                        <p:outputPanel id="blog_operation_credit_fournisseur">
+                            <div style="width: 40%;float: left ">
+                                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <span>#{lab.L_fournisseur} </span>
+                                    <h:panelGroup id="select_fournisseur_credit_fournisseur">
+                                        <h:inputText value="#{managedOperationFournisseur.credit.fournisseur.codeFsseur}" style="color: #{managedOperationFournisseur.credit.fournisseur.error?'red':''}">
+                                            <p:ajax event="blur" global="false" listener="#{managedOperationFournisseur.searchFournisseur()}" update="select_fournisseur_credit_fournisseur"/>
+                                        </h:inputText>    
+                                        <h:outputText value="#{managedOperationFournisseur.credit.fournisseur.nom_prenom}" style="margin-left: 5px"/>
+                                        <h:panelGroup style="float: right">
+                                            <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.LCF_PAF_liste_fournisseur}" global="false"
+                                                             actionListener="#{managedOperationFournisseur.initFournisseurs()}" oncomplete="dlgListFournisseurs.show()"/>
+                                        </h:panelGroup>
+                                    </h:panelGroup> 
+                                    <span>#{lab.L_date} </span>
+                                    <p:calendar value="#{managedOperationFournisseur.credit.dateCredit}" pattern="dd-MM-yyyy" size="10"/>
+                                    <span>#{lab.L_montant} </span>
+                                    <pe:inputNumber value="#{managedOperationFournisseur.credit.montant}" style="width: 170px;font-size: 0.9em"/>
+                                    <span>#{lab.LCF_PCF_type_credit} </span>
+                                    <h:selectOneMenu value="#{managedOperationFournisseur.credit.typeCredit.id}">
+                                        <f:selectItem itemLabel="" itemValue="0" />
+                                        <f:selectItems value="#{managedTypeCout.types}" var="tc" itemLabel="#{tc.libelle}" itemValue="#{tc.id}" />
+                                        <p:ajax event="valueChange" global="false" listener="#{managedOperationFournisseur.chooseTypeCredit()}" />
+                                    </h:selectOneMenu>
+                                    <span>#{lab.LCF_PCF_journal} </span>
+                                    <h:selectOneMenu value="#{managedOperationFournisseur.credit.journal.id}">
+                                        <f:selectItem itemLabel="" itemValue="0" />
+                                        <f:selectItems value="#{managedJournaux.journaux}" var="jn" itemLabel="#{jn.intitule}" itemValue="#{jn.id}" />
+                                        <p:ajax event="valueChange" global="false" listener="#{managedOperationFournisseur.chooseJournalCredit()}" />
+                                    </h:selectOneMenu>
+                                    <f:facet name="footer">  
+                                        <span>#{lab.LCF_PCF_motif} </span>
+                                        <h:inputTextarea value="#{managedOperationFournisseur.credit.motif}" rows="4" style="width: 100%; margin-bottom: 3px"/>                                
+                                    </f:facet>
+                                </h:panelGrid>
+                            </div>
+                            <div style="width: 59%;margin-left: 41%">
+                                <div style="border: solid 2px; height: 200px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                    <span style="display: inline-block; background: #CCC; width: 100%">
+                                        #{lab.LCF_PCF_historistiques}
+                                        <div style="float: right">Solde : 
+                                            <div style="float: right">
+                                                <h:outputText id="txt_solde_credit_fournisseur" value="#{managedOperationFournisseur.credit.solde}" converter="DNA" styleClass="montantTotal"/> Fcfa
+                                            </div>
+                                        </div>
+                                    </span>
+                                    <div style="width: 99.5%; border: solid 1px; height: 170px; margin: auto;overflow-y: auto">
+                                        <p:dataTable value="#{managedOperationFournisseur.redevances}" var="dep" rowKey="#{dep.id}" 
+                                                     rowIndexVar="Idx" id="data_historique_credit_fournisseur">
+                                            <p:column headerText="N°" style="width: 7%" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{dep.new_}"/>
+                                                <span>#{Idx+1}</span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_reference}" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                                                <h:outputText value="#{dep.numReference}"/>
+                                            </p:column>
+                                            <p:column headerText="#{lab.LCF_PCF_date_credit}" sortBy="#{rec.dateAcompte}" style="text-align: center" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                                                <h:outputText value="#{dep.dateCredit}" converter="DDMMYYYY"/>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_montant}" style="width: 17%;text-align: right" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                                                <h:outputText value="#{dep.montant}" converter="DNS"/>
+                                            </p:column>
+                                            <p:column headerText="#{lab.LCF_PCF_reste}" style="width: 17%;text-align: right" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                                                <h:outputText value="#{dep.reste}" converter="DNS"/>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="clear: left"/>
+                            <div id="zone_show_credit_fournisseur" style="border: solid 2px; height: 250px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                <span style="display: inline-block; background: #CCC; width: 100%;cursor: pointer" onclick="slideShow('zone_show_credit_fournisseur', 250)">
+                                    <span class="button_slide">[-]</span>
+                                    #{lab.LCF_PCF_reglements_credit}
+                                </span>
+                                <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 210px; margin: auto;overflow-y: auto">
+                                    <p:outputPanel style="width: 100%; margin: auto; background: white" id="blog_reglement_credit_fa">
+                                        <h:panelGrid id="form_reglement_credit_fa_fournisseur" columns="5" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="padding-top: 2px;padding-bottom: -5px">
+                                            <h:outputText value="#{lab.LCF_PCF_mode_reglement} " />
+                                            <h:outputText value="#{lab.L_montant}" />
+                                            <h:outputText value="#{lab.LCF_PCF_date_paiement}" />
+                                            <h:outputText value="#{lab.L_caisse}" />
+                                            <h:outputText value="" style="margin-left: 100px"/>
+                                            <h:selectOneMenu value="#{managedOperationFournisseur.reglement.mode.id}" style="min-width: 120px">
+                                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                                <f:selectItems value="#{managedModeReglement.modes}" var="modelm" itemLabel="#{modelm.designation}" itemValue="#{modelm.id}" />     
+                                            </h:selectOneMenu>  
+                                            <pe:inputNumber value="#{managedOperationFournisseur.reglement.valeur}"  style="text-align: right"/>
+                                            <p:calendar value="#{managedOperationFournisseur.reglement.dateReg}" navigator="true" pattern="dd-MM-yyyy" size="10"/>
+                                            <h:selectOneMenu value="#{managedOperationFournisseur.reglement.caisse.id}">
+                                                <f:selectItem itemLabel="" itemValue="0" />
+                                                <f:selectItems value="#{managedCaisses.caisses}" var="ic" itemLabel="#{ic.intitule}" itemValue="#{ic.id}" />
+                                                <p:ajax event="valueChange" global="false" listener="#{managedOperationFournisseur.chooseCaisseReglement()}" />
+                                            </h:selectOneMenu>
+                                            <h:panelGroup style="margin-left: 100px">
+                                                <p:commandButton id="save_reglement_credit_fa" icon="ui-icon-circle-plus" style="width: 22px; height: 22px;float: right"
+                                                                 update="blog_reglement_credit_fa" actionListener="#{managedOperationFournisseur.saveReglement()}"/>
+                                            </h:panelGroup> 
+                                        </h:panelGrid> 
+                                        <p:dataTable id="data_reglement_credit_fa" value="#{managedOperationFournisseur.credit.reglements}" var="reg" rowKey="#{reg.id}" 
+                                                     rowIndexVar="Idx" selectionMode="single">
+                                            <p:ajax event="rowSelect" global="false" listener="#{managedOperationFournisseur.loadOnViewReglement}"/>
+                                            <p:ajax event="rowUnselect" global="false" listener="#{managedOperationFournisseur.unLoadOnViewReglement}"/>
+                                            <p:column headerText="N°" style="width: 7%" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(reg.statut)}">
+                                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{reg.new_}"/>
+                                                <span>#{Idx+1}</span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_numero}" style="text-align: center" styleClass="statut_#{managedOperationClient.giveStringStatut(reg.statut)}">
+                                                <h:outputText value="#{reg.numero}"/>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{managedOperationFournisseur.isComptabiliseCaisseCredit(reg)}" styleClass="style_statut"/>
+                                                </h:panelGroup>
+                                            </p:column>
+                                            <p:column headerText="#{lab.LCF_PCF_mode_reglement}" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(reg.statut)}">
+                                                <h:outputText value="#{reg.model.designation}"/>
+                                                <span style="display: #{(reg.statut==constantes.STATUT_DOC_ATTENTE)?'inline-block':'none'}; width: 10px; height: 10px; background: #444;" title="En attente de paiement"></span>
+                                                <span style="display: #{(reg.statut==constantes.STATUT_DOC_ENCOUR)?'inline-block':'none'}; width: 10px; height: 10px; background: #f6a828" title="En cours de paiement"></span>
+                                                <span style="display: #{(reg.statut==constantes.STATUT_DOC_PAYER)?'inline-block':'none'}; width: 10px; height: 10px; background: #006666" title="Pièce réglée"></span>
+                                            </p:column>
+                                            <p:column headerText="#{lab.LCF_PCF_date_reglement}" sortBy="#{reg.dateReg}" style="text-align: center" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(reg.statut)}">
+                                                <h:outputText value="#{reg.dateReg}" converter="DDMMYYYY"/>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_caisse}" style="text-align: center" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(reg.statut)}">
+                                                <h:outputText value="#{reg.caisse.intitule}"/>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_montant}" style="width: 17%;text-align: right" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(reg.statut)}">
+                                                <h:outputText value="#{reg.valeur}" converter="DNS"/>
+                                            </p:column>
+                                            <p:column style="width: 5%;text-align: center" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(reg.statut)}">
+                                                <p:contextMenu for="btn_option_reglement_credit_fa" event="left click" style="font-size: 0.8em">
+                                                    <p:menuitem value="#{!reg.comptabilise?'Comptabiliser':'Annuler Comptabilité'}" actionListener="#{managedOperationFournisseur.setSelectReglement(reg)}" 
+                                                                oncomplete="#{!reg.comptabilise?'dlgComptabilisePiece.show()':'dlgUnComptabilisePiece.show()'}" icon="ui-icon-arrowthick-2-e-w" 
+                                                                rendered="#{reg.id gt 0 and (reg.statut==constantes.STATUT_DOC_PAYER)}"/> 
+                                                    <p:menuitem value="#{lab.L_aller_a}" icon="ui-icon-arrowthick-1-e" global="false" actionListener="#{managedOperationFournisseur.onSelectDistantCreditCheque(reg)}"
+                                                                rendered="#{reg.model.typeReglement == constantes.MODE_PAIEMENT_BANQUE}"/>
+                                                    <p:menuitem value="#{lab.LCF_PRV_encaisser_valider}" rendered="#{reg.statut == 'W'}"  
+                                                                actionListener="#{managedOperationFournisseur.encaisserReglement(reg)}" icon="ui-icon-circle-check" />
+                                                    <p:menuitem value="#{lab.L_annuler}" rendered="#{reg.statut == 'P'}"  
+                                                                actionListener="#{managedOperationFournisseur.annulerReglement(reg, true)}" icon="ui-icon-circle-close" />
+                                                    <p:menuitem value="#{lab.LP_PSO_mettre_en_attente}" rendered="#{reg.statut == 'A'}"  
+                                                                actionListener="#{managedOperationFournisseur.annulerReglement(reg, false)}" icon="ui-icon-circle-close" />
+                                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedOperationFournisseur.deleteBeanReglement(reg)}"/>
+                                                </p:contextMenu>                           
+                                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_reglement_credit_fa" type="button"/>
+                                            </p:column> 
+                                        </p:dataTable>
+                                    </p:outputPanel>
+                                </div>
+                                <div class="zone_bottom">
+
+                                </div>
+                            </div>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </div>
+                <div class="yvs_list_credit_fournisseur" style="background: white;">
+                    <p:dataTable id="data_credit_fournisseur" value="#{managedOperationFournisseur.credits}" var="dep" rowKey="#{dep.id}" 
+                                 rowIndexVar="Idx" selectionMode="single">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedOperationFournisseur.loadOnView}" update="@this" 
+                                oncomplete="collapseForm('credit_fournisseur');slideShow('zone_show_acompte_fournisseur', 250); slideShow('zone_show_credit_fournisseur', 250)"/>
+                        <p:column headerText="Solde" style="width: 5%;display: none">
+                            <h:outputText value="#{dep.creance()}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="N°" style="width: 5%" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{dep.new_}"/>
+                            <span>#{Idx+1}</span>
+                            <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{dep.id eq managedOperationFournisseur.credit.id}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_reference}" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                            <h:outputText value="#{dep.numReference}"/>
+                            <h:graphicImage library="img" name="P.png" width="12" height="12" rendered="#{dep.statutPaiement=='P'}" style="float: right"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PCF_date_credit}" sortBy="#{rec.dateAcompte}" style="text-align: center" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                            <h:outputText value="#{dep.dateCredit}" converter="DDMMYYYY"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_fournisseur}" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                            <h:outputText value="#{dep.fournisseur.nom_prenom}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PCF_type_credit}" styleClass="statut_#{managedOperationClient.giveStringStatut(dep.statut)}">
+                            <h:outputText value="#{dep.typeCredit.libelle}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}" style="width: 15%;text-align: right" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                            <h:outputText value="#{dep.montant}" converter="DNS"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PCF_reste}" style="width: 15%;text-align: right" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                            <h:outputText value="#{dep.reste}" converter="DNS"/>
+                        </p:column>
+                        <p:column style="width: 5%;text-align: center" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(dep.statut)}">
+                            <f:facet name="header">
+                                <p:contextMenu for="btn_option_credit_fournisseur_head" event="left click" style="font-size: 0.8em">               
+                                    <p:menuitem icon="ui-icon-link" value="Etat comptabilisé" global="false" onclick="dglEtatComptabilised.show()"/>
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" style="width: 21px; height: 21px;" id="btn_option_credit_fournisseur_head" type="button"/>
+                            </f:facet>
+                            <p:contextMenu for="btn_option_credit_fournisseur" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false"  actionListener="#{managedOperationFournisseur.deleteBeanCredit(dep)}"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_credit_fournisseur" type="button"/>
+                        </p:column> 
+                    </p:dataTable>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedOperationFournisseur.paginer(false)}" update="data_credit_fournisseur" icon="ui-icon-circle-triangle-w" disabled="#{managedOperationFournisseur.paginators.disPrev}"/>
+                        <p:outputLabel value="#{managedOperationFournisseur.paginators.currentPage}/#{managedOperationFournisseur.paginators.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        <p:commandButton actionListener="#{managedOperationFournisseur.paginer(true)}" update="data_credit_fournisseur" icon="ui-icon-circle-triangle-e" disabled="#{managedOperationFournisseur.paginators.disNext}"/>
+                        <p:selectOneMenu value="#{managedOperationFournisseur.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedOperationFournisseur.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedOperationFournisseur.paginations}"/>
+                            <p:ajax event="valueChange"   update="data_credit_fournisseur"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">  
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedOperationFournisseur.selectCredit.dateSave}" converter="LD"  styleClass="valeur" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedOperationFournisseur.selectCredit.dateUpdate}" converter="LD" styleClass="valeur" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedOperationFournisseur.selectCredit.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="6" style="font-size: 0.9em" cellpadding="0" cellspacing="0">
+                        <h:panelGroup>                            
+                            <h:selectBooleanCheckbox value="#{managedOperationFournisseur.addDate}">
+                                <p:ajax event="valueChange" listener="#{managedOperationFournisseur.addParamDate()}" oncomplete="collapseList('credit_fournisseur')" update="date_search_credit_fournisseur"/>
+                            </h:selectBooleanCheckbox>
+                            <h:outputText value="#{lab.L_date}" />
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.L_statut}" />
+                        <h:outputText value="#{lab.L_fournisseur}" />
+                        <h:outputText value="#{lab.L_caisse}" />
+                        <h:outputText value="#{lab.L_reference}" />
+                        <span>&nbsp;</span>
+                        <h:panelGroup id="date_search_credit_fournisseur">
+                            <p:calendar value="#{managedOperationFournisseur.dateDebut}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOperationFournisseur.addDate}" size="10" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedOperationFournisseur.addParamDates}" oncomplete="collapseList('credit_fournisseur')"/>
+                            </p:calendar>
+                            <p:spacer width="5px" style="background: black"/>
+                            <p:calendar value="#{managedOperationFournisseur.dateFin}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOperationFournisseur.addDate}" size="10" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedOperationFournisseur.addParamDates}" oncomplete="collapseList('credit_fournisseur')" />
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedOperationFournisseur.statutSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_editable}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                            <f:selectItem itemLabel="#{lab.L_attente}" itemValue="#{constantes.ETAT_ATTENTE}"/>
+                            <f:selectItem itemLabel="#{lab.L_valider}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                            <p:ajax event="valueChange" listener="#{managedOperationFournisseur.addParamStatut()}" oncomplete="collapseList('credit_fournisseur')"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedOperationFournisseur.codeFournisseur}" style="width: 100%">
+                            <p:ajax event="valueChange" listener="#{managedOperationFournisseur.addParamFournisseur()}" oncomplete="collapseList('credit_fournisseur')"/>
+                        </h:inputText> 
+                        <h:selectOneMenu value="#{managedOperationFournisseur.caisseSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="" itemValue="0"/>
+                            <f:selectItems value="#{managedCaisses.caisses}" var="ca" itemLabel="#{ca.intitule}" itemValue="#{ca.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedOperationFournisseur.addParamCaisse()}" oncomplete="collapseList('credit_fournisseur')" />
+                        </h:selectOneMenu>                          
+                        <h:inputText value="#{managedOperationFournisseur.numSearch}">
+                            <p:ajax event="valueChange" listener="#{managedOperationFournisseur.addParamReference()}" oncomplete="collapseList('credit_fournisseur')"/>
+                        </h:inputText>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right">
+                        <p:commandLink style="border: 2px solid black; border-radius: 5px;padding: 2px;font-size: 0.8em" 
+                                       oncomplete="dlgStatistiques.show()" 
+                                       actionListener="#{managedOperationFournisseur.loadStatistique()}" value="#{lab.LCF_PCF_statistiques}"/>
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

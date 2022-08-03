@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide">
+        <span class="block_slide_title">
+            <span class="slide_title" group="JOURNAL">#{lab.LC_PTBVs_creance_vendeur}</span>  
+        </span> 
+        <div class="zone_slide">
+            <p:outputPanel id="data_creance_vendeur">
+                <p:dataTable value="0" style="width: 100%;overflow-x: auto">
+                    <p:columnGroup type="header">
+                        <p:row>
+                            <p:column headerText="#{managedBordStatistique.creanceClient.cumule?'CLIENT':'FACTURE'}" style="width: 20%"/>
+                            <p:column headerText="#{lab.L_date}" style="width: 20%"/>
+                            <p:column headerText="#{lab.LC_PTBVs_net_a_payer}" style="width: 20%"/>
+                            <p:column headerText="#{lab.LC_PTBVs_avance}" style="width: 20%"/>
+                            <p:column headerText="#{lab.LC_PTBVs_reste_a_payer}" style="width: 20%"/>
+                        </p:row>
+                    </p:columnGroup>
+                </p:dataTable>
+                <p:dataGrid value="#{managedBordStatistique.creanceClient.valeurs}" var="vendeur" rowIndexVar="vRow" columns="1"
+                            paginator="true" rows="20" paginatorAlwaysVisible="false" style="width: 100%;overflow-x: auto">
+                    <p:dataTable value="#{vendeur.sous}" var="facture" rowIndexVar="iRow">
+                        <f:facet name="header" >
+                            <div align="left">
+                                <h:outputText value="#{vendeur.periode}" />
+                            </div>
+                        </f:facet>
+                        <p:subTable value="#{facture.sous}" var="sous">
+                            <f:facet name="header">
+                                <h:outputText value="#{facture.periode}" />
+                            </f:facet>
+                            <p:column style="width: 20%">
+                                <h:outputText value="#{sous.periode}" /> 
+                            </p:column>       
+                            <p:column style="text-align: center;width: 20%">
+                                <h:outputText value="#{sous.date}" converter="DATE"/> 
+                            </p:column>  
+                            <p:column style="text-align: right;width: 20%" >
+                                <h:outputText value="#{sous.quantite}" converter="DN"  /> 
+                            </p:column> 
+                            <p:column style="text-align: right;width: 20%" >
+                                <h:outputText value="#{sous.prixrevient}" converter="DN"  /> 
+                            </p:column> 
+                            <p:column style="text-align: right;width: 20%" >
+                                <h:outputText value="#{sous.prixvente}" converter="DN"  /> 
+                            </p:column>
+                            <p:columnGroup type="footer">
+                                <p:row> 
+                                    <p:column style="width: 20%"/> 
+                                    <p:column style="width: 20%"/> 
+                                    <p:column style="text-align: right;width: 20%">
+                                        <f:facet name="footer">
+                                            <h:outputText value="#{managedBordStatistique.creanceClient.summaryGroupResume(facture.sous, 'qte')}" converter="DN"/> 
+                                        </f:facet>
+                                    </p:column> 
+                                    <p:column style="text-align: right;width: 20%">
+                                        <f:facet name="footer">
+                                            <h:outputText value="#{managedBordStatistique.creanceClient.summaryGroupResume(facture.sous, 'pr')}" converter="DN"/> 
+                                        </f:facet>
+                                    </p:column> 
+                                    <p:column style="text-align: right;width: 20%">
+                                        <f:facet name="footer">
+                                            <h:outputText value="#{managedBordStatistique.creanceClient.summaryGroupResume(facture.sous, 'puv')}" converter="DN"/> 
+                                        </f:facet>
+                                    </p:column> 
+                                </p:row>
+                            </p:columnGroup>
+                        </p:subTable>
+                        <p:columnGroup type="footer">
+                            <p:row>
+                                <p:column style="width: 20%"/> 
+                                <p:column style="width: 20%"/> 
+                                <p:column style="text-align: right;width: 20%">
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{managedBordStatistique.creanceClient.summaryGroupResume(vendeur.sous, 'qte')}" converter="DN"/>
+                                    </f:facet>
+                                </p:column> 
+                                <p:column style="text-align: right;width: 20%">
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{managedBordStatistique.creanceClient.summaryGroupResume(vendeur.sous, 'pr')}" converter="DN"/>
+                                    </f:facet>
+                                </p:column> 
+                                <p:column style="text-align: right;width: 20%">
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{managedBordStatistique.creanceClient.summaryGroupResume(vendeur.sous, 'puv')}" converter="DN"/>
+                                    </f:facet>
+                                </p:column> 
+                            </p:row>
+                        </p:columnGroup>
+                    </p:dataTable>
+                </p:dataGrid>
+            </p:outputPanel>
+        </div>
+        <div class="zone_bottom">
+            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px; float: left;margin-right: 5px" id="btn_option_creance_vendeur" type="button"/>
+            <p:contextMenu for="btn_option_creance_vendeur" event="left click" styleClass="context_menu" style="width: 210px">
+                <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadDashBoardVendeur()}" update="data_creance_vendeur"/>
+                <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" actionListener="#{managedBordStatistique.downloadDashBoardVendeur()}" global="false" ajax="false"/>       
+            </p:contextMenu>
+            <h:panelGroup style="float: right">
+
+            </h:panelGroup>
+        </div>
+    </div>
+</ui:composition>
+

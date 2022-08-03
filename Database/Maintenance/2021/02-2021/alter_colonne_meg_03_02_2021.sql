@@ -1,0 +1,1 @@
+ALTER TABLE yvs_societes ADD COLUMN cachet CHARACTER VARYING;

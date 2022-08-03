@@ -1,0 +1,1248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">     
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Règlements ventes','modCompta', 'smenRegVente', true)}
+    </ui:define>        
+    <ui:define name="contents">
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('piece_vente');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 135);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                slideZoneUp();
+                collapseForm('piece_venteAcompte');
+            });
+            function slideZoneUp() {
+                $('.zone_editPC').slideUp();
+            }
+            function slideZoneDown() {
+                $('.zone_editPC').slideDown();
+            }
+            function slideZone() {
+                $('.zone_editPC').slideToggle("fast", function() {
+                    //legend.children("span").html(value);
+                });
+            }
+
+        </script>          
+        #{managedCompensation.doNothing()}  
+        #{managedSaisiePiece.doNothing()}   
+        #{managedRetenue.doNothing()}
+        #{managedReglementVente.loadAll()}
+        #{managedReglementVente.addParamStatut()}
+        #{managedOperationClient.loadAll("A")}
+        #{managedFactureVente.loadFactureNonRegle(true, true)}
+        #{managedModeReglement.loadModels('C')}  
+        #{managedUser.loadAll()}
+        #{managedPointVente.loadAllPointVente()}
+        #{managedCaisses.loadAllCaisseActif(true)}  
+
+        <h:form prependId="false">
+            <p:dialog header="Correction des pieces sans numero" modal="true" closeOnEscape="true" widgetVar="dlgCorrectionNumero" footer="&copy;Lymytz 2014"> 
+                <h:panelGrid columns="3" cellpadding="0" cellspacing="0">
+                    <h:outputText value="Date début"/>
+                    <h:outputText value="Date fin"/>
+                    <h:outputText value=""/>
+                    <p:calendar value="#{managedReglementVente.dateDebutCorrection}" navigator="true" size="8" pattern="dd-MM-yyyy" >
+                        <p:ajax global="false" event="dateSelect" />
+                    </p:calendar>
+                    <p:calendar value="#{managedReglementVente.dateFinCorrection}" navigator="true" size="8" pattern="dd-MM-yyyy" >
+                        <p:ajax global="false" event="dateSelect" />
+                    </p:calendar>
+                    <p:commandButton icon="ui-icon-check" value="Executer" actionListener="#{managedReglementVente.correctionNumero()}" oncomplete="dlgCorrectionNumero.hide()"/>
+                </h:panelGrid>
+            </p:dialog>            
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LCF_PRV_planifier_reglement_cette_facture}" modal="true" closeOnEscape="true"
+                      widgetVar="dlgChoixTypeRet" width="70%" footer="&copy;Lymytz 2014"> 
+                <h:panelGrid columns="6" style="width: 100%" id="zone_choix_retenu_vente_reg">
+                    <span>#{lab.LCF_PRV_paiement_partir_du}</span>
+                    <p:calendar size="8" pattern="dd-MM-yyyy" value="#{managedRetenue.debutPlanif}" >
+                        <p:ajax global="false" event="dateSelect" />
+                    </p:calendar>
+                    <span>#{lab.LC_PFV_type_retenue}</span>
+                    <h:selectOneMenu value="#{managedRetenue.elementAdd.typeElt.id}" >
+                        <f:selectItem itemValue="0" itemLabel="" />
+                        <f:selectItems value="#{managedRetenue.listTypesElts}" var="typE"
+                                       itemValue="#{typE.id}" itemLabel="#{typE.libelle}" rendered="#{typE.visibleEnGescom}"/>
+                        <p:ajax event="valueChange" update="tab_prelevement_detail_vente_reg" listener="#{managedRetenue.placerRetenu(managedReglementVente.pieceVente.montant)}" />
+                    </h:selectOneMenu>
+                    <span>#{lab.LC_PFV_plan}</span>
+                    <h:selectOneMenu value="#{managedRetenue.elementAdd.plan.id}">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                        <f:selectItems value="#{managedRetenue.plansRetenues}" var="planR" itemValue="#{planR.id}" itemLabel="#{planR.referencePlan}" rendered="#{(planR.actif and planR.visibleEnGescom)}"/>
+                        <p:ajax event="valueChange" update="tab_prelevement_detail_vente_reg" listener="#{managedRetenue.placerRetenu(managedReglementVente.pieceVente.montant)}" />
+                    </h:selectOneMenu>                    
+                    <f:facet name="footer" >
+                        <p:dataTable value="#{managedRetenue.elementAdd.listPrelevement}" var="det_" rowKey="#{det_.id}"
+                                     widgetVar="tableauDetailPlanPrelevement" rowIndexVar="line_detailP"
+                                     selectionMode="single" id="tab_prelevement_detail_vente_reg" selection="#{managedRetenue.selectedDetailPrelevement}">
+                            <p:column width="20" headerText="N°" style="text-align: center"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                #{line_detailP+1}
+                                <p:graphicImage library="img" name="blocked.png" rendered="#{det_.retenuFixe}" />
+                            </p:column>                                
+                            <p:column headerText="#{lab.LC_PFV_date_prevelement}" width="100" style="text-align: left"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{det_.datePrelevement}" converter="LD"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" width="200" style="text-align: center"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{det_.reference}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PFV_montant_prevelement}" width="100" style="text-align: right"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{det_.valeur}" converter="DN"/>
+                            </p:column>
+                        </p:dataTable>
+                    </f:facet>
+                </h:panelGrid>
+                <p:commandButton value="Enregistrer" style="float: right" actionListener="#{managedReglementVente.valideReglementFacture()}" oncomplete="dlgChoixTypeRet.hide()"/>
+            </p:dialog>            
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog hideEffect="explode" widgetVar="dglEtatComptabilised" closeOnEscape="true" resizable="false" width="25%">
+                <h:panelGrid id="dialog-statut_comptabilise" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <p:commandButton value="#{lab.LCF_PRV_tous_reglements}" actionListener="#{managedReglementVente.verifyComptabilised(null)}" style="width: 99%" disabled="#{managedReglementVente.comptaSearch eq null}" update="dialog-statut_comptabilise"/>
+                    <p:commandButton value="#{lab.LCF_PRV_reglements_comptabilise}" actionListener="#{managedReglementVente.verifyComptabilised(true)}" style="width: 99%" disabled="#{managedReglementVente.comptaSearch}" update="dialog-statut_comptabilise"/>
+                    <p:commandButton value="#{lab.LCF_PRV_reglements_non_comptabilise}" actionListener="#{managedReglementVente.verifyComptabilised(false)}" style="width: 99%" disabled="#{managedReglementVente.comptaSearch eq false}" update="dialog-statut_comptabilise"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LCF_PRV_liste_factures_non_regler}" widgetVar="dlgFacture" width="80%" footer="&copy;Lymytz 2014">
+                <div >
+                    <h:panelGrid id="blog_search_fv" columns="7" style="font-size: 0.8em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="" />
+                        <h:outputText value="#{lab.L_date}" />
+                        <h:panelGroup>
+                            <span title="#{lab.LCF_PRV_statut_reglement}">#{lab.LCF_PRV_statut_reg}</span>
+                            <h:selectOneMenu value="#{managedFactureVente.egaliteStatutR}">
+                                <f:selectItem itemLabel="#{lab.L_egale}" itemValue="="/>
+                                <f:selectItem itemLabel="#{lab.L_different}" itemValue="!="/>
+                                <p:ajax event="valueChange" update="data_facture_vente_reg" listener="#{managedFactureVente.addParamStatutRegle()}" />
+                            </h:selectOneMenu>
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.LCF_PRV_client}" />
+                        <h:outputText value="#{lab.LCF_PRV_vendeur}" />
+                        <h:outputText value="#{lab.L_reference}" />
+                        <span>&nbsp;</span>
+                        <p:commandButton icon="ui-icon-bullet" actionListener="#{managedFactureVente.clearParams()}" title="#{lab.L_reset_param}" style="width: 20px; height: 22px" 
+                                         update="blog_search_fv data_facture_vente_reg"/>
+                        <h:panelGrid columns="2" >
+                            <h:selectBooleanCheckbox value="#{managedFactureVente.date_}" style="margin-top: 2px;float: right" valueChangeListener="#{managedFactureVente._chooseDateSearch}">
+                                <p:ajax event="valueChange"
+                                        update="zone_search_by_date_fV data_facture_vente_reg"/>
+                            </h:selectBooleanCheckbox>
+                            <h:panelGroup id="zone_search_by_date_fV">
+                                <p:calendar value="#{managedFactureVente.dateDebut}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedFactureVente.date_}" size="10" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedFactureVente.addParamDate1}"
+                                            update="data_facture_vente_reg" />
+                                </p:calendar>
+                                <p:spacer width="5px" style="background: black"/>
+                                <p:calendar value="#{managedFactureVente.dateFin}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedFactureVente.date_}" size="10" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedFactureVente.addParamDate1}"
+                                            update="data_facture_vente_reg" />
+                                </p:calendar>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                        <h:selectOneMenu value="#{managedFactureVente.statutRegle_}" valueChangeListener="#{managedFactureVente.chooseStatutRegle}" style="min-width: 120px" title="#{lab.LCF_PRV_etat_reglement_facture}">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_attente}" itemValue="#{constantes.ETAT_ATTENTE}"/>
+                            <f:selectItem itemLabel="#{lab.L_en_cours}" itemValue="#{constantes.ETAT_ENCOURS}"/>
+                            <f:selectItem itemLabel="#{lab.L_regler}" itemValue="#{constantes.ETAT_REGLE}"/>
+                            <p:ajax event="valueChange" update="data_facture_vente_reg"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedFactureVente.codeClient_}" style="width: 100%">
+                            <p:ajax event="blur" listener="#{managedFactureVente.searchByClient()}" 
+                                    update="data_facture_vente_reg"/>
+                        </h:inputText> 
+                        <h:inputText value="#{managedFactureVente.codeVendeur_}">
+                            <p:ajax event="blur" listener="#{managedFactureVente._searchVendeur()}" 
+                                    update="data_facture_vente_reg"/>
+                        </h:inputText>                        
+                        <h:inputText value="#{managedFactureVente.numSearch_}">
+                            <p:ajax event="blur" listener="#{managedFactureVente.searchByNum()}"
+                                    update="data_facture_vente_reg"/>
+                        </h:inputText>
+                    </h:panelGrid>
+                </div>
+                <p:dataTable id="data_facture_vente_reg" value="#{managedFactureVente.documents}" var="bon" rowKey="#{bon.id}" rowIndexVar="bonIdx" 
+                             selectionMode="single" >
+                    <p:ajax event="rowSelect"   listener="#{managedReglementVente.loadOnView}" oncomplete="dlgFacture.hide()" 
+                            update=":main_form_regFV:zone_form_regFV :main_form_regFV:table_reg_facture  :main_form_regFV:txt_reference_facture_reg_FV"/>
+                    <p:column width="35" headerText="N°" styleClass="statut_#{bon.statut}">
+                        <h:graphicImage title="#{lab.L_cloturer}" library="img" name="blocked.png" width="15" height="15" rendered="#{bon.cloturer}"/>  
+                        <span >#{bonIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference}" styleClass="statut_#{bon.statut}">
+                        <span >#{bon.numDoc}</span>
+                        <h:outputText title="#{lab.LC_PFA_facture_regler}" value="R" rendered="#{bon.statutRegle == constantes.ETAT_REGLE}" styleClass="style_statut" style="float: right"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PBRA_date_facture}" style="text-align: center" styleClass="statut_#{bon.statut}" width="80">
+                        <h:outputText value="#{bon.enteteDoc.dateEntete}" converter="DDMMYYYY" />
+                        <span> #{lab.L_a} </span>
+                        <h:outputText value="#{bon.heureDoc}" converter="TIME" />
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PRV_point_v}"  width="120" styleClass="statut_#{bon.statut}">
+                        <span >#{bon.enteteDoc.creneau.creneauPoint.point.libelle}</span>
+                    </p:column>                        
+                    <p:column headerText="#{lab.LCF_PRV_client}" styleClass="statut_#{bon.statut}">
+                        <span >#{bon.nom_client}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PRV_vendeur}"  width="150" styleClass="statut_#{bon.statut}">
+                        <span >#{bon.enteteDoc.creneau.users.nomUsers}</span>
+                    </p:column>
+                    <p:column width="20" style="text-align: center" styleClass="statut_#{bon.statut}">
+                        <p:contextMenu for="btn_option_facture_vente" event="left click"  styleClass="context_menu">
+                            <p:menuitem value="#{lab.LCF_PRV_generer_piece}" icon="ui-icon-circle-arrow-w" actionListener="#{managedReglementVente.createOnePieceCaisse(bon)}"
+                                        oncomplete="collapseForm('piece_vente')"  update=":main_form_regFV:zone_form_regFV"/>
+                        </p:contextMenu>                           
+                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_facture_vente" type="button"/>
+                    </p:column>
+                </p:dataTable>      
+                <span class="nbSelectfacture_vente" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                    <p:commandButton actionListener="#{managedFactureVente.init(false)}"   update="data_facture_vente_reg" icon="ui-icon-circle-triangle-w" disabled="#{managedFactureVente.paginator.disPrev}"/>
+                    <p:outputPanel >
+                        <p:inplace label="#{managedFactureVente.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                            <pe:inputNumber value="#{managedFactureVente.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                <p:ajax event="blur" listener="#{managedFactureVente.gotoPagePaginator()}" update="data_facture_vente_reg"/>
+                            </pe:inputNumber>
+                        </p:inplace><p:outputLabel value="/#{managedFactureVente.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                    </p:outputPanel>
+                    <p:commandButton actionListener="#{managedFactureVente.init(true)}"   update="data_facture_vente_reg" icon="ui-icon-circle-triangle-e" disabled="#{managedFactureVente.paginator .disNext}"/>
+                    <p:selectOneMenu value="#{managedFactureVente.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedFactureVente.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                        <f:selectItems value="#{managedFactureVente.paginations}"/>
+                        <p:ajax event="valueChange"   update="data_facture_vente_reg"/>
+                    </p:selectOneMenu>
+                </p:outputPanel>               
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="select_regv_compensation">
+            #{managedReglementAchat.doNothing()}
+            <p:dialog header="#{lab.LC_PFA_compensation_client_fournisseur}" width="50%" widgetVar="dlgCompensation" modal="true" closeOnEscape="true">
+                <div style="border: solid 2px; height: 170px; padding: 2px; border-radius: 5px;">
+                    <span style="display: inline-block; background: #CCC; width: 100%; font-size: 0.9em">
+                        <span style="font-weight: bold">#{lab.LC_PFV_facture}</span> 
+                        <h:panelGroup style="float:right" id="total_reg_achat_compensation">
+                            <span>#{lab.LC_PFV_total_facture} : </span>
+                            <h:outputText style="font-weight: bold" value="#{managedCompensation.achat.montantTotal}" converter="DNA"/>
+                            <span style="font-size:0.8em">Fcfa </span>
+                        </h:panelGroup>
+                    </span>
+                    <div style="width: 99.5%; height: 130px; border: solid 1px; margin: auto;overflow-y: auto">
+                        <p:dataTable value="#{managedCompensation.achats}" var="ac" rowKey="#{ac.id}" selectionMode="single" rowIndexVar="Idx" id="data_reg_achat_compensation">
+                            <p:ajax event="rowSelect" listener="#{managedCompensation.loadOnViewAchat}"
+                                    update=":select_regv_compensation:total_reg_achat_compensation :select_regv_compensation:blog_compensation_reglement_vente"/>
+                            <p:column width="30" headerText="N°" styleClass="statut_#{ac.statut}">
+                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{ac.new_}"/> 
+                                <span>#{Idx+1}</span>
+                                <h:graphicImage title="#{lab.L_cloturer}" library="img" name="blocked.png" width="15" height="15" rendered="#{ac.cloturer}"/>      
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" style="width: 20%" styleClass="statut_#{ac.statut}">
+                                <span>#{ac.numDoc}</span>
+                                <h:outputText value="#{lab.LC_PBRV_vide}" style="float: right;color: blue;font-style: italic;font-size: 0.8em" rendered="#{0>=ac.contenus.size()}"/>
+                                <h:panelGroup style="float: right">
+                                    <h:outputText title="#{lab.LDB_PU_facture_livree}" value="L" rendered="#{ac.statutLivre == constantes.ETAT_LIVRE}"
+                                                  style="font-weight: bold;border: 2px solid #666; border-radius: 5px;padding: 2px;background: black;color: white"/>
+                                </h:panelGroup>
+                            </p:column>
+                            <p:column headerText="#{lab.L_date}" style="text-align: center;width: 15%" styleClass="statut_#{ac.statut}">
+                                <h:outputText value="#{ac.dateDoc}" converter="DDMMYYYY"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_fournisseur}" styleClass="statut_#{ac.statut}">
+                                <h:outputText value="#{ac.fournisseur.tiers.nom_prenom}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PFV_piece_externe}" style="width: 20%" styleClass="statut_#{ac.statut}">
+                                <span>#{ac.numPiece}</span>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                    <div style="font-size:0.9em">
+                        <h:panelGroup style="float: left">
+                            <span>#{lab.LC_PFV_total_reglement} : </span>
+                            <h:outputText style="font-weight: bold" value="#{managedCompensation.selectPieceVente.montant}" converter="DNA"/>
+                            <span style="font-size:0.8em">Fcfa </span>
+                        </h:panelGroup>
+                        <h:panelGroup style="float: right" id="total_reg_reg_achat_compensation_equilibre">
+                            <span>#{lab.LC_PFV_total_equilibre} : </span>
+                            <h:outputText style="font-weight: bold" value="#{managedCompensation.selectPieceVente.sommeAchat}" converter="DNA"/>
+                            <span style="font-size:0.8em">Fcfa </span>
+                        </h:panelGroup>
+                    </div>
+                </div> 
+                <p:separator/>
+                <p:outputPanel id="blog_compensation_reglement_vente">
+                    <h:panelGrid id="form_compensation_reglement_vente" columns="4" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" 
+                                 style="padding-top: 2px;padding-bottom: -5px;background: #CCC;width: 100%">
+                        <h:outputText value="#{lab.L_montant}" />
+                        <h:outputText value="#{lab.LC_PFV_date_paiement}" />
+                        <h:outputText value="#{lab.LCF_PRV_caisse}" />
+                        <h:outputText value="#{lab.L_reference}"/>
+                        <pe:inputNumber value="#{managedCompensation.pieceAchat.montant}"  style="text-align: right"/>
+                        <p:calendar value="#{managedCompensation.pieceAchat.datePaiementPrevu}" navigator="true" pattern="dd-MM-yyyy" size="10"/>
+                        <h:selectOneMenu value="#{managedCompensation.pieceAchat.caisse.id}">
+                            <f:selectItem itemLabel="" itemValue="0" />
+                            <f:selectItems value="#{managedCaisses.caisses}" var="icaiss" itemLabel="#{icaiss.intitule}"
+                                           itemValue="#{icaiss.id}" />
+                        </h:selectOneMenu>
+                        <h:panelGroup>
+                            <h:inputText value="#{managedCompensation.pieceAchat.numRefExterne}" />
+                            <p:commandButton icon="ui-icon-circle-plus" style="width: 22px; height: 22px;float: right"
+                                             update="blog_compensation_reglement_vente" actionListener="#{managedCompensation.saveNew()}"/>
+                        </h:panelGroup> 
+                    </h:panelGrid>                                            
+                    <p:dataTable id="data_compensation_reglement_vente" value="#{managedCompensation.selectPieceVente.compensations}" var="acc" rowKey="#{acc.id}" rowIndexVar="Idx" selectionMode="single">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedCompensation.loadOnView}" 
+                                update=":select_regv_compensation:form_compensation_reglement_vente :select_regv_compensation:total_reg_achat_compensation :select_regv_compensation:data_reg_achat_compensation"/>
+                        <p:ajax event="rowUnselect" global="false" listener="#{managedCompensation.unLoadOnView}" 
+                                update=":select_regv_compensation:form_compensation_reglement_vente :select_regv_compensation:total_reg_achat_compensation"/>
+                        <p:column headerText="N°" width="20" style="text-align: center" styleClass="statut_#{managedCompensation.giveStringStatut(acc.achat.statutPiece)}">
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{acc.achat.new_}"/>
+                            <h:outputText value="#{Idx+1}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PRV_date_edition}" sortBy="#{acc.achat.datePiece}" style="text-align: center" styleClass="statut_#{managedCompensation.giveStringStatut(acc.achat.statutPiece)}">
+                            <h:outputText value="#{acc.achat.datePiece}" converter="DDMMYYYY"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PRV_date_reglement}" sortBy="#{acc.achat.datePaimentPrevu}" style="text-align: center" styleClass="statut_#{managedCompensation.giveStringStatut(acc.achat.statutPiece)}">
+                            <h:outputText value="#{acc.achat.datePaimentPrevu}" converter="DDMMYYYY"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PRV_factures}" styleClass="statut_#{managedCompensation.giveStringStatut(acc.achat.statutPiece)}">
+                            <h:outputText value="#{acc.achat.achat.numDoc}"  />
+                        </p:column>                                                                                    
+                        <p:column headerText="#{lab.L_montant}" style="width: 17%;text-align: right" styleClass="statut_#{managedCompensation.giveStringStatut(acc.achat.statutPiece)}">
+                            <h:outputText value="#{acc.achat.montant}" converter="DNS"/>
+                        </p:column>                                                                                    
+                        <p:column style="width: 5%;text-align: center">
+                            <p:commandButton icon="#{acc.id gt 0? 'ui-icon-minusthick':'ui-icon-plusthick'}" title="#{acc.id gt 0? 'Enlever':'Associer'}"
+                                             style="width: 20px;height: 20px" actionListener="#{managedCompensation.addComprensation(acc)}" 
+                                             update="data_compensation_reglement_vente :select_regv_compensation:total_reg_reg_achat_compensation_equilibre"/>
+                        </p:column>  
+                        <p:column style="width: 5%;text-align: center" styleClass="statut_#{managedCompensation.giveStringStatut(acc.achat.statutPiece)}">
+                            <p:contextMenu for="btn_option_compensation_reglement_vente" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedCompensation.deleteBean(acc)}" 
+                                            update="data_compensation_reglement_vente :select_regv_compensation:total_reg_reg_achat_compensation_equilibre"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_compensation_reglement_vente" type="button"/>
+                        </p:column> 
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgCancelPcv" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text} ">
+                <span>#{lab.LCF_PRV_text17}</span>
+                <p:commandButton value="#{lab.L_continuer}"  icon="ui-icon-circle-check" actionListener="#{managedReglementVente.cancelStatutPayeOfPCV()}" oncomplete="dlgCancelPcv.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" onclick="dlgCancelPcv.hide()"  type="button" icon="ui-icon-circle-close"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgCancelPcv1" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text1} ">
+                <span>#{lab.LCF_PRV_text16}</span>
+                <p:commandButton value="#{lab.L_continuer}" icon="ui-icon-circle-check" actionListener="#{managedReglementVente.cancelStatutPayeOfPCVForBanque()}" oncomplete="dlgCancelPcv1.hide()" />
+                <p:commandButton value="#{lab.L_annuler}" onclick="dlgCancelPcv1.hide()"  type="button" icon="ui-icon-circle-close"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgCancelPcv3" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text2}">
+                <p:commandButton value="#{lab.L_continuer}" icon="ui-icon-circle-check" actionListener="#{managedReglementVente.cancelStatutPayeOfPCVByCompensation1()}" oncomplete="dlgCancelPcv3.hide()" 
+                                 update=":main_form_regFV:table_regFV :main_form_regFV:table_cmpens_p_achat :main_form_regFV:table_reg_facture :main_form_regFV:grp_btn_etat_reg_vente"/>
+                <p:commandButton value="#{lab.L_annuler}" onclick="dlgCancelPcv3.hide()"  type="button" icon="ui-icon-circle-close"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form_confirm_bind_pcFV_FV">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelAll" closeOnEscape="true" width="45%"
+                             message="#{lab.LCF_PRV_text3}
+                             ?" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_continuer}" actionListener="#{managedReglementVente.deleteAllPiece()}" 
+                                 oncomplete="dlgConfirmDelAll.hide();"  update=":main_form_regFV:table_regFV :main_form_regFV:txt_restToPlanFV :main_form_regFV:zone_pcv_edit_pieceFV"/>
+                <p:commandButton type="button"  value="#{lab.L_annuler}" onclick="dlgConfirmDelAll.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeletePC" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedReglementVente.deletePieceCaisse(false)}" 
+                                 oncomplete="dlgConfirmDeletePC.hide();" update=":main_form_regFV:table_regFV :main_form_regFV:txt_restToPlanFV :main_form_regFV:zone_pcv_edit_pieceFV"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeletePC.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmPaye" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text5}" header="#{lab.L_confirmation}">
+                <div >
+                    <span>#{lab.LCF_PRV_text6}</span>
+                    <p:selectBooleanCheckbox value="#{managedReglementVente.needConfirmation}" />
+                </div>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedReglementVente.reglerPieceTresorerie(true)}" oncomplete="dlgConfirmPaye.hide();" 
+                                 update=":main_form_regFV:table_regFV :main_form_regFV:txt_restToPlanFV :form_edit_new_pc_acompteFV:table_acompte_clts
+                                 :main_form_regFV:table_cmpens_p_achat :main_form_regFV:table_reg_facture"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmPaye.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form_confirm_bind_pcFV">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmBind" closeOnEscape="true" width="45%"
+                             message="#{lab.LCF_PRV_text7} #{managedFactureVenteV2.docVente.numDoc}?" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_continuer}" actionListener="#{managedReglementVente.bindPieceAndFacture()}" 
+                                 oncomplete="dlgConfirmBind.hide();" update=":form_edit_new_pc_acompteFV:table_acompte_clts :form_edit_new_pc_acompteFV:form_edit_pc_acompteFV"/>
+                <p:commandButton type="button"  value="#{lab.L_annuler}" onclick="dlgConfirmBind.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form_confirm_unbind_pcFV">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmUnBind" closeOnEscape="true" width="45%"
+                             message="#{lab.LCF_PRV_text8} #{managedReglementVente.pieceVente.vente.numDoc}?" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_continuer}" actionListener="#{managedReglementVente.unbindLiasonCaisse()}" 
+                                 oncomplete="dlgConfirmUnBind.hide();" update=":form_edit_new_pc_acompteFV:table_acompte_clts :form_edit_new_pc_acompteFV:form_edit_pc_acompteFV"/>
+                <p:commandButton type="button"  value="#{lab.L_annuler}" onclick="dlgConfirmUnBind.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeletePC1" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text9}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedReglementVente.deleteOneLinePc()}"
+                                 oncomplete="dlgConfirmDeletePC1.hide();" update=":form_edit_new_pc_acompteFV:table_acompte_clts :form_edit_new_pc_acompteFV:form_edit_pc_acompteFV"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeletePC1.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeletePiece" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text10}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedOperationClient.confirmDeletePiece(true)}" 
+                                 oncomplete="dlgConfirmDeletePiece.hide();" update=":form_edit_new_pc_acompteFV:form_edit_pc_acompteFV"/>
+                <p:commandButton value="#{lab.L_non}" actionListener="#{managedOperationClient.confirmDeletePiece(false)}" 
+                                 oncomplete="dlgConfirmDeletePiece.hide();" update=":form_edit_new_pc_acompteFV:form_edit_pc_acompteFV"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmAnnulePiece" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text11}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedReglementVente.openConfirmrPaiement()}" oncomplete="dlgConfirmAnnulePiece.hide()" 
+                                 update=":main_form_regFV:btn_comptabilised_caisse_vente :main_form_regFV:table_regFV :main_form_regFV:grp_btn_etat_reg_vente
+                                 :main_form_regFV:table_cmpens_p_achat :main_form_regFV:table_reg_facture"/>
+                <p:commandButton type="button" value="#{lab.L_non}" onclick="dlgConfirmAnnulePiece.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgComptabilisePiece" message="#{lab.LCF_PRV_text12}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.comptabiliserCaisseVente(managedReglementVente.pieceVente, true)}"
+                                 update=":main_form_regFV:btn_comptabilised_caisse_vente :main_form_regFV:table_cmpens_p_achat" oncomplete="dlgComptabilisePiece.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgComptabilisePiece.hide()" />
+            </p:confirmDialog>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgUnComptabilisePiece" message="#{lab.LCF_PRV_text13}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.unComptabiliserCaisseVente(managedReglementVente.pieceVente, true)}"
+                                 update=":main_form_regFV:btn_comptabilised_caisse_vente :main_form_regFV:table_cmpens_p_achat" oncomplete="dlgUnComptabilisePiece.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgUnComptabilisePiece.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgAnnulerPcv" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text14} ">
+                <p:commandButton value="#{lab.L_oui}"  icon="ui-icon-circle-check" actionListener="#{managedReglementVente.suspendreReglementVente()}" 
+                                 oncomplete="dlgAnnulerPcv.hide()" update=":main_form_regFV:table_regFV"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgAnnulerPcv.hide()"  type="button" icon="ui-icon-circle-close"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgDissocierPcv" closeOnEscape="true"
+                             message="#{lab.LCF_PRV_text15} ">
+                <div>Souhaitez-vous continuer ?</div>
+                <p:commandButton value="#{lab.L_oui}"  icon="ui-icon-circle-check" actionListener="#{managedReglementVente.dissocierNotif()}" 
+                                 oncomplete="dlgDissocierPcv.hide()" update=":main_form_regFV:table_regFV"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgDissocierPcv.hide()"  type="button" icon="ui-icon-circle-close"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">                    
+            <p:dialog header="#{lab.LC_PC_liste_clients}" widgetVar="dlgListClients" height="550" closeOnEscape="true" width="80%" modal="true" dynamic="true">
+                <div class="dlg_part_fixe">
+                    <h:inputText value="#{managedClient.numSearch_}" style="width: 140px">
+                        <p:ajax event="keyup" listener="#{managedClient.searchByNum()}" update="data_client_acomptes"/>
+                    </h:inputText>   
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedClient.init(false)}" global="false" update="data_client_acomptes" icon="ui-icon-circle-triangle-w" disabled="#{managedClient.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedClient.paginator.currentPage}/#{managedClient.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedClient.init(true)}" global="false" update="data_client_acomptes" icon="ui-icon-circle-triangle-e" disabled="#{managedClient.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedClient.max}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedClient.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedClient.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_client_acomptes"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </div>
+                <div class="dlg_part_scroll" style="clear: right">
+                    <p:dataTable id="data_client_acomptes"  value="#{managedClient.clients}" var="clt_" rowKey="#{clt_.id}"
+                                 selectionMode="single" rowIndexVar="cltIdx">
+                        <p:ajax event="rowSelect"  listener="#{managedOperationClient.loadOnViewClient}" oncomplete="dlgListClients.hide()"
+                                update=":form_edit_new_pc_acompteFV:edit_clt_acompte"/>
+                        <p:column headerText="N°" style="width: 8%;text-align: center">
+                            <span>#{cltIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_code}">
+                            <span>#{clt_.codeClient}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_nom_prenom}">
+                            <span>#{clt_.nom_prenom}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_telephone}">
+                            <span>#{clt_.tiers.tel}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_pays}">
+                            <span>#{clt_.tiers.pays.libele}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_ville}s">
+                            <span>#{clt_.tiers.ville.libele}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PTBC_zone}">
+                            <span>#{clt_.tiers.secteur.libele}</span>
+                        </p:column>
+                    </p:dataTable>   
+                </div>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_edit_new_pc_acompteFV">
+            <p:dialog header="#{lab.LCF_PRV_gerer_acomptes}" widgetVar="dlgSaveAvance" width="90%" footer="&copy;Lymytz 2014" modal="true" 
+                      closeOnEscape="true" height="600px" maximizable="true">                
+                <div class="dlg_part_fixe">
+                    <div style="float: left">
+                        <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedOperationClient.saveNew()}" id="save_piece_venteAcompte" update="table_acompte_clts txt_ref_acc_vente"/>
+                        <p:commandButton value="#{lab.L_nouveau}" actionListener="#{managedOperationClient.resetFiche()}" id="cancel_piece_venteAcompte" update=":form_edit_new_pc_acompteFV:form_edit_pc_acompteFV"/>
+                        <div id="search_piece_venteAcompte" style="font-size: 0.8em">
+                            <p:outputPanel autoUpdate="true" style="float: left" layout="block">
+                                <p:commandButton actionListener="#{managedOperationClient.paginer(false)}" global="false" update="table_acompte_clts" icon="ui-icon-circle-triangle-w" disabled="#{managedOperationClient.paginator.disPrev}"/>
+                                <p:outputPanel ><p:outputLabel value="#{managedOperationClient.paginator.currentPage}/#{managedOperationClient.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                <p:commandButton actionListener="#{managedOperationClient.paginer(true)}" global="false" update="table_acompte_clts" icon="ui-icon-circle-triangle-e" disabled="#{managedOperationClient.paginator.disNext}"/>
+                                <p:selectOneMenu value="#{managedOperationClient.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedOperationClient.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                    <f:selectItems value="#{managedOperationClient.paginations}"/>
+                                    <p:ajax event="valueChange" global="false" update="table_acompte_clts"/>
+                                </p:selectOneMenu>
+                            </p:outputPanel>      
+                            <h:panelGroup style="margin-top: 5px">
+                                <p:watermark for="txt_search_num_pcFV" value="#{lab.LCF_PRV_numero_reference}..." />
+                                <p:watermark for="txt_search_clt_pc" value="#{lab.L_codeClient}..." />
+                                <p:watermark for="txt_search_statut_pc" value="#{lab.L_statut}..." />
+                                <h:inputText value="#{managedOperationClient.numSearch}" id="txt_search_num_pcFV" style="background: #006666; color: white; text-align: center">
+                                    <p:ajax event="valueChange" listener="#{managedOperationClient.addParamReference()}" update="table_acompte_clts"/>
+                                </h:inputText>
+                                <h:inputText value="#{managedOperationClient.codeClient}" id="txt_search_clt_pc" style="background: #006666; color: white; text-align: center">
+                                    <p:ajax event="valueChange" listener="#{managedOperationClient.addParamClient()}" update="table_acompte_clts"/>
+                                </h:inputText>
+                                <h:selectOneMenu value="#{managedOperationClient.statutSearch}" id="txt_search_statut_pc" 
+                                                 style="min-width: 120px">
+                                    <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                                    <f:selectItem itemLabel="#{lab.L_editable}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                                    <f:selectItem itemLabel="#{lab.L_attente}" itemValue="#{constantes.ETAT_ATTENTE}"/>
+                                    <f:selectItem itemLabel="#{lab.L_regler}" itemValue="#{constantes.ETAT_REGLE}"/>
+                                    <p:ajax event="valueChange" listener="#{managedOperationClient.addParamStatut()}" update="table_acompte_clts"/>
+                                </h:selectOneMenu>
+                                <p:commandButton icon="ui-icon-bullet" actionListener="#{managedOperationClient.cleanParams()}" title="#{lab.L_reset_param}"
+                                                 style="width: 20px; height: 22px" update="table_acompte_clts"/>   
+                            </h:panelGroup>
+                        </div>
+                    </div>
+                    <div style="float: right">
+                        <div style="float: right">
+                            <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('piece_venteAcompte');
+                                    return false">
+                                <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>               
+                            <p:spacer />
+                            <h:link title="#{lab.L_mode_liste}" onclick="collapseList('piece_venteAcompte');
+                                    return false" >
+                                <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>   
+                        </div>
+                    </div>
+                </div>
+                <div class="dlg_part_scroll" style="clear: both">
+                    <div class="yvs_form_piece_venteAcompte">
+                        <p:outputPanel id="form_edit_pc_acompteFV">
+                            <div style="float: left;width: 40%">
+                                <h:panelGrid columns="2" cellpadding="0" cellspacing="0" styleClass="yvs_table" style="width: 100%; margin-top: 2px">
+                                    <f:facet name="header">
+                                        <div align="left" style="padding: 2px">
+                                            <span style="font-weight: normal">PC. N°: </span>
+                                            <h:outputText style="font-size: 1.1em; padding: 2px" value="#{managedOperationClient.compte.numRefrence} " id="txt_ref_acc_vente"/>
+                                        </div>
+                                    </f:facet>
+                                    <span>#{lab.LCF_PRV_clients}</span>
+                                    <h:panelGroup id="edit_clt_acompte">
+                                        <h:inputText value="#{managedOperationClient.compte.client.codeClient}" style="color: #{managedOperationClient.compte.client.error?'red':''}">
+                                            <p:ajax event="blur" global="false" listener="#{managedOperationClient.searchClient()}" update="edit_clt_acompte"/>
+                                        </h:inputText> 
+                                        #{managedOperationClient.compte.client.nom_prenom}
+                                        <p:commandButton icon="ui-icon-note" style="float: right; width: 16px;height: 20px" title="#{lab.LC_PC_liste_clients}" global="false"
+                                                         actionListener="#{managedOperationClient.initClients()}" oncomplete="dlgListClients.show()"/>
+                                    </h:panelGroup>
+                                    <span>#{lab.L_montant}</span>
+                                    <pe:inputNumber value="#{managedOperationClient.compte.montant}" decimalPlaces="0" /> 
+                                    <span>#{lab.LCF_PRV_paiement_prevu}</span> 
+                                    <p:calendar value="#{managedOperationClient.compte.dateAcompte}" pattern="dd-MM-yyyy" size="8"/>                 
+                                    <span>#{lab.LCF_PRV_caisse}</span>                         
+                                    <h:selectOneMenu value="#{managedOperationClient.compte.caisse.id}" style="min-width: 200px">
+                                        <f:selectItem itemLabel="" itemValue="0"/>
+                                        <f:selectItems value="#{managedCaisses.caisses}" var="ca" itemLabel="#{ca.intitule}" itemValue="#{ca.id}"/>
+                                        <p:ajax event="valueChange" global="false" listener="#{managedOperationClient.chooseCaisseCompte()}" />
+                                    </h:selectOneMenu>  
+                                    <span>#{lab.LCF_PRV_mode_paiement}</span>                        
+                                    <h:selectOneMenu value="#{managedOperationClient.compte.mode.id}" style="min-width: 200px">
+                                        <f:selectItem itemLabel="" itemValue="0"/>
+                                        <f:selectItems value="#{managedModeReglement.modes}" var="mo" itemLabel="#{mo.designation}" itemValue="#{mo.id}"
+                                                       itemDisabled="#{!(mo.typeReglement eq constantes.MODE_PAIEMENT_BANQUE or mo.typeReglement eq constantes.MODE_PAIEMENT_ESPECE)}"/>
+                                        <p:ajax event="valueChange" global="false" listener="#{managedOperationClient.chooseModeCompte()}" />
+                                    </h:selectOneMenu>     
+                                    <span>#{lab.LCF_PRV_numero_externe}</span>
+                                    <h:inputText value="#{managedOperationClient.compte.referenceExterne}" />                   
+                                    <f:facet name="footer">
+                                        <span>#{lab.LCF_PRV_note}</span>
+                                        <h:inputTextarea value="#{managedOperationClient.compte.commentaire}" style="width: 100%"  rows="4"/>
+                                    </f:facet>
+                                </h:panelGrid>
+                            </div>
+                            <div style="margin-left: 41%;width: 59%">
+                                <p:outputPanel id="date_notifs_acompte">
+                                    <div style="width: 99%; border: solid 2px; height: 265px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                        <span style="display: inline-block; background: #CCC; width: 100%">
+                                            <span class="button_slide">[-]</span>
+                                            #{lab.LCF_PRV_reglements_lies}
+                                            <div style="float: right">Reste : <div style="float: right"><h:outputText value="#{managedOperationClient.compte.reste}" converter="DNS" style="font-weight: bold"/> Fcfa</div></div>
+                                        </span>
+                                        <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 215px; margin: auto;overflow-y: auto">
+                                            <p:dataTable value="#{managedOperationClient.compte.notifs}" var="acom" rowKey="#{acom.id}" >
+                                                <p:column headerText="N°" style="width: 7%" styleClass="statut_#{managedOperationClient.giveStringStatut(acom.pieceVente.statutPiece)}">
+                                                    <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{men.new_}"/>
+                                                    <span>#{Idx+1}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LCF_PRV_mode_reglement}" styleClass="statut_#{managedOperationClient.giveStringStatut(acom.pieceVente.statutPiece)}">
+                                                    <h:outputText value="#{acom.pieceVente.model.designation}"/>
+                                                    <span style="display: #{(acom.pieceVente.statutPiece==constantes.STATUT_DOC_ATTENTE)?'inline-block':'none'}; width: 10px; height: 10px; background: #444;" title="#{lab.LC_PFA_en_attente_paiment}"></span>
+                                                    <span style="display: #{(acom.pieceVente.statutPiece==constantes.STATUT_DOC_ENCOUR)?'inline-block':'none'}; width: 10px; height: 10px; background: #f6a828" title="#{lab.LC_PFA_en_cours_paiment}"></span>
+                                                    <span style="display: #{(acom.pieceVente.statutPiece==constantes.STATUT_DOC_PAYER)?'inline-block':'none'}; width: 10px; height: 10px; background: #006666" title="#{lab.LC_PFA_piece_regler}"></span>
+                                                    <span style="display: #{(acom.pieceVente.phasesReglement.size() gt 0)?'inline-block':'none'}; width: 10px; height: 10px; background: #99ccff" title="#{lab.LC_PFA_phase_reglement_generer}"></span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LCF_PRV_date_edition}" sortBy="#{acom.pieceVente.datePiece}" style="text-align: center" styleClass="statut_#{managedOperationClient.giveStringStatut(acom.pieceVente.statutPiece)}">
+                                                    <h:outputText value="#{acom.pieceVente.datePiece}" converter="DDMMYYYY"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LCF_PRV_date_reglement}" sortBy="#{men.pieceVente.datePaimentPrevu}" style="text-align: center" styleClass="statut_#{managedOperationClient.giveStringStatut(acom.pieceVente.statutPiece)}">
+                                                    <h:outputText value="#{acom.pieceVente.datePaimentPrevu}" converter="DDMMYYYY"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_montant}" style="width: 17%;text-align: right" styleClass="statut_#{managedOperationClient.giveStringStatut(acom.pieceVente.statutPiece)}">
+                                                    <h:outputText value="#{acom.pieceVente.montant}" converter="DNS"/>
+                                                </p:column>
+                                                <p:column style="width: 5%;text-align: center" styleClass="statut_#{managedOperationClient.giveStringStatut(acom.pieceVente.statutPiece)}">
+                                                    <p:contextMenu for="btn_option_notif_acompte" event="left click" style="font-size: 0.8em">
+                                                        <p:menuitem value="#{lab.LCF_PRV_encaisser_valider}" rendered="#{acom.pieceVente.statutPiece == 'W'}"
+                                                                    update=":form_edit_new_pc_acompteFV:date_notifs_acompte :form_edit_new_pc_acompteFV:table_acompte_clts" 
+                                                                    actionListener="#{managedOperationClient.encaisserPiece(acom)}" icon="ui-icon-circle-check" />
+                                                        <p:menuitem value="#{lab.L_annuler}" rendered="#{acom.pieceVente.statutPiece == 'P'}" 
+                                                                    update=":form_edit_new_pc_acompteFV:date_notifs_acompte :form_edit_new_pc_acompteFV:table_acompte_clts"  
+                                                                    actionListener="#{managedOperationClient.annulerPiece(acom, true)}" icon="ui-icon-circle-close" />
+                                                        <p:menuitem value="#{lab.LP_PSO_mettre_en_attente}" rendered="#{acom.pieceVente.statutPiece == 'A'}" 
+                                                                    update=":form_edit_new_pc_acompteFV:date_notifs_acompte :form_edit_new_pc_acompteFV:table_acompte_clts"  
+                                                                    actionListener="#{managedOperationClient.annulerPiece(acom, false)}" icon="ui-icon-circle-close" />
+                                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedOperationClient.deleteBeanPiece(acom)}"
+                                                                    oncomplete="dlgConfirmDeletePiece.show()"/>
+                                                    </p:contextMenu>                           
+                                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_notif_acompte" type="button"/>
+                                                </p:column> 
+                                            </p:dataTable>
+                                        </div>  
+                                        <div class="zone_bottom">
+
+                                        </div>
+                                    </div>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+                    </div>
+                    <div class="yvs_list_piece_venteAcompte">
+                        <p:dataTable value="#{managedOperationClient.acomptes}" var="acClt" rowIndexVar="line_av" rowKey="#{acClt.id}"
+                                     selectionMode="single" id="table_acompte_clts" style="max-height: 550px; overflow-y: auto">
+                            <p:ajax event="rowSelect" listener="#{managedOperationClient.loadOnView}" update=":form_edit_new_pc_acompteFV:form_edit_pc_acompteFV" 
+                                    oncomplete="collapseForm('piece_venteAcompte')" />
+                            <p:column headerText="N°" style="text-align: center" styleClass="statut_#{acClt.statut}"> 
+                                #{line_av+1}
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_reste}" styleClass="statut_#{acClt.statut}">
+                                #{acClt.numRefrence}
+                            </p:column>
+                            <p:column headerText="#{lab.L_date}" width="80" styleClass="statut_#{acClt.statut}">
+                                <h:outputText value="#{acClt.dateAcompte}" converter="DDMMYYYY"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_client}" styleClass="statut_#{acClt.statut}">
+                                #{acClt.client.nom_prenom}
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_caisse}" width="80" styleClass="statut_#{acClt.statut}">
+                                <h:outputText value="#{acClt.caisse.intitule}"/>
+                            </p:column>                      
+                            <p:column headerText="#{lab.LCF_PRV_mode_paiement}" width="80" styleClass="statut_#{acClt.statut}">
+                                <h:outputText value="#{acClt.model.designation}"/>
+                            </p:column>                      
+                            <p:column headerText="#{lab.L_montant}" styleClass="statut_#{acClt.statut}">
+                                <h:outputText value="#{acClt.montant}" converter="DNS" />
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_reste}" styleClass="statut_#{acClt.statut}">
+                                <h:outputText value="#{acClt.resteUnBind}" converter="DNS" />
+                            </p:column>
+                            <p:column headerText=" " style="text-align: center">
+                                <p:contextMenu for="btn_option_acc" event="left click" styleClass="context_menu">
+                                    <p:menuitem value="#{lab.LCF_PRV_encaisser_valider}" rendered="#{acClt.statut == 'W'}" update="table_acompte_clts" 
+                                                actionListener="#{managedOperationClient.encaisserAcompte(acClt)}" icon="ui-icon-circle-check" />
+                                    <p:menuitem value="#{lab.L_annuler}" rendered="#{acClt.statut == 'P'}" update="table_acompte_clts"  
+                                                actionListener="#{managedOperationClient.annulerAcompte(acClt, true)}" icon="ui-icon-circle-close" />
+                                    <p:menuitem value="#{lab.LP_PSO_mettre_en_attente}" rendered="#{acClt.statut == 'A'}"  update="table_acompte_clts" 
+                                                actionListener="#{managedOperationClient.annulerAcompte(acClt, false)}" icon="ui-icon-circle-close" />
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" update="table_acompte_clts" actionListener="#{managedOperationClient.deleteBeanCompte(acClt)}"/>
+                                    <p:menuitem value="#{lab.LCF_PRV_lier_facture}" icon="ui-icon-shuffle" rendered="#{0 lt acClt.resteUnBind and managedReglementVente.pieceVente.id gt 0}"
+                                                actionListener="#{managedReglementVente.openDlgToBindDv(acClt)}"/>
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" type="button" style="width: 20px; height: 20px; background: #FFF !important"  id="btn_option_acc"/>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>                
+            </p:dialog>
+        </h:form>       
+        <h:form prependId="false" id="main_form_regFV">            
+            <div class="part_fix">
+                <div align="left" style="float: left; width: 50%">                    
+                    <p:splitButton value="#{lab.L_nouveau}" title="#{lab.LCF_PRV_nouvelle_piece_reglement}" icon="ui-icon-document" actionListener="#{managedReglementVente.resetViewPc()}"
+                                   update="zone_pcv_edit_pieceFV all_bloc_info_reg">
+
+                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedReglementVente.openConfirmDelePC(iregV)}"/>
+                    </p:splitButton>
+                    <span>#{lab.LCF_PRV_enregistrer_avance_client}</span>
+                    <p:commandButton icon="ui-icon-radio-on" style="width: 20px; height: 18px; margin-left: 10px" type="button" onclick="dlgSaveAvance.show()"/>
+
+                    <h:panelGroup style="float: right">
+                        <p:commandButton actionListener="#{managedReglementVente.parcoursInAllResult(false)}" 
+                                         update="txt_parc_linear_facture_vente"  icon="ui-icon-circle-triangle-w"  oncomplete="collapseForm('piece_vente')" />
+                        <h:inputText value="#{managedReglementVente.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aler_au}" id="txt_parc_linear_facture_vente"/>
+                        <p:outputPanel autoUpdate="true">                        
+                            <p:outputLabel value="/#{managedReglementVente.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedReglementVente.parcoursInAllResult(true)}" 
+                                         update="txt_parc_linear_facture_vente"  icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('piece_vente')" />
+                    </h:panelGroup>
+                </div>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('piece_vente');
+                            return false;">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>          
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('piece_vente');
+                            return false;" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                   
+                </div> 
+                <div style="clear: right"/>                
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_piece_vente" style="margin: auto; background: white;">
+                    <div >
+                        <p:outputPanel id="zone_pcv_edit_pieceFV">
+                            <h:panelGroup style="float: right; position: relative">
+                                <p:outputPanel autoUpdate="true" style="float: left;margin-top: 7px">     
+                                    <p:outputPanel id="grp_btn_etat_reg_vente" styleClass="yvs_form_of" rendered="#{managedReglementVente.pieceAvance.id gt 0}">  
+                                        <p:commandLink value="#{lab.L_en_attente}" styleClass="#{(managedReglementVente.pieceAvance.statutPiece == constantes.STATUT_DOC_ATTENTE)?'statut_valide':'etat_formation_true'}" 
+                                                       disabled="#{!(managedReglementVente.pieceAvance.statutPiece == constantes.STATUT_DOC_PAYER
+                                                                   or managedReglementVente.pieceAvance.statutPiece == constantes.STATUT_DOC_ANNULE)}" 
+                                                       actionListener="#{managedReglementVente.openConfirmPaiement()}"
+                                                       process="@this" update="grp_btn_etat_reg_vente" />                                 
+                                        <p:commandLink value="#{(managedReglementVente.pieceAvance.statutPiece eq constantes.STATUT_DOC_PAYER)?'ENCAISS&Eacute;':'ENCAISSER'}"
+                                                       styleClass="#{(managedReglementVente.pieceAvance.statutPiece == constantes.STATUT_DOC_PAYER)?'statut_valide':'etat_formation_true'}" 
+                                                       disabled="#{!(managedReglementVente.pieceAvance.statutPiece == constantes.STATUT_DOC_ATTENTE)}" 
+                                                       actionListener="#{managedReglementVente.openConfirmPaiement()}"
+                                                       process="@this" update="grp_btn_etat_reg_vente" />
+                                        <p:commandLink value="#{managedReglementVente.isComptabiliseBean(managedReglementVente.pieceAvance)?'COMPTABILISE':'COMPTABILISER'}"
+                                                       type="button" styleClass="#{(managedReglementVente.pieceAvance.comptabilise)?'statut_valide':'etat_formation_true'}"
+                                                       onclick="dlgComptabilisePiece.show()" global="false" id="btn_comptabilised_caisse_vente" 
+                                                       rendered="#{managedReglementVente.pieceAvance.id gt 0 and managedReglementVente.pieceAvance.statutPiece==constantes.STATUT_DOC_PAYER}"/>
+                                        <p:contextMenu for="btn_comptabilised_caisse_vente" style="font-size: 0.7em">
+                                            <p:menuitem icon="ui-icon-circle-arrow-w" value="Annuler" onclick="dlgUnComptabilisePiece.show()" disabled="#{!managedReglementVente.pieceAvance.comptabilise}"/>
+                                        </p:contextMenu>
+                                    </p:outputPanel> 
+                                </p:outputPanel> 
+                                <p:commandButton title="#{lab.LCF_PRV_rattacher_reglement}" icon="ui-icon-pin-s" 
+                                                 actionListener="#{managedOperationClient.addParamNotBind(managedFactureVenteV2.docVente.client.codeClient)}"
+                                                 oncomplete="collapseList('piece_venteAcompte')" rendered="#{managedReglementVente.pieceAvance.id gt 0}"/>
+                            </h:panelGroup>
+                            <h:panelGrid columns="9" style="font-size: 0.8em;">
+                                <h:outputText value="#{lab.LCF_PRV_client}" style="font-weight: bold"/>
+                                <h:panelGroup>
+                                    <h:outputText value="#{lab.LCF_PRV_facture}" style="font-weight: bold"/>
+                                    <p:commandButton icon="ui-icon-note" type="button" style="width: 20px;height: 22px; float: right" title="#{lab.LCF_PRV_liste_facture}" onclick="dlgFacture.show()"/>
+                                </h:panelGroup>
+                                <h:outputText value="#{lab.LCF_PRV_mode_paiement}" style="font-weight: bold"/>
+                                <h:outputText value="#{lab.L_montant}" style="font-weight: bold"/>
+                                <h:outputText value="#{lab.LCF_PRV_a_payer_le}" style="font-weight: bold"/>
+                                <h:outputText value="#{lab.LCF_PRV_caisse_paiement}" style="font-weight: bold"/>
+                                <h:outputText value="#{lab.LC_PJV_caissier}" style="font-weight: bold" rendered="false"/>
+                                <p:selectBooleanCheckbox value="#{managedReglementVente.pieceAvance.acompte}" itemLabel="#{lab.LCF_PRV_paiement_acompte}"/>
+                                <h:outputText value="#{lab.LC_PFA_ref_externe}" style="font-weight: bold"/>
+                                <h:outputText value="" style="font-weight: bold"/>
+                                <h:inputText value="#{managedReglementVente.pieceAvance.clients.codeClient}" disabled="#{managedReglementVente.pieceAvance.id gt 0}"
+                                             style="color: #{managedReglementVente.pieceAvance.clients.error?'red':''}" title="#{managedReglementVente.pieceAvance.clients.nom_prenom}">
+                                    <p:ajax listener="#{managedReglementVente.findByClient(managedReglementVente.pieceAvance.clients.codeClient)}" event="valueChange" 
+                                            update="@this table_reg_facture"/>
+                                </h:inputText>
+                                <h:inputText value="#{managedReglementVente.pieceAvance.docVente.numDoc}" disabled="#{managedReglementVente.pieceAvance.id gt 0}" id="txt_reference_facture_reg_FV">
+                                    <p:ajax listener="#{managedReglementVente.findOneFacture(managedReglementVente.pieceAvance.docVente.numDoc)}" event="valueChange" 
+                                            update="@this table_reg_facture"/>
+                                </h:inputText>
+                                <h:selectOneMenu value="#{managedReglementVente.pieceAvance.mode.id}" valueChangeListener="#{managedReglementVente.chooseModeReglement}">
+                                    <f:selectItem itemLabel="" itemValue="0" />
+                                    <f:selectItems value="#{managedModeReglement.modes}" var="mdr_" itemLabel="#{mdr_.designation}"
+                                                   itemValue="#{mdr_.id}" />
+                                    <p:ajax event="valueChange" global="false" update="@this"/>
+                                </h:selectOneMenu>
+                                <pe:inputNumber value="#{managedReglementVente.pieceAvance.montant}" style="width: 120px"/>
+                                <p:calendar value="#{managedReglementVente.pieceAvance.datePaiementPrevu}" size="8" pattern="dd-MM-yyyy"/>                                                                                
+                                <h:selectOneMenu value="#{managedReglementVente.pieceAvance.caisse.id}" style="width: 200px" valueChangeListener="#{managedReglementVente.chooseCaisses}">
+                                    <f:selectItem itemLabel=" " itemValue="0" />
+                                    <f:selectItems value="#{managedCaisses.caisses}" var="icaiss" itemLabel="#{icaiss.intitule}" itemValue="#{icaiss.id}" />
+                                    <p:ajax event="valueChange"/>
+                                </h:selectOneMenu>
+                                <h:selectOneMenu id="chmp_caissier_reglement_pv" value="#{managedReglementVente.pieceAvance.caissier.id}" style="min-width: 140px" 
+                                                 disabled="#{!accesRessource.compta_reg_fv_change_caissier}" rendered="false">
+                                    <f:selectItem itemLabel="" itemValue="0" />
+                                    <f:selectItems value="#{managedReglementVente.caissiers}" var="iCaissier" itemLabel="#{iCaissier.nomUsers}" itemValue="#{iCaissier.id}" />
+                                    <p:ajax event="valueChange"/>
+                                </h:selectOneMenu>
+                                <h:inputText value="#{managedReglementVente.pieceAvance.numPiece}" id="txt_acmpte_clt" readonly="true"/>
+                                <h:inputText value="#{managedReglementVente.pieceAvance.numRefExterne}" />
+                                <h:panelGroup>
+                                    <p:commandButton icon="ui-icon-disk" style="float: right" value="#{lab.L_enregistrer}" 
+                                                     actionListener="#{managedReglementVente.createNewPiece(false)}" update=":main_form_regFV:table_regFV :main_form_regFV:txt_restToPlanFV :main_form_regFV:zone_pcv_edit_pieceFV" />
+                                </h:panelGroup>                                       
+                            </h:panelGrid>
+                        </p:outputPanel>
+                    </div>
+                    <p:outputPanel layout="block" id="all_bloc_info_reg">
+                        <h:panelGrid columns="4" cellpadding="0" cellspacing="0" id="zone_form_regFV"
+                                     style="width: 50%; float: left; background: #aaa; font-size: 0.8em" >
+                            <f:facet name="header">                            
+                                <div align="left" style="padding: 5px; margin: 3px; margin-left: 0px; padding-left: 0px; cursor: pointer; width: 100%">
+                                    <p:overlayPanel for="txt_caiss_numDocFV">
+                                        <div class="headline_data">
+                                            #{lab.LCF_PRV_contenu_facture}                                    
+                                        </div>
+                                        <p:dataTable value="#{managedReglementVente.pieceAvance.docVente.contenus}" var="icontent" 
+                                                     rowIndexVar="line_c" >
+                                            <p:column headerText="N°" width="20">
+                                                #{line_c+1}
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_articles}" width="150">
+                                                <h:outputText value="#{icontent.article.designation}" />
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_quantite}" width="80" style="text-align: center">
+                                                <h:outputText value="#{icontent.quantite}" />
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_prix} " width="100" style="text-align: right">
+                                                <h:outputText value="#{icontent.prixTotal}" converter="DNS"/>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </p:overlayPanel>
+                                    <h:outputText value="#{managedReglementVente.pieceAvance.docVente.numDoc}" styleClass="style_reference" id="txt_caiss_numDocFV"/>
+                                    <div style="float:right;margin-right: 10px;display: #{managedReglementVente.pieceAvance.docVente.id gt 0 ? 'inline': 'none'}">
+                                        <span style="font-weight: normal">Statut Paiement </span>
+                                        <h:outputText value="#{managedReglementVente.giveNameStatut(managedReglementVente.pieceAvance.docVente.statutRegle)}" styleClass="style_identifiant_white" style="float: right"/>
+                                    </div>
+                                </div>
+                            </f:facet>
+                            <span>#{lab.L_point_vente}</span>
+                            <h:inputText value="#{managedReglementVente.pieceAvance.docVente.enteteDoc.crenauHoraire.creneauPoint.point.libelle}" disabled="true"/>                        
+                            <span>#{lab.L_montant}</span>
+                            <h:inputText value="#{managedReglementVente.pieceAvance.montant}" converter="DNS" styleClass="styleTotalNet"
+                                         disabled="true"/>
+                            <span>#{lab.LCF_PRV_client}</span>
+                            <h:panelGroup>
+                                <h:inputText value="#{managedReglementVente.pieceAvance.docVente.nom_client}" readonly="true" title="#{managedReglementVente.pieceAvance.docVente.client.codeClient}"/>
+                            </h:panelGroup>
+                            <span>#{lab.L_date} </span>
+                            <h:inputText value="#{managedReglementVente.pieceAvance.datePiece}"  converter="DATE" styleClass="styleTotalNet"
+                                         disabled="true"/>
+                            <span>#{lab.LCF_PRV_model_reglement}</span>
+                            <h:selectOneMenu value="#{managedReglementVente.pieceAvance.docVente.modeReglement.id}">
+                                <f:selectItem itemValue="0" itemLabel="" />
+                                <f:selectItems value="#{managedModeReglement.models}" var="imdl" itemValue="#{imdl.id}" itemLabel="#{imdl.reference}" />
+                                <p:ajax event="valueChange" listener="#{managedReglementVente.chooseModelReglement()}" update="data_tranches_mdr_reg_vente txt_modelFV"/>
+                            </h:selectOneMenu>
+                            <span>#{lab.LCF_PRV_mode_paiement} </span>
+                            <h:inputText value="#{managedReglementVente.pieceAvance.mode.designation}" styleClass="styleTotalNet"
+                                         disabled="true"/>
+                            <span class="styleTotalFacture">#{lab.LC_PFA_total_facture}</span>
+                            <h:inputText value="#{managedReglementVente.pieceAvance.docVente.montantTTC}" style="text-align: right" styleClass="styleTotalFacture"
+                                         disabled="true" converter="DNS"/>
+                            <span>#{lab.LCF_PRV_caisse_banques} </span>
+                            <h:inputText value="#{managedReglementVente.pieceAvance.caisse.intitule}" styleClass="styleTotalNet"
+                                         disabled="true"/>
+                            <span class="styleTotalNet">#{lab.LCF_PRV_total_net_payer}</span>
+                            <h:inputText value="#{managedReglementVente.pieceAvance.docVente.montantResteApayer}" style="text-align: right" styleClass="styleTotalNet"
+                                         disabled="true" converter="DNS"/>                        
+                            <span style="font-weight: bold">#{lab.LCF_PRV_total_avance}</span>
+                            <h:inputText value="#{managedReglementVente.pieceAvance.docVente.montantAvance}" style="text-align: right" styleClass="styleTotalAvance"
+                                         disabled="true" converter="DNS" />
+                            <f:facet name="footer">                            
+                                <div style="width: 100%">
+                                    <p:overlayPanel for="txt_modelFV"> 
+                                        <p:dataTable id="data_tranches_mdr_reg_vente" value="#{managedReglementVente.pieceAvance.docVente.modeReglement.tranches}"
+                                                     var="itreM" rowIndexVar="line_tr">
+                                            <p:column headerText="N°" width="20" style="text-align: center">
+                                                #{line_tr+1}
+                                            </p:column>
+                                            <p:column headerText="#{lab.LCF_PRV_interval_jour}" width="80" style="text-align: center">
+                                                #{itreM.intervalJour}
+                                            </p:column>
+                                            <p:column headerText="#{lab.LCF_PRV_a_payer}" width="80" style="text-align: right">
+                                                #{itreM.taux}%
+                                            </p:column>
+                                            <p:column headerText="#{lab.LDB_PC_mode}" width="100" style="text-align: center">
+                                                #{itreM.mode.designation}
+                                            </p:column>
+                                        </p:dataTable>
+                                        <p:commandButton rendered="#{managedReglementVente.pieceAvance.docVente.reglements.size() le 0}" icon="ui-icon-circle-arrow-s"  update=":main_form_regFV:table_regFV"
+                                                         actionListener="#{managedReglementVente.generatedAllpiece()}"  style="height: 21px; float: right; background: #FFF !important" 
+                                                         title="Générer les règlements"/>
+                                    </p:overlayPanel>
+                                </div>                           
+                            </f:facet>
+                        </h:panelGrid>
+                        <p:dataTable value="#{managedReglementVente.pieceAvance.docVente.reglements}" var="ireg" style="margin-left: 50%" id="table_reg_facture">
+                            <p:column headerText="Id" styleClass="etat_#{ireg.statutPiece}">
+                                <h:outputText value="#{ireg.id}" />
+                                <h:panelGroup style="float: right">
+                                    <h:outputText title="#{lab.LC_PJV_comptabilise}" value="C" rendered="#{managedReglementVente.isComptabilise(ireg)}" styleClass="style_statut"/>
+                                </h:panelGroup>
+                            </p:column>
+                            <p:column headerText="#{lab.L_numero}" styleClass="etat_#{ireg.statutPiece}">
+                                <h:outputText value="#{ireg.numeroPiece}" />
+                                <h:graphicImage library="img" name="P.png" width="12" height="12" rendered="#{ireg.statutPiece=='P'}" style="float: right"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_date}" styleClass="etat_#{ireg.statutPiece}" width="100" style="text-align: center">
+                                <h:outputText value="#{ireg.datePiece}" converter="DATE"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_mode_paiement}" styleClass="etat_#{ireg.statutPiece}">
+                                <h:outputText value="#{ireg.model.designation}" />
+                                <h:outputText rendered="#{ireg.notifs.id gt 0}" value="A" styleClass="statut" title="#{lab.LC_PFA_paiement_lier_acompte} #{ireg.notifs.acompte.numRefrence}" style="float: right"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_caisse}" styleClass="etat_#{ireg.statutPiece}">
+                                <h:outputText value="#{ireg.caisse.intitule}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_montant}" styleClass="etat_#{ireg.statutPiece}" style="text-align: right">
+                                <h:outputText value="#{ireg.montant}" converter="DNS"/>
+                            </p:column>
+                            <p:column width="20" headerText="#{lab.L_statut}" style="text-align: right" styleClass="etat_#{ireg.statutPiece}">
+                                <h:outputText value="#{managedReglementVente.giveNameStatut(ireg.statutPiece)}" style="font-weight: bold;" />
+                            </p:column>
+                        </p:dataTable>
+                        <div class="headline_data" style="cursor: pointer;clear: left" onclick="slideZone()">
+                            #{lab.LCF_PRV_autres_reglements} :<h:outputText value="[#{managedReglementVente.pieceVente.vente.modelReglement.reference}]" style="font-weight: bold;cursor: pointer" id="txt_modelFV" />
+                            <p:commandButton  icon="ui-icon-circle-arrow-s"  update=":main_form_regFV:table_regFV" type="button"
+                                              style="height: 21px; float: right; background: #FFF !important" />
+                            <span style="clear: right"></span>
+                            <h:panelGroup style="float: right">
+                                #{lab.LCF_PRV_solde_acompte} :
+                                <h:outputText value="#{managedReglementVente.pieceAvance.docVente.client.acompte}" converter="DNS" id="txt_restToPlanFV"/>
+                            </h:panelGroup>
+                        </div>
+                        <p:dataTable value="#{managedReglementVente.pieceAvance.compensations}" var="icomp" style="width: 50%;float: left" id="table_cmpens_p_achat">
+                            <p:column headerText="Id" styleClass="etat_#{icomp.achat.statutPiece}">
+                                <h:outputText value="#{icomp.id}" />
+                                <h:panelGroup style="float: right">
+                                    <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{managedReglementAchat.isComptabilise(icomp.achat)}" styleClass="style_statut"/>
+                                </h:panelGroup>
+                            </p:column>
+                            <p:column headerText="#{lab.L_numero}" styleClass="etat_#{icomp.achat.statutPiece}">
+                                <h:outputText value="#{icomp.achat.numeroPiece}" />
+                                <h:graphicImage library="img" name="P.png" width="12" height="12" rendered="#{icomp.achat.statutPiece=='P'}" style="float: right"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_fournisseur}" styleClass="etat_#{icomp.achat.statutPiece}" width="100" style="text-align: center">
+                                <h:outputText value="#{icomp.achat.achat.fournisseur.nom_prenom}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_facture}" styleClass="etat_#{icomp.achat.statutPiece}">
+                                <h:outputText value="#{icomp.achat.achat.numDoc}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_montant}" styleClass="etat_#{icomp.achat.statutPiece}" style="text-align: right">
+                                <h:outputText value="#{icomp.achat.montant}" converter="DNS"/>
+                            </p:column>
+                            <p:column style="width: 5%;text-align: center" styleClass="etat_#{icomp.achat.statutPiece}">
+                                <p:contextMenu for="btn_option_compensation_achat" event="left click" style="font-size: 0.8em" styleClass="context_menu">
+                                    <p:menuitem value="#{lab.L_aller_a}" icon="ui-icon-arrowthick-1-e"  actionListener="#{managedReglementVente.onSelectDistantAchat(icomp.achat)}"
+                                                rendered="#{accesPage.compta_view_reg_achat}"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_compensation_achat" type="button"/>
+                            </p:column> 
+                        </p:dataTable>
+                        <p:dataTable value="#{managedReglementVente.pieceAvance.sousVentes}" var="spha" style="width: 49%;float: right"
+                                     id="table_cout_phase_vente" rendered="#{managedReglementVente.pieceAvance.sousVentes.size() gt 0}">
+                            <p:column headerText="Id" styleClass="etat_#{spha.statutPiece}">
+                                <h:outputText value="#{spha.id}" title="#{spha.note}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_numero}" styleClass="etat_#{spha.statutPiece}">
+                                <h:outputText value="#{spha.numeroPiece}" title="#{spha.note}"/>
+                                <h:graphicImage library="img" name="P.png" width="12" height="12" rendered="#{spha.statutPiece=='P'}" style="float: right"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PRV_date_piece}" styleClass="etat_#{spha.statutPiece}" style="text-align: center">
+                                <h:outputText value="#{spha.datePiece}" converter="DATE" title="#{spha.note}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PJV_date_paiment}" styleClass="etat_#{spha.statutPiece}" style="text-align: center">
+                                <h:outputText value="#{spha.datePaiement}" converter="DATE" title="#{spha.note}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_montant}" styleClass="etat_#{spha.statutPiece}" style="text-align: right">
+                                <h:outputText value="#{spha.montant}" converter="DNS" title="#{spha.note}"/>
+                            </p:column>
+                            <p:column styleClass="etat_#{spha.statutPiece}" style="text-align: center">
+                                <h:graphicImage library="img/icones" name="#{spha.mouvement=='R'?'in.png':'out.png'}" width="15" height="15"/>
+                            </p:column>
+                            <p:column width="30" style="text-align: center" styleClass="etat_#{spha.statutPiece}">
+                                <p:contextMenu for="btn_option_regPV1_CH" event="left click"  styleClass="context_menu">                                            
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedReglementVente.openConfirmDeleCoutCheque(spha)}" />
+                                </p:contextMenu> 
+                                <p:commandButton icon="ui-icon-gear" style="width: 21px; height: 21px;" id="btn_option_regPV1_CH" type="button" />
+                            </p:column>
+                        </p:dataTable>
+                    </p:outputPanel>
+                </div>
+                <div class="yvs_list_piece_vente" style="background: white;">
+                    <p:dataTable value="#{managedReglementVente.reglements}" var="iregV"   
+                                 rowIndexVar="line_regFV" selectionMode="single" rowKey="#{iregV.id}" id="table_regFV">
+                        <p:ajax event="rowSelect" listener="#{managedReglementVente.selectOnePiece}" update=":main_form_regFV:all_bloc_info_reg :main_form_regFV:zone_pcv_edit_pieceFV" oncomplete="slideZoneDown(); collapseForm('piece_vente')" />
+                        <p:ajax event="rowUnselect" listener="#{managedReglementVente.unselectOnePiece}" update=":main_form_regFV:zone_pcv_edit_pieceFV " oncomplete="slideZoneDown()" />
+                        <p:column headerText="N°" width="20">
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{iregV.new_}"/>
+                            <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{iregV.id eq managedReglementVente.pieceAvance.id}"/>
+                            #{line_regFV+1}
+                            <h:graphicImage library="icones" name="lock.png" width="15" height="15" rendered="#{iregV.verouille}"/>                                                                           
+                        </p:column>
+                        <p:column headerText="#{lab.L_date}" styleClass="etat_#{iregV.statutPiece}" width="100" style="text-align: center">
+                            <h:outputText value="#{iregV.datePiece}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_numero}" styleClass="etat_#{iregV.statutPiece}">
+                            <h:outputText value="#{iregV.numeroPiece}" />
+                            <h:graphicImage library="img" name="P.png" width="12" height="12" rendered="#{iregV.statutPiece=='P'}" style="float: right"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_reference}" styleClass="etat_#{iregV.statutPiece}">
+                            <h:outputText value="#{iregV.referenceExterne}" />
+                            <h:outputText rendered="#{iregV.notifs.id gt 0}" value="A" styleClass="statut" title="#{lab.LC_PFA_paiement_lier_acompte} #{iregV.notifs.acompte.numRefrence}" style="float: right"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PRV_paiement}" styleClass="etat_#{iregV.statutPiece}" width="100" style="text-align: center">
+                            <h:outputText value="#{(iregV.statutPiece eq constantes.STATUT_DOC_PAYER)?iregV.datePaiement:iregV.datePaimentPrevu}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PRV_facture}" styleClass="etat_#{iregV.statutPiece}">
+                            <h:outputText value="#{iregV.vente.numDoc}" />
+                            <h:panelGroup style="float: right">
+                                <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{iregV.comptabilised}" styleClass="style_statut"/>
+                            </h:panelGroup>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PRV_clients}" styleClass="etat_#{iregV.statutPiece}">
+                            <h:outputText value="#{iregV.vente.client.nom_prenom}" title="#{iregV.vente.client.codeClient}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PRV_mode_paiement}" styleClass="etat_#{iregV.statutPiece}">
+                            <h:outputText value="#{iregV.model.designation}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LCF_PRV_caisse}" styleClass="etat_#{iregV.statutPiece}">
+                            <h:outputText value="#{iregV.caisse.intitule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}" styleClass="etat_#{iregV.statutPiece}" style="text-align: right">
+                            <h:outputText value="#{iregV.montant}" converter="DNS"/>
+                        </p:column>
+                        <p:column width="20" headerText="#{lab.L_statut}" style="text-align: right" styleClass="etat_#{iregV.statutPiece}">
+                            <h:panelGroup style="float: left">
+                                <h:outputText title="#{lab.LC_PJV_comptabilise}" value="C" rendered="#{iregV.comptabilise}" styleClass="style_statut"/>
+                            </h:panelGroup>
+                            <h:outputText value="#{managedReglementVente.giveNameStatut(iregV.statutPiece)}" style="font-weight: bold;" />
+                        </p:column>
+                        <p:column width="30" style="text-align: center" styleClass="etat_#{iregV.statutPiece}">
+                            <f:facet name="header">
+                                <p:contextMenu for="btn_option_regPV1_" event="left click"  styleClass="context_menu">                                            
+                                    <p:menuitem value="Correction des numeros" icon="ui-icon-gear" global="false" onclick="dlgCorrectionNumero.show()"/>
+                                    <p:separator/>
+                                    <p:menuitem value="#{lab.LCF_PRV_tout_supprimer}" icon="ui-icon-trash" global="false" onclick="dlgConfirmDelAll.show()"/>
+                                    <p:menuitem icon="ui-icon-link" value="#{lab.LC_PJV_etat_comptabilise}" global="false" onclick="dglEtatComptabilised.show()"/>
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" style="width: 21px; height: 21px;" id="btn_option_regPV1_" type="button"/> 
+                            </f:facet>
+                            <p:contextMenu for="btn_option_regPV1" event="left click"  styleClass="context_menu">                                            
+                                <p:menuitem value="#{(iregV.statutPiece=='P')?'En attente':'Encaisser/Valider'}" icon="#{(iregV.statutPiece=='P')?'ui-icon-arrowreturnthick-1-s':'ui-icon-circle-check'}" 
+                                            actionListener="#{managedReglementVente.openConfirmrPaiement(iregV,'F', false)}" rendered="#{iregV.id gt 0}" update="table_regFV"/>
+                                <p:menuitem value="#{lab.LC_PFV_equilibrer}" icon="ui-icon-arrowthick-1-e" actionListener="#{managedCompensation.onSelectVente(iregV)}" update=":select_regv_compensation"
+                                            rendered="#{iregV.model.typeReglement == constantes.MODE_PAIEMENT_COMPENSATION}"/>
+                                <p:separator style="width: 98%;margin: auto"/>
+                                <p:menuitem value="#{lab.LC_PFA_aller_aux_cheques}" icon="ui-icon-arrowthick-1-e"  actionListener="#{managedReglementVente.onSelectDistantReglement(iregV)}"
+                                            rendered="#{accesPage.compta_view_reg_vente and iregV.model.typeReglement == constantes.MODE_PAIEMENT_BANQUE}"/>
+                                <p:menuitem value="#{lab.LC_PCV_aller_acompte}" icon="ui-icon-arrowthick-1-e"  actionListener="#{managedOperationClient.onSelectDistant(iregV.notifs.acompte)}"
+                                            rendered="#{accesPage.compta_ope_client and iregV.notifs.id gt 0}"/>
+                                <p:menuitem value="#{lab.LC_PCV_dissocier}" icon="ui-icon-pin-w" actionListener="#{managedReglementVente.setSelectedPiece(iregV)}" rendered="#{iregV.notifs.id gt 0}"
+                                            update="table_regFV" oncomplete="dlgDissocierPcv.show()"/>
+                                <p:menuitem value="#{men.verouille?'Dévérouiller':'Verouiller'}" icon="#{men.verouille?'ui-icon-unlocked':'ui-icon-locked'}" 
+                                            actionListener="#{managedReglementVente.verouillerPieceReglementVente(iregV)}" update="table_regFV"/>                                                    
+                                <p:menuitem value="#{lab.LC_PFV_annuler_suspendre}" icon="ui-icon-circle-close" actionListener="#{managedReglementVente.setSelectedPiece(iregV)}" 
+                                            oncomplete="dlgAnnulerPcv.show()" />
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedReglementVente.openConfirmDelePC(iregV)}" />
+                                <p:separator style="width: 98%;margin: auto"/>
+                                <p:menuitem value="#{lab.L_telecharger}" title="#{lab.LCF_PRV_telecharger_piece}" action="#{managedReglementVente.print(iregV)}" ajax="false" icon="ui-icon-arrowthickstop-1-s"/> 
+                            </p:contextMenu> 
+                            <p:commandButton icon="ui-icon-gear" style="width: 21px; height: 21px;" id="btn_option_regPV1" type="button" />
+                        </p:column>
+                        <f:facet name="footer">                                        
+                            <div align="right">
+                                <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-disk"  rendered="#{managedReglementVente.displayBtnSave}" 
+                                                 actionListener="#{managedReglementVente.saveModelreglement()}" update=":main_form_regFV:zone_form_regFV" oncomplete="slideZoneUp()"/>
+                            </div>
+                        </f:facet>
+                    </p:dataTable>
+                    <span class="nbSelectfacture_vente" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedReglementVente.loadAllPiece(false,false)}"   update="table_regFV" icon="ui-icon-circle-triangle-w" disabled="#{managedReglementVente.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedReglementVente.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedReglementVente.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedReglementVente.gotoPagePaginator()}" update="table_regFV"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedReglementVente.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedReglementVente.loadAllPiece(true,false)}"   update="table_regFV" icon="ui-icon-circle-triangle-e" 
+                                         disabled="#{managedReglementVente.paginator .disNext}"/>
+                        <p:selectOneMenu value="#{managedReglementVente.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedReglementVente.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedReglementVente.paginations}"/>
+                            <p:ajax event="valueChange"   update="table_regFV"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">  
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_piece_vente display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedReglementVente.pieceVente.dateSave}" converter="LD"  styleClass="valeur" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedReglementVente.pieceVente.dateUpdate}" converter="LD" styleClass="valeur" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedReglementVente.pieceVente.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid id="blog_search_piece_fv" columns="10" style="font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:outputText value="" />
+                    <h:outputText value="#{lab.L_date}" />
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.L_statut}" />
+                        <h:selectOneMenu value="#{managedReglementVente.operateurStatut}">
+                            <f:selectItem itemValue="=" itemLabel="#{lab.L_egale}"/>
+                            <f:selectItem itemValue="!=" itemLabel="#{lab.L_different}" />
+                            <p:ajax event="valueChange" listener="#{managedReglementVente.addParamStatut()}"  update=":main_form_regFV:table_regFV txt_zone_montant"
+                                    oncomplete="collapseList('piece_vente')"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.L_type}" />
+                        <h:selectOneMenu value="#{managedReglementVente.operateurType}">
+                            <f:selectItem itemValue="=" itemLabel="#{lab.L_egale}"/>
+                            <f:selectItem itemValue="!=" itemLabel="#{lab.L_different}"/>
+                            <p:ajax event="valueChange" listener="#{managedReglementVente.addParamTypeMode()}" update=":main_form_regFV:table_regFV txt_zone_montant"
+                                    oncomplete="collapseList('piece_vente')"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.LCF_PRV_mode_paiement}" />
+                    <h:outputText value="#{lab.LCF_PRV_client}" />
+                    <h:outputText value="#{lab.LCF_PRV_caisses}" />
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.L_montant}" />
+                        <h:selectOneMenu value="#{managedReglementVente.operateurMontant}">
+                            <f:selectItem itemValue="=" itemLabel="#{lab.L_egale}"/>
+                            <f:selectItem itemValue="BETWEEN" itemLabel="#{lab.LCF_PRV_entre}"/>
+                            <f:selectItem itemValue="&lt;" itemLabel="#{lab.LCF_PRV_tout_inferieur}" />
+                            <f:selectItem itemValue="&gt;" itemLabel="#{lab.LC_PCOM_superieur}" />
+                            <p:ajax event="valueChange" listener="#{managedReglementVente.addParamMontant()}" oncomplete="collapseList('piece_vente')"
+                                    update=":main_form_regFV:table_regFV txt_zone_montant blog_search_piece_fv"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.L_reference}" />
+                    <span>&nbsp;</span>
+                    <p:commandButton icon="ui-icon-bullet" actionListener="#{managedReglementVente.cleanParametrePiece()}" title="#{lab.L_reset_param}" style="width: 20px; height: 22px" 
+                                     update="blog_search_piece_fv :main_form_regFV:table_regFV" oncomplete="collapseList('piece_vente')"/>
+                    <h:panelGrid columns="2" >
+                        <h:selectBooleanCheckbox value="#{managedReglementVente.dateSearch}" style="margin-top: 2px;float: right">
+                            <p:ajax event="valueChange" listener="#{managedReglementVente.addParamDates}" oncomplete="collapseList('piece_vente')" 
+                                    update="zone_search_by_date_regV :main_form_regFV:table_regFV"/>
+                        </h:selectBooleanCheckbox>
+                        <h:panelGroup id="zone_search_by_date_regV">
+                            <p:calendar value="#{managedReglementVente.dateDebutSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedReglementVente.dateSearch}" size="10" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedReglementVente.addParamDate1}" oncomplete="collapseList('piece_vente')"
+                                        update=":main_form_regFV:table_regFV" />
+                            </p:calendar>
+                            <p:spacer width="5px" style="background: black"/>
+                            <p:calendar value="#{managedReglementVente.dateFinSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedReglementVente.dateSearch}" size="10" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedReglementVente.addParamDate1}" oncomplete="collapseList('piece_vente')"
+                                        update=":main_form_regFV:table_regFV" />
+                            </p:calendar>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                    <h:selectOneMenu value="#{managedReglementVente.statutF}"   style="min-width: 120px">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.Lçeditable}" itemValue="#{constantes.STATUT_DOC_EDITABLE}"/>
+                        <f:selectItem itemLabel="#{lab.L_en_attente}" itemValue="#{constantes.STATUT_DOC_ATTENTE}"/>
+                        <f:selectItem itemLabel="#{lab.L_regler}" itemValue="#{constantes.STATUT_DOC_PAYER}"/>
+                        <p:ajax event="valueChange"  update=":main_form_regFV:table_regFV" oncomplete="collapseList('piece_vente')" listener="#{managedReglementVente.addParamStatut()}"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedReglementVente.modeSearch}">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{constantes.MODE_PAIEMENT_ESPECE}" itemValue="#{constantes.MODE_PAIEMENT_ESPECE}"/>
+                        <f:selectItem itemLabel="#{constantes.MODE_PAIEMENT_SALAIRE}" itemValue="#{constantes.MODE_PAIEMENT_SALAIRE}"/>
+                        <f:selectItem itemLabel="#{constantes.MODE_PAIEMENT_COMPENSATION}" itemValue="#{constantes.MODE_PAIEMENT_COMPENSATION}"/>
+                        <f:selectItem itemLabel="#{constantes.MODE_PAIEMENT_BANQUE}" itemValue="#{constantes.MODE_PAIEMENT_BANQUE}"/>
+                        <p:ajax event="valueChange" update=":main_form_regFV:table_regFV" listener="#{managedReglementVente.addParamTypeMode()}"
+                                oncomplete="collapseList('piece_vente')"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedReglementVente.modeFind}" valueChangeListener="#{managedReglementVente.addParamModePaiement}" 
+                                     >
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{0}"/>
+                        <f:selectItems value="#{managedModeReglement.modes}" var="imdl_" itemValue="#{imdl_.id}" itemLabel="#{imdl_.designation}" />
+                        <p:ajax event="valueChange" update=":main_form_regFV:table_regFV" oncomplete="collapseList('piece_vente')"/>
+                    </h:selectOneMenu>
+                    <h:inputText value="#{managedReglementVente.clientF}" style="width: 100%">
+                        <p:ajax event="blur" listener="#{managedReglementVente.addParamClient()}" oncomplete="collapseList('piece_vente')"
+                                update=":main_form_regFV:table_regFV"/>
+                    </h:inputText> 
+                    <h:selectOneMenu value="#{managedReglementVente.caisseF}" valueChangeListener="#{managedReglementVente.addParamCaisse}" 
+                                     >
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{0}"/>
+                        <f:selectItems value="#{managedCaisses.caisses}" var="ic_" itemValue="#{ic_.id}" itemLabel="#{ic_.intitule}" />
+                        <p:ajax event="valueChange" update=":main_form_regFV:table_regFV" oncomplete="collapseList('piece_vente')"/>
+                    </h:selectOneMenu>
+                    <h:panelGroup id="txt_zone_montant">
+                        <p:inputText value="#{managedReglementVente.montantF}" style="width: 90px">
+                            <p:ajax event="blur" listener="#{managedReglementVente.addParamMontant()}" update=":main_form_regFV:table_regFV" oncomplete="collapseList('piece_vente')"/>
+                        </p:inputText>
+                        <p:inputText value="#{managedReglementVente.montantF1}" rendered="#{managedReglementVente.operateurMontant eq 'BETWEEN'}" style="width: 90px">
+                            <p:ajax event="blur" listener="#{managedReglementVente.addParamMontant()}" update=":main_form_regFV:table_regFV" oncomplete="collapseList('piece_vente')"/>
+                        </p:inputText>
+                    </h:panelGroup>
+                    <h:inputText value="#{managedReglementVente.numPieceF}">
+                        <p:ajax event="blur" listener="#{managedReglementVente.addParamReference()}" oncomplete="collapseList('piece_vente')"
+                                update=":main_form_regFV:table_regFV"/>
+                    </h:inputText>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

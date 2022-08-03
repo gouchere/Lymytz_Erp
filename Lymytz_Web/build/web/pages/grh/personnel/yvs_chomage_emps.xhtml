@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui"  
+                xmlns:pe="http://primefaces.org/ui/extensions"  
+                xmlns:ui="http://java.sun.com/jsf/facelets" 
+                xmlns:f="http://java.sun.com/jsf/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Chomage Employe','modRh', 'smenChomageEmps', true,managedChomage)}
+    </ui:define> 
+    <ui:define name="contents">
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('chomageE');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>                             
+        #{MEmps.addParamActif(true)}
+        #{managedChomage.loadAll()}        
+        <h:form prependId="false" id="form_dlg_period_chom">
+            <p:dialog header="Modifier la période de chomage " width="30%"
+                      widgetVar="dlgEditPeriodChT" closeOnEscape="true" footer="&copy; Lymytz">
+                <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%"
+                             cellpadding="0" cellspacing="0">
+                    <f:facet name="header">Employé :<span style="font-weight: bold">#{managedChomage.periode.conge.employe.nom} #{managedChomage.periode.conge.employe.prenom}</span></f:facet>
+                    <span>Période</span>
+                    <h:panelGroup>
+                        <p:calendar value="#{managedChomage.periode.debutPeriode}" pattern="dd-MM-yyyy" size="8">
+                            <p:ajax event="dateSelect" listener="#{managedChomage.calculDureeCt}" update="txt_duree_cht"/>
+                        </p:calendar>
+                        &nbsp;à&nbsp;
+                        <p:calendar value="#{managedChomage.periode.finPeriode}" pattern="dd-MM-yyyy" size="8">
+                            <p:ajax event="dateSelect" listener="#{managedChomage.calculDureeCt}" update="txt_duree_cht"/>
+                        </p:calendar>                        
+                    </h:panelGroup>
+                    <span>Durée</span>
+                    <pe:inputNumber value="#{managedChomage.periode.duree}" id="txt_duree_cht" style="width: 100px"/>
+                    <span>Taux</span>
+                    <pe:inputNumber value="#{managedChomage.periode.taux}" style="width: 100px"/>
+                </h:panelGrid>
+                <p:commandButton value="Appliquer" icon="ui-icon-disk" actionListener="#{managedChomage.saveNewPeriode()}"
+                                 update=":body_chomage_emps_00:detail_chom_emps" style="float: right"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_cht_01">         
+            <p:dialog header="Liste des employés actif" widgetVar="dlgEmploye" width="85%" height="600"
+                      closeOnEscape="true" resizable="false"  modal="true" >                    
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('employe_cht');
+                    });
+                </script>
+                <p:inputText value="#{MEmps.matriculeToUpdate}" style="float: left">
+                    <p:ajax event="keyup" listener="#{MEmps.findEmploye()}"
+                            update="gridEmployes_cht tabEmployes_cht" global="false" process="@this"
+                            oncomplete="collapseList('employe_mission');"/>
+                </p:inputText>
+                <div style="float: right" >                        
+                    <h:link onclick="collapseList('employe_cht');
+                            return false" title="vue liste" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link  onclick="collapseGrid('employe_cht');
+                            return false" title="vue hiérarchique">
+                        <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                                               
+                </div>         
+                <div style="clear: both"/>  
+                <div class="yvs_list_employe_cht">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                 widgetVar="tabEmployes" id="tabEmployes_cht" selectionMode="single"
+                                 scrollable="true" scrollHeight="500" > 
+                        <p:ajax event="rowSelect" listener="#{managedChomage.loadOnViewEmploye}" 
+                                update=":body_chomage_emps_00:employes_chomage"/>
+                        <p:column headerText="N°" width="15" style="text-align: center">
+                            <h:outputText value="#{line_e+1}" />
+                        </p:column>
+                        <p:column headerText="Noms &amp; Prénoms" width="200">
+                            <h:outputText value="#{emp.civilite} #{emp.nom} #{emp.prenom}" />
+                        </p:column>                        
+                        <p:column headerText="Matricule" width="90" style="text-align: center">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="Poste " width="200">
+                            <h:outputText value="#{emp.posteActif.intitule}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+                <div class="yvs_grid_employe_cht">
+                    <p:dataGrid value="#{MEmps.listEmployes}" var="emp1" columns="3" 
+                                id="gridEmployes_cht" >
+                        <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                            <f:facet name="header">
+                                <p:commandLink  actionListener="#{managedMission.choixEmploye1(emp1)}" oncomplete="dlgEmploye.hide()"
+                                                update=":body_chomage_emps_00:employes_chomage" >
+                                    <p:graphicImage library="lymytz/documents/docEmps/perso/photo" name="#{(emp1.photos==null)?'user1.png':emp1.photos}" width="100" height="100" />                                                                      
+                                </p:commandLink>
+                            </f:facet>
+                            <span>Nom &amp; Prénoms</span>
+                            <h:outputText value="#{emp1.prenom} #{emp1.nom}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>Matricule</span>
+                            <h:outputText value="#{emp1.matricule}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>Poste</span>
+                            <h:outputText value="#{emp1.posteActif.intitule}" style="font-weight: bold; font-size: 1.1em"/> 
+                        </h:panelGrid>
+                    </p:dataGrid>
+                </div>
+                <f:facet name="footer">                    
+                    <h:outputText value="#{lab.L_copy}" escape="true" />
+                    <h:selectOneMenu value="#{managedMission.agence_}" valueChangeListener="#{MEmps.addParamAgence}" style="float: right">
+                        <f:selectItem itemValue="" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedMission.currentScte.agences}" var="itemA" itemValue="#{itemA.id}" itemLabel="#{itemA.designation}" />
+                        <f:selectItem itemValue="-1" itemLabel="Toutes les societe" />
+                        <p:ajax event="valueChange" update=":form_cht_01:tabEmployes_cht :form_cht_01:gridEmployes_cht"/>
+                    </h:selectOneMenu>
+                    <h:panelGrid columns="4" id="footer_VL-employe-cht" style="float: right">
+                        <p:commandLink actionListener="#{MEmps.loadAllEmployesByAgence(true,false)}" 
+                                       disabled="#{MEmps.disablePrev}" update=":form_cht_01:tabEmployes_cht :form_cht_01:gridEmployes_cht">
+                            <h:graphicImage style="border:none; margin-left: 1.5em;margin-right: 1em; cursor: pointer;"  alt="img" library="img"  name="dnavigation.png" width="30" height="25"/>                        
+                        </p:commandLink>
+                        <span >Page #{MEmps.currentPage} / #{MEmps.totalPage}</span>
+                        <p:commandLink action="#{MEmps.loadAllEmployesByAgence(true,false)}" 
+                                       disabled="#{MEmps.disableNext}" update=":form_cht_01:tabEmployes_cht :form_cht_01:gridEmployes_cht">
+                            <h:graphicImage style="border:none; margin-left: 1.5em; cursor: pointer;"  alt="img" library="img"  name="gnavigation.png" width="30" height="25"/>                                                                            
+                        </p:commandLink>  
+                        <span>(#{MEmps.nbMax} Ligne par page) </span>
+                    </h:panelGrid>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="body_chomage_emps_00">
+            <div class="part_fix">
+                <div style="float: left">
+                    <p:commandButton value="Enregistrer" id="save_chomageE" actionListener="#{managedChomage.saveNew()}"
+                                     update="tableChomage"/>                        
+                    <p:commandButton value="Nouveau" actionListener="#{managedChomage.resetFiche()}"
+                                     id="cancel_chomageE" global="false" process="@this"
+                                     update="form_chomage employes_chomage" />
+                    <p:commandButton value="Supprimer" actionListener="#{managedChomage.deleteBean()}" id="delete_chomageE">
+                        <!--<p:confirm message="Voulez-vous vraiment supprimer cet élément" header="Supprimer !" />-->
+                    </p:commandButton>                        
+                    <h:inputHidden value="#{managedChomage.chaineSelectChomage}" id="input_hide_chomageE" />
+                </div>
+                <div style="float: right">
+                    <h:link title="mode création" onclick="collapseForm('chomageE');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('chomageE');
+                            return false" title="vue liste" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>                      
+                <div style="clear: both"/>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_chomageE">
+                    <h:panelGroup style="width: 100%;margin: auto" id="form_chomage" >
+                        <h:panelGrid columns="2" cellpadding="0" cellspacing="0"
+                                     styleClass="yvs_table" style="float: left; width: 50%">
+                            <span>libellé</span>
+                            <span>Code</span>
+                            <h:inputText value="#{paramsTauxChomageTechnique.code}" />
+                            <span>Description</span>
+                            <h:inputTextarea rows="4" style="width: 80%" value="#{paramsTauxChomageTechnique.description}"/>
+                            <span>Période</span>
+                            <span>Actif</span>
+                            <h:selectBooleanCheckbox value="#{paramsTauxChomageTechnique.actif}" style="float: right"/>
+                        </h:panelGrid>
+                        <div style="margin-left: 50%">
+                            <p:dataTable id="detail_chom_emps" value="#{paramsTauxChomageTechnique.detailsChamageEmp}"
+                                         var="detCh" selectionMode="single" rowKey="#{detCh.id}">
+                                <p:column headerText="Matricule" width="70" styleClass="#{detCh.actif?'etatChActif':'etatChInactif'}">
+                                    #{detCh.conge.employe.matricule}
+                                </p:column>
+                                <p:column headerText="Périodes" styleClass="#{detCh.actif?'etatChActif':'etatChInactif'}">
+                                    <h:outputText value="#{detCh.debutPeriode}" converter="DATE" />&nbsp;-&nbsp;
+                                    <h:outputText value="#{detCh.finPeriode}" converter="DATE" />
+                                </p:column>
+                                <p:column headerText="Durée" styleClass="#{detCh.actif?'etatChActif':'etatChInactif'}">
+                                    #{detCh.duree} (Jours)
+                                </p:column>
+                                <p:column headerText="Taux" width="50" style="text-align: center" styleClass="#{detCh.actif?'etatChActif':'etatChInactif'}">
+                                    #{detCh.taux} %
+                                </p:column>
+                                <p:column headerText="Taux" width="20" style="text-align: center">
+                                    <p:contextMenu for="config_che" event="left click" styleClass="context_menu">
+                                        <p:menuitem value="Modifier" icon="ui-icon-refresh" actionListener="#{managedChomage.openViewUpdatePeriode(detCh)}"
+                                                    update=":form_dlg_period_chom"/>
+                                        <p:menuitem value="Désactiver/Activer" icon="#{(detCh.actif)?'ui-icon-circle-close':'ui-icon-circle-check'}" actionListener="#{managedChomage.toogleActivePeriode(detCh)}"
+                                                    update=":body_chomage_emps_00:detail_chom_emps"/>
+                                        <p:menuitem value="Supprimer" icon="ui-icon-trash" actionListener="#{managedChomage.deletePeriodeChom(detCh)}"
+                                                    update=":body_chomage_emps_00:detail_chom_emps"/>
+                                    </p:contextMenu>
+                                    <p:commandLink id="config_che">
+                                        <p:graphicImage library="icones" name="param.png" width="17" height="17" />
+                                    </p:commandLink>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                    </h:panelGroup>
+                    <p:commandButton icon="ui-icon-circle-plus" style="width: 22px; height: 22px; float: right; clear: left" title="Ajouter les employés"
+                                     onclick="dlgEmploye.show();" type="button"/>
+                    <p:dataTable value="#{paramsTauxChomageTechnique.employes}" var="emplo" rowKey="#{emplo.id}" id="employes_chomage"
+                                 selectionMode="single" rowIndexVar="line_emp" style="max-height: 400px; overflow-y: auto; clear: right">
+                        <p:ajax event="rowSelect" listener="#{managedChomage.choixPeriodeChomageEmps}" update=":body_chomage_emps_00:detail_chom_emps"/>   
+                        <p:column headerText="N°" width="15">
+                            #{line_emp+1}
+                        </p:column>
+                        <p:column headerText="Noms &amp; Prénoms" filterBy="#{emplo.nom}">
+                            #{emplo.nom} #{emplo.prenom}
+                        </p:column>
+                        <p:column headerText="Matricule">
+                            #{emplo.matricule}
+                        </p:column>
+                        <p:column headerText="Département">
+                            #{emplo.posteActif.departement.intitule}
+                        </p:column>
+                        <p:column headerText="Postes">
+                            #{emplo.posteActif.intitule}
+                        </p:column>
+                        <p:column headerText="" width="20">
+                            <p:commandButton icon="ui-icon-circle-minus" style="width: 22px; height: 22px; text-align: center" actionListener="#{managedChomage.removeEmploye(emplo)}"
+                                             update="employes_chomage" >
+                                <!--<p:confirm message="Soustraire cet employé de la liste " header="Filtrer la liste" />-->
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <div class="yvs_list_chomageE">
+                    <p:dataTable value="#{managedChomage.listChomages}" 
+                                 var="chom" rowKey="#{chom.id}" selectionMode="single"
+                                 id="tableChomage" rowIndexVar="lin_C">
+                        <p:ajax event="rowSelect" listener="#{managedChomage.loadOnView}" oncomplete="collapseForm('chomageE');"
+                                update=":body_chomage_emps_00:form_chomage :body_chomage_emps_00:employes_chomage"/>
+                        <p:column headerText="N°" width="15">
+                            #{lin_C+1}
+                        </p:column>
+                        <p:column headerText="Code">
+                            <p:outputLabel value="#{chom.code}"/>
+                        </p:column>
+                        <p:column headerText="Libellé">
+                            <p:outputLabel value="#{chom.libelle}"/>
+                        </p:column>
+                        <p:column headerText="Date Debut">
+                            <h:outputText value="#{chom.dateDebut}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="Date Fin">
+                            <h:outputText value="#{chom.dateFin}" converter="DATE"/>
+                        </p:column>
+                        <p:column width="20">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox value="false" class="chek_all_line_chomageE" onclick="selectionAllLineTab(#{managedChomage.listChomages.size()}, 'chomageE')"/>
+                            </f:facet>
+                            <h:selectBooleanCheckbox value="false" class="chek_line_chomageE" onclick="selectionLineTab(#{lin_C}, 'chomageE')"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

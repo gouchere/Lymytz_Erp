@@ -1,0 +1,387 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">     
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Départements','modRh', 'smenGrhDepartement', true,managedDepartement)}
+    </ui:define>    
+    <ui:define name="contents">
+        #{managedCentreAnalytique.doNothing()}
+        #{managedDepartement.loadAll()}        
+        #{MEmps.loadSimpleAllEmployes(true, true)}
+        #{managedAgence.loadAgence()}
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('departement');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script> 
+
+        <h:form prependId="false" >
+            <p:confirmDialog widgetVar="dlgDeleteDepart" message="#{lab.LRH_PD_supprimer_departement}" closeOnEscape="true">
+
+                <div align="center">
+                    <p:commandButton value="#{lab.L_oui.toUpperCase()}" icon="ui-icon-check" actionListener="#{managedDepartement.deleteDepartement()}"  
+                                     oncomplete="dlgDeleteDepart.hide();"/> 
+                    <p:commandButton value="#{lab.L_non.toUpperCase()}"  icon="ui-icon-close"
+                                     oncomplete="dlgDeleteDepart.hide();"/> 
+                </div>
+
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LRH_PD_repartition_analytique}" width="70%"  footer="&copy; Lymytz 2014"
+                      widgetVar="dlgAffec">
+                <p:dataTable id="data_centre_analytique_dep" selectionMode="single" value="#{managedCentreAnalytique.centres}" var="cent" rowKey="#{cent.id}" rowIndexVar="xPl"
+                             style="overflow-y: auto; max-height: 600px" paginator="true" rows="50" rowsPerPageTemplate="15,20,50,100"
+                             editMode="cell" editable="true">
+                    <p:ajax event="cellEdit" global="false" update="data_centre_analytique_dep" />
+                    <p:column headerText="N°" width="20" style="text-align: center">
+                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{cent.new_}"/>
+                        #{xPl+1}
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference}" width="100" >
+                        #{cent.codeRef} 
+                        <h:panelGroup style="float: right; opacity: 1px">
+                            <h:outputText title="#{constantes.PRINCIPAL_NAME}" value="P" rendered="#{cent.typeCentre == constantes.PRINCIPAL}"
+                                          style="font-weight: bold;border: 1px solid #666; border-radius: 4px;padding: 2px;background: #0099ff;color: white;font-size: 0.8em"/>
+                            <h:outputText title="#{constantes.AUXILIAIRE_NAME}" value="AX" rendered="#{cent.typeCentre != constantes.PRINCIPAL}"
+                                          style="font-weight: bold;border: 1px solid #666; border-radius: 4px;padding: 2px;background: #0099ff;color: white;font-size: 0.8em"/>
+                        </h:panelGroup>
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}" width="200" styleClass="#{cent.idAffectation gt 0?'line_actiftrue':'line_disable'}">
+                        #{cent.designation}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PD_plan}" width="200" styleClass="#{cent.idAffectation gt 0?'line_actiftrue':'line_disable'}">
+                        #{cent.plan.intitule}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PD_coefficient}" width="20" style="text-align: center" styleClass="#{(cent.idAffectation gt 0 or cent.coeficient>0)?'line_actiftrue':'line_disable'}">
+                        <p:cellEditor>
+                            <f:facet name="output">#{cent.coeficient} %</f:facet>
+                            <f:facet name="input">
+                                <h:inputText value="#{cent.coeficient}" style="width: 80px"/>
+                            </f:facet>
+                        </p:cellEditor>
+                    </p:column>
+                </p:dataTable>
+                <div align="center">
+                    <p:commandButton value="#{lab.L_appliquer}" update=":form-dep00:tableSectionAnal data_centre_analytique_dep" icon="ui-icon-refresh" 
+                                     actionListener="#{managedDepartement.saveNewSectionsEmployes()}" />
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog header="#{lab.LRH_PD_exporter_donnees}" footer="#{lab.L_copy}" closeOnEscape="true" widgetVar="dlgExportData"
+                      width="60%" dynamic="true">
+                <p:pickList id="pickList_departements" value="#{managedDepartement.fields}" 
+                            var="fVar" itemLabel="#{fVar}" itemValue="#{fVar}"  style="height: 100%; width: 100%"/>
+
+                <p:commandButton value="#{lab.LRH_PD_recuperer}" ajax="false" actionListener="#{managedDepartement.executeRequeteExport()}" />
+
+                <p:separator style="width: 100%" />
+                <p:fileUpload sizeLimit="100000"    mode="advanced" dragDropSupport="true" 
+                              fileUploadListener="#{managedDepartement.handleFileUpload}"
+                              uploadLabel="#{lab.L_envoyer}" label="#{lab.L_parcourir}" auto="true" > 
+                </p:fileUpload>
+                <p:commandButton value="--#{lab.LRH_PD_submit}--" ajax="false"  actionListener="#{managedDepartement.executeImport()}"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog header="#{lab.LRH_PD_importer_donnees}" footer="#{lab.L_copy}" closeOnEscape="true" widgetVar="dlgImportData"
+                      width="60%" dynamic="true">
+                <p:fileUpload sizeLimit="100000"    mode="advanced" dragDropSupport="true" 
+                              fileUploadListener="#{managedDepartement.handleFileUpload}"
+                              uploadLabel="Envoyer" label="#{lab.L_parcourir}" auto="true" 
+                              update="list_header_dep"> 
+                </p:fileUpload>
+                <p:pickList  value="#{managedDepartement.fields}" id="list_header_dep"
+                             var="fVar" itemLabel="#{fVar}" itemValue="#{fVar}"  style="height: 100%; width: 100%"/>
+                <p:commandButton value="--#{lab.LRH_PD_submit}--" ajax="false"  actionListener="#{managedDepartement.executeImport()}"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog showEffect="fade" hideEffect="scale" closeOnEscape="true">
+                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />                      
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PD_liste_employes_actif}" widgetVar="dlgEmploye" width="85%" height="600"
+                      closeOnEscape="true" modal="true" footer="&copy;Lymytz 2014">
+                <div class="dlg_part_fixe"       >
+                    <script type="text/javascript">
+                        $(function() {
+                            collapseList('employe_respDep');
+                        });
+                    </script>
+                    <p:inputText value="#{MEmps.matriculeToUpdate}" style="float: left">
+                        <p:ajax event="keyup" listener="#{MEmps.findSimpleEmploye(MEmps.matriculeToUpdate)}"
+                                update="tabEmployes_respDep" global="false" process="@this"/>
+                    </p:inputText>
+                    <div style="float: right" >                        
+                        <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                            <h:selectOneMenu value="#{managedDepartement.agence_}" 
+                                             valueChangeListener="#{MEmps.addSimpleParamAgence}" >
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedAgence.listAgence}" var="itemA" itemValue="#{itemA.id}" itemLabel="#{itemA.designation}" />
+                                <p:ajax event="valueChange" update="tabEmployes_respDep"/>
+                            </h:selectOneMenu>
+                            <p:commandButton actionListener="#{MEmps.pagineSimpleResult(false)}" update="tabEmployes_respDep" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{MEmps.paginator.currentPage} / #{MEmps.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton actionListener="#{MEmps.pagineSimpleResult(true)}" update="tabEmployes_respDep" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" 
+                                             valueChangeListener="#{MEmps.changeSimpleMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{MEmps.paginations}"/>
+                                <p:ajax event="valueChange" update="tabEmployes_respDep"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel>
+                    </div>  
+                </div>
+                <div style="clear: both"/>  
+                <div class="dlg_part_scroll"                   >
+                    <div class="yvs_list_employe_respDep">
+                        <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                     widgetVar="tabEmployes" id="tabEmployes_respDep" selectionMode="single"
+                                     style="max-height: 600px"> 
+                            <p:ajax event="rowSelect" listener="#{managedDepartement.selectEmploye}" />
+                            <p:column headerText="N°" width="15" style="text-align: center">
+                                <h:outputText value="#{line_e+1}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                                <h:outputText value="#{emp.nom} #{emp.prenom}" />
+                            </p:column>                        
+                            <p:column headerText="#{lab.LRH_PD_matricule}" width="90" style="text-align: center">
+                                <h:outputText value="#{emp.matricule}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PD_poste} " width="200">
+                                <h:outputText value="#{emp.posteActif.intitule}" />
+                            </p:column> 
+                            <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                                <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                            </p:column>
+                        </p:dataTable> 
+                    </div>                  
+                </div>
+                <f:facet name="footer">
+                    <span>&copy;Lymytz 2014</span>                    
+                </f:facet>
+            </p:dialog>          
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PD_text}"
+                             widgetVar="dlgDelete" width="40%" header="#{lab.LRH_PD_supprimer_departements}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedDepartement.remove()}" 
+                                 oncomplete="dlgDelete.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgDelete.hide()" />
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PD_choisir_departement}" widgetVar="dlgDepartement" closeOnEscape="true"
+                      width="75%" height="550">            
+                <p:dataTable value="#{managedDepartement.listAllParent}" var="idep" selectionMode="single" rowIndexVar="line_d"
+                             rowKey="#{idep.id}" id="tab-depart-parent" style="max-height: 530px; overflow-y: auto">
+                    <p:ajax event="rowSelect" listener="#{managedDepartement.choixParent}" oncomplete="dlgDepartement.hide()"/>                            
+                    <p:column headerText="N°" width="15">
+                        #{line_d+1}
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" width="150">
+                        #{idep.codeDepartement}
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}" width="300">
+                        #{idep.intitule}
+                    </p:column>
+                    <p:column headerText="#{lab.L_parent}">
+                        #{idep.cheminParent}
+                    </p:column>
+                </p:dataTable>   
+                <f:facet name="footer">
+                    &copy; Lymytz
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-dep00"> 
+            <div class="part_fix">                        
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('departement');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link onclick="collapseList('departement');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div style="float: left">
+                    <p:splitButton value="#{lab.L_enregistrer}" id="save_departement" actionListener="#{managedDepartement.saveNew()}" 
+                                   icon="ui-icon-disk" update="cancel_departement">
+                        <p:menuitem value="#{lab.L_nouveau}" actionListener="#{managedDepartement.resetFiche()}"
+                                    update=":form-dep00:head" icon="ui-icon-document" id="cancel_departement" process="@this"/>
+                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-circle-close" onclick="dlgDelete.show()"  global="false" />
+                    </p:splitButton>
+
+                    <h:panelGroup id="buttonDelete">
+                        <p:splitButton value="#{lab.LRH_PP_autres_options}" rendered="#{managedDepartement.selectionList.size()!=0}" id="delete_departement">
+                            <p:menuitem value="#{lab.LRH_PD_ajouter_parent}" icon="ui-icon-circle-plus"
+                                        actionListener="#{managedDepartement.addParent()}"  
+                                        />            
+                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-circle-close" onclick="dlgDelete.show()"  global="false" />
+                        </p:splitButton>
+                    </h:panelGroup>
+                    <p:commandLink title="#{lab.LRH_PD_importer}" actionListener="#{managedDepartement.loadFieldsToExport()}" oncomplete="dlgExportData.show()">
+                        <p:graphicImage library="icones" name="in.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </p:commandLink>               
+                    <p:spacer />
+
+                    <p:commandLink title="#{lab.LRH_PD_exporter}" actionListener="#{managedDepartement.loadFieldsToImport()}" oncomplete="dlgImportData.show()">
+                        <p:graphicImage library="icones" name="out.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </p:commandLink>
+                </div>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedDepartement.parcoursInAllResult(false)}" update="txt_parc_linear_ser" icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('departement')"/>
+                    <h:inputText value="#{managedDepartement.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_ser"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedDepartement.listValue.size()}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedDepartement.parcoursInAllResult(true)}" update="txt_parc_linear_ser" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('departement')"/>
+                </h:panelGroup> 
+                <div style="clear: right"></div>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_departement">
+                    <h:panelGrid columns="1" id="head" style="width: 99%; margin: auto" styleClass="yvs_table"> 
+                        <span>#{lab.L_designation}</span>
+                        <p:inputText value="#{departements.intitule}" id="txtcode" style="width: 99%" onkeyup="valueChange('departement', $(this))"/>
+                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <span>#{lab.LRH_PD_code_departement}</span>
+                            <h:panelGrid columns="4" styleClass="yvs_nostyle" style="width: 99%">                                
+                                <h:inputText value="#{departements.codeDepartement}" id="txtDes" />
+                                <span>Abbreviation</span>
+                                <h:inputText value="#{departement.abreviation}" />
+                            </h:panelGrid>
+                            <span>#{lab.L_description}</span>
+                            <h:inputTextarea style="width: 40%" value="#{departements.description}" id="txtDesc"/>
+                            <p:outputLabel value="#{lab.LRH_PD_departement_parent}" />
+                            <h:selectOneMenu value="#{departements.idParent}" onclick="openDialog(dlgDepartement, $(this))"
+                                             id="depart-parent">
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedDepartement.listAllParent.subList(0, (managedDepartement.listAllParent.size() ge 50)?50:managedDepartement.listAllParent.size())}" var="item"  
+                                               itemLabel="#{(item.cheminParent==null)?item.intitule:item.cheminParent.concat('/').concat(item.intitule)}"
+                                               itemValue="#{item.id}" />
+                                <f:selectItem itemValue="0" itemLabel=""  noSelectionOption="true"/>
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"/>
+                            </h:selectOneMenu>
+                            <p:outputLabel value="#{lab.LRH_PD_responsable}" />
+                            <h:selectOneMenu value="#{departements.responsable.id}" 
+                                             onclick="openDialog(dlgEmploye, $(this))"
+                                             id="depart-emp">
+                                <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                <f:selectItems value="#{MEmps.listEmployes.subList(0, ((MEmps.listEmployes.size() gt 15)?15:MEmps.listEmployes.size()))}" var="em"  
+                                               itemLabel="#{em.nom_prenom}"
+                                               itemValue="#{em.id}" />
+                                <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"/>
+                            </h:selectOneMenu>
+                        </h:panelGrid>                
+                    </h:panelGrid>
+                    <div style="padding: 2px; background: #aaa">
+                        #{lab.LRH_PD_section_analytique}
+                        <p:commandButton title="#{lab.LRH_PD_ajouter_nouvelle_section}" icon="ui-icon-circle-plus" style="width: 22px; height: 22px;float: right" 
+                                         actionListener="#{managedDepartement.openListPlanAnal()}"/>
+                    </div>
+                    <p:dataTable value="#{departements.sectionsAnalytiques}" var="secA" selectionMode="single"
+                                 rowKey="#{secA.id}" id="tableSectionAnal" >
+                        <p:column headerText="#{lab.LRH_PD_section}" width="300">#{secA.centre.designation}</p:column>
+                        <p:column headerText="#{lab.LRH_PD_coefficient}" width="30" >
+                            <span style="font-weight: bold">#{secA.coeficient}%</span>
+                        </p:column>
+                        <p:column headerText="" width="20" style="text-align: center">
+                            <p:contextMenu for="btn_op_tabsec" event="left click">
+                                <p:menuitem value="#{lab.L_supprimer}" update="tableSectionAnal" icon="ui-icon-trash" actionListener="#{managedDepartement.removeLineAffecAnal(secA)}"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" id="btn_op_tabsec" type="button" style="width: 22px; height: 22px" />
+                        </p:column>
+                    </p:dataTable>
+                </div>
+                <div class="yvs_list_departement">
+                    <p:outputPanel id="tabServices" style="width: 100%; clear: right">      
+                        <p:outputLabel value="#{lab.LRH_PD_afficher_organigramme}" />
+                        <p:selectBooleanCheckbox value="#{managedDepartement.displayTree}">
+                            <p:ajax event="valueChange" update="tabServices"/>
+                        </p:selectBooleanCheckbox>
+                        <p:dataTable value="#{managedDepartement.listValue}" var="serv"  id="tadDepartement"
+                                     rowKey="#{serv.id}"  rendered="#{!managedDepartement.displayTree}"
+                                     rowIndexVar="lineDep" selection="#{managedDepartement.selectionList}">
+                            <p:ajax event="rowSelect" listener="#{managedDepartement.selectedLine}" update=":form-dep00:head :form-dep00:tableSectionAnal" 
+                                    process="@this"/>    
+                            <p:ajax event="rowSelectCheckbox" global="false" update=":form-dep00:buttonDelete" />
+                            <p:ajax event="rowUnselectCheckbox" global="false" update=":form-dep00:buttonDelete" />
+                            <p:column headerText="N° " width="25"> #{lineDep+1}</p:column>
+                            <p:column headerText="#{lab.L_code} " width="150">
+                                #{serv.codeDepartement}
+                            </p:column>
+                            <p:column headerText="#{lab.L_designation}">
+                                #{serv.intitule}
+                            </p:column>
+                            <p:column headerText="#{lab.L_parent}">
+                                #{serv.cheminParent}
+                            </p:column>                           
+                            <p:column headerText="#{lab.L_actif}" width="15" style="text-align: center">
+                                <h:graphicImage library="img"  name="#{serv.actif?'yes.png':'no.png'}" width="15" height="15" />
+                            </p:column>
+                            <p:column headerText="" width="15" style="text-align: center">
+                                <h:graphicImage library="img" title="#{serv.visibleOnLp?'Est visible sur le livre de paye':'Ne figure pas sur le livre de paie'}" name="#{serv.visibleOnLp?'vu.png':'vu_non.png'}" width="15" height="15" />
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:contextMenu for="btn_option_dept" style="font-size: 0.8em" event="left click">
+                                    <p:menuitem value="#{serv.visibleOnLp?'Off. Visible LP':'On. VisibleLP'}" 
+                                                title="#{lab.LRH_PD_text1}" actionListener="#{managedDepartement.toogleVisibleOnLP_(serv )}" update="tadDepartement"/>
+                                    <p:menuitem value="#{serv.actif ? lab.L_desactiver : lab.L_activer}" icon="ui-icon-locked"  actionListener="#{managedDepartement.updateDepartement(serv)}"/>
+                                    <p:separator/>
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" oncomplete="dlgDeleteDepart.show()" actionListener="#{managedDepartement.getSelectDepart(serv)}"/>
+
+                                </p:contextMenu>
+                                <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_dept" />
+                            </p:column>
+                            <p:column selectionMode="multiple" width="25" style="text-align: center"/>
+
+                        </p:dataTable>
+
+                        <p:tree value="#{managedDepartement.root}" var="node" orientation="horizontal" style="width: 100%"
+                                animate="slide" selectionMode="single" rendered="#{managedDepartement.displayTree}">
+                            <p:treeNode>
+                                <p:contextMenu for="node_dep" style="font-size: 0.8em">
+                                    <p:menuitem value="#{lab.LRH_PD_text2}" title="#{lab.LRH_PD_text1}" actionListener="#{managedDepartement.toogleVisibleOnLP(node)}"/>
+                                </p:contextMenu>
+                                <h:outputText value="#{node}" id="node_dep"/>
+                            </p:treeNode>
+                        </p:tree>
+                    </p:outputPanel>
+                </div>
+            </div>                                  
+        </h:form>  
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">
+                <p:inputText id="code-departement" title="#{lab.LRH_PD_entre_code_departement}"
+                             value="#{managedDepartement.codeSearch}" style="width: 98%">
+                    <p:ajax event="keyup" listener="#{managedDepartement.searchDepartement()}" global="false" oncomplete="collapseList('departement');"/>
+                </p:inputText>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

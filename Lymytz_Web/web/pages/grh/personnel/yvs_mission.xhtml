@@ -1,0 +1,1309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"> 
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Missions','modRh', 'smenMission', true,managedMission)}
+    </ui:define> 
+    <ui:define name="contents">
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('mission');
+                collapseForm('employe_mission');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 135);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        #{managedAgence.loadAgence()}
+        #{managedReglementMission.doNothing()}   
+        #{managedSaisiePiece.doNothing()}    
+        #{managedBonProvisoire.doNothing()}  
+        #{managedWorkflow.doNothing()}
+        #{Mdico.loadDicoVille()}
+        #{Mdico.loadDicoPays()}        
+        #{MEmps.addParamActifSimple(true)}
+
+        #{managedModeReglement.loadModels('C')}
+        #{managedCaisses.loadAllCaisseActif(true)} 
+        #{managedCentreAnalytique.loadAllByNamedQuery()}
+        #{managedProjet.loadAllParent()}  
+
+        #{managedTypeCout.loadAllType(constantes.COUT_MISSION)}
+        #{managedFraisMission.addParamActifNoLimit(true)}  
+        #{managedObjetMission.addParamActif(true)}    
+        #{managedMission.loadAll()}
+        
+        <h:form prependId="false" id="form-mission_projet">
+            <p:dialog  width="60%" widgetVar="dlgAddProjets" closeOnEscape="true" header="Lier à un projet">
+                <p:outputPanel id="data-mission_projet">
+                    <h:panelGroup style="float: left">
+                        [<h:outputText value="#{managedMission.selectMission.numeroMission}" style="font-weight: bold"/>]
+                        <h:outputText value="#{managedMission.resumeText(managedMission.selectMission.ordre, 20)}" title="#{managedMission.selectMission.ordre}"/> : 
+                        <h:outputText value="#{managedMission.selectMission.totalFraisMission}" converter="DNA" style="font-style:italic;font-weight: bold"/>
+                        <h:outputText value="Fcfa" style="font-style:italic"/>
+                    </h:panelGroup>
+                    <h:panelGroup style="float: right">
+                        <h:outputText value="Selectionner un projet : "/>
+                        <h:selectOneMenu value="#{managedMission.projet}" style="min-width:120px">
+                            <f:selectItem itemValue="0" itemLabel="---"/>
+                            <f:selectItems value="#{managedProjet.parents}" var="item" itemValue="#{item.id}" itemLabel="#{item.libelle}"/>
+                            <p:ajax event="valueChange" listener="#{managedMission.chooseProjet()}"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    <p:dataTable value="#{managedMission.selectMission.projets}" var="prj" rowKey="#{prj.id}"
+                                 editable="true" editMode="cell">
+                        <p:ajax event="cellEdit" listener="#{managedMission.cellEditProjet}" />
+                        <p:column headerText="Projet">
+                            <h:outputText value="#{prj.projet.projet.libelle}"/>
+                        </p:column>
+                        <p:column headerText="Département">
+                            <h:outputText value="#{prj.projet.service.service.intitule}" />
+                        </p:column>
+                        <p:column width="100" headerText="#{lab.L_montant}" style="text-align: right" styleClass="#{prj.id gt 0?'line_actiftrue':'_'}">                                   
+                            <p:cellEditor>
+                                <f:facet name="output">
+                                    <h:outputText value="#{prj.montant}" converter="DNA"/>
+                                </f:facet>
+                                <f:facet name="input">
+                                    <h:inputText value="#{prj.montant}" style="width: 100px;text-align: right"/>    
+                                </f:facet>
+                            </p:cellEditor>  
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des entetes de achat
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_plus_option}" width="40%"  closeOnEscape="true" widgetVar="dlgPlusOption" resizable="false"> 
+                <h:panelGrid id="blog_more_mission" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <h:outputText value="#{lab.LRH_PM_lieu}" />     
+                    <h:selectOneMenu  value="#{managedMission.lieuF}" valueChangeListener="#{managedMission.addParamLieu}" style="width: 100%">
+                        <f:selectItem itemValue="0" itemLabel="--" /> 
+                        <f:selectItems value="#{Mdico.listVille}" var="villeF"  itemValue="#{villeF.id}" itemLabel="#{villeF.libele}"/>  
+                        <p:ajax event="valueChange" update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')"  />
+                    </h:selectOneMenu>  
+                    <h:outputText value="Ids"/>
+                    <h:inputText value="#{managedMission.idsSearch}" style="width: 100%" title="#{lab.L_entrer_id_separer_virgules}">
+                        <p:ajax event="valueChange" listener="#{managedMission.addParamIds()}" update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')"/>
+                    </h:inputText>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="form_ppte_valid_mission">
+            <p:dialog header="#{lab.LC_PA_propriete_validation}" widgetVar="dlgppteValid" width="60%" closeOnEscape="true">
+                <p:dataTable value="#{mission.etapesValidations}" var="iValid" id="table_ppte_valid_mission">
+                    <p:column headerText="#{lab.LRH_PM_etapes}" >#{iValid.etape.labelStatut}</p:column>
+                    <p:column headerText="#{lab.LC_PA_valide_par}" >
+                        <h:outputText value="#{iValid.author.users.nomUsers}" rendered="#{iValid.etapeValid or iValid.motif != null}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_dates} " style="text-align: center">
+                        <h:outputText value="#{iValid.dateUpdate}" converter="DATETIME" rendered="#{iValid.etapeValid}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PA_motif} " >
+                        <h:outputText value="#{managedMission.resumeText(iValid.motif)}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main-motif_etape_mission">
+            <p:dialog hideEffect="explode" widgetVar="dglMotifCancelEtape" closeOnEscape="true" header="#{lab.LC_PFV_motif_annulation_etape}" width="35%">
+                <h:panelGrid id="value_motif_etape_mission" columns="1" cellpadding="0" cellspacing="0" style="width: 100%">
+                    <h:inputTextarea value="#{managedMission.motifEtape}" style="width: 100%" rows="4"/>                
+                    <f:facet name="footer">
+                        <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedMission.annulEtapeOrdre()}" oncomplete="dglMotifCancelEtape.hide();" style="float: right" rendered="#{!managedMission.lastEtape}"
+                                         update=":main_form_mission:etapes_valide_mission :main_form_mission:liste-mission"/>
+                    </f:facet>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:confirmDialog id="cfm_bon_mission" hideEffect="explode" widgetVar="dlgConfirmBonProvisoire" closeOnEscape="true" header="#{lab.L_confirmation}"
+                             message="#{lab.LCF_PBP_text3} #{managedMission.piece.bonMission.mission.numeroMission}. #{lab.LCF_PBP_text4}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.forceOnViewMission()}" oncomplete="dlgConfirmBonProvisoire.hide();" />
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmBonProvisoire.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="main_bon_mission">
+            <p:dialog header="#{lab.LCF_PPC_bon_provisoire}" widgetVar="dlgListBons" width="60%" closeOnEscape="true" footer="&copy;Lymytz 2014">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseForm('bon_provisoire');
+                    });
+                </script>
+                <div class="dlg_part_fixe">
+                    <div style="float: left" >     
+                        <p:watermark for="txt_reference_bon" value="#{lab.LRH_PM_entrer_numero}..." />
+                        <p:watermark for="txt_beneficiaire_bon" value="#{lab.LCF_PRV_entrer_beneficiaire}..." />
+                        <h:panelGrid columns="3" style="float: left;margin-top: -10px">
+                            <h:inputText value="#{managedBonProvisoire.numSearch}" style="font-size: 0.7em" id="txt_reference_bon">
+                                <p:ajax event="valueChange" listener="#{managedBonProvisoire.addParamNumero()}" oncomplete="collapseList('bon_provisoire')"/>
+                            </h:inputText>
+                            <h:inputText value="#{managedBonProvisoire.tiersSearch}" style="font-size: 0.7em" id="txt_beneficiaire_bon">
+                                <p:ajax event="blur" listener="#{managedBonProvisoire.addParamTiers()}" oncomplete="collapseList('bon_provisoire')"/>
+                            </h:inputText>
+                            <p:outputPanel autoUpdate="true" layout="block">
+                                <p:commandButton actionListener="#{managedBonProvisoire.avancer(false)}" global="false" update="data_bon_provisoire" icon="ui-icon-circle-triangle-w" disabled="#{managedBonProvisoire.paginator.disPrev}" oncomplete="collapseList('bon_provisoire')"/>
+                                <p:outputPanel ><p:outputLabel value="#{managedBonProvisoire.paginator.currentPage}/#{managedBonProvisoire.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                <p:commandButton actionListener="#{managedBonProvisoire.avancer(true)}" global="false" update="data_bon_provisoire" icon="ui-icon-circle-triangle-e" disabled="#{managedBonProvisoire.paginator.disNext}" oncomplete="collapseList('bon_provisoire')"/>
+                                <p:selectOneMenu value="#{managedBonProvisoire.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedBonProvisoire.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                    <f:selectItems value="#{managedBonProvisoire.paginations}"/>
+                                    <p:ajax event="valueChange" global="false" update="data_bon_provisoire" oncomplete="collapseList('bon_provisoire')"/>
+                                </p:selectOneMenu>
+                            </p:outputPanel> 
+                        </h:panelGrid>
+                    </div>
+                    <div style="float: right;margin-top: -5px" >                        
+                        <h:link onclick="collapseForm('bon_provisoire');
+                                return false" title="#{lab.L_mode_formulaire}" >
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>
+                        <h:link  onclick="collapseList('bon_provisoire');
+                                return false" title="#{lab.L_mode_liste}">
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>                                                               
+                    </div>
+                    <div style="clear: both"/>
+                    <p:separator style="width: 100%;margin: auto" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <div class="yvs_form_bon_provisoire">
+                        <p:outputPanel id="form_bon_mission">
+                            <h:panelGrid columns="4" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                <f:facet name="header">
+                                    <div align="left" style="width: 100%;background: #CCC">
+                                        <h:panelGrid columns="2" style="float: left" cellpadding="0" cellspacing="0">
+                                            <span>#{lab.LRH_PM_mission_numero} </span>
+                                            <span><b>#{managedMission.selectMission.numeroMission}</b></span>
+                                        </h:panelGrid>
+                                        <h:panelGrid columns="2" style="float: right" cellpadding="0" cellspacing="0">
+                                            <span>#{lab.L_montant} : </span>
+                                            <span><b>#{managedMission.selectMission.totalFraisMission}</b> Fcfa</span>
+                                        </h:panelGrid>                                
+                                    </div>
+                                </f:facet>
+                                <h:outputText value="#{lab.LC_PA_date_bon}"/>
+                                <h:outputText value="#{lab.L_montant}"/>                                 
+                                <h:outputText value="#{lab.L_caisse}"/> 
+                                <h:outputText value="" style="margin-left: 20px"/>
+                                <p:calendar value="#{managedMission.piece.dateBon}" navigator="true" pattern="dd-MM-yyyy" size="10"/>  
+                                <h:inputText value="#{managedMission.piece.montant}"/>     
+                                <h:selectOneMenu value="#{managedMission.piece.caisse.id}">
+                                    <f:selectItem itemValue="-1" itemLabel="" />
+                                    <f:selectItems value="#{managedCaisses.caisses}" var="icam" itemValue="#{icam.id}" itemLabel="#{icam.intitule}" />
+                                </h:selectOneMenu>
+                                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedMission.addBonProvisoire()}" style="margin-left: 20px" icon="ui-icon-disk" update="form_bon_mission"
+                                                 />
+                            </h:panelGrid>
+                            <div id="zone_show_bon_mission" style="width: 99%; border: solid 2px; height: 200px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                                <span style="display: inline-block; background: #CCC; width: 100%;cursor: pointer" onclick="slideShow('zone_show_bon_mission', 200)">
+                                    <span class="button_slide">[-]</span>
+                                    #{lab.LRH_PM_liste}
+                                    <span style="float: right">#{lab.LC_PES_montant_total} : <h:outputText value="#{managedMission.selectMission.totalBon}" style="font-weight: bold"/></span>
+                                </span>
+                                <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 150px; margin: auto;overflow-y: auto">
+                                    <!-->Bons provisoire de la mission<-->
+                                    <p:dataTable id="data_bon_mission" value="#{managedMission.selectMission.bonsProvisoire}" var="jus" rowKey="#{jus.id}" rowIndexVar="yidx">
+                                        <p:column width="20" headerText="N°" styleClass="statut_#{jus.piece.statut}">
+                                            <span style="float: left">#{yidx+1}</span>     
+                                            <h:panelGroup style="float: right">
+                                                <h:outputText value="P" class="indice_statut" rendered="#{jus.piece.statutPaiement=='P'}" title="Payé"/>
+                                            </h:panelGroup>                           
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_numero}" width="150" styleClass="statut_#{jus.piece.statut}">
+                                            <h:outputText value="#{jus.piece.numero}" style="float: left"/>
+                                            <h:panelGroup style="float: right">
+                                                <h:outputText value="J" class="indice_statut" rendered="#{jus.piece.statutJustify=='J'}" title="Justifié"/>
+                                            </h:panelGroup>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_montant}" width="150" style="text-align: right" styleClass="statut_#{jus.piece.statut}">
+                                            <h:outputText value="#{jus.piece.montant}" converter="DNA"/>
+                                        </p:column>
+                                        <p:column width="15" style="text-align: center">                                          
+                                            <p:contextMenu for="btn_option_bon_mission" event="left click" style="font-size: 0.8em">
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedMission.deleteBonProvisoire(jus)}"
+                                                            update="data_bon_mission"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_bon_mission" type="button"/>
+                                        </p:column> 
+                                    </p:dataTable>
+                                </div>  
+                                <div class="zone_bottom">
+                                    <span style="float: right">#{lab.LC_PEV_reste} : <h:outputText value="#{managedMission.selectMission.totalReste}" style="font-weight: bold"/></span>
+                                </div>
+                            </div>           
+                        </p:outputPanel>
+                    </div>
+                    <div class="yvs_list_bon_provisoire">  
+                        <!-->Liste des bons provisoire de la mission<-->
+                        <p:dataTable id="data_bon_provisoire" value="#{managedBonProvisoire.documents}" var="bonp" selectionMode="single" rowKey="#{bonp.id}">
+                            <p:ajax event="rowSelect" listener="#{managedMission.loadOnBonProvisoire}" oncomplete="dlgListBons.hide()"/>
+                            <p:column headerText="#{lab.L_numero}" styleClass="statut_#{bonp.statut}" width="150">
+                                <h:outputText title="#{managedBonProvisoire.resumeText(bonp.description)}" value="#{bonp.numero}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PPC_beneficiaire}" styleClass="statut_#{bonp.statut}">
+                                <h:outputText title="#{managedBonProvisoire.resumeText(bonp.description)}" value="#{bonp.beneficiaire}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_montant}" styleClass="statut_#{bonp.statut}" width="150" style="text-align: right">
+                                <h:outputText title="#{managedBonProvisoire.resumeText(bonp.description)}" value="#{bonp.montant}" converter="DNA"/>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>         
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="form_form_comment_line_frais">
+            <p:dialog header="#{lab.LRH_PM_ajouter_commentaire}" widgetVar="dlgAddComment" width="50%"
+                      closeOnEscape="true" footer="&copy;Lymytz 2014">
+                <h:inputTextarea style="width: 99%; margin: auto" rows="5" value="#{managedMission.commentaireLineFrais}" id="form_comment_line_frais">
+
+                </h:inputTextarea>
+                <div align="center">
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedMission.addCommentFrais()}" oncomplete="dlgAddComment.hide()"/>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PM_text}"
+                             widgetVar="dlgUpdateObjetM" header="#{lab.LRH_PM_mise_jour_objet}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.updateObjetMission(true)}" oncomplete="dlgUpdateObjetM.hide()"  />
+                <p:commandButton value="#{lab.L_non}" type="button" onclick="dlgUpdateObjetM.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PM_valider_ordre_mission}" widgetVar="dlgValidOM" width="50%"
+                      footer="&copy; Lymytz" modal="true" >           
+                <p:focus for="txt_fraiMissTot" />
+
+                <div align="center" >
+                    <span style="font-size: 1.1em; font-weight: bold">#{lab.LRH_PM_text2} </span><br />
+                    <span>#{lab.LRH_PM_text1}</span>   
+                    <p:selectBooleanCheckbox value="#{managedMission.generetedPc}" style="margin-left: 10px"/>  
+                </div> 
+                <h:panelGrid columns="2" style="width: 100%; " id="form_valid_pcMiss">
+                    <f:facet name="header">                        
+                        <h:panelGrid columns="6" cellspacing="10" style="background: #CCC; width: 100%; font-size: 0.8em">
+                            <h:outputText value="#{lab.LDB_PC_mode_reglement}" />           
+                            <h:selectOneMenu value="#{managedReglementMission.pieceAvance.mode.id}" style="min-width: 120px">
+                                <f:selectItems value="#{managedModeReglement.modes}" var="modelm" itemLabel="#{modelm.designation}" itemValue="#{modelm.id}" />     
+                            </h:selectOneMenu> 
+                            <h:outputText value="#{lab.LCF_PRV_a_payer_le}" style="margin-left: 30px"/>
+                            <p:calendar value="#{managedReglementMission.pieceAvance.datePaiementPrevu}" size="8" pattern="dd-MM-yyyy" />
+                            <span>#{lab.L_caisse}</span>
+                            <h:selectOneMenu value="#{managedReglementMission.pieceAvance.caisse.id}">
+                                <f:selectItem itemValue="-1" itemLabel="" />
+                                <f:selectItems value="#{managedCaisses.caisses}" var="ica" itemValue="#{ica.id}" itemLabel="#{ica.intitule}" />
+                            </h:selectOneMenu>
+                        </h:panelGrid>
+                    </f:facet>                    
+                    <span>#{lab.L_montant}</span>
+                    <h:panelGroup >                           
+                        <h:inputText value="#{managedReglementMission.pieceAvance.montant}" converter="DN" style="width: 100px" id="txt_fraiMissTot">
+                            <p:ajax event="valueChange" global="false"/>                            
+                        </h:inputText>
+                        #{lab.LRH_PM_fcfa_sur}                        
+                        <h:outputText value="#{mission.totalFraisMission}" style="margin-left: 1px"/>                        
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.LRH_PM_montant_paye}" style="font-weight: bold; color: #006666" />
+                    <h:panelGroup >                            
+                        <h:inputText value="#{mission.totalPaye}" style="width: 100px; text-align: right;font-weight: bold; color: #006666"
+                                     disabled="true" converter="DN"/>
+                       #{lab.LRH_PM_fcfa_sur}                   
+                        <h:outputText value="#{managedMission.giveTotalFraisM(mission.fraisMissions)}" style="margin-left: 1px"/>                        
+                    </h:panelGroup>
+                </h:panelGrid>
+                <div align="center">
+                    <h:panelGroup id="btn_control_valid_pv">
+                        <p:commandButton value="#{lab.L_valider}" icon="ui-icon-circle-check" actionListener="#{managedMission.termineValideMission()}" 
+                                         update=":main_form_mission:etapes_valide_mission :main_form_mission:liste-mission btn_control_valid_pv" disabled="#{managedReglementMission.pieceAvance.id gt 0}"/>
+                        <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" onclick="dlgValidOM.hide()" type="button"/>
+
+                        <p:commandLink style="float: right" disabled="#{managedReglementMission.pieceAvance.id le 0}" title="#{lab.LCF_PRV_telecharger_piece}" ajax="false" 
+                                       actionListener="#{managedReglementMission.printDoc(managedReglementMission.pieceAvance.id)}">
+                            <h:graphicImage library="img" name="iconePDF.png" width="22" height="22" />
+                        </p:commandLink>
+                    </h:panelGroup>                    
+                </div>
+            </p:dialog>
+
+        </h:form>
+        <h:form prependId="false" id="form_etape_wf">
+            <p:dialog header="#{lab.LRH_PM_parametrer_impression}" widgetVar="dlgParamPrint"
+                      width="65%" closeOnEscape="true" >
+                <span>#{lab.LRH_PM_text3}</span>
+                <p:dataTable value="#{managedWorkflow.etapesValidation}" var="etape" selectionMode="single"
+                             rowKey="#{etape.id}"  selection="#{managedWorkflow.selectionEtapeValidation}"
+                             rowIndexVar="line_" id="table_etape_print">
+                    <p:column headerText="N°" width="50" style="text-align: center"
+                              styleClass="line_valide_#{etape.firstEtape}">
+                        #{line_+1}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PM_statut_document} " styleClass="line_valide_#{etape.firstEtape}">
+                        #{etape.labelStatut}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PM_titre_etape}" styleClass="line_valide_#{etape.firstEtape}">
+                        #{etape.titreEtape}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PM_prochaine_etape} " styleClass="line_valide_#{etape.firstEtape}">
+                        #{etape.etapeSuivante.labelStatut}                        
+                    </p:column>
+                    <p:column headerText="#{lab.L_imprimer} " width="60" style="text-align: center">                     
+                        <p:commandLink actionListener="#{managedWorkflow.printLineElementHere(etape)}" update="table_etape_print" process="@this" global="false" >
+                            <h:graphicImage library="img/icones" name="#{(etape.printHere)?'vu.png':'cancel.png'}" width="16" height="15" />
+                        </p:commandLink>
+                    </p:column>                    
+                    <p:column headerText="#{lab.LRH_PM_generer_bp} " width="60" style="text-align: center"> 
+                        <p:commandLink actionListener="#{managedWorkflow.editBonProvisoireHere(etape)}" update="table_etape_print" process="@this" global="false" >
+                            <h:graphicImage library="img/icones" name="#{(etape.canEditBpHere)?'vu.png':'cancel.png'}" width="16" height="15" />
+                        </p:commandLink>
+                    </p:column>                    
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >                
+            <p:confirmDialog showEffect="fade" hideEffect="explode">
+                <p:commandButton value="#{lab.L_oui}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmCloneMission" message="#{lab.LRH_PM_text4}?"
+                             closeOnEscape="true" header="#{lab.LRH_PM_cloturer_ordre_mission}" >
+                <span>#{lab.LRH_PM_entrer_matricule}</span> <br />
+                <h:inputText value="#{managedMission.employeClone}" >
+                    <p:ajax event="keyup" global="false" listener="#{managedMission.findOneEmploye(managedMission.employeClone)}" update="listEmp_miss" />
+                    <p:ajax event="blur" global="false" listener="#{managedMission.choisirEmploye()}" update="listEmp_miss :main_form_mission:chp_employe_miss" />
+                </h:inputText>
+                <h:panelGroup  id="listEmp_miss">
+                    #{mission.employe.matricule} ( #{managedMission.listEmploye.size()})
+                    <br />
+                    <div style="width: 100%; font-size: 0.7em; background: #A0AFA0">
+                        #{managedMission.listEmploye}
+                    </div>
+                </h:panelGroup>
+                <p:commandButton value="#{lab.L_oui}"  icon="ui-icon-circle-check" oncomplete="dlgConfirmCloneMission.hide()"
+                                 actionListener="#{managedMission.cloneMission()}" 
+                                 update=":main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission :main_form_mission:miss_options_m :main_form_mission:liste-mission " />
+                <p:commandButton type="button" value="#{lab.L_non}"  onclick="dlgConfirmCloneMission.hide()" icon="ui-icon-circle-close" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmAddFrais" message="#{lab.LRH_PM_text5}"
+                             closeOnEscape="true" header="#{lab.LRH_PM_appliquer_frais_misison}" >
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.saveFraisMission()}" icon="ui-icon-circle-check" oncomplete="dlgConfirmAddFrais.hide()"
+                                 update=":main_form_mission:zone_recap_mission:zone_frai_miss :main_form_mission:zone_recap_mission @this :main_form_mission:liste-mission" />
+                <p:commandButton  value="#{lab.L_non}"  actionListener="#{managedMission.notApplyNewFrais()}" icon="ui-icon-circle-close" oncomplete="dlgConfirmAddFrais.hide()"
+                                  update=":main_form_mission:zone_recap_mission:zone_frai_miss :main_form_mission:zone_recap_mission @this"/>
+                <p:selectBooleanCheckbox value="#{managedMission.addAllLine}" itemLabel="#{lab.LRH_PM_inclure_lignes_sans_montant}"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmCancelMission" message="#{lab.LRH_PM_text6}"
+                             closeOnEscape="true" header="#{lab.LRH_PM_annuler_validation_mission}" >
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.cancelOrdreMission()}" icon="ui-icon-circle-check" oncomplete="dlgConfirmCancelMission.hide()"
+                                 update=":main_form_mission:etapes_valide_mission :main_form_mission:liste-mission"/>
+                <p:commandButton type="button" value="#{lab.L_non}"  onclick="dlgConfirmCancelMission.hide()" icon="ui-icon-circle-close" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmSuspendMission" message="#{lab.LRH_PM_text7}"
+                             closeOnEscape="true" header="#{lab.LRH_PM_suspendre_mission}"  width="50%">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.suspendreOrdreMission()}" icon="ui-icon-circle-check" oncomplete="dlgConfirmSuspendMission.hide()"
+                                 update=":main_form_mission:etapes_valide_mission"/>
+                <p:commandButton type="button" value="#{lab.L_non}"  onclick="dlgConfirmSuspendMission.hide()" icon="ui-icon-circle-close" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog styleClass="dlg_panel" closable="true" closeOnEscape="true" modal="true" resizable="false"
+                      draggable="false" showHeader="false" width="20%" widgetVar="dlgSetHeureD">
+                <div align="center">#{lab.LRH_PM_indiquer_heure_depart_effectif}</div>
+                <pe:timePicker value="#{managedMission.heureDepart}" style="width: 100px" id="miss_update_HD"/>
+                <p:commandButton value="#{lab.L_appliquer}" icon="ui-icon-refresh" actionListener="#{managedMission.editHeureDepartMission(true)}"
+                                 oncomplete="dlgSetHeureD.hide()"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog styleClass="dlg_panel" closable="true" closeOnEscape="true" modal="true" resizable="false"
+                      draggable="false" showHeader="false" width="20%" widgetVar="dlgSetHeureF">
+                <div align="center">#{lab.LRH_PM_indiquer_heure_depart_effectif}</div>
+                <pe:timePicker value="#{managedMission.heureArrive}" style="width: 100px" id="miss_update_HF"/>
+                <p:commandButton value="#{lab.L_appliquer}" icon="ui-icon-refresh" actionListener="#{managedMission.editHeureDepartMission(false)}"
+                                 oncomplete="dlgSetHeureF.hide()"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog styleClass="dlg_panel" closable="true" closeOnEscape="true" modal="true" resizable="false"
+                      draggable="false" showHeader="false" width="50%" widgetVar="dlgReportDate" >
+                <div align="center">#{lab.LRH_PM_text8}</div>
+                <h:inputTextarea value="#{mission.motifReport}" rows="3" style="width: 100%" />                
+                <span>#{lab.LRH_PM_reporter_date_fin_au}</span>
+                <p:calendar value="#{managedMission.dateFin}" id="miss_date_report"  pattern="dd-MM-yyyy" size="8">
+                    <p:ajax event="dateSelect" listener="#{managedMission.changeDateFin}" update="miss_date_report_r"/>
+                </p:calendar>
+                <span>#{lab.LRH_PM_date_retour}</span>
+                <h:outputText value="#{mission.dateRetour}" id="miss_date_report_r" converter="DATE" style="opacity: 1"/>
+                <p:commandButton value="#{lab.L_appliquer}" icon="ui-icon-refresh" update=":main_form_mission:mission_chp_dateR :main_form_mission:miss_date_fin_"
+                                 actionListener="#{managedMission.editDateFinMission(1)}" />
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog styleClass="dlg_panel" closable="true" closeOnEscape="true" modal="true" resizable="false"
+                      draggable="false" showHeader="false" width="50%" widgetVar="dlgAvanceDate" >
+                <div align="center">#{lab.LRH_PM_text8}</div>
+                <h:inputTextarea value="#{mission.motifReport}" rows="3" style="width: 100%" />                
+                <span>#{lab.LRH_PM_ramener_date_fin_au}</span>
+                <p:calendar value="#{managedMission.dateFin}" id="miss_date_avance" pattern="dd-MM-yyyy" size="8" >
+                    <p:ajax event="dateSelect" listener="#{managedMission.changeDateFin}" update="miss_date_avance_r"/>
+                </p:calendar>
+                <span>#{lab.LRH_PM_date_retour}</span>
+                <h:outputText value="#{mission.dateRetour}" id="miss_date_avance_r" converter="DATE" style="opacity: 1"/>
+                <p:commandButton value="#{lab.L_appliquer}" icon="ui-icon-refresh" update=":main_form_mission:mission_chp_dateR :main_form_mission:miss_date_fin_"
+                                 actionListener="#{managedMission.editDateFinMission(2)}" />
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PE_ajouter_pays}" widgetVar="dlgAddPays" closeOnEscape="true" resizable="false" hideEffect="explode"
+                      width="40%" height="80">
+                <h:panelGrid columns="3" style="width: 100%">                        
+                    <span>#{lab.L_pays}</span>
+                    <h:panelGroup>
+                        <p:inputText value="#{Mdico.newPays.libelle}"/>
+                        <span>#{lab.LRH_PM_code_abbreviation}</span>
+                        <p:inputText value="#{Mdico.newPays.abreviation}"/>
+                    </h:panelGroup>
+                    <p:commandButton value="#{lab.L_enregistrer}" oncomplete="dlgAddPays.hide()"
+                                     actionListener="#{Mdico.createPays()}" update=":form_mission_pays:txt_select_payMission"/>
+                </h:panelGrid>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_mission_pays">
+            <p:dialog header="#{lab.LRH_PE_ajouter_ville}" widgetVar="dlgAddVille" closeOnEscape="true" resizable="false" hideEffect="explode"
+                      width="40%" >
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.L_pays}</span>
+                    <h:selectOneMenu value="#{Mdico.newPays.id}" onchange="openDialog(dlgAddPays, $(this))"
+                                     id="txt_select_payMission">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                        <f:selectItems value="#{Mdico.listPays}" var="pay_" 
+                                       itemValue="#{pay_.id}" itemLabel="#{pay_.libele}" />
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" />
+                    </h:selectOneMenu>
+                    <span>#{lab.L_ville}</span>                    
+                    <h:panelGroup>
+                        <h:inputText value="#{Mdico.newVille.libelle}" style="width: 150px"/> 
+                        <span>#{lab.LC_PFV_abbreviation}</span>
+                        <p:inputText value="#{Mdico.newVille.abreviation}" style="width: 100px"/>
+                    </h:panelGroup>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" id="btn-Add-mission-ville" style="float: right"
+                                 actionListener="#{Mdico.createVille()}" update=":main_form_mission:lieuMission :form_form_add_escale:form_add_escale"
+                                 oncomplete="dlgAddVille.hide()"/>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_form_add_escale">
+            <p:dialog header="#{lab.LRH_PM_ajouer_escales}" widgetVar="dlgAddEscale" closeOnEscape="true" resizable="false" hideEffect="explode"
+                      width="40%" >
+                <h:panelGrid columns="3" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                             id="form_add_escale">
+                    <span>#{lab.LRH_PM_escale_a}</span>
+                    <h:selectOneMenu value="#{managedMission.lieuEscale}" onchange="openDialog(dlgAddVille, $(this))">
+                        <f:selectItem itemValue="#{null}" itemLabel="" noSelectionOption="true" />
+                        <f:selectItems value="#{Mdico.listVille}" var="v_" 
+                                       itemValue="#{v_.libele}" itemLabel="#{v_.libele}" />
+                        <f:selectItem itemValue="#{null}" itemLabel="" noSelectionOption="true" />
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" />
+                    </h:selectOneMenu>                    
+                    <p:commandButton value="#{lab.L_ajouter}" style="float: right" icon="ui-icon-circle-plus"
+                                     actionListener="#{managedMission.addLieuEscale()}" update=":main_form_mission:lieuEscaleMission :main_form_mission:liste-mission" />
+                </h:panelGrid>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_mission_01">         
+            <p:dialog header="#{lab.LRH_PM_liste_employes_actifs}" widgetVar="dlgEmploye" width="85%" height="600"
+                      closeOnEscape="true" resizable="false"  modal="true" >                    
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('employe_mission');
+                    });
+                </script>
+
+                <h:panelGrid columns="2" class="left size-09">
+                    <h:outputText value="#{lab.LDB_PD_matricule}..." />
+                    <span>#{lab.L_agence}...</span>
+                    <h:inputText value="#{MEmps.matriculeToUpdate}" >
+                        <p:ajax event="valueChange" listener="#{MEmps.findEmploye(MEmps.matriculeToUpdate)}"
+                                update="gridEmployes_mission tabEmployes_mission" />
+                    </h:inputText>
+                    <h:selectOneMenu value="#{managedDepartement.agence_}" valueChangeListener="#{MEmps.addParamAgence}" >
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedAgence.listAgence}" var="itemA" itemValue="#{itemA.id}" itemLabel="#{itemA.designation}" />
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.LDB_PCB_toutes_societe}" />
+                        <p:ajax event="valueChange" update="gridEmployes_mission tabEmployes_mission"/>
+                    </h:selectOneMenu>                            
+                </h:panelGrid>
+                <div style="float: right" >
+                    <p:outputPanel  autoUpdate="true">                        
+                        <p:commandButton actionListener="#{MEmps.pagineResult(false)}" update="gridEmployes_mission tabEmployes_mission" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{MEmps.paginator.currentPage} / #{MEmps.paginator.nbPage}" style="margin-top: 0px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{MEmps.pagineResult(true)}" update="gridEmployes_mission tabEmployes_mission" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{MEmps.changeMaxResult}" style="font-size: 0.9em;min-width: 50px; position: relative; top: 10px" >
+                            <f:selectItems value="#{MEmps.paginations}"/>
+                            <p:ajax event="valueChange" update="gridEmployes_mission tabEmployes_mission"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                    <h:link onclick="collapseList('employe_mission');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link  onclick="collapseGrid('employe_mission');
+                            return false" title="#{lab.L_mode_hierrachique}">
+                        <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                                               
+                </div>         
+                <div style="clear: both"/>  
+                <div class="yvs_list_employe_mission">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                 widgetVar="tabEmployes" id="tabEmployes_mission" selectionMode="single"
+                                 scrollable="true" scrollHeight="500" > 
+                        <p:ajax event="rowSelect" listener="#{managedMission.choixEmploye}" oncomplete="dlgEmploye.hide()" 
+                                update=":main_form_mission:chp_employe_miss :main_form_mission:zone_recap_mission:zone_frai_miss"/>
+                        <p:column headerText="N°" width="15" style="text-align: center">
+                            <h:outputText value="#{line_e+1}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                            <h:outputText value="#{emp.civilite} #{emp.nom} #{emp.prenom}" />
+                        </p:column>                        
+                        <p:column headerText="#{lab.LDB_PD_matricule}" width="90" style="text-align: center">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PCB_poste} " width="200">
+                            <h:outputText value="#{emp.posteActif.intitule}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+                <div class="yvs_grid_employe_mission">
+                    <p:dataGrid value="#{MEmps.listEmployes}" var="emp1" columns="3" 
+                                id="gridEmployes_mission" >
+                        <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                            <f:facet name="header">
+                                <p:commandLink  actionListener="#{managedMission.choixEmploye1(emp1)}" oncomplete="dlgEmploye.hide()"
+                                                update=":main_form_mission:chp_employe_miss :main_form_mission:zone_recap_mission:zone_frai_miss" >
+                                    <p:graphicImage library="lymytz/documents/docEmps/perso/photo" name="#{(emp1.photos==null)?'user1.png':emp1.photos}" width="100" height="100" />                                                                      
+                                </p:commandLink>
+                            </f:facet>
+                            <span>#{lab.L_noms_prenoms}</span>
+                            <h:outputText value="#{emp1.prenom} #{emp1.nom}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LDB_PD_matricule}</span>
+                            <h:outputText value="#{emp1.matricule}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LDB_PCB_poste}</span>
+                            <h:outputText value="#{emp1.posteActif.intitule}" style="font-weight: bold; font-size: 1.1em"/> 
+                        </h:panelGrid>
+                    </p:dataGrid>
+                </div>
+                <f:facet name="footer">                    
+                    <h:outputText value="&copy; Lymytz 2014" escape="true" />                    
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <!-->Zone de recherche<-->
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PM_liste_ressources}" widgetVar="dglListeRess" closeOnEscape="true" resizable="false" hideEffect="explode"
+                      width="50%" >
+                <div class="dlg_part_fixe">
+                    <script type="text/javascript">
+                        $(function() {
+                            collapseForm('ressource_mission');
+                        });
+                    </script>
+                    <div style="float: right" >                        
+                        <h:link onclick="collapseForm('ressource_mission');
+                                return false" title="#{lab.L_mode_liste}" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>
+                        <h:link  onclick="collapseList('ressource_mission');
+                                return false" title="#{lab.L_mode_hierrachique}">
+                            <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>                                                               
+                    </div>
+                </div>
+                <div class="dlg_part_scroll" style="clear: right">
+                    <div class="yvs_form_ressource_mission">
+                        <h:panelGrid  columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                                      style="width: 100%">
+                            <span>#{lab.L_reference}</span>
+                            <h:inputText value="#{managedMission.article.refArt}" />
+                            <span>#{lab.L_designation}</span>
+                            <h:inputText value="#{managedMission.article.designation}" />
+                            <span>#{lab.L_description}</span>
+                            <h:inputTextarea rows="3" style="width: 99%" value="#{managedMission.article.description}" />
+                        </h:panelGrid>
+                        <p:commandButton value="#{lab.L_enregistrer}" style="float: right" />
+                    </div>
+                    <div class="yvs_list_ressource_mission">                        
+                        <p:inputText value="#{MEmps.matriculeToUpdate}" style="float: left">
+                            <p:ajax event="keyup" listener="#{MEmps.findEmploye()}" global="false" process="@this"
+                                    oncomplete="collapseList('employe_mission');"/>
+                        </p:inputText>
+                        <p:dataTable value="#{managedMission.listArticles}" var="ress1" selectionMode="single" rowKey="#{ress1.id}"
+                                     paginator="true" rows="20" style="clear: left">
+                            <p:ajax event="rowSelect" listener="#{managedMission.loadOnView}" oncomplete="dglListeRess.hide()"/>
+                            <p:column headerText="#{lab.L_designation}">
+                                <p:outputLabel value="#{ress1.designation}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}">
+                                <p:outputLabel value="#{ress1.refArt}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>
+            </p:dialog>
+        </h:form>
+        <p:outputPanel id="bloc-dialog">
+            <h:form prependId="false" id="form-mission-09">
+                <p:dialog header="#{lab.LRH_PM_nouvelle_ressource}" widgetVar="dlgNewRessource" closeOnEscape="true" resizable="false" hideEffect="explode">
+                    <p:panelGrid columns="2">
+                        <p:outputLabel value="#{lab.L_designatiob}"/>
+                        <p:inputText value="#{managedMission.article.designation}"/>
+                        <p:outputLabel value="#{lab.L_reference}"/>
+                        <p:inputText value="#{managedMission.article.refArt}"/>
+                    </p:panelGrid>
+                    <h:panelGrid columns="1" style="float: right">
+                        <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedMission.saveNewArticle()}"
+                                         oncomplete="dlgNewRessource.hide();dglListeRess.hide()"/>
+                    </h:panelGrid>
+                </p:dialog>
+            </h:form>
+        </p:outputPanel>        
+        <h:form prependId="false" id="form_form_typecout">
+            <p:dialog header="#{lab.LRH_PM_ajouter_libelle_frais}" widgetVar="dlgAddTypeCout" closeOnEscape="true" resizable="false" hideEffect="explode"
+                      dynamic="true" modal="true" footer="&copy;Lymytz 2014" width="40%">
+                <h:panelGrid columns="3" style="font-size: 0.9em" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                             id="form_typecout">
+                    <span>#{lab.L_libelle}</span>
+                    <p:inputText value="#{managedMission.typeCout.libelle}"/>                    
+                    <p:commandButton icon="ui-icon-circle-plus"  update="form_typecout"
+                                     actionListener="#{managedMission.saveNewTypeCout()}" 
+                                     />
+                    <f:facet name="footer">
+                        <p:dataTable value="#{managedMission.listTypeCout}" var="lineTC" rowIndexVar="line_tc" rowKey="#{lineTC.id}"
+                                     selectionMode="single" style="font-size: 0.9em">
+                            <p:ajax event="rowSelect" listener="#{managedMission.choixTypeCout}" update=":form_form_typecout:form_typecout" />
+                            <p:column width="15" headerText="N°">#{line_tc+1}</p:column>
+                            <p:column width="150" headerText="#{lab.L_libelle}">#{lineTC.libelle}</p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:commandButton icon="ui-icon-trash" style="width: 22px; height: 22px" title="#{lab.L_supprimer}" 
+                                                 actionListener="#{managedMission.deleteTypeCout(lineTC)}"
+                                                 update=":form_form_typecout:form_typecout" />
+                            </p:column>
+                        </p:dataTable>
+                    </f:facet>
+                </h:panelGrid>                
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_faris_miss">
+            <p:dialog header="#{lab.LRH_PM_modifier_frais}" widgetVar="dlgCoutMission" closeOnEscape="true"                         
+                      width="60%" style="max-height: 600px;" modal="true" footer="&copy;Lymytz 2014" dynamic="true">                
+                <div class="dlg_part_scroll" style="clear: right"> 
+                    <p:dataTable value="#{managedFraisMission.grillesMissions}" var="grm" style="max-height: 400px; overflow-y: auto"
+                                 selectionMode="single" rowKey="#{grm.id}" rowIndexVar="line_grm"
+                                 id="tableGrillFM">
+                        <p:ajax event="rowSelect" listener="#{managedMission.selectionGrille}" process="@this"
+                                oncomplete="dlgCoutMission.hide()" />
+                        <p:column headerText="N°" width="20" style="text-align: center">#{line_grm+1}</p:column>
+                        <p:column headerText="#{lab.LRH_PF_titre} ">#{grm.titre}</p:column>
+                        <p:column headerText="#{lab.L_categorie} ">#{grm.categorie}</p:column>
+                        <p:column headerText="#{lab.L_actif} " width="20" style="text-align: center">
+                            <h:graphicImage library="img" name="#{(grm.actif)?'yes.png':'no.png'}" />
+                        </p:column>                        
+                    </p:dataTable> 
+                </div>
+            </p:dialog>                
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgconfirm" closeOnEscape="true"
+                             message="#{lab.LRH_PM_text9}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.saveNewType()}" oncomplete="dlgconfirm.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgconfirm.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:confirmDialog widgetVar="dlgDelMission1" hideEffect="explode" closeOnEscape="true"
+                             message="#{lab.LRH_PM_confirmer_suppression_mission}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.deleteOneMission()}" 
+                                 oncomplete="dlgDelMission1.hide()" 
+                                 update=":main_form_mission:liste-mission :main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission :main_form_mission:miss_options_m"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgDelMission1.hide()" type="button"/>
+            </p:confirmDialog>
+
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteAnalytique" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text3}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.deleteAnalytique(managedMission.selectAnalytique, true)}"  oncomplete="dlgConfirmDeleteAnalytique.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteAnalytique.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form>
+            <p:confirmDialog widgetVar="dlgDelMission" hideEffect="explode" closeOnEscape="true"
+                             message="#{lab.LRH_PM_confirmer_suppression_mission}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.deleteBean()}" 
+                                 oncomplete="dlgDelMission.hide()" update=":main_form_mission:liste-mission"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgDelMission.hide()" type="button"/>
+            </p:confirmDialog>
+        </h:form>
+        
+          <h:form>
+            <p:confirmDialog widgetVar="dlgDelMission_" hideEffect="explode" closeOnEscape="true"
+                             message="#{lab.LRH_PM_confirmer_suppression_mission}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedMission.deleteBean_()}" 
+                                 oncomplete="dlgDelMission_.hide()" update=":main_form_mission:liste-mission"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgDelMission_.hide()" type="button"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="main_form_mission"> 
+            <div class="part_fix">                 
+                <p:outputPanel autoUpdate="true" 
+                               style="color: darkgreen; font-size: 0.7em; text-align: center; display: block; position: absolute; top: 70px; left: 60%">#{(mission.id gt 0)?'Page en cours de modification':'Page en cours d\'Edition'}
+                </p:outputPanel>
+                <h:panelGroup style="float: left;" >                    
+                    <p:splitButton id="save_mission" value="#{lab.L_enregistrer}" icon="ui-icon-disk"
+                                   actionListener="#{managedMission.saveNew1()}" update=":main_form_mission:etapes_valide_mission zone_recap_mission :main_form_mission:liste-mission blog_form_mission" 
+                                   >
+                        <p:menuitem id="cancel_mission" value="#{lab.L_nouveau}"  update=":main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission :main_form_mission:miss_options_m"
+                                    actionListener="#{managedMission.resetFiche()}" icon="ui-icon-document"/> 
+
+                        <p:menuitem value="#{lab.L_imprimer}" title="#{lab.LRH_PM_imprimer_ordre_mission}" icon="ui-icon-print" 
+                                    rendered="#{(mission.id>0 and accesRessource.mission_print_report)}"
+                                    action="#{managedMission.exportOrdreMission()}" ajax="false"/>
+                        <p:menuitem value="#{lab.LRH_PM_cloner_pour}..." icon="ui-icon-copy" id="miss_options_m"  actionListener="#{managedMission.openDlgToClone()}"/>
+                        <p:menuitem value="#{lab.LRH_PM_parametre_avances}" rendered="#{(accesRessource.mission_print_report)}" actionListener="#{managedWorkflow.loadEtapeValidMission()}"
+                                    oncomplete="dlgParamPrint.show()" icon="ui-icon-gear" update=":form_etape_wf:table_etape_print"/>                        
+                        <p:separator />                        
+                        <p:menuitem value="#{lab.L_supprimer}" onclick="dlgDelMission_.show()" global="false" icon="ui-icon-close"/>
+                    </p:splitButton>
+                    
+
+                    <h:panelGroup id="delete_mission">
+                        <p:commandButton value="#{lab.L_supprimer}" onclick="dlgDelMission_.show()" global="false" icon="ui-icon-close"/>
+                        <p:commandButton rendered="#{managedMission.selectionMissions.size()>0}" value="#{lab.LRH_PM_cloturer}" actionListener="#{managedMission.clotureOrdreMission()}" />
+                    </h:panelGroup>                
+
+                </h:panelGroup>
+                <div style="display: inline; margin-left: 10%">
+                    <p:commandButton actionListener="#{managedMission.parcoursInAllResult(false)}"  icon="ui-icon-circle-triangle-w" oncomplete="choixNatureAbscence();collapseForm('mission')"
+                                     update="txt_one_by_one_mission :main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission :main_form_mission:miss_options_m liste-mission"
+                                     />
+                    <h:inputText value="#{managedMission.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_one_by_one_mission"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedMission.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                    </p:outputPanel>
+                    <p:commandButton actionListener="#{managedMission.parcoursInAllResult(true)}" icon="ui-icon-circle-triangle-e" oncomplete="choixNatureAbscence();collapseForm('mission')" 
+                                     update="txt_one_by_one_mission :main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission :main_form_mission:miss_options_m liste-mission"
+                                     />
+                </div>
+                <div style="float: right; margin-right: 50%">                    
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('mission');
+                            return false;">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>          
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('mission');
+
+                            return false;" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                   
+                </div> 
+                <div style="clear: right"/>
+
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_mission" style="margin: auto; background: white;">                                        
+                    <h:panelGroup style="margin-top: 5px; z-index: 9999" id="etapes_valide_mission">                         
+                        <ui:repeat value="#{mission.etapesValidations}" var="etapeM" >
+                            <p:contextMenu for="etape_valide_mission" style="font-size: 0.7em" rendered="#{etapeM.etapeValid or etapeM.motif != null}">
+                                <p:menuitem icon="ui-icon-newwin" value="#{lab.LC_PFA_proprietes}" title="#{lab.LC_PFA_voir_proprietes_validations}" oncomplete="dlgppteValid.show()" rendered="#{etapeM.etapeValid}"
+                                            update=":form_ppte_valid_mission:table_ppte_valid_mission"/>
+                                <p:menuitem icon="ui-icon-clipboard" value="#{lab.LC_PA_motif_annulation}" title="#{lab.LC_PA_voir_motif_annulation}" oncomplete="dglMotifCancelEtape.show()" rendered="#{etapeM.motif != null}"
+                                            update=":main-motif_etape_mission:value_motif_etape_mission" actionListener="#{managedMission.motifEtapeOrdre(etapeM.motif, true)}"/>
+                                <p:separator rendered="#{etapeM.etapeValid}"/>
+                                <p:menuitem icon="ui-icon-circle-arrow-w" value="#{lab.L_annuler}" oncomplete="dglMotifCancelEtape.show()" rendered="#{etapeM.etapeValid}"
+                                            update=":main-motif_etape_mission:value_motif_etape_mission" actionListener="#{managedMission.annulEtapeOrdre(etapeM, false)}"/>
+                            </p:contextMenu>
+                            <p:commandLink id="etape_valide_mission" value="#{etapeM.etape.labelStatut}" disabled="#{(!etapeM.etapeActive or etapeM.etapeValid)}" title="#{etapeM.etape.titreEtape}" 
+                                           update=":main_form_mission:etapes_valide_mission :main_form_mission:liste-mission"
+                                           styleClass="#{(etapeM.etapeValid)?'statu_valide':'statu_invalid'}" actionListener="#{managedMission.validEtapeOrdreMission(etapeM, false)}" />                        
+                            <h:outputText value=" #{lab.L_a} " rendered="#{!etapeM.etapeValid and etapeM.motif ne null}" title="#{lab.LC_PFA_annuler_pour} : #{etapeM.motif}" 
+                                          style="position: relative;left: -10px; top: 5px; font-size: 0.7em; color: #FFF; background: red; border-radius: 5px;"/>
+                        </ui:repeat>
+                        <h:panelGroup rendered="#{(mission.etapesValidations.size() lt 1) and mission.id gt 0}">
+                            <p:commandLink value="#{(mission.statutMission == constantes.STATUT_DOC_VALIDE)?lab.L_valide:lab.L_valider}"  process="@this"  
+                                           disabled="#{!(mission.statutMission == constantes.STATUT_DOC_ATTENTE)}" styleClass="#{(mission.statutMission == constantes.STATUT_DOC_VALIDE)?'statut_valide':'etat_formation_true'}"                                                           
+                                           actionListener="#{managedMission.valideMission(null)}" update=":main_form_mission:liste-mission @this"/>
+                            <p:commandLink value="#{lab.L_en_attente}"  process="@this"  
+                                           disabled="#{(mission.statutMission == constantes.STATUT_DOC_ATTENTE)}" styleClass="#{(mission.statutMission == constantes.STATUT_DOC_ATTENTE)?'statut_valide':'etat_formation_true'}"                                                           
+                                           actionListener="#{managedMission.annulerValidationBon()}" update=":main_form_mission:liste-mission @this"/>
+                        </h:panelGroup>                        
+
+                        <p:commandLink value="#{(mission.statutMission=='S')?lab.LCF_PVC_suspendu.toUpperCase():lab.L_suspendre.toUpperCase()}" styleClass="#{(mission.statutMission=='S')?'statu_suspendu':'etat_formation_true'}" style="float: right"
+                                       onclick="dlgConfirmSuspendMission.show()"
+                                       update="etapes_valide_mission" rendered="#{(mission.etapesValidations.size()>0 or mission.cloturer)}">
+                            <!--<p:confirm header="Suspendre l'ordre de mission!"  message="Voulez-vous vraiment annuler cet ordre de mission?" />-->
+                        </p:commandLink>
+                        <p:commandLink value="#{(mission.statutMission=='A')?lab.L_annule:lab.L_annulers}" styleClass="#{(mission.statutMission=='A')?'statu_annule':'etat_formation_true'}" style="float: right"
+                                       type="button" onclick="dlgConfirmCancelMission.show()" rendered="#{(mission.etapesValidations.size()>0 or mission.cloturer)}"
+                                       >
+                            <!--<p:confirm header="Annuler l'ordre de mission!"  message="Voulez-vous vraiment annuler cet ordre de mission?" />-->
+                        </p:commandLink>                        
+                        <p:commandLink value="#{(mission.statutMission=='C')?lab.LRH_PM_cloture:lab.LRH_PM_cloturer.toUpperCase()}" styleClass="#{(mission.statutMission=='C')?'statu_valide':'etat_formation_true'}" style="float: right"
+                                       actionListener="#{managedMission.cloturerOrdreMission()}" rendered="#{(mission.etapesValidations.size()==0 or !mission.cloturer) and mission.id gt 0}"
+                                       update="etapes_valide_mission :main_form_mission:liste-mission">
+                            <!--<p:confirm header="Clôturer l'ordre de mission!"  message="Voulez-vous Clôturer cet ordre de mission" />-->
+                        </p:commandLink>   
+                        <div align="center" style="font-size: 0.9em;clear: both; padding: 2px; background: #A0AFA0; border-radius: 5px; width: 55%; margin: auto">
+                           #{lab.LRH_PM_mission_numero} <span style="font-weight: bold; font-size: 0.8em; margin-right: 10%">#{mission.numeroMission}</span> 
+                            #{lab.L_reference}  <span style="font-weight: bold; font-size: 0.8em">#{mission.reference}</span></div>
+                    </h:panelGroup>                    
+                    <h:panelGrid id="blog_form_mission" columns="1" style="width: 100%">
+                        <h:panelGroup>
+                            <h:outputLabel value="#{lab.LRH_PM_objet_mission}:"/>
+                            <h:selectOneMenu value="#{mission.objet.id}" valueChangeListener="#{managedMission.selectOneObjet}">
+                                <f:selectItem itemValue="0" itemLabel="" />
+                                <f:selectItems value="#{managedObjetMission.objetsMissions}" var="item_O" itemValue="#{item_O.id}" itemLabel="#{item_O.titre}" />
+                                <p:ajax event="valueChange"  update="blog_form_mission" global="false"/>
+                            </h:selectOneMenu>
+                            <h:outputText value="#{mission.id}" style="float: right; border: 1px solid #333; color: #FFF; background: #333 ; padding: 3px; margin-right: 2%; font-size: 0.8em" />
+                        </h:panelGroup>                           
+                        <h:inputTextarea rows="4" value="#{mission.ordre}" style="width: 98%"> 
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:inputTextarea>
+                        <h:outputLabel value="#{lab.LRH_PM_qualite}:"/>                        
+                        <h:inputTextarea rows="2" value="#{mission.role}" style="width: 98%">   
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:inputTextarea>
+                    </h:panelGrid>                      
+                    <h:panelGrid id="form_zone_empsMission" columns="2" styleClass="yvs_table" style="width: 100%;margin-top: 1%; clear: left" cellpadding="0" cellspacing="0">
+                        <span >#{lab.LRH_PM_mode_transport}</span>
+                        <h:selectOneMenu value="#{mission.transport}">
+                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>                                
+                            <f:selectItem itemValue="Transport publique" itemLabel="#{lab.LRH_PM_transport_public}"/>
+                            <f:selectItem itemValue="Par l'Entreprise" itemLabel="#{lab.LRH_PM_par_entreprise}" />
+                        </h:selectOneMenu>
+                        <span >#{lab.LRH_PM_employe}</span>
+                        <h:panelGroup id="chp_employe_miss">
+                            <h:inputText value="#{mission.employe.nom}" id="btn-mission-emp" readonly="#{(mission.statutMission!=constantes.STATUT_DOC_ATTENTE and mission.statutMission!=constantes.STATUT_DOC_EDITABLE)}">
+                                <p:ajax event="blur" listener="#{managedMission.findOneEmploye()}" update="chp_employe_miss zone_recap_mission" />
+                            </h:inputText>
+                            <h:outputText value="#{mission.employe.matricule}" />
+                            <p:commandButton type="button"  onclick="dlgEmploye.show()" style="width: 22px; height: 22px; margin-left: 2%" 
+                                             icon="ui-icon-search" disabled="#{(mission.statutMission!=constantes.STATUT_DOC_ATTENTE and mission.statutMission!=constantes.STATUT_DOC_EDITABLE)}"/>
+                            <h:panelGroup  style="float: right">
+                                <h:outputText style="font-size: 0.8em; font-weight: bold;"
+                                              value=" #{lab.LRH_PM_duree_mission} :" />
+                                <pe:inputNumber symbolPosition="suffix" symbol=" Jour(s)" value="#{mission.dureeMission}" decimalPlaces="0" style="width: 80px; "  id="miss_duree_mission"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                        <span>#{lab.LRH_PM_lieu}  </span>       
+                        <h:panelGroup>
+                            <h:selectOneMenu id="lieuMission" value="#{mission.lieu.id}" >
+                                <f:selectItem itemValue="0" itemLabel="--" /> 
+                                <f:selectItems value="#{Mdico.listVille}" var="ville"  
+                                               itemValue="#{ville.id}" itemLabel="#{ville.libele}"/>
+                                <f:selectItem  itemValue="0" itemLabel="--" />
+                                <f:selectItem  itemValue="-1" itemLabel="#{lab.L_creer}" />
+                                <p:ajax event="valueChange" global="false" listener="#{managedMission.chooseVille()}"/>
+                            </h:selectOneMenu>
+                            <p:commandButton icon="ui-icon-circle-plus" title="#{ab.LRH_PM_ajouter_lieux}" style="width: 22px; height: 22px" onclick="dlgAddEscale.show()"/>
+                            <p:outputPanel id="lieuEscaleMission" style="margin-left: 1%">
+                                <ui:repeat value="#{managedMission.lieuxEscale}" var="lieu_" >
+                                    <p:column >
+                                        <span style="font-size: 0.7em; font-weight: bolder">#{lieu_}</span>
+                                    </p:column>
+                                    <p:column >
+                                        <p:commandButton icon="ui-icon-circle-minus" style="width: 20px; height: 20px" actionListener="#{managedMission.removeLieuxEscale(lieu_)}" 
+                                                         update=":main_form_mission:lieuEscaleMission"/>
+                                    </p:column>
+                                </ui:repeat>
+                            </p:outputPanel>
+                            <h:panelGroup style="float: right; font-size: 0.9em">                                
+                                <span>#{lab.LRH_PM_depart_prevu} </span>
+                                <pe:timePicker value="#{mission.heureDepart}" style="width: 100px" />
+                                <span>#{lab.LRH_PM_retour_prevu} </span>
+                                <pe:timePicker value="#{mission.heureArrive}" style="width: 100px" />
+                            </h:panelGroup>
+                        </h:panelGroup>
+                        <span>#{lab.LRH_PM_periode}</span> 
+                        <h:panelGroup styleClass="yvs_nostyle">                               
+                            <p:calendar value="#{mission.dateDebut}" pattern="dd-MM-yyyy" size="8" navigator="true">
+                                <p:ajax event="dateSelect" update="zone_recap_mission mission_chp_dateR miss_duree_mission" listener="#{managedMission.evalueTotalFraisMission()}" global="false"/>
+                                <p:ajax event="blur" update="zone_recap_mission mission_chp_dateR miss_duree_mission" listener="#{managedMission.evalueTotalFraisMission()}"  global="false"/>
+                            </p:calendar>
+                            <p:spacer style="width: 15px; background: firebrick; height: 10px"/>
+                            <p:calendar value="#{mission.dateFin}" pattern="dd-MM-yyyy" size="8" navigator="true" id="miss_date_fin_">
+                                <p:ajax event="dateSelect" update="zone_recap_mission mission_chp_dateR miss_duree_mission" listener="#{managedMission.evalueTotalFraisMission()}"  global="false"/>
+                                <p:ajax event="blur" update="zone_recap_mission mission_chp_dateR miss_duree_mission" listener="#{managedMission.evalueTotalFraisMission()}"  global="false"/>
+                            </p:calendar>
+                            <span>#{lab.LRH_PM_date_retour}</span>
+                            <p:calendar value="#{mission.dateRetour}" pattern="dd-MM-yyyy" size="8" disabled="true" id="mission_chp_dateR"/>                            
+                        </h:panelGroup>
+                    </h:panelGrid>
+                    <p:tabView id="zone_recap_mission">
+                        <p:tab title="#{lab.LRH_PM_frais}" rendered="#{(accesRessource.mission_add_frais_mission)}">
+                            <h:panelGrid columns="3" style="font-size: 0.8em;" id="zone_frai_miss"
+                                         styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" rendered="#{(accesRessource.mission_add_frais_mission) and mission.id gt 0}">
+                                <span>#{lab.LRH_PP_frais_missions}</span>
+                                <h:selectOneMenu value="#{mission.fraisMission.id}" disabled="#{mission.fraisMissions.size() ne 0}"
+                                                 valueChangeListener="#{managedMission.chooseGrilleFraisMission}">
+                                    <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedFraisMission.grillesMissions}" var="frai" itemValue="#{frai.id}" itemLabel="#{frai.titre} [#{frai.categorie}]" />                                            
+                                    <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" rendered="false"/>
+                                    <f:selectItem itemValue="-1" itemLabel="#{lab.L_gerer}..." rendered="false"/>
+                                    <p:ajax event="valueChange" process="@this" update="zone_frai_miss zone_recap_mission" />
+                                </h:selectOneMenu>
+                                <p:commandButton  rendered="#{accesRessource.mission_add_frais_mission}" title="#{lab.LRH_PM_gerer_frais}" icon="ui-icon-gear" onclick="dlgCoutMission.show()" type="button"  style="float: right; width: 22px; height: 22px" />                        
+                            </h:panelGrid>
+                            <p:dataTable value="#{mission.fraisMissions}" var="det" style="font-size: 0.7em;" rowKey="#{det.id}"
+                                         id="table_grilleFMM" rowIndexVar="line_fmm" editable="true" selectionMode="single" 
+                                         selection="#{managedMission.selectedLineFrais}">
+                                <p:ajax event="rowEdit"  listener="#{managedMission.updateCoutMission}" /> 
+                                <p:column headerText="N°" width="20" style="text-align: center">
+                                    #{line_fmm+1}                                    
+                                    <h:graphicImage library="img" name="comment.png" width="15" height="15" rendered="#{det.onComment()}"  title="#{lab.LDB_PC_a_ete_commente}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_libelle}">                                                                        
+                                    <p:cellEditor>
+                                        <f:facet name="input">
+                                            <h:selectOneMenu value="#{det.typeCout.id}">
+                                                <f:selectItems value="#{managedTypeCout.types}" var="itc" itemLabel="#{itc.libelle}" itemValue="#{itc.id}" />
+                                            </h:selectOneMenu>
+                                        </f:facet>
+                                        <f:facet name="output">
+                                            <h:outputText value="#{det.typeCout.libelle}" style="font-weight: #{(!det.proportionelDuree)?'bold':'normal'}" />                                    
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column>
+                                <p:column headerText="#{lab.LRH_PM_duree}" width="50" style="text-align: center;font-weight: #{(!det.proportionelDuree)?'bold':'normal'}">
+                                    #{mission.dureeMission}
+                                </p:column>
+                                <p:column headerText="#{lab.L_montant}" style="text-align: right">
+                                    <p:cellEditor>
+                                        <f:facet name="input">
+                                            <pe:inputNumber value="#{det.montant}" style="width: 100px" />
+                                        </f:facet>
+                                        <f:facet name="output">
+                                            <h:outputText value="#{det.montant}" converter="DN" style="text-align: right;font-weight: #{(!det.proportionelDuree)?'bold':'normal'}"/>
+                                        </f:facet>
+                                    </p:cellEditor>
+                                </p:column> 
+                                <p:column headerText="" style="color: #045491;text-align: right;font-weight: #{(!det.proportionelDuree)?'bold':'normal'}">
+                                    <h:outputText  value="#{lab.LRH_PM_modifier_par} #{det.author.users.nomUsers}" style="font-size: 0.7em;"/>
+                                </p:column>
+                                <p:column style="text-align: center" width="20">
+                                    <p:contextMenu event="left click"  for="btn_opt-frais-miss" styleClass="context_menu">
+                                        <p:menuitem value="#{lab.LRH_PM_commenter}" icon="ui-icon-note" actionListener="#{managedMission.openDlgaddCommentFrais(det)}" update=":form_form_comment_line_frais:form_comment_line_frais"/>
+                                        <p:separator />
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash"  title="#{lab.LRH_PM_supprimer_ligne_frais}"
+                                                    actionListener="#{managedMission.deleteLineFrais(det)}" update=":main_form_mission:zone_recap_mission:table_grilleFMM :main_form_mission:zone_recap_mission"/>
+                                    </p:contextMenu>
+                                    <p:commandButton icon="ui-icon-gear" type="button" style="width: 22px; height: 22px" id="btn_opt-frais-miss" />                                    
+                                </p:column>
+                                <p:column style="text-align: center" width="20">
+                                    <p:rowEditor />
+                                </p:column>
+                            </p:dataTable> 
+                            <p:outputPanel autoUpdate="true" layout="inline">
+                               #{lab.LRH_PM_montant_total_frais} =
+                                <h:outputText value="#{managedMission.giveTotalFraisM(mission.fraisMissions)}" converter="DN" style="color: #006666; font-weight: bold; margin-right: 10%"/>  
+                                #{lab.LRH_PM_montant_paye} =
+                                <h:outputText value="#{mission.totalPaye}" converter="DN" style="color: #006666; font-weight: bold; margin-right: 10%"/>  
+                                #{lab.LRH_PM_reste_payer} =
+                                <h:outputText value="#{mission.totalFraisMission-mission.totalPaye}" converter="DN" style="color: #006666; font-weight: bold; margin-right: 10%"/>  
+                            </p:outputPanel>
+                            <p:commandButton icon="ui-icon-circle-plus" style="width: 22px; height: 22px; float: right" actionListener="#{managedMission.addLineFraisMission()}"
+                                             rendered="#{(accesRessource.mission_add_frais_mission and mission.id gt 0)}" title="#{lab.LRH_PM_ajouer_ligne_frais_mission}" update="table_grilleFMM"/>
+                        </p:tab>
+                        <p:tab title="#{lab.LRH_PM_ressources}">                      
+                            <p:dataTable value="#{mission.ressources}" var="ress_" rowKey="#{ress_.id}" 
+                                         rowIndexVar="line_ress_">
+                                <p:column headerText="N°" width="20" style="text-align: center;">
+                                    #{line_ress_+1}
+                                </p:column>
+                                <p:column headerText="#{lab.L_reference}" width="100">#{ress_.ressource.refArt}</p:column>
+                                <p:column headerText="#{lab.L_designation}" width="100" style="text-align: center;">
+                                    #{ress_.ressource.designation}
+                                </p:column>
+                                <p:column headerText="#{lab.L_quantite}" style="text-align: center" width="30">
+                                    <h:outputText  value="#{ress_.quantite}" />
+                                </p:column> 
+                                <p:column headerText="#{lab.L_description}" style="font-size: 0.6em" width="150">
+                                    #{ress_.ressource.description}
+                                </p:column>
+                            </p:dataTable>                            
+                        </p:tab>                        
+                        <p:tab title="#{lab.LRH_PM_piece_tresorerie}">                      
+                            <p:dataTable value="#{mission.piecesCaisses}" var="line_c" rowKey="#{line_c.id}" 
+                                         rowIndexVar="line_ress_">
+                                <p:column headerText="N°" width="30" style="text-align: center;">
+                                    #{line_ress_+1}
+                                    <h:panelGroup style="float: right">
+                                        <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{managedSaisiePiece.isComptabilise(line_c.id, constantes.SCR_FRAIS_MISSIONS)}" styleClass="style_statut"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column headerText="#{lab.L_montant}" width="100">
+                                    <h:outputText  value="#{line_c.montant}" converter="DN"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LRH_PM_date_emission}" width="100" style="text-align: center;">
+                                    <h:outputText  value="#{line_c.datePiece}" converter="DATE"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LRH_PM_date_paiement}" style="text-align: center" width="30">
+                                    <h:outputText  value="#{line_c.datePaiement}" converter="DATE"/>
+                                </p:column> 
+                                <p:column headerText="#{lab.L_type}" style="font-size: 0.6em" width="150">
+                                    #{line_c.description}
+                                </p:column>
+                            </p:dataTable>                            
+                        </p:tab>                        
+                        <p:tab title="#{lab.LRH_PM_affectation_analytique}">                      
+                            <p:outputPanel id="blog-analytique_mi">
+                                <h:panelGrid id="form-analytique_mi" columns="5" cellpadding="0" cellspacing="0">
+                                    <h:outputText value="#{lab.LRH_PM_centre} : "/>
+                                    <h:selectOneMenu value="#{managedMission.analytique.centre.id}" style="min-width: 120px">
+                                        <f:selectItem itemLabel="--" itemValue="0"/>
+                                        <f:selectItems value="#{managedCentreAnalytique.centres}" var="iCa" itemLabel="#{iCa.designation}" itemValue="#{iCa.id}"/>
+                                        <p:ajax event="valueChange" global="false" listener="#{managedMission.chooseCentre()}"/>
+                                    </h:selectOneMenu>
+                                    <h:outputText value="#{lab.LRH_PM_coefficient} : " style="margin-left: 5px"/>
+                                    <h:inputText value="#{managedMission.analytique.taux}" style="width: 50px;text-align: center"/>
+                                    <p:commandButton icon="ui-icon-disk" value="#{lab.L_enregistrer}" style="margin-left: 10px" actionListener="#{managedMission.saveNewAnalytique()}"/>
+                                </h:panelGrid>
+                                <p:dataTable value="#{mission.analytiques}" var="iAA" rowIndexVar="iAAx" id="data-analytique_mi" selectionMode="single"
+                                             rowKey="#{iAA.id}" paginator="true" rows="10" paginatorAlwaysVisible="false">
+                                    <p:ajax event="rowSelect" listener="#{managedMission.loadOnViewAnalytique}" />
+                                    <p:ajax event="rowUnselect" listener="#{managedMission.unLoadOnViewAnalytique}" />
+                                    <p:column headerText="#{lab.L_code}">
+                                        <span>#{iAA.centre.codeRef}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LRH_PM_centre} ">
+                                        <span>#{iAA.centre.designation}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LRH_PM_coefficient}" style="text-align: right">
+                                        <h:outputText value="#{iAA.coefficient}" converter="DNA"/>%
+                                    </p:column>
+                                    <p:column style="text-align: center;width: 5%">
+                                        <p:contextMenu for="btn_option-analytique_mi" styleClass="context_menu" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedMission.deleteAnalytique(iAA, false)}"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option-analytique_mi" type="button"/>
+                                    </p:column>  
+                                </p:dataTable>  
+                            </p:outputPanel>                           
+                        </p:tab>                        
+                    </p:tabView>
+                    <div align="right" style="float: right;font-size: 0.6em; font-style: italic; color: #333; font-weight: bold">
+                        #{lab.LRH_PM_derniere_modification} <p:outputPanel autoUpdate="true" layout="inline"> <h:outputText value="#{mission.dateValider}" converter="DATETIME" style="color: #003333"/> Par <span style="color: #003333">#{mission.author}</span></p:outputPanel>
+                    </div>
+                </div>                
+                <div class="yvs_list_mission" style="width: 100%;margin: auto; background: white">
+                    <h:inputHidden id="input_hide_mission" value="#{managedMission.chaineSelectMission}" /> 
+                    <p:dataTable value="#{managedMission.listMission}" var="item2"
+                                 widgetVar="tableauMission" id="liste-mission" rowIndexVar="lineMission"
+                                 rowKey="#{item2.id}" selection="#{managedMission.selectionMissions}" > 
+                        <p:ajax event="rowSelect" listener="#{managedMission.loadEntityMission}" oncomplete="collapseForm('mission')"
+                                update=":main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission :main_form_mission:miss_options_m"
+                                />   
+                        <p:ajax event="rowSelectCheckbox" process="@this" update=":main_form_mission:delete_mission" global="false" />
+                        <p:ajax event="rowUnselectCheckbox" global="false" process="@this" update=":main_form_mission:delete_mission"/>
+
+                        <p:column headerText="N°" width="35" styleClass="statutMiss_#{item2.statutMission}" style="text-align: center">
+                            <h:graphicImage library="img"   name="pointe.png" width="15" height="15" rendered="#{item2.id eq mission.id}"/>                            
+                            #{lineMission+1}                            
+                            <h:graphicImage library="img/icones" title="#{lab.LRH_PM_retard_execution_mission}" name="cloch.jpg" width="15" height="15" rendered="#{item2.dateFin.before(managedMission.currentDate) and item2.statutMission!='C'}" />                            
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PM_employes}" width="150" styleClass="statutMiss_#{item2.statutMission}">
+                            <h:outputText value="#{item2.employe.nom} #{item2.employe.prenom}"/> 
+                        </p:column>
+                        <p:column headerText="#{lab.L_numero}" width="100" styleClass="statutMiss_#{item2.statutMission}" style="text-align: left">
+                            <h:outputText value="#{item2.numeroMission}"/> 
+                            <h:graphicImage library="icones" name="lock.png" width="15" height="15" rendered="#{item2.statutMission=='C'}" title="#{lab.LRH_PM_mission_cloturer} " style="float: right"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PM_objet}" styleClass="statutMiss_#{item2.statutMission}"
+                                  width="100" >                            
+                            <h:outputText value="#{item2.objetMission.titre}" style="width: 50px" title="#{item2.ordre}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_reference}" styleClass="statutMiss_#{item2.statutMission}"
+                                  width="100" >                            
+                            <h:outputText value="#{item2.referenceMission}" style="width: 50px" title="#{item2.ordre}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PM_lieu} " width="100" styleClass="statutMiss_#{item2.statutMission}">
+                            <h:outputText value="#{item2.lieu.libele}"/> 
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PM_periode} " width="100" styleClass="statutMiss_#{item2.statutMission}">
+                            <h:outputText value="#{item2.dateDebut}" converter="DATE"/> <span style="width: 22px"> - </span>
+                            <h:outputText value="#{item2.dateFin}" converter="DATE"/>
+                            <span style="font-size: 0.8em">(#{item2.dureeMission} Jours)</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PM_etapes}"  width="60" styleClass="statutMiss_#{item2.statutMission}" style="font-size: 0.8em">
+                            <h:outputText value="Etp.  #{item2.etapeValide} / #{item2.etapeTotal}" />
+                            <h:outputText value="#{(item2.docClasse)?'Classé':''}" style="font-style: italic; font-size: 0.8em; margin-left: 5px; color: darkblue"/>
+                        </p:column>
+                        <p:column headerText=""  width="25" styleClass="statutMiss_#{item2.statutMission}" style="font-size: 0.8em; text-align: center">
+                            <p:contextMenu for="miss_buton_option" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="#{lab.LRH_PM_heure_depart}" icon="ui-icon-clock" title="#{lab.LRH_PM_modifier_heure_depart}" actionListener="#{managedMission.openHeureEditTime(item2,true)}"/>
+                                <p:menuitem value="#{lab.LRH_PM_heure_arriver}" icon="ui-icon-clock" title="#{lab.LRH_PM_modifier_heure_arrive}" actionListener="#{managedMission.openHeureEditTime(item2,false)}"/>
+                                <p:menuitem value="#{lab.LRH_PM_reporter_retour}" icon="ui-icon-circle-arrow-e"  title="#{lab.LRH_PM_avancer_date_retour}" actionListener="#{managedMission.openEditDateFin(item2, true)}" oncomplete="collapseForm('mission');" update=":main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission"/>
+                                <p:menuitem value="#{lab.LRH_PM_retour_anticiper}" icon="ui-icon-circle-arrow-w" title="#{lab.LRH_PM_retour_anticiper_mission}" actionListener="#{managedMission.openEditDateFin(item2, false)}" oncomplete="collapseForm('mission');" update=":main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission"/>                                
+                                <p:separator />
+                                <p:menuitem value="Lier à un projet" icon="ui-icon-folder-collapsed" actionListener="#{managedMission.onLoadMissionProjet(item2)}" oncomplete="dlgAddProjets.show()" rendered="#{managedProjet.parents.size() gt 0 }"/>
+                                <p:menuitem value="#{lab.LRH_PM_initialise_analytique}" icon="ui-icon-shuffle" title="#{lab.LRH_PM_initialise_analytique_affectation}"  actionListener="#{managedMission.initialiseAnalytique(item2, true)}" update=":main_form_mission:zone_recap_mission:data-analytique_mi liste-mission"/>
+                                <p:menuitem value="#{lab.LRH_PM_modifier_frais}" icon="ui-icon-circle-plus" title="#{lab.LRH_PM_modifier_grille_mission}"  actionListener="#{managedMission.openEditFraisMiss(item2)}" oncomplete="collapseForm('mission');" update=":main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission"/>
+                                <p:menuitem value="#{lab.LRH_PM_generer_piece}" icon="ui-icon-extlink" title="#{lab.LRH_PM_generer_piece_paiement}"  
+                                            actionListener="#{managedMission.generatedPiece(item2)}" oncomplete="collapseForm('mission');" update=":main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission"/>
+                                <p:menuitem value="#{lab.LCF_PPC_bon_provisoire}" icon="ui-icon-shuffle" title="#{lab.LRH_PM_generer_bon_provisoire}"  actionListener="#{managedMission.openEditBonProvisoire(item2, true)}" update=":main_bon_mission:form_bon_mission"
+                                            oncomplete="collapseForm('mission')" />
+                                <p:separator />
+                                <p:menuitem value="#{lab.LRH_PM_cloner_pour}..." icon="ui-icon-copy" title="#{lab.LRH_PM_dupliquer_odre_mission}"  actionListener="#{managedMission.openDlgToClone(item2)}" oncomplete="collapseForm('mission');"
+                                            update=":main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission"/>
+                                <p:menuitem rendered="false" style="font-style: italic; font-size: 0.7em" value="#{lab.LRH_PM_ajouter_ressource}" icon="ui-icon-cancel" title="#{lab.LRH_PM_text10}" onclick="dlgAddEscale.show()"/>
+                                <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" title="#{lab.LRH_PM_telecharger_ordre_misison}"  action="#{managedMission.exportOneOrdreMission(item2)}" ajax="false" />
+                                <p:menuitem rendered="false" value="#{lab.LRH_PM_classer}" icon="ui-icon-suitcase" title="#{lab.LRH_PM_classer_document}"  action="#{managedMission.classeOneDocuMission(item2,false)}" update=":main_form_mission:liste-mission" />                                                                
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-close" title="#{lab.LRH_PM_supprimer_ordre_mission}" actionListener="#{managedMission.askDeleteOneMission(item2)}" oncomplete="collapseForm('mission');" 
+                                            update=":main_form_mission:etapes_valide_mission :main_form_mission:zone_recap_mission :main_form_mission:zone_recap_mission:zone_frai_miss  :main_form_mission:form_zone_empsMission :main_form_mission:blog_form_mission"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="miss_buton_option" type="button"/>                            
+                        </p:column>
+                        <!--                        <p:column width="25" style="text-align: center">
+                                                    <f:facet name="header">
+                                                        <h:selectBooleanCheckbox value="false" class="chek_all_line_mission" onclick="selectionAllLineTab(#{managedMission.listMission.size()}, 'mission')"/>
+                                                    </f:facet>
+                                                    <h:selectBooleanCheckbox value="false" class="chek_line_mission" onclick="selectionLineTab(#{lineMission}, 'mission')"/>
+                                                </p:column>-->
+                        <p:column width="25" selectionMode="multiple" style="text-align: center"  />
+                    </p:dataTable>                       
+                    <span class="nbSelectmission" style="font-size: .8em; font-style: italic; color: #828c95;"></span>                   
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block" >
+                        <p:commandButton actionListener="#{managedMission.pagineResult_(false)}" update=":main_form_mission:liste-mission" icon="ui-icon-circle-triangle-w"  disabled="#{managedMission.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedMission.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedMission.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedMission.gotoPagePaginator()}" update=":main_form_mission:liste-mission"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedMission.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton action="#{managedMission.pagineResult_(true)}" update=":main_form_mission:liste-mission" icon="ui-icon-circle-triangle-e"  disabled="#{managedMission.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedMission.imax}" label="#{lab.L_nombre_max_resultat}" style="font-size: 0.9em; width: 50px" 
+                                         valueChangeListener="#{managedMission.changePage}">
+                            <f:selectItems value="#{managedMission.paginations}" />
+                            <p:ajax event="valueChange"  update=":main_form_mission:liste-mission" />
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>                    
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" id="miss_form_search">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">      
+                <div class="yvs_form_mission display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedMission.selectMission.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedMission.selectMission.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedMission.selectMission.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>                                                        
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="7" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value=" " />    
+                        <h:panelGroup>
+                            <h:selectBooleanCheckbox value="#{managedMission.paramDate}" valueChangeListener="#{managedMission.addParamDate(managedMission.paramDate)}">
+                                <p:ajax event="valueChange" update=":main_form_mission:liste-mission miss_zone_date" oncomplete="collapseList('mission')" />
+                            </h:selectBooleanCheckbox>
+                            <h:outputText value="#{lab.LRH_PM_periode} " />  
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.LRH_PM_employe}" />         
+                        <h:outputText value="#{lab.L_reference}" /> 
+                        <h:panelGroup>
+                            <h:outputText value="#{lab.L_statut}" />
+                            <h:selectOneMenu value="#{managedMission.egaliteStatut}" style="float:right;margin-right: 5px;height: 20px">
+                                <f:selectItem itemLabel="#{lab.L_egale}" itemValue="="/>
+                                <f:selectItem itemLabel="#{lab.L_different}" itemValue="!="/>
+                                <p:ajax event="valueChange" update=":main_form_mission:liste-mission" listener="#{managedMission.addParamStatut()}" oncomplete="collapseList('mission')"/>
+                            </h:selectOneMenu>  
+                        </h:panelGroup>
+                        <h:outputText value="A faire" />
+                        <span>&nbsp;</span>
+                        <p:commandButton icon="ui-icon-bullet" actionListener="#{managedMission.clearParams()}" title="#{lab.L_reset_param}" 
+                                         update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')"  style="width: 20px; height: 22px"/>
+                        <h:panelGroup id="miss_zone_date">
+                            <p:calendar value="#{managedMission.dateDF}" pattern="dd-MM-yyyy" size="8" disabled="#{!managedMission.paramDate}">
+                                <p:ajax event="dateSelect" listener="#{managedMission.addParamDate1}" update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')"/>
+                            </p:calendar>
+                            <p:calendar value="#{managedMission.dateF}" pattern="dd-MM-yyyy" size="8" disabled="#{!managedMission.paramDate}">
+                                <p:ajax event="dateSelect" listener="#{managedMission.addParamDate1}" update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')"/>
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:inputText value="#{managedMission.matriculeF}" >
+                            <p:ajax event="valueChange" listener="#{managedMission.findByEmploye()}" update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')" />
+                        </h:inputText>
+                        <h:inputText value="#{managedMission.referenceF}" >
+                            <p:ajax event="valueChange" listener="#{managedMission.addParamReference()}" update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')"  />
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedMission.statutF}"  valueChangeListener="#{managedMission.addParamSatatut}" style="width: 120px"> 
+                            <f:selectItem itemValue="E" itemLabel="#{lab.LP_PSO_en_cours}" /> 
+                            <f:selectItem itemValue="V" itemLabel="#{lab.LRH_PM_valide}" /> 
+                            <f:selectItem itemValue="C" itemLabel="#{lab.LRH_PM_clorur}" /> 
+                            <f:selectItem itemValue="A" itemLabel="#{lab.L_annuler}" /> 
+                            <f:selectItem itemValue="S" itemLabel="#{lab.LRH_PM_suspendu}" /> 
+                            <f:selectItem itemValue="#{null}" itemLabel="" /> 
+                            <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}" /> 
+                            <p:ajax event="valueChange" update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedMission.toValideLoad}" style="min-width: 80px">
+                            <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" listener="#{managedMission.addParamToValide()}" update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')"/>
+                        </h:selectOneMenu> 
+                        <p:commandLink style="border: 2px solid black; border-radius: 5px;padding: 2px;font-size: 0.8em" 
+                                       onclick="dlgPlusOption.show()" global="false" value="Plus Option"/>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right">
+
+                        <p:selectBooleanCheckbox value="#{managedMission.includeDocCloture}"  valueChangeListener="#{managedMission.addParamSatatutC}" itemLabel="#{lab.LRH_PM_inclure_doc_classe}">
+                            <p:ajax event="valueChange" update=":main_form_mission:liste-mission" oncomplete="collapseList('mission')"/>
+                        </p:selectBooleanCheckbox>
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

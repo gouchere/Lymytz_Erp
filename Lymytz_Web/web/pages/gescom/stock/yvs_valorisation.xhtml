@@ -1,0 +1,858 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Mouvements de Stock','modGescom', 'smenValorisationStock', true,managedValorisation)}
+    </ui:define> 
+    <ui:define name="contents"> 
+        #{managedInventaire.init()}
+
+        #{managedValorisation.loadAll()}  
+        #{managedAgence.loadAllUsable()}
+        #{managedDepot.loadDepotsByAgence()}
+
+        #{managedValorisation.calculPrevStock()}  
+
+        #{managedStockArticle.loadAll()}
+        #{managedTypeCreneau.loadAll()}  
+        #{managedUniteMesure.loadAll(constantes.UNITE_QUANTITE)} 
+        <script type="text/javascript">
+            $(function() {
+                collapseList('valorisation');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        <h:form>
+            <p:remoteCommand name="updateBeanCaisse_" actionListener="#{managedValorisation.updateBean()}"/>
+        </h:form>
+        <h:form prependId="false" id="form_search_plus">
+            <p:dialog header="#{lab.LC_PMS_options_filtrage_avancees} " width="40%" widgetVar="dlgSearchPlus" 
+                      footer="&copy;Lymytz 2014" closeOnEscape="true" >
+                <h:panelGrid columns="2" cellpadding="0" cellspacing="0" width="100%">
+                    <h:outputText value="#{lab.LC_PMS_cond}" />
+                    <h:selectOneMenu value="#{managedValorisation.uniteSearch}" style="min-width: 200px" id="select_unite_mouvement">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedUniteMesure.unites}" var="unt" itemLabel="#{unt.reference}" itemValue="#{unt.id}" />  
+                        <p:ajax event="valueChange" listener="#{managedValorisation.addParamUnite()}" oncomplete="collapseList('valorisation')"
+                                update=":main_valorisation:data_mouvement"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.LC_PRA_lot}" />
+                    <h:inputText value="#{managedValorisation.lotSearch}">
+                        <p:ajax event="valueChange" listener="#{managedValorisation.addParamLot()}" oncomplete="collapseList('valorisation')"
+                                update=":main_valorisation:data_mouvement"/>
+                    </h:inputText>
+                    <h:outputText value="#{lab.LC_PMS_mouvement}" />
+                    <h:selectOneMenu value="#{managedValorisation.mouvSearch}" style="min-width: 200px">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.LC_PMS_entree}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.LC_PMS_sortie}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" listener="#{managedValorisation.addParamMouv()}" oncomplete="collapseList('valorisation')"
+                                update=":main_valorisation:data_mouvement"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.LC_PMS_operation}" />
+                    <h:inputText value="#{managedValorisation.opeSearch}">
+                        <p:ajax event="valueChange" listener="#{managedValorisation.addParamOperation()}" oncomplete="collapseList('valorisation')"
+                                update=":main_valorisation:data_mouvement"/>
+                    </h:inputText>
+                    <h:outputText value="#{lab.LC_PMS_type_doc}" />
+                    <h:selectOneMenu value="#{managedValorisation.typeSearch}" style="min-width: 200px">
+                        <f:selectItem itemValue="#{null}" itemLabel="---"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_BLV}" itemLabel="#{constantes.TYPE_BLV_NAME}"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_BRV}" itemLabel="#{constantes.TYPE_BRV_NAME}"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_BLA}" itemLabel="#{constantes.TYPE_BLA_NAME}"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_BRA}" itemLabel="#{constantes.TYPE_BRA_NAME}"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_IN}" itemLabel="#{constantes.TYPE_IN_NAME}"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_ES}" itemLabel="#{constantes.TYPE_ES_NAME}"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_SS}" itemLabel="#{constantes.TYPE_SS_NAME}"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_FT}" itemLabel="#{constantes.TYPE_FT_NAME}"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_RE}" itemLabel="#{constantes.TYPE_RE_NAME}"/>
+                        <f:selectItem itemValue="#{constantes.TYPE_RA}" itemLabel="#{constantes.TYPE_RA_NAME}"/>
+                        <f:selectItem itemValue="DE" itemLabel="#{lab.LC_PMS_declarations}"/>
+                        <f:selectItem itemValue="CO" itemLabel="#{lab.LC_PMS_consommations}"/>
+                        <p:ajax event="valueChange" listener="#{managedValorisation.addParamTypeDoc()}" oncomplete="collapseList('valorisation')"
+                                update=":main_valorisation:data_mouvement"/>
+                    </h:selectOneMenu>
+                    <h:outputText value="#{lab.L_numero}" />
+                    <h:inputText value="#{managedValorisation.numeroSearch}">
+                        <p:ajax event="valueChange" listener="#{managedValorisation.addParamNumeroDoc()}" oncomplete="collapseList('valorisation')"
+                                update=":main_valorisation:data_mouvement"/>
+                    </h:inputText>
+
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LDB_PC_dates}"  />
+                        <h:selectBooleanCheckbox value="#{managedValorisation.date_up}" title="#{lab.LDB_PC_dates_last_modif}" style="float: right">
+                            <p:ajax event="valueChange" global="false" update="blog_date_search_client"  listener="#{managedValorisation.addParamDate()}" oncomplete="collapseList('valorisation')" />
+                        </h:selectBooleanCheckbox>
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_client">
+                        <p:calendar value="#{managedValorisation.dateDebut_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedValorisation.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedValorisation.addParamDate}" update=":main_valorisation:data_mouvement" oncomplete="collapseList('valorisation')"/>
+                        </p:calendar>
+                        <p:spacer style="width: 5px;background: black"/>
+                        <p:calendar value="#{managedValorisation.dateFin_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedValorisation.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedValorisation.addParamDate}" update=":main_valorisation:data_mouvement" oncomplete="collapseList('valorisation')"/>
+                        </p:calendar>
+                    </h:panelGroup>
+
+                    <h:outputText value="Ids"/>
+                    <h:inputText value="#{managedValorisation.idsSearch}" style="width: 100%" title="#{lab.L_entrer_id_separer_virgules}">
+                        <p:ajax event="valueChange" listener="#{managedValorisation.addParamIds()}" oncomplete="collapseList('valorisation')"
+                                update=":main_valorisation:data_mouvement"/>
+                    </h:inputText>
+                </h:panelGrid>
+                <h4 style="padding: 0px; margin: 0px; background: #aaa" class="size-08">
+                    <p:graphicImage library="img"  name="pointe_.png" width="15" height="15"/>
+                    #{lab.LC_PMS_options_pr}</h4>
+                <p:contextMenu for="option_pr_0" event="left click">
+                    <p:menuitem icon="ui-icon-check" value="#{lab.LC_PMS_activer}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(0,true)}"/>
+                    <p:menuitem icon="ui-icon-close" value="#{lab.LC_PMS_desactiver}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(0,false)}"/>
+                </p:contextMenu>
+                <p:contextMenu for="option_pr_1" event="left click">
+                    <p:menuitem icon="ui-icon-check" value="#{lab.LC_PMS_activer}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(1,true)}"/>
+                    <p:menuitem icon="ui-icon-close" value="#{lab.LC_PMS_desactiver}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(1,false)}"/>
+                </p:contextMenu>
+                <p:contextMenu for="option_pr_2" event="left click">
+                    <p:menuitem icon="ui-icon-check" value="#{lab.LC_PMS_activer}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(2,true)}"/>
+                    <p:menuitem icon="ui-icon-close" value="#{lab.LC_PMS_desactiver}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(2,false)}"/>
+                </p:contextMenu>
+                <p:contextMenu for="option_pr_3" event="left click">
+                    <p:menuitem icon="ui-icon-check" value="#{lab.LC_PMS_activer}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(3,true)}"/>
+                    <p:menuitem icon="ui-icon-close" value="#{lab.LC_PMS_desactiver}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(3,false)}"/>
+                </p:contextMenu>
+                <p:contextMenu for="option_pr_4" event="left click">
+                    <p:menuitem icon="ui-icon-check" value="#{lab.LC_PMS_activer}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(4,true)}"/>
+                    <p:menuitem icon="ui-icon-close" value="#{lab.LC_PMS_desactiver}" actionListener="#{managedValorisation.applyDesactiveSuiviPR(4,false)}"/>
+                </p:contextMenu>
+                <h:panelGrid columns="3" cellpadding="5" cellspacing="5">                                              
+                    <p:commandButton id="option_pr_0" styleClass="button_gear" icon="ui-icon-gear" type="button"/>
+                    <span>#{lab.LC_PMS_text1} :</span>
+                    <h:outputText value="#{managedValorisation.dateDebut_}" converter="DATE" />
+                    <p:commandButton id="option_pr_1" styleClass="button_gear" icon="ui-icon-gear" type="button"/>
+                    <span>#{lab.LC_PMS_desactiver_suivi_article} <b>#{managedValorisation.mouvements.size() gt 0? managedValorisation.mouvements.get(0).article.designation:''}</b> avant le :</span>
+                    <h:outputText value="#{managedValorisation.dateDebut_}" converter="DATE" />
+                    <p:commandButton id="option_pr_2" styleClass="button_gear" icon="ui-icon-gear" type="button"/>
+                    <span>#{lab.LC_PMS_desactiver_suivi_pr} <b>#{lab.LC_PMS_des_produits_intermediaiares}</b> #{lab.LC_PMS_avant_le}:</span>
+                    <h:outputText value="#{managedValorisation.dateDebut_}" converter="DATE" />
+                    <p:commandButton id="option_pr_3" styleClass="button_gear" icon="ui-icon-gear" type="button"/>
+                    <span>#{lab.LC_PMS_desactiver_suivi_pr} <b>#{lab.LC_PMS_des_produits_fini}</b> #{lab.LC_PMS_avant_le} :</span>
+                    <h:outputText value="#{managedValorisation.dateDebut_}" converter="DATE" />
+                    <p:commandButton id="option_pr_4" styleClass="button_gear" icon="ui-icon-gear" type="button"/>
+                    <span>#{lab.LC_PMS_desactiver_suivi_pr}<b>#{lab.LC_PMS_des_matieres_premieres}</b> #{lab.LC_PMS_avant_le} :</span>
+                    <h:outputText value="#{managedValorisation.dateDebut_}" converter="DATE" />
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <p:dialog header="#{lab.L_liste_article}" widgetVar="dlgListArticles" width="80%" height="400">
+            <ui:include src="../../donnee_de_base/articles/liste_droppable_article.xhtml" />
+            <f:facet name="footer">
+                <p:commandButton value="#{lab.LC_PMS_selectionner}" actionListener="#{managedValorisation.loadArticlesSelect()}" style="float: right" oncomplete="dlgListArticles.hide()"/>
+            </f:facet>
+        </p:dialog>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog width="50%" widgetVar="dlgDetailMvt" header="#{lab.LC_PMS_proprietes_mouvement}" closeOnEscape="true">
+                <h:panelGrid columns="1" id="zone_detail_mvt_s" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <f:facet name="header">
+                        <div>
+                            <span style="float: left">Document de stock N°: #{managedValorisation.lineMvt.tableExterne} </span>
+                            <h:outputText value="#{managedValorisation.lineMvt.id}" styleClass="style_identifiant" style="float: right" title="Parent : #{managedValorisation.lineMvt.parent.id}"/>
+                        </div>                                               
+                    </f:facet> 
+                    <h:panelGrid columns="4" cellpadding="0" cellspacing="0" style="width: 100%" rendered="#{managedValorisation.lineMvt.vente.id gt 0}">
+                        <span>#{lab.LC_PMS_client}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.vente.client.nom_prenom}" style="font-size: 0.8em; font-weight: bold"/>
+                        <span>#{lab.LC_PMS_facture_numero} </span>
+                        <h:outputText value="#{managedValorisation.lineMvt.vente.documentLie.numDoc}" style="font-size: 0.8em; font-weight: bold" />
+                        <span>#{lab.LC_PMS_facture_valider_par}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.vente.documentLie.validerBy.nomUsers}" style="font-size: 0.8em; font-weight: bold" />                        
+                        <span>#{lab.L_le}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.vente.documentLie.dateValider}" converter="DATE" style="font-size: 0.8em; font-weight: bold"/>
+                        <span>#{lab.L_point_vente}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.vente.documentLie.enteteDoc.point.libelle}" style="font-size: 0.8em; font-weight: bold" />
+                        <span>#{lab.L_tranche}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.vente.tranche.titre}" style="font-size: 0.8em; font-weight: bold" />
+                    </h:panelGrid>
+                    <h:panelGrid columns="4" cellpadding="0" cellspacing="0" style="width: 100%" rendered="#{managedValorisation.lineMvt.achat.id gt 0}">
+                        <span>#{lab.LC_PMS_fournisseur}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.achat.fournisseur.nom_prenom}" style="font-size: 0.8em; font-weight: bold"/>
+                        <span>#{lab.LC_PMS_facture_numero} </span>
+                        <h:outputText value="#{managedValorisation.lineMvt.achat.documentLie.numDoc}" style="font-size: 0.8em; font-weight: bold" />
+                        <span>#{lab.LC_PMS_facture_valider_par}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.achat.documentLie.validerBy.nomUsers}" style="font-size: 0.8em; font-weight: bold" />                        
+                        <span>#{lab.L_le}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.achat.documentLie.dateValider}" converter="DATE" style="font-size: 0.8em; font-weight: bold"/>                        
+                    </h:panelGrid>
+                    <h:panelGrid columns="4" cellpadding="0" cellspacing="0" style="width: 100%" rendered="#{managedValorisation.lineMvt.ration.id gt 0}">
+                        <span>#{lab.LC_PMS_ration_a}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.description}" style="font-size: 0.8em; font-weight: bold"/>
+                        <span>#{lab.LC_PMS_doc_stock_num} </span>
+                        <h:outputText value="#{managedValorisation.lineMvt.ration.numDoc}" style="font-size: 0.8em; font-weight: bold" />
+                        <span>#{lab.LC_PMS_valider_par}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.ration.validBy.nomUsers}" style="font-size: 0.8em; font-weight: bold" />                        
+                        <span>#{lab.L_le}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.dateDoc}" converter="DATE" style="font-size: 0.8em; font-weight: bold"/>                        
+                    </h:panelGrid>
+                    <h:panelGrid columns="4" cellpadding="0" cellspacing="0" style="width: 100%" rendered="#{managedValorisation.lineMvt.stock.id gt 0}">
+                        <span>#{lab.LC_PMS_operation}:</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.description}" style="font-size: 0.8em; font-weight: bold"/>
+                        <span></span>
+                        <h:outputText value="" style="font-size: 0.8em; font-weight: bold"/>
+                        <span>#{lab.LC_PMS_valider_par}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.stock.validerBy.nomUsers}" style="font-size: 0.8em; font-weight: bold"/>          
+                        <span>#{lab.L_le}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.dateDoc}" converter="DATE" style="font-size: 0.8em; font-weight: bold"/>                        
+                    </h:panelGrid>
+                    <h:panelGrid columns="8"  cellpadding="0" cellspacing="0" style="width: 100%">
+                        <f:facet name="header">
+                            <br />
+                            <h:panelGroup >
+                                <h:outputText value="#{managedValorisation.lineMvt.depot.designation}" style="font-size: 0.8em; font-weight: bold; float: left" />                        
+                                >>
+                                <h:outputText rendered="#{managedValorisation.lineMvt.destination.id gt 0}" value="#{managedValorisation.lineMvt.destination.designation}" style="font-size: 0.8em; font-weight: bold; float: right" />                        
+                            </h:panelGroup>
+                        </f:facet>                          
+                        <h:outputText value="#{lab.L_quantite}" rendered="#{managedValorisation.lineMvt.stock.id gt 0? managedValorisation.lineMvt.stock.typeDoc ne constantes.TYPE_FT :true}"/>
+                        <h:outputText value="#{lab.LC_PMS_quantite_sortie}" rendered="#{managedValorisation.lineMvt.stock.id gt 0? managedValorisation.lineMvt.stock.typeDoc eq constantes.TYPE_FT :false}"/>
+                        <h:panelGroup >
+                            <h:outputText value="#{managedValorisation.lineMvt.quantite}" converter="#{managedValorisation.converterStock}"/>
+                            <h:outputText value=" #{managedValorisation.lineMvt.conditionnement.unite.reference}" style="margin-left: 3px; font-size: 0.8em"/>
+                        </h:panelGroup>   
+                        <h:outputText value="#{lab.LC_PMS_quantite_entree} " rendered="#{managedValorisation.lineMvt.stock.id gt 0? managedValorisation.lineMvt.stock.typeDoc eq constantes.TYPE_FT :false}"/>
+                        <h:panelGroup rendered="#{managedValorisation.lineMvt.stock.id gt 0? managedValorisation.lineMvt.stock.typeDoc eq constantes.TYPE_FT :false}" >
+                            <h:outputText value="#{managedValorisation.lineMvt.quantiteEntree}" converter="#{managedValorisation.converterStock}"/>
+                            <h:outputText value=" #{managedValorisation.lineMvt.conditionnementEntree.unite.reference}" style="margin-left: 3px; font-size: 0.8em"/>
+                        </h:panelGroup>  
+                        <span>#{lab.L_prix}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.coutEntree}" converter="#{managedValorisation.converter}"/>
+                        <span>#{lab.LC_PMS_prix_entree}</span>
+                        <h:outputText value="#{managedValorisation.lineMvt.coutStock}" converter="#{managedValorisation.converter}"/>
+                        <f:facet name="footer">
+                            <span class="size-08">#{lab.LC_PMS_text} </span>
+                            <h:outputText styleClass="size-08" rendered="#{managedValorisation.lineMvt.lastDatePr ne null}" value="#{managedValorisation.lineMvt.lastDatePr}" converter="DATE" />
+                            <h:outputText styleClass="size-08" rendered="#{managedValorisation.lineMvt.lastDatePr eq null}" value="#{lab.LC_PMS_jamais}" style="font-style: italic; color: #993300"/>
+                        </f:facet>
+                    </h:panelGrid>
+                    <f:facet name="footer">
+                        <h:panelGroup rendered="#{managedValorisation.lineMvt.vente.id gt 0}" styleClass="size-08">
+                            <span>#{lab.L_par} </span>
+                            <h:outputText style="font-size: 0.8em; font-style: italic; font-weight: bold" value="#{managedValorisation.lineMvt.vente.livreur.nomUsers}" />
+                            <span>#{lab.L_le}</span>
+                            <h:outputText style="font-size: 0.8em; font-style: italic; font-weight: bold"   value="#{managedValorisation.lineMvt.vente.dateLivraison}" converter="DATE"/>
+                        </h:panelGroup>
+                        <h:panelGroup rendered="#{managedValorisation.lineMvt.achat.id gt 0}" styleClass="size-08">
+                            <span>#{lab.L_par} </span>
+                            <h:outputText style="font-size: 0.8em; font-style: italic; font-weight: bold" value="#{managedValorisation.lineMvt.achat.validerBy.nomUsers}" />
+                            <span>#{lab.L_le} </span>
+                            <h:outputText style="font-size: 0.8em; font-style: italic; font-weight: bold"   value="#{managedValorisation.lineMvt.achat.dateLivraison}" converter="DATE"/>
+                        </h:panelGroup>
+                    </f:facet>
+                </h:panelGrid>               
+                <f:facet name="footer">                    
+                    &copy; Lymytz 2014                    
+                    <span style="float: right; font-size: 0.7em; color: #333">
+                        #{lab.LC_PMS_mouvement_enregistrer_le}
+                        <h:outputText value="#{managedValorisation.lineMvt.dateSave}" converter="DATETIME"  id="dateSave_mvt"/>
+                    </span>                    
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_liste_article}" widgetVar="dlgListArticle" modal="true" width="50%"  closeOnEscape="true"> 
+                <p:dataTable id="data_articles_valorisation" value="#{managedStockArticle.articlesDebut}" var="art" rowKey="#{art.id}"
+                             selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false" >
+                    <p:ajax event="rowSelect" global="false" listener="#{managedValorisation.loadOnViewArticle}" oncomplete="dlgListArticle.hide()"/>
+                    <p:column filterBy="#{art.article.refArt}" style="width: 2%">
+                        <span title="#{art.article.designation}">#{art.article.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}" style="width: 6%">
+                        <span title="#{art.article.designation}">#{art.article.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" style="width: 4%">
+                        <span title="#{art.article.designation}">#{art.article.categorie}</span>
+                    </p:column>
+                </p:dataTable>
+                <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                    <p:commandButton actionListener="#{managedStockArticle.loadActifArticleByDepot(false, false)}" global="false" update="data_articles_valorisation" icon="ui-icon-circle-triangle-w" disabled="#{managedStockArticle.pa.disPrev}"/>
+                    <p:outputPanel ><p:outputLabel value="#{managedStockArticle.pa.currentPage}/#{managedStockArticle.pa.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedStockArticle.loadActifArticleByDepot(true, false)}" global="false" update="data_articles_valorisation" icon="ui-icon-circle-triangle-e" disabled="#{managedStockArticle.pa.disNext}"/>
+                    <p:selectOneMenu value="#{managedStockArticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedStockArticle.choosePaginatorAchat}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                        <f:selectItems value="#{managedStockArticle.paginations}"/>
+                        <p:ajax event="valueChange" global="false" update="data_articles_valorisation"/>
+                    </p:selectOneMenu>
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PMS_text2}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedValorisation.deleteBean()}" oncomplete="dlgConfirmDelete.hide();collapseList('valorisation')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmRefresh" closeOnEscape="true"
+                             message="#{lab.LC_PMS_text3}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedValorisation.actualiser()}" oncomplete="dlgConfirmRefresh.hide();collapseList('valorisation')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmRefresh.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_valorisation">    
+            <div class="part_fix">
+                <p:commandButton value="#{lab.L_enregistrer}" id="save_valorisation" actionListener="#{managedValorisation.saveNew()}" rendered="false"/>
+                <p:commandButton value="#{lab.L_nouveau}" id="cancel_valorisation" global="false" actionListener="#{managedValorisation.resetFiche()}" update="blog_form_valorisation" oncomplete="collapseForm('valorisation')" rendered="false"/>
+                <p:commandButton value="#{lab.L_modifier}" rendered="false" id="update_valorisation" actionListener="#{managedValorisation.updateBean()}" oncomplete="collapseForm('valorisation');return false"/>
+                <div style="float: right">     
+                    <h:link title="#{lab.LC_PMS_validation_stock}" onclick="collapseGrid('valorisation');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.LC_PMS_mouvement_stock}" onclick="collapseList('valorisation');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                    <p:spacer />
+                    <h:link title="#{lab.LC_PMS_valorisations}" onclick="collapseForm('valorisation');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Grid 
+                 *****************************************************************************
+                <-->
+                <div class="yvs_grid_valorisation" style="width: 99%; margin: auto; background: white">
+                    <p:outputPanel id="blog_form_validation">
+                        <h:panelGrid id="form_validation" columns="5" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                            <h:outputText value="#{lab.L_date} "/>
+                            <h:outputText value="#{lab.L_article} "/>
+                            <h:outputText value="#{lab.L_depot} "/>
+                            <h:outputText value="#{lab.L_quantite} "/>
+                            <h:outputText value=" "/>
+                            <h:inputText value="#{managedValorisation.lineMvt.dateDoc}" readonly="true" converter="DATE"/>
+                            <h:inputText value="#{managedValorisation.lineMvt.article.designation}" readonly="true"/>
+                            <h:inputText value="#{managedValorisation.lineMvt.depot.designation}" readonly="true"/>
+                            <h:panelGroup>
+                                <h:inputText value="#{managedValorisation.lineMvt.quantite}" style="width: 100px" readonly="true"/>
+                                <h:outputText styleClass="input_dis" value="#{managedValorisation.lineMvt.conditionnement.unite.reference}" style="color: blue"/>  
+                            </h:panelGroup>
+                            <p:commandButton icon="ui-icon-circle-check" value=" #{lab.LC_PMS_valider}" actionListener="#{managedValorisation.valider()}" disabled="#{managedValorisation.lineMvt.idExterne lt 1}"/>
+                        </h:panelGrid>
+                        <div style="width: 100%;background: #CCC">
+                            <span>#{lab.LC_PMS_valider_stock}  </span>
+                            <h:selectOneMenu value="#{managedValorisation.element}" style="min-width: 120px">
+                                <f:selectItem itemLabel="#{constantes.TRANSFERT}S" itemValue="#{constantes.TRANSFERT}"/>
+                                <f:selectItem itemLabel="#{constantes.DECLARATION}S" itemValue="#{constantes.DECLARATION}"/>
+                                <p:ajax event="valueChange" update="data_validation" listener="#{managedValorisation.chooseElement()}"/>
+                            </h:selectOneMenu>
+                        </div>
+                        <p:outputPanel id="data_validation">
+                            <p:dataTable id="data_transfert" value="#{managedValorisation.transferts}" var="artf" rowKey="#{artf.id}" rowIndexVar="tLine" 
+                                         style="font-size: 0.8em" rendered="#{managedValorisation.element eq constantes.TRANSFERT}" selectionMode="single">
+                                <p:ajax event="rowSelect" global="false" listener="#{managedValorisation.loadOnView}" update=":main_valorisation:form_validation"/>
+                                <p:ajax event="rowUnselect" global="false" listener="#{managedValorisation.unLoadOnView}" update=":main_valorisation:form_validation"/>
+                                <p:column headerText="N°" style="text-align: center;width: 5%">
+                                    <span>#{tLine+1}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_date}" style="text-align: center;width: 15%">
+                                    <h:outputText value="#{artf.docStock.dateDoc}" converter="DATE"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_article}">
+                                    [<span style="font-weight: bold">#{artf.article.refArt}</span>]
+                                    <span>#{artf.article.designation}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_depot}">
+                                    <span>#{artf.docStock.destination.designation}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_quantite}" style="text-align: right;width: 10%">
+                                    <h:outputText value="#{artf.quantite}" converter="#{managedValorisation.converterStock}"/>
+                                    <span title="#{artf.conditionnement.unite.libelle}" style="font-size: 0.8em;color: #003399">#{artf.conditionnement.unite.reference}</span>
+                                </p:column>
+                                <p:column style="width: 8%;text-align: center">
+                                    <p:commandButton icon="ui-icon-circle-check" style="width: 90%;height: 90%" actionListener="#{managedValorisation.valideTransfert(artf)}"
+                                                     update=":main_valorisation:data_transfert"/>
+                                </p:column>
+                            </p:dataTable>
+                            <p:dataTable id="data_declaration_stock" value="#{managedValorisation.declarations}" var="decl" rowKey="#{decl.id}" rowIndexVar="dLine" 
+                                         style="font-size: 0.8em" rendered="#{managedValorisation.element eq constantes.DECLARATION}" selectionMode="single">
+                                <p:ajax event="rowSelect" global="false" listener="#{managedValorisation.loadOnView}" update=":main_valorisation:form_validation"/>
+                                <p:ajax event="rowUnselect" global="false" listener="#{managedValorisation.unLoadOnView}" update=":main_valorisation:form_validation"/>
+                                <p:column headerText="N°" style="text-align: center;width: 5%">
+                                    <span>#{dLine+1}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_date}" style="text-align: center;width: 15%">
+                                    <h:outputText value="#{decl.sessionOf.sessionProd.dateSession}" converter="DATE"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_article}">
+                                    [<span style="font-weight: bold">#{decl.ordre.article.refArt}</span>]
+                                    <span>#{decl.ordre.article.designation}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_depot}">
+                                    <span>#{decl.sessionOf.sessionProd.depot.designation}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_quantite}" style="text-align: right;width: 10%">
+                                    <h:outputText value="#{decl.quantite}" converter="#{managedValorisation.converterStock}"/>
+                                    <span title="#{decl.conditionnement.unite.libelle}" style="font-size: 0.8em;color: #003399">#{decl.conditionnement.unite.reference}</span>
+                                </p:column>
+                                <p:column style="width: 8%;text-align: center">
+                                    <p:commandButton icon="ui-icon-circle-check" style="width: 90%;height: 90%" actionListener="#{managedValorisation.valideDeclaration(decl)}"
+                                                     update=":main_valorisation:data_declaration_stock"/>
+                                </p:column>
+                            </p:dataTable>
+                            <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                <p:commandButton actionListener="#{managedValorisation.paginerValid(false)}" global="false" update="data_validation" icon="ui-icon-circle-triangle-w" disabled="#{managedValorisation.disPrev()}"/>
+                                <p:outputPanel >
+                                    <p:inplace label="#{managedValorisation.currentPage()}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                        <pe:inputNumber value="#{managedValorisation.p_transfert.page}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                            <p:ajax event="valueChange" listener="#{managedValorisation.gotoPagePaginatorValid()}" update="data_validation"/>
+                                        </pe:inputNumber>
+                                    </p:inplace>
+                                    <p:outputLabel value="/#{managedValorisation.nbPage()}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                                </p:outputPanel>
+                                <p:commandButton actionListener="#{managedValorisation.paginerValid(true)}" global="false" update="data_validation" icon="ui-icon-circle-triangle-e" disabled="#{managedValorisation.disNext()}"/>
+                                <p:selectOneMenu value="#{managedValorisation.p_transfert.rows}" label="#{lab.L_nombre_max_resultat}" 
+                                                 valueChangeListener="#{managedValorisation.choosePaginatorValid}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                    <f:selectItems value="#{managedValorisation.paginations}"/>
+                                    <p:ajax event="valueChange" global="false" update="data_validation"/>
+                                </p:selectOneMenu>
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_valorisation" style="width: 99%; margin: auto; background: white">                    
+                    <p:dataTable id="data_mouvement" value="#{managedValorisation.mouvements}" style="font-size: 0.8em"
+                                 var="mouv" rowKey="#{mouv.id}" rowIndexVar="mouvIdx" selection="#{managedValorisation.selections}">
+                        <f:facet name="header">
+                            <div align="right" style="width: 100%; color: black; font-weight: normal; font-size: 1em">
+                                <span>Stock initial :</span>
+                                <h:outputText value="#{managedValorisation.stockInit}" converter="#{managedValorisation.converterStock}" style="font-weight: normal"/>
+                            </div>
+                        </f:facet>
+                        <p:column headerText="N°" exportable="false" width="15" >
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{mouv.new_}"/>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{mouvIdx+1}"/>
+                            </span>
+                        </p:column>                        
+                        <p:column headerText="#{lab.L_reference}" exportable="true">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.L_reference}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{mouv.article.refArt}" style="font-weight: bold"/>
+                            </span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_article}" exportable="true">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.L_article}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{managedValorisation.resumeText(mouv.article.designation,25)}" title="#{mouv.article.designation}"/>
+                            </span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date} " exportable="true" style="width: 10%;text-align: center">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.L_date}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{mouv.dateDoc}" converter="DDMMYYYY"/>
+                            </span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_depot}" exportable="true" style="width: 12%;">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.L_depot}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{managedValorisation.resumeText(mouv.depot.designation,20)}" title="#{mouv.depot.designation}"/>
+                            </span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_tranche}" exportable="true" style="width: 12%;">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.L_tranche}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{mouv.tranche.titre}"/>
+                            </span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PMS_operation}" exportable="true" style="width: 10%;text-align: center">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.LC_PMS_operation}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{mouv.description}"/>
+                            </span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PES_lot}" style="text-align: center;width: 10%" rendered="#{managedValorisation.currentParam.useLotReception}">
+                            <span>#{mouv.lot.lot.numero}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PMS_cout_entree}" exportable="true" style="width: 8%;text-align: right">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.LC_PMS_cout_entree}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{mouv.coutEntree}" converter="DNS"/>
+                            </span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PMS_cout_moyen}" exportable="true" style="width: 8%;text-align: right">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.LC_PMS_cout_moyen}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{mouv.coutStock}" converter="DNS" rendered="#{mouv.calculPr}"/>
+                                <h:outputText value="NDF" title="#{labLC_PMS_pr_non_defini}" rendered="#{!mouv.calculPr}" style="color: #993300"/>
+                            </span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_quantite}" exportable="true" style="width: 10%;text-align: right">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.L_quantite}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{mouv.quantite}" converter="#{managedValorisation.converterStock}"/>
+                            </span>
+                            <h:outputText title="#{mouv.conditionnement.unite.libelle}" value="#{mouv.conditionnement.unite.reference}" style="font-size: 0.6em;color: #003399"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PMS_stocks}" exportable="true" style="width: 8%;text-align: right">  
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.LC_PMS_stocks}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{(mouvIdx gt 0)?((mouv.mouvement eq 'E')?(mouv.quantite + managedValorisation.prevStock):(-mouv.quantite + managedValorisation.prevStock)):((mouv.mouvement eq 'E')? (mouv.quantite + managedValorisation.giveStockInit(mouv)):(-mouv.quantite+managedValorisation.giveStockInit(mouv)))}" converter="#{managedValorisation.converterStock}" rendered="false"/>
+                                <h:outputText value="#{managedValorisation.previousStock(mouvIdx)}" converter="#{managedValorisation.converterStock}"/>
+                            </span>
+                        </p:column> 
+                        <p:column headerText="#{lab.LC_PMS_cout_stock}" exportable="true" style="width: 8%;text-align: right">
+                            <f:facet name="header">        
+                                <p:outputLabel value="#{lab.LC_PMS_cout_stock}"/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{(mouvIdx gt 0)?((mouv.mouvement eq 'E')?((mouv.quantite + managedValorisation.prevStock)*mouv.coutStock):((-mouv.quantite + managedValorisation.prevStock)*mouv.coutStock)):((mouv.mouvement eq 'E')? ((mouv.quantite + managedValorisation.giveStockInit(mouv))*mouv.coutStock):((-mouv.quantite+managedValorisation.giveStockInit(mouv))*mouv.coutStock))}"
+                                              converter="#{managedValorisation.converter}" rendered="false"/>
+                                <h:outputText value="#{managedValorisation.prevStock * mouv.coutStock}" converter="#{managedValorisation.converter}"/>
+                            </span>
+                        </p:column>
+                        <p:column width="15" exportable="false" style="text-align: center"> 
+                            <h:graphicImage library="img/icones" name="#{(mouv.mouvement == 'E' )?'in.png':'out.png'}"
+                                            width="15" height="15" title="#{(mouv.mouvement == 'E' )?'Entrée':'Sortie'}"/>
+                        </p:column>
+                        <p:column width="15" exportable="false" style="text-align: center">
+                            <f:facet name="header">
+                                <p:contextMenu for="btn_option_mvts_head" event="left click" style="font-size: 0.8em;width: 250px">        
+                                    <p:menuitem value="Recalculer le prix des transferts" icon="ui-icon-calculator"  update="data_mouvement"
+                                                actionListener="#{managedValorisation.recalculPrixTransfert()}" rendered="#{accesRessource.recalcul_pr}"/>   
+                                    <p:separator rendered="#{accesRessource.recalcul_pr}"/>     
+                                    <p:menuitem icon="ui-icon-check" value="#{managedValorisation.displaySelection?'Cacher la selection':'Afficher la selection'}" 
+                                                actionListener="#{managedValorisation.setDisplaySelection(!managedValorisation.displaySelection)}" update="data_mouvement"/>
+                                    <p:menuitem value="Activer le calcul du pr" icon="ui-icon-play"
+                                                actionListener="#{managedValorisation.changeCalculPrAll(true)}" update="data_mouvement"/>
+                                    <p:menuitem value="Désactiver le calcul du pr" icon="ui-icon-pause"
+                                                actionListener="#{managedValorisation.changeCalculPrAll(false)}" update="data_mouvement"/>
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" style="width: 21px; height: 21px;" id="btn_option_mvts_head" type="button"/>
+                            </f:facet>
+                            <p:contextMenu for="btn_option_mvts" event="left click" style="font-size: 0.9em;width: 200px">
+                                <p:menuitem value="#{lab.LC_PMS_voir_detail}" icon="ui-icon-clipboard" actionListener="#{managedValorisation.loadDetailMvt(mouv)}"/>
+                                <p:menuitem value="#{mouv.calculPr?'Désactiver':'Activer'} le calcul du pr" icon="#{mouv.calculPr?'ui-icon-pause':'ui-icon-play'}"
+                                            actionListener="#{managedValorisation.changeCalculPr(mouv)}" update="data_mouvement"/>    
+                                <p:menuitem value="Recalculer le prix" icon="ui-icon-calculator" actionListener="#{managedValorisation.recalculPrixTransfert(mouv, true)}" 
+                                            rendered="#{accesRessource.recalcul_pr and (mouv.typeDoc eq constantes.TYPE_FT or mouv.typeDoc eq constantes.TYPE_RE)}" update="data_mouvement"/>  
+                                <p:separator/>
+                                <p:menuitem value="#{lab.LC_PMS_actualiser}" icon="ui-icon-refresh" actionListener="#{managedValorisation.setSelectMouvement(mouv)}" oncomplete="dlgConfirmRefresh.show()"/>
+                                <p:separator/>
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedValorisation.setSelectMouvement(mouv)}" oncomplete="dlgConfirmDelete.show()"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" id="btn_option_mvts" style="width: 20px; height: 20px" type="button"/>
+                        </p:column>
+                        <p:column selectionMode="multiple" style="width:16px;text-align:center" rendered="#{managedValorisation.displaySelection}"/>  
+                    </p:dataTable> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedValorisation.init(false)}" global="false" update="data_mouvement" icon="ui-icon-circle-triangle-w" disabled="#{managedValorisation.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedValorisation.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedValorisation.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedValorisation.gotoPagePaginator()}" update="data_mouvement"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedValorisation.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedValorisation.init(true)}" global="false" update="data_mouvement" icon="ui-icon-circle-triangle-e" disabled="#{managedValorisation.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedValorisation.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedValorisation.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedValorisation.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_mouvement"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div> 
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_valorisation" style="width: 99%; margin: auto; background: white">
+                    <p:outputPanel id="blog_form_valorisation">
+                        <p:outputPanel>
+                            <div style="width: 40%;float: left">
+                                <h:panelGrid id="form_valorisation" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <span>#{lab.L_depot} </span>
+                                    <h:selectOneMenu value="#{mouvementStock.depot.id}" style="min-width: 120px">
+                                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                        <f:selectItems value="#{managedDepot.depots_all}" var="depR" 
+                                                       itemLabel="#{depR.designation}" itemValue="#{depR.id}" />                          
+                                        <p:ajax event="valueChange" global="false" listener="#{managedValorisation.chooseDepot()}" update="select_tranche_valorisation"/>
+                                    </h:selectOneMenu> 
+                                    <span>#{lab.L_tranche} </span>  
+                                    <h:selectOneMenu value="#{mouvementStock.tranche.id}" id="select_tranche_valorisation" style="min-width: 120px">
+                                        <f:selectItem itemLabel="--" itemValue="0"/>
+                                        <f:selectItems value="#{managedValorisation.tranches}" var="tranh" 
+                                                       itemLabel="#{tranh.titre}" itemValue="#{tranh.id}" />                                      
+                                        <p:ajax event="valueChange" global="false" listener="#{managedValorisation.chooseTranche()}"/>
+                                    </h:selectOneMenu> 
+                                    <span>#{lab.L_article} </span>       
+                                    <h:panelGroup id="select_article_valorisation">
+                                        <h:inputText value="#{mouvementStock.article.refArt}" style="color: #{mouvementStock.article.error?'red':''}" tabindex="10">
+                                            <p:ajax event="valueChange" global="false" listener="#{managedValorisation.searchArticle()}" update="select_article_valorisation select_meth"/>
+                                        </h:inputText>  
+                                        <p:commandButton icon="ui-icon-note" style="float: right; width: 20px;height: 22px" title="#{lab.L_liste_article}" global="false"
+                                                         actionListener="#{managedValorisation.initArticles()}" oncomplete="dlgListArticle.show()"/>
+                                    </h:panelGroup>
+                                    <span>#{lab.LC_PMS_methode} </span>
+                                    <h:selectOneMenu value="#{managedValorisation.meth}" id="select_meth">
+                                        <f:selectItem itemValue="#{constantes.LIFO}" itemLabel="#{constantes.LIFO_NAME}"/>                         
+                                        <f:selectItem itemValue="#{constantes.FIFO}" itemLabel="#{constantes.FIFO_NAME}"/>                         
+                                        <f:selectItem itemValue="#{constantes.CMP1}" itemLabel="#{constantes.CMP1_NAME}"/>                         
+                                        <f:selectItem itemValue="#{constantes.CMP2}" itemLabel="#{constantes.CMP2_NAME}"/>                         
+                                        <p:ajax event="valueChange" global="false" listener="#{managedValorisation.chooseMethode()}"/>
+                                    </h:selectOneMenu> 
+                                    <span>#{lab.L_quantite} </span>
+                                    <pe:inputNumber value="#{mouvementStock.quantite}" decimalPlaces="0"/>
+                                    <span>#{lab.LC_PMS_cout_entree} </span>
+                                    <pe:inputNumber value="#{mouvementStock.cout}" decimalPlaces="0" id="txt_cout_entree"
+                                                    disabled="#{managedValorisation.meth == constantes.LIFO or managedValorisation.meth == constantes.FIFO}"/>
+                                    <span>#{lab.LC_PMS_periode} </span>
+                                    <pe:inputNumber value="#{mouvementStock.periode}" decimalPlaces="0" id="txt_period_entree"
+                                                    disabled="#{managedValorisation.meth == constantes.LIFO or managedValorisation.meth == constantes.FIFO or managedValorisation.meth == constantes.CMP1}"/>
+                                </h:panelGrid>
+                                <p:commandButton value="#{lab.LC_PMS_valoriser}" style="width: 100%" actionListener="#{managedValorisation.saveNew()}"
+                                                 update="data_valorisation"/>
+                            </div>
+                            <div style="width: 59%;margin-left: 41%">
+                                <div style="width: 100%;background: #666;padding-bottom: 10px;margin: auto;color: white">
+                                    <span style="margin-left: 10%;font-size: 1.2em;font-weight: bold">Historique</span>
+                                </div>
+                                <p:dataTable id="data_mouvement_hist" value="#{managedValorisation.historiques}" var="hist"
+                                             rowKey="#{hist.id}" rowIndexVar="mouvIdx" scrollable="true" scrollHeight="165">
+                                    <p:column width="30" headerText="N°">
+                                        <span>#{mouvIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_date} " style="text-align: center">
+                                        <h:outputText value="#{hist.dateDoc}" converter="DDMMYYYY"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_quantite}" style="text-align: right">
+                                        <h:outputText value="#{hist.quantite}" converter="#{managedValorisation.converterStock}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PMS_cout}" style="text-align: right">
+                                        <h:outputText value="#{hist.coutStock}" converter="#{managedValorisation.converter}"/>
+                                    </p:column>
+                                    <p:column width="30" headerText="Mouv" style="text-align: center"> 
+                                        <h:graphicImage library="img/icones" name="#{(hist.mouvement == 'E' )?'in.png':'out.png'}"
+                                                        width="15" height="15" title="#{(hist.mouvement == 'E' )?'Entrée':'Sortie'}"/>
+                                    </p:column>
+                                </p:dataTable> 
+                                <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                    <p:commandButton actionListener="#{managedValorisation.init(false)}" global="false" update="data_mouvement_hist" icon="ui-icon-circle-triangle-w" disabled="#{managedValorisation.p_historique.disPrev}"/>
+                                    <p:outputPanel ><p:outputLabel value="#{managedValorisation.p_historique.currentPage}/#{managedValorisation.p_historique.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                    <p:commandButton actionListener="#{managedValorisation.init(true)}" global="false" update="data_mouvement_hist" icon="ui-icon-circle-triangle-e" disabled="#{managedValorisation.p_historique.disNext}"/>
+                                    <p:selectOneMenu value="#{managedValorisation.max}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedValorisation._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                        <f:selectItems value="#{managedValorisation.paginations}"/>
+                                        <p:ajax event="valueChange" global="false" update="data_mouvement_hist"/>
+                                    </p:selectOneMenu>
+                                </p:outputPanel>
+                            </div>
+                        </p:outputPanel>
+                        <br/>
+                        <p:dataTable id="data_valorisation" value="#{managedValorisation.valorisations}" var="mouv"
+                                     rowKey="#{mouv.id}" rowIndexVar="mouvIdx">
+                            <p:column width="30" headerText="N°">
+                                <span>#{mouvIdx+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_quantite}" style="text-align: right">
+                                <h:outputText value="#{mouv.quantite}" converter="#{managedValorisation.converterStock}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PMS_cout_entree}" style="text-align: right">
+                                <h:outputText value="#{mouv.coutEntree}" converter="#{managedValorisation.converter}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PMS_cout_stock}" style="text-align: right">
+                                <h:outputText value="#{mouv.coutStock}" converter="#{managedValorisation.converter}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PMS_cout}" style="text-align: right">
+                                <h:outputText value="#{mouv.cout}" converter="#{managedValorisation.converter}"/>
+                            </p:column>
+                            <p:column width="30" headerText="#{lab.LC_PMS_mouv}" style="text-align: center"> 
+                                <h:graphicImage library="img/icones" name="#{(mouv.mouvement == 'E' )?'in.png':'out.png'}"
+                                                width="15" height="15" title="#{(mouv.mouvement == 'E' )?'Entrée':'Sortie'}"/>
+                            </p:column>
+                        </p:dataTable>                         
+                    </p:outputPanel>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div id="zone_search_valorisation">
+                    <h:panelGrid columns="2" style="width: 100%">
+                        <h:panelGrid columns="7" style="font-size: 0.8em" cellpadding="0" cellspacing="0" id="zone_search_mvt">
+                            <span>&nbsp;</span>
+                            <h:panelGroup>
+                                <h:selectBooleanCheckbox value="#{managedValorisation.date_}">
+                                    <p:ajax event="valueChange" listener="#{managedValorisation.addParamDates()}" update="blog_date_search_valorisation :main_valorisation:data_mouvement" oncomplete="collapseList('valorisation')"/>
+                                </h:selectBooleanCheckbox>
+                                <h:outputText value="#{lab.L_date}" />
+                            </h:panelGroup>
+                            <h:outputText value="#{lab.L_agence}" />
+                            <h:outputText value="#{lab.L_depot}" />
+                            <h:outputText value="#{lab.L_tranche}" />
+                            <h:outputText value="#{lab.L_article}" />
+                            <h:outputText value="" />
+                            <p:commandButton icon="ui-icon-bullet" style="width: 22px; height: 22px" actionListener="#{managedValorisation.clearParams()}" update="chp_depot_mvt_st_search zone_search_mvt" />
+                            <h:panelGroup id="blog_date_search_valorisation">
+                                <p:calendar value="#{managedValorisation.dateDebut_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedValorisation.date_}" size="8" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedValorisation.addParamDates()}" update=":main_valorisation:data_mouvement" oncomplete="collapseList('valorisation')"/>
+                                </p:calendar>
+                                <p:spacer width="5px" style="background: black"/>
+                                <p:calendar value="#{managedValorisation.dateFin_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedValorisation.date_}" size="8" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedValorisation.addParamDates()}" update=":main_valorisation:data_mouvement" oncomplete="collapseList('valorisation')"/>
+                                </p:calendar>
+                            </h:panelGroup>
+                            <h:selectOneMenu value="#{managedValorisation.agence_}" style="min-width: 120px">
+                                <f:selectItems value="#{managedAgence.listAgence}" var="ag"
+                                               itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                                <p:ajax event="valueChange" listener="#{managedValorisation._loadDepot()}" oncomplete="collapseList('valorisation')" 
+                                        update="chp_depot_mvt_st_search"/>
+                            </h:selectOneMenu>
+                            <h:selectOneMenu value="#{managedValorisation.depotSearch}" style="min-width: 120px" id="chp_depot_mvt_st_search">
+                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                <f:selectItems value="#{managedDepot.depots_all}" var="depS" itemLabel="#{depS.designation}" itemValue="#{depS.id}" />                                 
+                                <p:ajax event="valueChange" listener="#{managedValorisation.addParamDepot(true)}" oncomplete="collapseList('valorisation')"
+                                        update=":main_valorisation:data_mouvement"/>
+                            </h:selectOneMenu> 
+                            <h:selectOneMenu value="#{managedValorisation.trhSearch}" style="min-width: 120px">
+                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                <f:selectItems value="#{managedTypeCreneau.tranches}" var="trh" itemLabel="#{trh.titre}" itemValue="#{trh.id}" />  
+                                <p:ajax event="valueChange" listener="#{managedValorisation.addParamTranche(true)}" oncomplete="collapseList('valorisation')"
+                                        update=":main_valorisation:data_mouvement"/>
+                            </h:selectOneMenu>
+                            <p:outputPanel >
+                                <h:inputText value="#{managedValorisation.artSearch}" id="label-nombre_article_select">
+                                    <p:ajax event="valueChange" listener="#{managedValorisation.addParamArticle()}" oncomplete="collapseList('valorisation')"
+                                            update=":main_valorisation:data_mouvement :form_search_plus:select_unite_mouvement"/>
+                                </h:inputText>
+                                <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="Liste des articles" global="false" onclick="dlgListArticles.show()"/>
+                                <p:commandLink type="button" global="false" value="#{lab.L_avancees}..."  onclick="dlgSearchPlus.show()" style="border: 2px solid black; border-radius: 5px;padding: 3px;"/>
+                            </p:outputPanel>                                                        
+                        </h:panelGrid>
+                        <h:panelGroup style="float:right">
+                            <p:contextMenu for="btn_option_mouvement_stock" event="left click" style="font-size: 0.8em;width: 250px">
+                                <p:menuitem value="#{lab.LC_PMS_recalculer_prix_revient}" icon="ui-icon-calculator" 
+                                            actionListener="#{managedValorisation.recalculPr()}" rendered="#{accesRessource.recalcul_pr}"/>
+                                <p:separator rendered="#{accesRessource.recalcul_pr}"/> 
+                                <p:menuitem value="#{lab.LC_PMS_mouvement_stock}" icon="ui-icon-print" title="#{lab.LC_PMS_telecharger_fiche_mouvement}"
+                                            actionListener="#{managedValorisation.print()}" ajax="false"/>
+                                <p:menuitem value="#{lab.LC_PMS_mouvement_valoriser}" icon="ui-icon-print" title="#{lab.LC_PMS_telecharger_fiche_mouvement}"
+                                            actionListener="#{managedValorisation.printValoriser()}" ajax="false"/>
+                                <p:menuitem value="#{lab.LC_PMS_mouvement_stock_deux_colonnes}" icon="ui-icon-print" title="#{lab.LC_PMS_telecharger_fiche_mouvement}"
+                                            actionListener="#{managedValorisation.print('2_colonnes')}" ajax="false"/>
+                                <p:menuitem value="#{lab.LC_PMS_inventaire}" icon="ui-icon-print" title="#{lab.LC_PMS_telecharger_fiche_inventaire}"
+                                            actionListener="#{managedValorisation.printInventaire()}" ajax="false"/>
+                                <p:menuitem value="#{lab.LC_PMS_inventaire_preparatoire}" icon="ui-icon-print" title="#{lab.LC_PMS_telecharger_fiche_inventaire_preparatoire}"
+                                            actionListener="#{managedValorisation.printInventairePreparatoire()}" ajax="false"/>
+                                <p:separator />  
+                                <p:menuitem value="#{lab.LC_PMS_exporter_format_excel}" ajax="false" icon="ui-icon-print" title="#{lab.LC_PMS_telecharger_format_excel}">
+                                    <p:dataExporter type="xls" target=":main_valorisation:data_mouvement" fileName="#{lab.LC_PMS_mouvement_stock}" />
+                                </p:menuitem>
+                                <p:separator />  
+                                <p:menuitem value="#{lab.LC_PMS_listings_entrees}" icon="ui-icon-print" title="#{lab.LC_PMS_telecharger_listings_entrees}"
+                                            actionListener="#{managedValorisation.printListing(true)}" ajax="false"/>
+                                <p:menuitem value="#{lab.LC_PMS_exporter_listings_entrees}" icon="ui-icon-print" title="#{lab.LC_PMS_exporter_listings_entrees}"
+                                            actionListener="#{managedValorisation.printListing(true,'xls')}" ajax="false"/>
+                                <p:menuitem value="#{lab.LC_PMS_listings_sorties}" icon="ui-icon-print" title="#{lab.LC_PMS_telecharger_listings_sorties}"
+                                            actionListener="#{managedValorisation.printListing(false)}" ajax="false"/>
+                                <p:menuitem value="#{lab.LC_PMS_exporter_listings_sorties}" icon="ui-icon-print" title="#{lab.LC_PMS_exporter_listings_sorties}"
+                                            actionListener="#{managedValorisation.printListing(false,'xls')}" ajax="false"/>
+                                <p:separator /> 
+                                <p:menuitem icon="ui-icon-refresh" value="#{lab.L_actualiser}" actionListener="#{managedValorisation.loadAllMouvement(true, true)}"/>
+                                <p:menuitem  icon="ui-icon-arrowthickstop-1-e" value="#{lab.LC_PMS_non_mouvementes}" title="#{lab.LC_PMS_telecharger_articles_non_mouvementes}" ajax="false" action="#{Marticle.printInactf()}" />
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_mouvement_stock" type="button"/>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                </div>
+                <div id="zone_find_valorisation">
+                    <h:panelGrid id="blog_search_validation" columns="3" style="font-size: 0.8em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.L_date}" />
+                        <h:outputText value="#{lab.L_depot}" />
+                        <h:outputText value="#{lab.L_article}" />
+                        <h:panelGrid columns="2">
+                            <h:selectBooleanCheckbox value="#{managedValorisation.dateSearch}">
+                                <p:ajax event="valueChange" listener="#{managedValorisation.addParamValidDates()}" update="blog_date_search_validation :main_valorisation:data_validation"/>
+                            </h:selectBooleanCheckbox>
+                            <h:panelGroup id="blog_date_search_validation">
+                                <p:calendar value="#{managedValorisation.dateDebut_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedValorisation.date_}" size="8" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedValorisation.addParamValidDates()}" update=":main_valorisation:data_validation"/>
+                                </p:calendar>
+                                <p:spacer width="5px" style="background: black"/>
+                                <p:calendar value="#{managedValorisation.dateFin_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedValorisation.date_}" size="8" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedValorisation.addParamValidDates()}" update=":main_valorisation:data_validation"/>
+                                </p:calendar>
+                            </h:panelGroup>
+                        </h:panelGrid> 
+                        <h:selectOneMenu value="#{managedValorisation.depotsSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedDepot.depots_all}" var="depV" itemLabel="#{depV.designation}" itemValue="#{depV.id}" />                                 
+                            <p:ajax event="valueChange" listener="#{managedValorisation.addParamValidDepot()}" update=":main_valorisation:data_validation"/>
+                        </h:selectOneMenu> 
+                        <h:inputText value="#{managedValorisation.artSearch}">
+                            <p:ajax event="valueChange" listener="#{managedValorisation.addParamValidArticle()}" update=":main_valorisation:data_validation"/>
+                        </h:inputText>
+                    </h:panelGrid>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

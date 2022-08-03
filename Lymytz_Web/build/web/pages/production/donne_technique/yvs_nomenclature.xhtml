@@ -1,0 +1,1064 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Nomenclatures','modProduction', 'smenDtNomenclature', true)}
+    </ui:define>  
+    <ui:define name="contents">      
+        #{Marticle.loadActifArticle(true,true)}
+        #{managedNomenclature.loadAll()}  
+        #{managedUniteMesure.loadAll()} 
+        #{managedCodeAcces.loadAll()} 
+        #{managedSiteProduction.loadAll()} 
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 120);
+                collapseForm('nomenclature');
+                collapseList('unite_nomenclature');
+                collapseForm('composant_nomenclature');
+                slideZoneUp();
+            });
+            function slideZoneUp() {
+                $('.zone_editPC').slideUp();
+            }
+            function slideZoneDown() {
+                $('.zone_editPC').slideDown();
+            }
+            function slideZone() {
+                $('.zone_editPC').slideToggle("fast", function() {
+                    //legend.children("span").html(value);
+                });
+            }
+        </script>
+        <h:form prependId="false" >
+            <p:dialog header="Attribuer aux sites" width="50%" height="400" widgetVar="dlgSites" 
+                      >
+                <p:dataTable id="data_sites_list" value="#{managedSiteProduction.sites}" var="sits" rowKey="#{sits.id}" rowIndexVar="Idx"
+                             >
+                    <p:column headerText="N°" width="20">
+                        <span>#{Idx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LP_PN_site}">
+                        <span>#{sits.designation}</span>
+                    </p:column>                                                                                     
+                    <p:column  width="20" style="text-align: center">
+                        <p:contextMenu for="btn-action-site-n" event="left click" styleClass="context_menu">
+                            <p:menuitem value="Attribuer" icon="ui-icon-plusthick" actionListener="#{managedNomenclature.activeSelectNomeclature(sits)}" />
+                            <p:separator />
+                            <p:menuitem value="Retirer" icon="ui-icon-plusthick" actionListener="#{managedNomenclature.desactiveSelectNomeclature(sits)}" />
+                        </p:contextMenu>
+                        <p:commandButton icon="ui-icon-gear" type="button" id="btn-action-site-n" styleClass="button_gear" />
+                    </p:column>  
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LP_PN_operations} " widgetVar="dlgOperation" width="40%" closeOnEscape="true" >
+                <p:dataTable value="#{managedNomenclature.composantsOperation}" var="icop" id="table_composantOp"
+                             rowKey="#{icop.id}" selectionMode="single" editMode="cell" editable="true" >
+                    <p:ajax event="cellEdit" listener="#{managedNomenclature.onEditQuantite}"  />
+                    <p:column headerText="Num" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}"
+                              width="30">
+                        #{icop.operation.numero}
+                    </p:column>
+                    <p:column headerText="#{lab.LP_PN_operation}" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                        #{icop.operation.codeRef}
+                    </p:column>
+                    <p:column headerText="#{lab.L_quantite}" style="text-align: right" styleClass="#{icop.id gt 0?'line_actiftrue':'inherit'}">
+                        <p:cellEditor>
+                            <f:facet name="output">
+                                <h:outputText value="#{icop.quantite}" style="color: #{icop.quantite gt 100?'red':'black'}" converter="DNS"/>%
+                            </f:facet>
+                            <f:facet name="input" rendered="#{icop.id gt 0}">
+                                <h:inputText  value="#{icop.quantite}" style="width:70%"/>%
+                            </f:facet>
+                        </p:cellEditor>
+                    </p:column>
+                    <p:column headerText="#{lab.LP_PN_sens_flux}" style="text-align: center">
+                        <h:outputText value="#{lab.LP_PN_confirmation}" rendered="#{icop.sens eq constantes.STOCK_SENS_SORTIE}" style="color: #D20005"/>
+                        <h:outputText value="#{lab.LP_PN_production}" rendered="#{icop.sens eq constantes.STOCK_SENS_ENTREE}"  style="color: #006666" />
+                        <h:outputText value="#{lab.LP_PN_aucun_flux}" rendered="#{icop.sens eq constantes.STOCK_SENS_NEUTRE}" style="color: #000"/>
+                    </p:column>
+                    <p:column headerText="" width="20" style="text-align: center">
+                        <p:contextMenu for="btn_option_op_comp" event="left click" style="width: 250px">
+                            <p:menuitem value="#{lab.LP_PN_flux_consommation}" actionListener="#{managedNomenclature.changeSensComposant(icop, constantes.STOCK_SENS_SORTIE)}" title="#{lab.LP_PN_suivi_operation}"  icon="ui-icon-arrowthick-1-ne"
+                                        rendered="#{icop.id gt 0}"/>
+                            <p:menuitem value="#{lab.LP_PN_flux_production}" actionListener="#{managedNomenclature.changeSensComposant(icop, constantes.STOCK_SENS_ENTREE)}" title="#{lab.LP_PN_suivi_operation}"  icon="ui-icon-arrowthick-1-sw"
+                                        rendered="#{icop.id gt 0}"/>
+                            <p:menuitem value="#{lab.LP_PN_aucun_flux}" actionListener="#{managedNomenclature.changeSensComposant(icop, constantes.STOCK_SENS_NEUTRE)}" title="#{lab.LP_PN_suivi_operation}" icon="ui-icon-cancel"
+                                        rendered="#{icop.id gt 0}"/>
+
+                            <p:menuitem value="#{(icop.id gt 0)?'Supprimer':'Ajouter'}" actionListener="#{managedNomenclature.addOrDeleteComposantToOp(icop)}"
+                                        icon="#{(icop.id gt 0)?'ui-icon-circle-minus':'ui-icon-circle-plus'}"/>
+                        </p:contextMenu>
+                        <p:commandButton title="" icon="ui-icon-gear" id="btn_option_op_comp"
+                                         style="width: 22px; height: 22px; float: right" type="button"/>
+                    </p:column>
+
+                </p:dataTable>
+
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:confirmDialog widgetVar="dlgConfirmMasque" header="#{lab.LP_PN_masquer}" closeOnEscape="true" 
+                             message="#{lab.LP_PN_text}">                
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNomenclature.masqueNomenclature()}" />
+                <p:commandButton value="#{lab.L_non}" type="button"
+                                 onclick="dlgConfirmMasque.hide();"/> 
+            </p:confirmDialog>
+        </h:form> 
+        <h:form prependId="false" id="main_fusion_nomenclature">
+            <p:dialog widgetVar="dlgConfirmFusion" header="#{lab.L_fusionner}" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_nomenclature" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LP_PN_text1} : </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedNomenclature.fusionneTo}"/>
+                    <span>#{lab.LP_PN_text2} :</span>
+                    <c:forEach items="#{managedNomenclature.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LP_PN_text3}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNomenclature.fusionner(false)}" style="float: right"  
+                                 oncomplete="dlgConfirmFusion.hide();collapseForm('nomenclature')"  update=":main_nomenclature:data_nomenclature"/> 
+            </p:dialog>
+        </h:form> 
+
+        <h:form prependId="false" id="main_fusion_composant_nomenclature">
+            <p:dialog widgetVar="dlgConfirmFusionComposant" header="#{lab.L_fusionner}" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_composant_nomenclature" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LP_PN_text4}: </span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{managedNomenclature.fusionneToComposant}"/>
+                    <span>#{lab.LP_PN_text5}:</span>
+                    <c:forEach items="#{managedNomenclature.fusionnesByComposant}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LP_PN_text6}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNomenclature.fusionnerComposant(false)}" style="float: right"  
+                                 oncomplete="dlgConfirmFusionComposant.hide()"  update=":main_nomenclature:data_composant_nomenclature"/> 
+            </p:dialog>
+        </h:form> 
+
+        <h:form prependId="false" >
+            <p:dialog widgetVar="dlgApplyPsf"  width="50%" resizable="false" header="#{lab.L_plus_option}"
+                      closeOnEscape="true" dynamic="true" >
+                <h:panelGrid columns="4" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                             id="form_define_nom_">
+                    <f:facet name="header">
+                        <span>#{lab.LP_PN_text7}</span></f:facet>
+                    <span>#{lab.LP_PN_nomenclature}</span>
+                    <h:selectOneMenu value="#{managedNomenclature.otherNom.id}" style="min-width: 160px" valueChangeListener="#{managedNomenclature.choixUniteComposant}" >
+                        <f:selectItem itemValue="-1" itemLabel="" />
+                        <f:selectItems value="#{managedNomenclature.listOthers}" var="_inom" itemValue="#{_inom.id}" itemLabel="#{_inom.reference}" />
+                        <p:ajax event="valueChange"  global="false"/>
+                    </h:selectOneMenu>
+                    <span>&nbsp;</span>
+                    <h:outputText value="" />
+                    <span>#{lab.L_quantite}</span>
+                    <pe:inputNumber value="#{managedNomenclature.composant.quantite}" decimalPlaces="4" emptyValue="0" 
+                                    style="text-align: right;width: #{managedNomenclature.composant.composantLie?'70px':'150px'}" >
+                        <p:ajax event="blur" global="false" update=":main_nomenclature:txt_qte_"/>
+                    </pe:inputNumber>
+                    <span>#{lab.L_unite}</span>
+                    <h:selectOneMenu value="#{managedNomenclature.composant.unite.id}" style="min-width: 160px" 
+                                     >
+                        <f:selectItem itemValue="-1" itemLabel="" />
+                        <f:selectItems value="#{managedNomenclature.composant.article.conditionnements}" var="unit_" itemValue="#{unit_.id}" itemLabel="#{unit_.unite.reference}" />
+                        <p:ajax event="valueChange" update=":main_nomenclature:txt_unite_composant_nomenclature" global="false"/>
+                    </h:selectOneMenu>
+                </h:panelGrid>
+                <p:selectBooleanCheckbox value="#{managedNomenclature.addComposant}" itemLabel="#{lab.LP_PN_add_composant_existant}" />
+                <p:commandButton value="#{lab.L_appliquer}" icon="ui-icon-refresh" actionListener="#{managedNomenclature.applyOtherNom()}"
+                                 style="float: right" oncomplete="dlgApplyPsf.hide()"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAvancee"  width="30%" header="#{lab.L_plus_option}" closeOnEscape="true" resizable="false">
+                <h:panelGrid style="width: 100%" columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>Famille</span>
+                    <h:panelGroup>
+                        <h:selectOneMenu id="list-famille_article" value="#{managedNomenclature.familleSearch}" style="width: 92%">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0"/>
+                            <f:selectItems value="#{managedFamilleArticle.familles}" var="sts" itemValue="#{sts.id}" itemLabel="#{sts.designation}" /> 
+                            <p:ajax event="valueChange" listener="#{managedNomenclature.addParamFamille()}" 
+                                    update=":main_nomenclature:data_nomenclature"/>
+                        </h:selectOneMenu>
+                        <p:commandButton icon="ui-icon-refresh" actionListener="#{managedFamilleArticle.loadAlls()}" title="Actualiser" style="width: 20px; height: 22px" update="list-famille_article"/>
+                    </h:panelGroup>
+                    <span>#{lab.LP_PN_composant}</span>
+                    <h:inputText value="#{managedNomenclature.composantSearch}" style="width: 100%">
+                        <p:ajax event="valueChange" listener="#{managedNomenclature.addParamComposant()}" oncomplete="collapseList('nomenclature')"
+                                update=":main_nomenclature:data_nomenclature"/>
+                    </h:inputText>
+                    <span>#{lab.LP_PN_disponibilite}</span>
+                    <h:selectOneMenu value="#{managedNomenclature.masqueSearch}" style="width: 100%"
+                                     valueChangeListener="#{managedNomenclature.addParamMasquer}">
+                        <f:selectItem itemValue="#{null}" itemLabel="#{lab.L_tout}..." />
+                        <f:selectItem itemValue="#{false}" itemLabel="#{lab.LP_PN_visible}" />
+                        <f:selectItem itemValue="#{true}" itemLabel="#{lab.LP_PN_masqué}" />
+                        <p:ajax event="valueChange" update=":main_nomenclature:data_nomenclature" oncomplete="collapseList('nomenclature')"/>  
+                    </h:selectOneMenu>
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LDB_PC_dates}"  />
+                        <h:selectBooleanCheckbox value="#{managedNomenclature.date_up}" title="#{lab.LDB_PC_dates_last_modif}" style="float: right">
+                            <p:ajax event="valueChange" global="false" update="blog_date_search_client"  listener="#{managedNomenclature.addParamDate()}" />
+                        </h:selectBooleanCheckbox>
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_client">
+                        <p:calendar value="#{managedNomenclature.dateDebut_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedNomenclature.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedNomenclature.addParamDate}" update=":main_nomenclature:data_nomenclature" oncomplete="collapseList('nomenclature')"/>
+                        </p:calendar>
+                        <p:spacer style="width: 5px;background: black"/>
+                        <p:calendar value="#{managedNomenclature.dateFin_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!managedNomenclature.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{managedNomenclature.addParamDate}" update=":main_nomenclature:data_nomenclature" oncomplete="collapseList('nomenclature')"/>
+                        </p:calendar>
+                    </h:panelGroup>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog widgetVar="dlgTerminal" dynamic="true" width="50%" resizable="false" header="#{lab.LP_PN_terminal}"
+                      closeOnEscape="true">
+                <style type="text/css">
+                    .input{
+                        border: none;
+                        text-shadow: none;
+                        background: red !important;
+                    }
+                </style>
+                <p:terminal widgetVar="#{lab.LP_PN_terminal}" welcomeMessage="$#{lab.LP_PN_bienvenue} lymytz-command:$"
+                            prompt="$lymytz-command:#" commandHandler="#{managedNomenclature.handleCommand}"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="main_code_acces-nomenclature">
+            <p:dialog widgetVar="dlgCodeAcces" dynamic="true" width="40%" resizable="false" header="#{lab.LP_PN_attribuer_code_acces}" closeOnEscape="true">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('code_acces_nomenclature');
+                    });
+                </script>
+                <div class="dlg_part_fix">
+                    <p:commandButton value="#{lab.L_enregistrer}" id="save_code_acces_nomenclature" actionListener="#{managedCodeAcces.saveNew()}"  update="data_code_acces_nomenclature form_code_acces_nomenclature"
+                                     oncomplete="collapseList('code_acces_nomenclature')"/>
+                    <p:commandButton value="#{lab.L_nouveau}" id="cancel_code_acces_nomenclature" actionListener="#{managedCodeAcces.resetFiche()}" global="false" process="@this" update="form_code_acces_nomenclature"/>
+                    <div style="float: right">
+                        <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('code_acces_nomenclature');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <p:spacer />
+                        <h:link title="#{lab.L_mode_liste}" onclick="collapseList('code_acces_nomenclature');
+                                return false" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>                   
+                    </div>
+                    <div style="clear: both"/>
+                </div>   
+                <div class="dlg_part_scroll">
+                    <div class="yvs_form_code_acces_nomenclature">
+                        <h:panelGrid columns="1" id="form_code_acces_nomenclature" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <h:outputText value="#{lab.L_code}"/>
+                            <h:inputText value="#{managedCodeAcces.codeAcces.code}" style="width: 100%"/>
+                            <h:outputText value="#{lab.L_enregistrer}"/>
+                            <h:inputTextarea value="#{managedCodeAcces.codeAcces.description}" style="width: 100%" rows="2"/>
+                        </h:panelGrid>
+                    </div>
+                    <div class="yvs_list_code_acces_nomenclature">
+                        <p:dataTable id="data_code_acces_nomenclature" value="#{managedCodeAcces.codesAcces}" var="codas" rowKey="#{codas.id}" selectionMode="single" rowIndexVar="IdxC"
+                                     selection="#{managedNomenclature.codeAcces}" paginator="true" paginatorAlwaysVisible="false" rows="15">
+                            <p:ajax event="rowSelect" listener="#{managedNomenclature.attribCodeAcces}" oncomplete="dlgCodeAcces.hide()"/>
+                            <p:column headerText="N°" width="15">
+                                <span>#{IdxC+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_code}" width="80">
+                                <span>#{codas.code}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_description}">
+                                <span>#{codas.description}</span>
+                            </p:column> 
+                            <p:column width="20" style="text-align: center">
+                                <p:contextMenu for="btn_option_code_acces_nomenclature" event="left click" style="font-size: 0.8em">
+                                    <p:menuitem value="#{lab.L_modifier}" icon="ui-icon-pencil" global="false" actionListener="#{managedCodeAcces.onSelectObject(codas)}" 
+                                                oncomplete="collapseForm('code_acces_nomenclature')" update=":main_code_acces-nomenclature:form_code_acces_nomenclature"/>
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedCodeAcces.deleteBean(codas)}" update="data_code_acces_nomenclature"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_code_acces_nomenclature" type="button"/>
+                            </p:column> 
+                        </p:dataTable>
+                    </div>
+                </div>
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LP_PN_liste_articles}" widgetVar="dlgListArticle" modal="true" width="70%" closeOnEscape="true" height="450"> 
+                <p:watermark for="txt_search_article_nomenclature" value="#{lab.L_reference_article}..." />
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_article_nomenclature" value="#{Marticle.article.refArt}" style="text-align: center">
+                        <p:ajax event="keyup" global="false" listener="#{Marticle.searchArticleActif(false)}" update="data_article_nomenclature"/>
+                    </h:inputText> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(false, false)}" global="false" update="data_article_nomenclature" icon="ui-icon-circle-triangle-w" disabled="#{Marticle.pa.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{Marticle.pa.currentPage}/#{Marticle.pa.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(true, false)}" global="false" update="data_article_nomenclature" icon="ui-icon-circle-triangle-e" disabled="#{Marticle.pa.disNext}"/>
+                        <p:selectOneMenu value="#{Marticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{Marticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_article_nomenclature"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>
+                <p:dataTable value="#{Marticle.articlesResult}" var="art" rowKey="#{art.id}" rowIndexVar="artIdx"
+                             selectionMode="single" scrollable="true" scrollHeight="385" id="data_article_nomenclature" style="font-size: 0.9em">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedNomenclature.loadOnViewArticle}" oncomplete="dlgListArticle.hide()"/>
+                    <p:column headerText="N°" width="15">
+                        <span title="#{art.designation}">#{artIdx+1}</span>
+                    </p:column>
+                    <p:column width="70">
+                        <span title="#{art.designation}">#{art.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}" width="150">
+                        <span title="#{art.designation}">#{art.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" width="80">
+                        <span title="#{art.designation}">#{art.categorie}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_prix_a}" width="80" style="text-align: right">
+                        <h:outputText value="#{art.pua}" title="#{art.designation}" converter="DN" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_prix_v}" width="80" style="text-align: right">
+                        <h:outputText value="#{art.puv}" title="#{art.designation}" converter="DN" />
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des unites de mesure
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LP_PN_unites_mesure}" widgetVar="dlgListUnite" modal="true" width="70%" closeOnEscape="true" height="450"> 
+                <div>
+                    <h:panelGrid columns="2" style="width: 100%;margin-top: -5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                        <h:panelGroup>
+                            <p:commandButton value="#{lab.L_enregistrer}" id="save_unite_nomenclature" actionListener="#{managedUniteMesure.saveNew()}" update="form_unite_nomenclature data_unite_nomenclature" style="font-size: 0.8em;"/>
+                            <p:commandButton value="#{lab.L_nouveau}"  id="cancel_unite_nomenclature" process="@this" actionListener="#{managedUniteMesure.resetFiche()}" global="false" update="form_unite_nomenclature"/>                 
+                            <p:outputPanel id="search_unite_nomenclature">
+                                <p:watermark for="txt_search_unite_nomenclature" value="#{lab.LP_PN_reference_unite}..." />
+                                <p:outputPanel autoUpdate="true" style="float: left;margin-left: -5px" layout="block">
+                                    <p:commandButton actionListener="#{managedUniteMesure.loadAll(false, false)}" global="false" update="data_unite_nomenclature" icon="ui-icon-circle-triangle-w" disabled="#{managedUniteMesure.paginator.disPrev}"/>
+                                    <p:outputLabel value="#{managedUniteMesure.paginator.currentPage}/#{managedUniteMesure.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                                    <p:commandButton actionListener="#{managedUniteMesure.loadAll(true, false)}" global="false" update="data_unite_nomenclature" icon="ui-icon-circle-triangle-e" disabled="#{managedUniteMesure.paginator.disNext}"/>
+                                    <p:selectOneMenu value="#{managedUniteMesure.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedUniteMesure.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                                        <f:selectItems value="#{managedUniteMesure.paginations}"/>
+                                        <p:ajax event="valueChange" global="false" update="data_unite_nomenclature"/>
+                                    </p:selectOneMenu>
+                                </p:outputPanel>
+                                <p:spacer width="15"/>
+                                <h:inputText id="txt_search_unite_nomenclature" value="#{managedUniteMesure.numSearch}" style="text-align: center;margin-top: 2px">
+                                    <p:ajax event="keyup" global="false" listener="#{managedUniteMesure.addParamReference()}" update="data_unite_nomenclature"/>
+                                </h:inputText> 
+                            </p:outputPanel>
+                        </h:panelGroup>
+                        <h:panelGroup style="float: right">
+                            <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('unite_nomenclature');
+                                    return false">
+                                <h:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>               
+                            <h:link onclick="collapseList('unite_nomenclature');
+                                    return false" title="#{lab.L_mode_liste}" >
+                                <h:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                </div>
+                <div>
+                    <div class="yvs_form_unite_nomenclature" >
+                        <h:panelGrid id="form_unite_nomenclature" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <span>#{lab.L_reference}</span>
+                            <h:inputText value="#{uniteMesure.reference}" style="width: 98%"/>
+                            <span>#{lab.L_libelle}</span>
+                            <h:inputText value="#{uniteMesure.libelle}" style="width: 98%"/>
+                            <span>#{lab.L_type}</span>
+                            <h:selectOneMenu value="#{uniteMesure.type}" style="width: 98%">
+                                <f:selectItems value="#{constantes.UNITES_MESURE}"/>
+                            </h:selectOneMenu>
+                            <f:facet name="footer">
+                                <span>Description</span>
+                                <h:inputTextarea value="#{uniteMesure.description}" rows="5" style="width: 98%"/>
+                            </f:facet>
+                        </h:panelGrid> 
+                    </div>
+                    <div class="yvs_list_unite_nomenclature" >
+                        <p:dataTable value="#{managedUniteMesure.unites}" var="unite" rowKey="#{unite.id}" rowIndexVar="yIdx"
+                                     selectionMode="single" scrollable="true" scrollHeight="385" id="data_unite_nomenclature">
+                            <p:ajax event="rowSelect" global="false" listener="#{managedNomenclature.loadOnViewUnite}" oncomplete="dlgListUnite.hide()"/>
+                            <p:column headerText="N°" width="20">
+                                <span>#{yIdx+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" width="50">
+                                <span>#{unite.reference}</span>                 
+                            </p:column>                                
+                            <p:column headerText="#{lab.L_designation}" width="100">
+                                <span>#{unite.libelle}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_type}" width="80">
+                                <span>#{managedUniteMesure.giveNameUnite(unite.type)}</span>
+                            </p:column>
+                            <p:column width="20" style="text-align: center">
+                                <p:contextMenu for="btn_option_unite_nomenclature" event="left click" style="font-size: 0.8em">
+                                    <p:menuitem value="#{lab.LP_PN_generer_table}" icon="ui-icon-newwin" actionListener="#{managedUniteMesure.genererTable(unite, true)}"/>
+                                    <p:menuitem value="#{lab.LP_PN_inserer_equivalence}" icon="ui-icon-arrowthick-2-e-w" global="false" actionListener="#{managedUniteMesure.insertAllEquivalence(unite)}"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_unite_nomenclature" type="button"/>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LP_PN_text8}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNomenclature.deleteBean()}" update=":main_nomenclature:blog_form_nomenclature :main_nomenclature:data_nomenclature"
+                                 oncomplete="dlgConfirmDelete.hide();collapseForm('nomenclature')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LP_PN_text8}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNomenclature.deleteBean_()}" update=":main_nomenclature:blog_form_nomenclature :main_nomenclature:data_nomenclature"
+                                 oncomplete="dlgConfirmDelete_.hide();collapseForm('nomenclature')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteComposante" closeOnEscape="true"
+                             message="#{lab.LP_PN_text8}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNomenclature.deleteBeanComposant()}" update=":main_nomenclature:form_composant_nomenclature :main_nomenclature:data_composant_nomenclature"
+                                 oncomplete="dlgConfirmDeleteComposante.hide();collapseForm('composant_nomenclature')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteComposante.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteComposante_" closeOnEscape="true"
+                             message="#{lab.LP_PN_text8}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNomenclature.deleteBeanComposant_()}"
+                                 oncomplete="dlgConfirmDeleteComposante_.hide();collapseForm('composant_nomenclature')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteComposante_.hide()"/>
+                <p:selectBooleanCheckbox value="#{managedNomenclature.notRappelDel}" itemLabel="Ne plus me rappeler " />
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form prependId="false" id="main_nomenclature">  
+            <div class="part_fix" > 
+                <div style="float: left;width: 70%">
+                    <p:splitButton value="#{lab.L_enregistrer}" id="save_nomenclature" actionListener="#{managedNomenclature.saveNew()}" update="form_nomenclature data_nomenclature" style="font-size: 0.8em;"
+                                   icon="ui-icon-disk">
+                        <p:menuitem value="#{lab.L_nouveau}"  actionListener="#{managedNomenclature.resetFiche()}" icon="ui-icon-document" 
+                                    update="blog_form_nomenclature chk_principal_nomenclature" oncomplete="collapseForm('composant_nomenclature');slideZoneUp()"/>  
+                        <p:menuitem value="#{lab.LP_PN_dupliquer}..." id="cancel_nomenclature" rendered="#{managedNomenclature.nomenclature.id gt 0}" icon="ui-icon-newwin" actionListener="#{managedNomenclature.cloneNomenclature()}"/>
+                        <p:separator/>
+                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false"  onclick="dlgConfirmDelete.show()" />
+                    </p:splitButton>
+
+                    <p:splitButton value="#{lab.L_supprimer}" id="delete_nomenclature" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()"
+                                   style="font-size: 0.8em">
+                        <p:menuitem value="Gérer les sites" icon="ui-icon-triangle-1-e" onclick="dlgSites.show()"/>
+                        <p:separator />
+                        <p:menuitem value="#{lab.L_fusionner}" icon="ui-icon-refresh" actionListener="#{managedNomenclature.fusionner(true)}" global="false"
+                                    oncomplete="dlgConfirmFusion.show()" update=":main_fusion_nomenclature:blog_fusionner_nomenclature"/>
+                    </p:splitButton>
+                    <h:panelGroup style="margin-left: 40%">
+                        <p:commandButton actionListener="#{managedNomenclature.parcoursInAllResult(false)}"  global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('nomenclature')"
+                                         style="background: #FFF" update="cancel_nomenclature txt_parc_linear_nomenclature :main_nomenclature:blog_form_nomenclature :main_nomenclature:chk_principal_nomenclature"/>
+                        <h:inputText value="#{managedNomenclature.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_nomenclature"/>
+                        <p:outputPanel autoUpdate="true" >                        
+                            <p:outputLabel value="/#{managedNomenclature.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedNomenclature.parcoursInAllResult(true)}" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('nomenclature')"
+                                         update="cancel_nomenclature txt_parc_linear_nomenclature :main_nomenclature:blog_form_nomenclature :main_nomenclature:chk_principal_nomenclature"/>
+                    </h:panelGroup>  
+                </div>                
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('nomenclature');
+                            return false">
+                        <h:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link title="#{labL_mode_liste}" onclick="collapseList('nomenclature');
+                            return false" >
+                        <h:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link title="#{lab.L_mode_hierrachique}" onclick="collapseGrid('nomenclature');
+                            return false">
+                        <h:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_nomenclature" >                                                                                                      
+                    <div columns="1" style="width: 99%; margin: auto; background: white;">
+                        <p:outputPanel id="blog_form_nomenclature" >
+                            <div style="float: left;width: 70%">
+
+                                <h:panelGrid id="form_nomenclature" columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <f:facet name="header">
+                                        <div align="left">
+                                            <h:panelGrid style="font-size: 0.8em; float: left" columns="6"
+                                                         cellpadding="0" cellspacing="0">
+                                                <h:inputText value="#{nomenclature.id}" style="font-weight: bold; width: 80px; text-align: right; background: #CCC" disabled="true"/> 
+                                                <h:selectOneMenu value="#{nomenclature.typeNomenclature}" title="#{lab.LP_PN_type_nomenclature}">
+                                                    <f:selectItem itemValue="#{'P'}" itemLabel="#{lab.LP_PN_prod}" />
+                                                    <f:selectItem itemValue="#{'T'}" itemLabel="#{lab.LP_PN_tranfor}" />
+                                                    <f:selectItem itemValue="#{'C'}" itemLabel="#{lab.LP_PN_condi}" />
+                                                </h:selectOneMenu>                                                                                                
+                                            </h:panelGrid> 
+                                            <h:panelGroup style="border: 2px solid #666; border-radius: 5px;background: #666;color: white;padding: 4px;float: right" >
+                                                <p:selectBooleanCheckbox value="#{nomenclature.actif}" itemLabel="Actif" />
+                                                <p:spacer width="15" />
+                                                <p:selectBooleanCheckbox itemLabel="#{lab.LP_PN_principal}" value="#{nomenclature.principal}" id="chk_principal_nomenclature">
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedNomenclature.checkPrincipal()}" update="@this"/>
+                                                </p:selectBooleanCheckbox>
+                                            </h:panelGroup>
+                                        </div>
+                                    </f:facet>
+                                    <span style="font-weight: bold">#{lab.L_article} </span>
+                                    <h:panelGroup  id="txt_article_nomenclature" >
+                                        <h:inputText value="#{nomenclature.compose.refArt}" style="color: #{nomenclature.compose.error?'red':''}" >
+                                            <p:ajax event="blur" global="false" listener="#{managedNomenclature.searchArticle(true)}" 
+                                                    update="txt_article_nomenclature txt_unite_nomenclature"/>
+                                        </h:inputText> 
+                                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white;margin-top: 5px" title="Liste Articles" global="false"
+                                                         actionListener="#{managedNomenclature.initArticles(true)}" oncomplete="dlgListArticle.show()" disabled="#{nomenclature.id gt 0}"/>
+                                        <span style="color: #003399;font-size: 0.9em">#{nomenclature.compose.designation}</span>  
+                                    </h:panelGroup>
+                                    <span>#{lab.L_unite}</span>
+                                    <h:selectOneMenu id="txt_unite_nomenclature" value="#{nomenclature.unite.id}" style="min-width: 100px"
+                                                     valueChangeListener="#{managedNomenclature.choixUniteCompose}">
+                                        <f:selectItem itemValue="0" itemLabel="--" />
+                                        <f:selectItems value="#{nomenclature.compose.conditionnements}" var="unit_" itemValue="#{unit_.id}" itemLabel="#{unit_.unite.reference}" />
+                                        <p:ajax event="valueChange" update="@this group_qte_nomenclature" global="false" />
+                                    </h:selectOneMenu>
+                                    <span>#{lab.L_reference}</span>
+                                    <h:inputText id="txt_reference_nomenclature" value="#{nomenclature.reference}"/>
+                                    <span>#{lab.LP_PN_niveau}</span>
+                                    <pe:inputNumber value="#{nomenclature.niveau}" decimalPlaces="0" style="text-align: right;width: 30%"/>
+                                    <h:panelGroup>
+                                        <span>#{lab.LP_PN_quantite_base}</span>
+                                        <h:selectBooleanCheckbox title="#{lab.LP_PN_liee_composants}" value="#{nomenclature.qteLieAuxComposant}" style="float: right" >
+                                            <p:ajax event="valueChange" update="group_qte_nomenclature" global="false"/>
+                                        </h:selectBooleanCheckbox>
+                                    </h:panelGroup>
+                                    <h:panelGroup id="group_qte_nomenclature">
+                                        <p:inputText id="txt_qte_nomenclature" disabled="#{nomenclature.qteLieAuxComposant}" value="#{nomenclature.quantite}" style="text-align: right;width: 100px" /> 
+                                        <span style="font-weight: bold">(#{nomenclature.unite.unite.reference})</span>                                    
+                                    </h:panelGroup>
+                                    <span>#{lab.LP_PN_marge_en} (+ ou -)</span>
+                                    <pe:inputNumber value="#{nomenclature.margeQte}" style="text-align: right;width: 30%"/>                                
+                                    <f:facet name="footer">
+                                        <span>#{lab.LP_PN_periode} : </span>
+                                        <h:panelGroup id="date_periodicite_nomenclature">
+                                            <p:calendar value="#{nomenclature.debut}" pattern="dd-MM-yyyy" size="10" disabled="#{nomenclature.alwayValid}"/>
+                                            <p:spacer width="5" style="background: black"/>
+                                            <p:calendar value="#{nomenclature.fin}" pattern="dd-MM-yyyy" size="10" disabled="#{nomenclature.alwayValid}"/>
+                                        </h:panelGroup>
+                                        <h:panelGroup style="margin-top: 5px">
+                                            <span>#{lab.LP_PN_permanent} ?</span>
+                                            <h:selectBooleanCheckbox value="#{nomenclature.alwayValid}">
+                                                <p:ajax event="valueChange" global="false" update="date_periodicite_nomenclature"/>
+                                            </h:selectBooleanCheckbox>
+                                        </h:panelGroup>                                        
+                                    </f:facet>
+                                </h:panelGrid>
+                                <div style="padding-left: 10px; padding-top: 5px">
+                                    <h:graphicImage library="icones" name="#{nomenclature.masquer?'i_masquer_non.png':'i_masque.png'}" width="30"
+                                                    title="#{lab.LP_PN_afficher_masquer_nomenclature}"/>
+                                    <p:selectBooleanCheckbox itemLabel="#{lab.LP_PN_afficher_masquer_nomenclature}" value="#{managedNomenclature.displaySousProd}" 
+                                                             style="float: right" valueChangeListener="#{managedNomenclature.displayCompSub}">
+                                        <p:ajax event="valueChange" />
+                                    </p:selectBooleanCheckbox>
+                                </div>
+                            </div>
+                            <div style="margin-left: 71%;width: 29%">
+                                <h:panelGrid columns="1" style="width: 100%; font-size: 0.8em" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <f:facet name="header">
+                                        <span style="float: left">#{lab.LP_PN_liste_sites}</span>
+                                    </f:facet>
+                                    <p:dataTable id="data_nomenclatures_site" value="#{nomenclature.sites}" var="sits" rowKey="#{sits.id}" rowIndexVar="Idx"
+                                                 scrollable="true" scrollHeight="120">
+                                        <p:column headerText="N°" width="20">
+                                            <span>#{Idx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PN_site}">
+                                            <span>#{sits.site.designation}</span>
+                                        </p:column>                                                                                     
+                                        <p:column  width="20" style="text-align: center">
+                                            <p:commandButton icon="ui-icon-minusthick" style="width: 20px;height: 20px" actionListener="#{managedNomenclature.activeNomenclatureSite(sits)}"
+                                                             title="#{lab.LP_PN_retirer_depot}" rendered="#{sits.id gt 0}" update="data_nomenclatures_site"/>
+                                            <p:commandButton icon="ui-icon-plusthick" style="width: 20px;height: 20px" actionListener="#{managedNomenclature.activeNomenclatureSite(sits)}"
+                                                             title=" #{lab.LP_PN_add_depot}" rendered="#{sits.id le 0}" update="data_nomenclatures_site"/>
+                                        </p:column>  
+                                    </p:dataTable>
+                                </h:panelGrid>  
+                                <div style="clear: both"/>
+                            </div>
+                            <h:panelGrid class="headline_data" columns="2" styleClass="yvs_nostyle" style="width: 100%">
+                                <b><span> #{lab.LP_PN_composant_derives}</span></b>
+                                <h:panelGroup  style="float: right">
+                                    <span>
+                                        <span>#{lab.LP_PN_cout}</span>
+                                        <h:inputText value="#{nomenclature.val_total}"  style="text-align: center;background: transparent; color: #FFF; width: 100px; height: 100%"  disabled="true"
+                                                     converter="DN" id="txt-valeur_nomenclature"/>
+                                    </span>
+                                    <p:commandButton icon="ui-icon-circle-arrow-s" style="float: right;width: 20px;height: 20px;color: white;background: white !important; margin-left: 50px"
+                                                     title="#{lab.LP_PN_add_contenu}" id="btnAddComposant" onclick="slideZone()" type="button"/>
+                                </h:panelGroup>                                
+                            </h:panelGrid>   
+                            <h:panelGrid columns="1" style="width: 100%" styleClass="yvs_table">
+                                <f:facet name="header">                      
+                                    <div style="width: 100%">
+                                        <div class="zone_editPC" >
+                                            <h:panelGrid id="form_composant_nomenclature" columns="4" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%"> 
+                                                <f:facet name="header">
+                                                    <p:outputPanel>
+                                                        <h:panelGroup  style="float: left;margin-top: 5px">
+                                                            <h:inputText value="#{managedNomenclature.composant.id}" style="font-weight: bold; width: 70px; text-align: right; background: #CCC" disabled="true"/> 
+                                                        </h:panelGroup>
+                                                        <h:panelGroup style="float: right" >
+                                                            <h:selectOneRadio value="#{managedNomenclature.composant.typeComposant}" styleClass="yvs_nostyle" tabindex="600">
+                                                                <f:selectItem itemValue="#{constantes.PROD_OP_TYPE_COMPOSANT_NORMAL}" itemLabel="#{lab.LP_PN_normal}"/>
+                                                                <f:selectItem itemValue="#{constantes.PROD_OP_TYPE_COMPOSANT_SOUS_PRODUIT}" itemLabel="#{lab.LP_PN_sous_produit}"/>
+                                                                <p:ajax event="valueChange" global="false" process="@this"/>
+                                                            </h:selectOneRadio>
+                                                        </h:panelGroup>
+                                                    </p:outputPanel>
+                                                </f:facet>
+                                                <span>#{lab.L_article} </span>       
+                                                <h:panelGroup id="txt_article_composant_nomenclature">
+                                                    <h:inputText value="#{managedNomenclature.composant.article.refArt}" style="color: #{managedNomenclature.composant.article.error?'red':''}" tabindex="500">
+                                                        <p:ajax event="blur" global="false" listener="#{managedNomenclature.searchArticle(false)}" update="txt_article_composant_nomenclature"/>
+                                                    </h:inputText>    
+                                                    <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.L_liste_article}" global="false"
+                                                                     actionListener="#{managedNomenclature.initArticles(false)}" oncomplete="dlgListArticle.show()" />
+                                                    <h:outputText value="#{managedNomenclature.composant.article.designation}" style="color: #003399; font-size: 0.8em"/>
+                                                </h:panelGroup> 
+                                                <span> &nbsp;</span>
+                                                <h:outputText value="&nbsp;" />
+                                                <span>#{lab.LP_PN_ordre} </span>
+                                                <h:inputText title="#{lab.LP_PN_position_composant_liste}" value="#{managedNomenclature.composant.ordre}" style="width: 70px; text-align: center" tabindex="700"/>                                                  
+                                                <span>#{lab.LP_PN_coefficient}</span> 
+                                                <h:inputText title="#{lab.LP_PN_coefficient_conservion_unite_compose}" value="#{managedNomenclature.composant.coefficient}" disabled="true" 
+                                                             style="text-align: right;width: 80px" id="txt_coefficient_composant" tabindex="800"/>                                                
+                                                <h:panelGroup >
+                                                    <span>#{lab.L_quantite} </span>
+                                                    <h:selectBooleanCheckbox value="#{managedNomenclature.composant.composantLie}" style="float: right" title="#{lab.LP_PN_indiquer_dependance_composants}">
+                                                        <p:ajax event="valueChange" update="txt_unite_composant_nomenclature txt_qte_" />
+                                                    </h:selectBooleanCheckbox>
+                                                </h:panelGroup >
+                                                <h:panelGroup > 
+                                                    <pe:inputNumber value="#{managedNomenclature.composant.quantite}" tabindex="900" decimalPlaces="4" emptyValue="0" id="txt_qte_"
+                                                                    style="text-align: right;width: #{managedNomenclature.composant.composantLie?'70px':'150px'}" >
+                                                        <p:ajax event="blur" global="false" listener="#{managedNomenclature.blurQuantiteComposant()}"/>
+                                                    </pe:inputNumber>
+                                                    <h:panelGroup id="txt_qte_composant_converti" style="float: right;margin-top: 5px">
+                                                        <span>#{managedNomenclature.composant.unite.unite.reference}</span>
+                                                    </h:panelGroup>
+                                                    <h:panelGroup  id="txt_unite_composant_nomenclature">
+                                                        <span>#{!managedNomenclature.composant.composantLie?'Unité':'Composants lié'}</span>                                                    
+                                                        <h:selectOneMenu value="#{managedNomenclature.composant.unite.id}" style="min-width: 160px" rendered="#{!managedNomenclature.composant.composantLie}"
+                                                                         valueChangeListener="#{managedNomenclature.choixUniteComposant}" tabindex="1000">
+                                                            <f:selectItem itemValue="-1" itemLabel="" />
+                                                            <f:selectItems value="#{managedNomenclature.composant.article.conditionnements}" var="unit_" itemValue="#{unit_.id}" itemLabel="#{unit_.unite.reference}" />
+                                                            <p:ajax event="valueChange" update="txt_qte_composant_converti txt_coefficient_composant" global="false"/>
+                                                        </h:selectOneMenu>                                                
+                                                        <h:selectOneMenu  value="#{managedNomenclature.composantLie.id}" style="min-width: 160px" rendered="#{managedNomenclature.composant.composantLie}"
+                                                                          tabindex="1000">
+                                                            <f:selectItem itemValue="-1" itemLabel="" />
+                                                            <f:selectItems value="#{nomenclature.composants}" var="cl_" itemValue="#{cl_.id}" itemLabel="#{cl_.article.designation}" />
+                                                            <p:ajax event="valueChange" update="txt_qte_composant_converti txt_coefficient_composant" global="false"/>
+                                                        </h:selectOneMenu>  
+                                                    </h:panelGroup>
+                                                </h:panelGroup>     
+                                                <span>#{lab.LP_PN_mode_arrondi} </span>
+                                                <h:selectOneMenu value="#{managedNomenclature.composant.modeArrondi}" style="width: 180px" tabindex="1100">
+                                                    <f:selectItem itemValue="" itemLabel="--"/>
+                                                    <f:selectItem itemValue="S" itemLabel="#{lab.LP_PN_valeur_superieur}" />
+                                                    <f:selectItem itemValue="I" itemLabel="#{lab.LP_PN_valeur_inferieur} "/>
+                                                    <f:selectItem itemValue="E" itemLabel="#{lab.LP_PN_valeur_exacte} "/>
+                                                    <f:selectItem itemValue="N" itemLabel="#{lab.LP_PN_pas_arrondi}"/>
+                                                </h:selectOneMenu>
+                                                <f:facet name="footer">
+                                                    <div align="left">
+                                                        <h:panelGroup style="float: left;font-weight: bold;margin-top: 5px">
+                                                            <span>#{lab.LP_PN_stockage} ? </span>
+                                                            <h:selectBooleanCheckbox value="#{managedNomenclature.composant.stockable}" tabindex="1200"/>
+                                                            <span>#{lab.LP_PN_composant_alternatif} ? </span>
+                                                            <h:selectBooleanCheckbox value="#{managedNomenclature.composant.alternatif}" tabindex="1210"/>
+                                                            <span>Utilisation libre ? </span>
+                                                            <h:selectBooleanCheckbox value="#{managedNomenclature.composant.freeUse}" tabindex="1220"/>
+                                                        </h:panelGroup>
+                                                        <h:panelGroup style="float: right">
+                                                            <p:commandButton id="save_composant_nomenclature" icon="#{managedNomenclature.composant.id gt 0?'ui-icon-refresh':'ui-icon-circle-plus'}" value="#{managedNomenclature.composant.id gt 0?'Modifier':'Ajouter'}"
+                                                                             actionListener="#{managedNomenclature.saveNewComposant()}" update="form_composant_nomenclature data_composant_nomenclature  :main_nomenclature:txt-valeur_nomenclature" tabindex="1300"/>
+                                                            <p:commandButton id="cancel_composant_nomenclature" icon="ui-icon-document-b" value="#{lab.L_nouveau}"
+                                                                             actionListener="#{managedNomenclature.resetFicheComposant()}" update="form_composant_nomenclature"/>
+                                                        </h:panelGroup>
+                                                    </div>
+                                                </f:facet>
+                                            </h:panelGrid>                                            
+                                        </div>
+                                    </div>
+                                </f:facet> 
+                                <p:outputPanel>
+                                    <h:inputHidden id="input_hide_composant_nomenclature" value="#{managedNomenclature.tabIds_composant}"/>
+                                    <p:dataTable id="data_composant_nomenclature" value="#{nomenclature.composants}" var="comp" rowKey="#{comp.id}" 
+                                                 rowIndexVar="yIdx" selectionMode="single" editMode="cell" editable="true">
+                                        <p:ajax event="rowSelect" listener="#{managedNomenclature.loadOnViewComposant}" 
+                                                oncomplete="slideZoneDown()"
+                                                update=":main_nomenclature:form_composant_nomenclature"/>
+                                        <p:ajax event="rowUnselect" global="false" listener="#{managedNomenclature.unLoadOnViewComposant}" oncomplete="slideZoneUp()"
+                                                update=":main_nomenclature:form_composant_nomenclature"/>
+                                        <p:ajax event="cellEdit" global="false" listener="#{managedNomenclature.updateComposantNomenclature}"  />
+                                        <p:column headerText="N°" width="25" styleClass="line_light_#{comp.id lt 0}">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{comp.new_}"/>
+                                            <span>#{yIdx+1}</span>
+                                            <span class="indice_statut" style="float: right" title="Ordre">#{comp.ordre}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_article}" width="200" styleClass="line_light_#{comp.id lt 0}">
+                                            [<span style="font-weight: bold">#{comp.article.refArt}</span>]
+                                            <span>#{comp.article.designation}</span>
+                                            <h:outputText title="#{lab.LP_PN_arrondi}" value="#{comp.modeArrondi}" styleClass="style_statut" style="float: right"
+                                                          rendered="#{comp.id gt 0}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_unite}" width="50" style="text-align: center" styleClass="line_light_#{comp.id lt 0}">
+                                            <span title="#{comp.unite.unite.libelle}">#{comp.unite.unite.reference}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_quantite}" width="100" style="text-align: right" styleClass="line_light_#{comp.id lt 0}">                                                
+                                            <h:outputText value="#{managedNomenclature.giveQuantite(comp)}" converter="#{managedNomenclature.cproduction}" />
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PN_taux}" style="text-align: right;" width="90" styleClass="line_light_#{comp.id lt 0}">                                                
+                                            <h:panelGroup rendered="#{comp.composantLie.id gt 0}" style="float: right; margin-left: 10px">
+                                                %
+                                            </h:panelGroup> 
+                                            <p:cellEditor>
+                                                <f:facet name="output">
+                                                    <h:outputText rendered="#{comp.composantLie.id gt 0}" value="#{comp.quantite}" converter="#{managedNomenclature.cproduction}" style="float: right"/>
+                                                    <h:outputText rendered="#{comp.composantLie.id le 0}" value="-" style="float: right"/>
+                                                </f:facet>
+                                                <f:facet name="input" rendered="#{comp.id gt 0}">
+                                                    <h:inputText value="#{comp.quantite}" style="width:70%" />
+                                                </f:facet>
+                                            </p:cellEditor>                                                 
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_reference}" width="100" styleClass="line_light_#{comp.id lt 0}">                                                
+                                            <span title="#{comp.composantLie.article.designation}">#{comp.composantLie.article.refArt}</span>
+                                        </p:column>
+
+                                        <p:column headerText="Pr" width="100" style="text-align: right;" styleClass="line_light_#{comp.id lt 0}">                                                
+                                            <h:outputText value="#{comp.pr}" converter="DNS" />
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PN_valeur}" width="100" style="text-align: right;" styleClass="line_light_#{comp.id lt 0}">                                                
+                                            <h:outputText value="#{comp.valeur}" converter="DNS" />
+                                            <h:graphicImage library="icones" name="favoris.png" width="10" height="10" style="float: right" rendered="#{comp.insideCout and comp.id gt 0}"
+                                                            title="#{comp.insideCout?'Participe au calcul du coût':'Exclut du calcul des coûts'}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PN_coefficient}" style="text-align: right;" width="80" styleClass="line_light_#{comp.id lt 0}">
+                                            <p:cellEditor>
+                                                <f:facet name="output">
+                                                    <h:outputText value="#{comp.coefficient}" converter="DNS" />
+                                                </f:facet>
+                                                <f:facet name="input" rendered="#{comp.id gt 0}">
+                                                    <h:inputText value="#{comp.coefficient}" style="width:70%" />
+                                                </f:facet>
+                                            </p:cellEditor>  
+                                        </p:column>
+                                        <p:column headerText="" style="text-align: center;" width="25" styleClass="line_light_#{comp.id lt 0}">
+                                            <p:commandButton icon="ui-icon-arrowstop-1-n" actionListener="#{managedNomenclature.upComposant(comp)}" disabled="#{!managedNomenclature.toUpComposant(comp)}" 
+                                                             update="data_composant_nomenclature" style="width: 20px;height: 24px" rendered="#{comp.id gt 0}"/>
+                                            <p:commandButton icon="ui-icon-arrowstop-1-s" actionListener="#{managedNomenclature.downComposant(comp)}" disabled="#{!managedNomenclature.toDownComposant(comp)}"
+                                                             update="data_composant_nomenclature" style="width: 20px;height: 24px" rendered="#{comp.id gt 0}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_type}" style="text-align: center;" width="25" styleClass="line_light_#{comp.id lt 0}">
+                                            <h:graphicImage library="img/icones" name="#{(comp.type ne constantes.PROD_OP_TYPE_COMPOSANT_NORMAL )?'in.png':'out.png'}"
+                                                            width="15" height="15" title="#{(comp.type == constantes.PROD_OP_TYPE_COMPOSANT_NORMAL )?'NORMAL':'SOUS-PRODUIT'}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PN_stock}." style="text-align: center;" width="30" styleClass="line_light_#{comp.id lt 0}">
+                                            <h:graphicImage library="img" name="#{(comp.stockable)?'vu.png':'vu_non.png'}" width="15" height="15" 
+                                                            title="#{(comp.stockable)?'Stockable':'Non stockable'}"/>
+                                        </p:column>
+                                        <p:column headerText="Alt." style="text-align: center;" width="35" styleClass="line_light_#{comp.id lt 0}">
+                                            <h:graphicImage library="icones" name="#{(comp.alternatif)?'alternatif.png':'lock.png'}" width="20" height="20"
+                                                            title="#{(comp.alternatif)?'Composant alternatif':'Composant obligatoire'}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_actif}" style="text-align: center;" width="30" styleClass="line_light_#{comp.id lt 0}">
+                                            <h:graphicImage library="icones" name="#{(comp.actif)?'i_masque.png':'i_masquer_non.png'}" width="20" title="#{(comp.actif)?'Actif':'Désactiver'}"/>
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center" styleClass="line_light_#{comp.id lt 0}">
+                                            <f:facet name="header">
+                                                <p:contextMenu for="btn_option_composant_nomenclature_h" event="left click" style="font-size: 0.8em">                                               
+                                                    <p:menuitem value="#{lab.LP_PN_sup_composant_lie}" icon="ui-icon-trash" actionListener="#{managedNomenclature.moveComposantLie()}"/>
+                                                    <p:menuitem value="#{lab.LP_PN_afficher_tout}" icon="ui-icon-copy" title="#{lab.LP_PN_afficher_composant_desactives}"
+                                                                actionListener="#{managedNomenclature.toogleDisplayComposantActif(true)}" update="data_composant_nomenclature"/>
+                                                    <p:menuitem value="#{lab.LP_PN_masquer}" icon="ui-icon-cancel" title="#{lab.LP_PN_masquer_composant_inatifs}"
+                                                                actionListener="#{managedNomenclature.toogleDisplayComposantActif(false)}" update="data_composant_nomenclature"/>
+                                                    <p:separator />
+                                                    <p:menuitem value="#{lab.L_actif}" icon="ui-icon-circle-check" title="#{lab.LP_PN_afficher_composant_desactives}"
+                                                                actionListener="#{managedNomenclature.toogleActiveAll(true)}" update="data_composant_nomenclature"/>
+                                                    <p:menuitem value="#{lab.L_desactiver}" icon="ui-icon-circle-close" title="#{lab.LP_PN_masquer_composant_inatifs}"
+                                                                actionListener="#{managedNomenclature.toogleActiveAll(false)}" update="data_composant_nomenclature"/>
+                                                    <p:separator />
+                                                    <p:menuitem value="#{lab.L_fusionner}" icon="ui-icon-refresh" actionListener="#{managedNomenclature.fusionnerComposant(true)}"
+                                                                id="option_composant_nomenclature" oncomplete="dlgConfirmFusionComposant.show()" update=":main_fusion_composant_nomenclature:blog_fusionner_composant_nomenclature"/>
+                                                </p:contextMenu> 
+                                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_composant_nomenclature_h" type="button"/>
+                                            </f:facet>
+                                            <p:contextMenu for="btn_option_composant_nomenclature" event="left click" style="font-size: 0.8em;width: 200px">
+                                                <p:menuitem value="#{comp.actif?'Désactiver':'Activer'}" icon="#{comp.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" actionListener="#{managedNomenclature.toogleActiveComposant(comp)}"
+                                                            update="data_composant_nomenclature :main_nomenclature:txt-valeur_nomenclature"/>
+                                                <p:menuitem value="#{comp.insideCout?'Ne participe pas au coût':'Participe au coût'}" icon="#{comp.insideCout?'ui-icon-radio-on':'ui-icon-bullet'}" actionListener="#{managedNomenclature.toogleInsideCout(comp)}"
+                                                            update="data_composant_nomenclature :main_nomenclature:txt-valeur_nomenclature"/>
+                                                <p:separator />
+                                                <p:menuitem value="#{comp.alternatif?'Rendre fixe':'Rendre Alternatif'}" icon="ui-icon-refresh"
+                                                            actionListener="#{managedNomenclature.toogleComposantAlternatif(comp)}"/>
+                                                <p:menuitem value="#{lab.LP_PN_gerer_gamme}" actionListener="#{managedNomenclature.checkGammeArticle(comp)}" icon="ui-icon-gear"/>
+                                                <p:menuitem value="#{lab.LP_PN_decomposer} " rendered="#{comp.type eq constantes.PROD_OP_TYPE_COMPOSANT_SOUS_PRODUIT}" title="#{lab.LP_PN_inclure_composant_sous_produit_nomenclature}" 
+                                                            actionListener="#{managedNomenclature.openViewNomPsf(comp,comp.article.id)}" icon="ui-icon-gear"/>
+                                                <p:separator />
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedNomenclature.deleteBeanComposant_(comp)}"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_composant_nomenclature" type="button"
+                                                             rendered="#{comp.id gt 0}"/>
+                                        </p:column> 
+                                        <p:column width="20" style="text-align: center" styleClass="line_light_#{comp.id lt 0}">
+                                            <f:facet name="header">
+                                                <h:selectBooleanCheckbox styleClass="chek_all_line_composant_nomenclature" value="false"
+                                                                         onclick="selectionAllLineTab(#{nomenclature.composants.size()}, 'composant_nomenclature')">
+                                                </h:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <h:selectBooleanCheckbox value="#{comp.select}" styleClass="chek_line_composant_nomenclature"
+                                                                     onclick="selectionLineTab(#{yIdx}, 'composant_nomenclature')" rendered="#{comp.id gt 0}">
+                                            </h:selectBooleanCheckbox>
+                                        </p:column>
+                                    </p:dataTable>
+                                    <p:commandButton id="delete_composant_nomenclature" value="#{lab.L_supprimer}" style="float: right"
+                                                     onclick="dlgConfirmDeleteComposante.show()" global="false"/>
+                                </p:outputPanel>
+                            </h:panelGrid>                              
+                        </p:outputPanel>
+                    </div>
+                </div>
+                <!-->
+                   *****************************************************************************
+                   Vue Liste
+                   *****************************************************************************
+                 <-->                        
+                <div class="yvs_list_nomenclature" style="height: 95%;">          
+                    <h:inputHidden id="input_hide_nomenclature" value="#{managedNomenclature.tabIds}"/>     
+                    <p:dataTable id="data_nomenclature" value="#{managedNomenclature.nomenclatures}" var="nome" rowIndexVar="nIdx"
+                                 selectionMode="single" rowKey="#{nome.id}" >
+                        <p:ajax event="rowSelect" listener="#{managedNomenclature.loadOnView}" 
+                                update=":main_nomenclature:blog_form_nomenclature :main_nomenclature:chk_principal_nomenclature :main_nomenclature:cancel_nomenclature :main_nomenclature:input_hide_nomenclature"
+                                oncomplete="collapseForm('nomenclature');collapseForm('composant_nomenclature');slideZoneUp()"/>
+                        <p:column headerText="N°" width="15">
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{nome.new_}"/>
+                            <span>#{nIdx+1}</span>
+                            <h:graphicImage title="#{lab.LP_PN_nomenclature_principal}" library="img"  name="bookmark.png" width="15" height="15" rendered="#{nome.principal}" style="float: right"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_reference}" style="width: 20%">                            
+                            <span>#{nome.reference}</span>
+                            <h:outputText value="#{(nome.forConditionnement)?'C':'P'}" style="float: right; padding: 2px; background: #333; color: #FFF; margin-right: 2px; border-radius: 2px"
+                                          title="#{(nome.forConditionnement)?'Nomenclature de conditionnement':'Nomenclature de production'}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_article}">
+                            <span style="font-weight: bold">[#{nome.article.refArt}]</span>
+                            <span > #{nome.article.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_quantite}" style="text-align: right;">
+                            <h:outputText value="#{nome.quantite}" converter="DNS"/>
+                            <span> #{nome.uniteMesure.unite.reference}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LP_PN_validite}" style="text-align: center" >
+                            <h:outputText value="--PERMANENT--" rendered="#{nome.alwayValide}"/>
+                            <h:panelGroup rendered="#{!nome.alwayValide}">
+                                <h:outputText value="#{nome.debutValidite}" converter="DATE"/>
+                                <span style="font-size: 1.2em; color: #333"> -- </span>
+                                <h:outputText value="#{nome.finValidite}" converter="DATE"/>
+                            </h:panelGroup>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <h:graphicImage library="img" name="#{(nome.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                        </p:column>
+                        <p:column width="25" style="text-align: center">
+                            <h:graphicImage library="icones" name="#{(nome.masquer)?'i_masquer_non.png':'i_masque.png'}" width="20"
+                                            title="#{lab.LP_PN_nomenclature} #{(nome.masquer)?' masqué':'visible'}"/>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <p:contextMenu for="btn_option_nomenclature" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="#{lab.LP_PN_set_principal}" icon="ui-icon-star" global="false" actionListener="#{managedNomenclature.setPrincipal(nome)}" update="data_nomenclature"/>
+                                <p:menuitem value="#{(nome.actif)?'Desactiver':'Activer'}" icon="#{(nome.actif)?'ui-icon-locked':'ui-icon-unlocked'}" 
+                                            global="false" actionListener="#{managedNomenclature.setActive(nome)}" update="data_nomenclature"/>
+                                <p:separator style="width: 98%;margin: auto"/>
+                                <p:menuitem value="#{lab.LP_PN_attribuer_acces}" icon="ui-icon-key" global="false" actionListener="#{managedNomenclature.buildCodeAcces(nome)}" oncomplete="dlgCodeAcces.show()"/>
+                                <p:separator />
+                                <p:menuitem value="#{nome.masquer?'Affficher':'Masquer'}" icon="#{nome.masquer?'ui-icon-lightbulb':'ui-icon-locked'}" global="false" actionListener="#{managedNomenclature.confirmMasque(nome)}"/>
+                                <p:separator />
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedNomenclature.deleteBean_(nome)}" oncomplete="dlgConfirmDelete_.show()"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_nomenclature" type="button"/>
+                        </p:column> 
+                        <p:column width="25" style="text-align: center">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_nomenclature" value="false"
+                                                         onclick="selectionAllLineTab(#{managedNomenclature.nomenclatures.size()}, 'nomenclature')">
+                                </h:selectBooleanCheckbox>
+                            </f:facet>
+                            <h:selectBooleanCheckbox value="#{nome.select}" styleClass="chek_line_nomenclature"
+                                                     onclick="selectionLineTab(#{nIdx}, 'nomenclature')">
+                            </h:selectBooleanCheckbox>
+                        </p:column>
+                    </p:dataTable>
+                    <span class="nbSelectnomenclature" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedNomenclature.init(false)}" update="data_nomenclature" icon="ui-icon-circle-triangle-w" disabled="#{managedNomenclature.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:outputLabel value="#{managedNomenclature.paginator.currentPage}/#{managedNomenclature.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedNomenclature.init(true)}"  update="data_nomenclature" icon="ui-icon-circle-triangle-e" disabled="#{managedNomenclature.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedNomenclature.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedNomenclature.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedNomenclature.paginations}"/>
+                            <p:ajax event="valueChange"  update="data_nomenclature"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </div>
+                <!-->
+                   *****************************************************************************
+                   Vue Arbre
+                   *****************************************************************************
+                <-->
+                <div class="yvs_grid_nomenclature">                    
+                    <div style="width: 60%; height: 500px; margin-left: 39%">
+                        <p:treeTable value="#{managedNomenclature.root}" var="nodeTree">
+
+                        </p:treeTable>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_facture_vente display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedNomenclature.selectNomenclature.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedNomenclature.selectNomenclature.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedNomenclature.selectNomenclature.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid id="blog_search_nomenclature" columns="2" style="width: 100%; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="9" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="" />
+                        <h:outputText value="#{lab.L_date}" />
+                        <h:outputText value="#{accesRessource.prod_nomenc_load_all?'Site':''}"/>
+                        <h:outputText value="#{lab.L_categorie}" />
+                        <h:outputText value="#{lab.L_article}" />
+                        <h:outputText value="#{lab.L_actif}" />
+                        <h:outputText value="#{lab.LP_PN_pour_cond}" title="#{lab.LP_PN_nomenclature_conditionnement}?"/>
+                        <h:outputText value="#{lab.L_reference}" />
+                        <h:outputText value="" />
+                        <p:commandButton icon="ui-icon-bullet" actionListener="#{managedNomenclature.clearParams()}" title="#{lab.L_reset_param}" style="width: 20px; height: 22px" update="blog_search_nomenclature :main_nomenclature:data_nomenclature"/>
+                        <h:panelGrid columns="2">
+                            <h:selectBooleanCheckbox value="#{managedNomenclature.dateSeacrh}">
+                                <p:ajax event="valueChange" listener="#{managedNomenclature.addParamDates()}" update="blog_date_search_nomenclature :main_nomenclature:data_nomenclature" />
+                            </h:selectBooleanCheckbox>
+                            <h:panelGroup id="blog_date_search_nomenclature">
+                                <p:calendar value="#{managedNomenclature.dateDebutSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedNomenclature.dateSeacrh}" size="8" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedNomenclature.addParamDates()}" update=":main_nomenclature:data_nomenclature"/>
+                                </p:calendar>
+                                <p:spacer width="5px" style="background: black"/>
+                                <p:calendar value="#{managedNomenclature.dateFinSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedNomenclature.dateSeacrh}" size="8" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedNomenclature.addParamDates()}" update=":main_nomenclature:data_nomenclature" />
+                                </p:calendar>
+                            </h:panelGroup>
+                        </h:panelGrid> 
+                        <h:panelGroup>
+                            <h:outputText value="" rendered="#{!accesRessource.prod_nomenc_load_all}"/>
+                            <h:selectOneMenu value="#{managedNomenclature.siteSearch}" style="min-width: 120px" rendered="#{accesRessource.prod_gamme_load_all}">
+                                <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0"/>
+                                <f:selectItems value="#{managedSiteProduction.sites}" var="sts" itemValue="#{sts.id}" itemLabel="#{sts.designation}" /> 
+                                <p:ajax event="valueChange" listener="#{managedNomenclature.addParamSite()}" 
+                                        update=":main_nomenclature:data_nomenclature"/>
+                            </h:selectOneMenu>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedNomenclature.categorieSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" /> 
+                            <p:ajax event="valueChange" listener="#{managedNomenclature.addParamCategorie()}"
+                                    update=":main_nomenclature:data_nomenclature"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedNomenclature.artSearch}">
+                            <p:ajax event="blur" listener="#{managedNomenclature.addParamArticle()}" 
+                                    update=":main_nomenclature:data_nomenclature"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedNomenclature.actifSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" listener="#{managedNomenclature.addParamActif()}" 
+                                    update=":main_nomenclature:data_nomenclature"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedNomenclature.forCondSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" listener="#{managedNomenclature.addParamForCond()}" 
+                                    update=":main_nomenclature:data_nomenclature"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedNomenclature.numSearch}">
+                            <p:ajax event="valueChange" listener="#{managedNomenclature.addParamReference()}" 
+                                    update=":main_nomenclature:data_nomenclature"/>
+                        </h:inputText>
+                        <p:commandLink style="border: 2px solid black; border-radius: 5px;padding: 2px;font-size: 0.8em" 
+                                       onclick="dlgAvancee.show()" global="false" value="#{lab.L_avancees}"/>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right" rendered="false">
+                        <p:commandButton icon="ui-icon-gear"  actionListener="#{managedNomenclature.maintenance()}" />
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

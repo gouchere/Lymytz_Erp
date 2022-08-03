@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide">
+        <span class="block_slide_title">
+            <span class="slide_title" group="JOURNAL">#{lab.LC_PTBV_journal_achat}</span> 
+        </span> 
+        <div class="zone_slide">
+            <p:dataTable id="data_journal_achat" value="#{managedBordStatistique.journal_achat.lignes}" var="row" rowIndexVar="iRow" 
+                         style="width: 100%;overflow-x: auto; overflow-y: auto">
+                <p:columnGroup type="header">
+                    <p:row>
+                        <p:column headerText="          " style="width: 15%"/>
+                        <c:forEach items="#{managedBordStatistique.journal_achat.colonnes}" var="head" varStatus="_head">
+                            <p:column styleClass="ui-widget-header" style="width: 15%;font-weight: #{managedBordStatistique.journal_achat.isTotalCol(_head.index)?'bold':'inherit'};">
+                                <f:facet name="header">
+                                    <h:outputText value="#{head.valeur}" title="#{head.libelle}"/>
+                                </f:facet>
+                            </p:column>
+                        </c:forEach>
+                    </p:row>
+                </p:columnGroup>
+                <p:column styleClass="ui-widget-header" style="width: 15%">
+                    <h:outputText value="#{row.libelle}" title="#{row.titre}" style="cursor: pointer"/>
+                </p:column>
+                <c:forEach items="#{managedBordStatistique.journal_achat.colonnes}" var="col" varStatus="iHead">
+                    <p:column  styleClass="#{(managedBordStatistique.journal_achat.isTotal(iRow, iHead.index))?'ui-widget-header':'y'}" style="width: 15%;font-weight: #{managedBordStatistique.journal_achat.isTotalCol(_head.index)?'bold':'inherit'};">
+                        <h:outputText value="#{managedBordStatistique.journal_achat.valeur(iRow, iHead.index)}" converter="DNS"  style="display: inline-block; float: right;"                                                
+                                      styleClass="#{managedBordStatistique.journal_achat.isTotal(iRow, iHead.index)?'texte_total':'inherit'}"/> 
+                    </p:column>
+                </c:forEach>
+            </p:dataTable>  
+        </div>
+        <div class="zone_bottom">
+            <h:panelGroup style="float: left;margin-right: 5px">
+                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px; float: left;margin-right: 5px" id="btn_option_journal_achat" type="button"/>
+                <p:contextMenu for="btn_option_journal_achat" event="left click" styleClass="context_menu" style="width: 210px">
+                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadJournauxAchats()}" update="data_journal_achat"/>
+                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.downloadJournalAchat()}" ajax="false"/>                                     
+                    <p:menuitem value="#{lab.L_exporter}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.downloadJournalAchat('xls')}" ajax="false"/>    
+                </p:contextMenu>
+                <h:inputText value="#{managedBordStatistique.journal_achat.varSearch}" id="txt_search_journal_achat" style="float: right">
+                    <p:ajax event="valueChange" listener="#{managedBordStatistique.journal_achat.filter()}" update="data_journal_achat"  global="false"/>
+                </h:inputText>
+                <p:watermark for="txt_search_journal_achat" value="#{lab.L_rechercher}" />
+            </h:panelGroup>  
+            <h:panelGrid columns="2" cellpadding="0" cellspacing="0" style="float: right">
+                <h:outputText value="#{lab.L_trier_par} "/> 
+                <h:panelGroup>
+                    <h:selectOneMenu value="#{managedBordStatistique.journal_achat.ordres}">
+                        <f:selectItem itemValue="ligne" itemLabel="--"/>
+                        <f:selectItem itemValue="valeur" itemLabel="#{lab.LC_PTBV_valeurs}"/>
+                        <p:ajax event="valueChange" listener="#{managedBordStatistique.journal_achat.sort()}" update="data_journal_achat"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedBordStatistique.journal_achat.descOrdre}">
+                        <f:selectItem itemValue="asc" itemLabel="ASC"/>
+                        <f:selectItem itemValue="desc" itemLabel="DESC"/>
+                        <p:ajax event="valueChange" listener="#{managedBordStatistique.journal_achat.sort()}" update="data_journal_achat"/>
+                    </h:selectOneMenu>
+                </h:panelGroup>
+            </h:panelGrid>  
+        </div>
+    </div>
+</ui:composition>
+

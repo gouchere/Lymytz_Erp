@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <h:panelGrid id="blog-form_users" columns="4" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+            <f:facet name="header">
+                <div align="left">
+                    <h:selectOneMenu value="#{users.civilite}">
+                        <f:selectItem itemValue="M" itemLabel="M."/>
+                        <f:selectItem itemValue="Mme" itemLabel="Mme."/>
+                        <f:selectItem itemValue="Mlle" itemLabel="Mlle"/>
+                    </h:selectOneMenu>
+                    <h:inputText value="#{users.nomUsers}" style="width: 75%"/>
+                    <h:outputText styleClass="style_identifiant" value="#{users.id}"/>
+                    <p:selectBooleanCheckbox value="#{users.actif}" itemLabel="Actif ? " style="float: right;margin-top: 3px;margin-right: 5px"/>
+                </div>
+            </f:facet>
+            <span>#{lab.LDB_PU_login}</span>
+            <h:inputText value="#{users.codeUsers}" />
+            <span>#{lab.LDB_PU_code_affichage}</span>
+            <h:inputText value="#{users.abbreviation}" />
+            <span>#{lab.LDB_PU_niveau_acces}</span>
+            <h:panelGroup>
+                <span>#{lab.LDB_PU_agence} </span>
+                <h:selectOneMenu value="#{users.agence.id}" style="min-width: 140px">
+                    <f:selectItem itemValue="0" itemLabel=""/>
+                    <f:selectItems value="#{managedAgence.agences}" var="agc" itemLabel="#{agc.codeagence} [#{agc.societe.codeAbreviation}]" itemValue="#{agc.id}"/>
+                    <p:ajax event="valueChange" listener="#{managedUser.chooseSocietes()}" update="chp_niveau_users"/>
+                </h:selectOneMenu>
+                <h:selectOneMenu id="chp_niveau_users" value="#{users.niveauAcces.id}" >
+                    <f:selectItem itemValue="0" itemLabel=""/>
+                    <f:selectItems value="#{managedNiveauAcces.listNiveauAcces}" var="niveau" itemValue="#{niveau.id}"
+                                   itemLabel="#{niveau.designation}"/>
+                </h:selectOneMenu>
+            </h:panelGroup>
+            <span>#{lab.LDB_PU_groupe} </span>
+            <h:selectOneMenu value="#{users.categorie.id}" style="min-width: 140px">
+                <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                <f:selectItems value="#{managedCategoriePerso.categories}" var="catP" itemLabel="#{catP.libelle}" itemValue="#{catP.id}" />   
+                <p:ajax event="valueChange" global="false" listener="#{managedUser.chooseGroupe()}"/>                  
+            </h:selectOneMenu> 
+            <span>#{lab.LDB_PU_connecter_avec_planning}</span>
+            <h:selectBooleanCheckbox value="#{users.connectOnlinePlanning}" />
+            <span>#{lab.LDB_PU_acces_multiple_agence}</span>
+            <h:selectBooleanCheckbox value="#{users.accesMultiAgence}">
+                <p:ajax event="valueChange" listener="#{managedUser.update('tabview_users')}"/>                    
+            </h:selectBooleanCheckbox>
+            <h:panelGroup>
+                <span>Compte temporaire</span>
+                <h:selectBooleanCheckbox value="#{users.temporaire}">
+                    <p:ajax event="valueChange" global="false" update="date-user_expiration"/>                    
+                </h:selectBooleanCheckbox>
+            </h:panelGroup>
+            <p:calendar id="date-user_expiration" value="#{users.dateExpiration}" navigator="true" size="10" pattern="dd-MM-yyyy" disabled="#{!users.temporaire}" title="Date d'expiration"/>
+            <span>#{lab.LDB_PU_acces_mutiple_societe}</span>
+            <h:selectBooleanCheckbox value="#{users.accesMultiSociete}"/>
+            <f:facet name="footer">
+                <div style="float: left">                                        
+                    <span style="display: #{(users.id gt 0)?'inline':'none'}">#{lab.LDB_PU_initialiser_mot_passe} </span>
+                    <h:selectBooleanCheckbox value="#{users.initPassword}" rendered="#{users.id gt 0}"/>
+                </div>
+                <p:selectBooleanCheckbox value="#{users.venteOnline}" itemLabel="#{lab.LDB_PU_vente_ligne}" style="float: right" rendered="#{managedUser.currentScte.venteOnline}"/>
+            </f:facet>
+        </h:panelGrid>
+    </div>
+</ui:composition>
+

@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">   
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Parametrage sanction','modRh', 'smenParamSanction', true,managedParamSanction)}
+    </ui:define>    
+    <ui:define name="contents">
+        #{managedParamSanction.loadAll()}    
+        #{managedParamSanction.loadAllFaute()}      
+        #{managedParamSanction.loadAllDecision()} 
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        <h:form prependId="false" id="head_param_sanction">
+            <h:panelGrid columns="2" style="float: left" rendered="#{managedParamSanction.selectSanction}">
+                <p:commandButton value="#{lab.L_modifier}" actionListener="#{managedParamSanction.updateBean()}" rendered="#{managedParamSanction.optionUpdate}"/>
+                <p:splitButton value="#{lab.LRH_PS_autres_options}">
+                    <p:menuitem value="#{lab.L_supprimer}" onclick="dlgConfirmDelete.show()"/>
+                </p:splitButton>
+            </h:panelGrid>
+            <h:panelGrid columns="2" style="float: left" rendered="#{!managedParamSanction.viewList}">
+                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedParamSanction.saveNew()}"/>
+                <p:commandButton value="#{lab.L_nouveau}" actionListener="#{managedParamSanction.resetFiche()}"/>
+            </h:panelGrid>
+            <h:panelGrid columns="1" style="float: right">
+                <p:commandButton value="#{(managedParamSanction.viewList)?lab.LRH_PS_creation:lab.LRH_PS_liste}" update="@this"
+                                 actionListener="#{managedParamSanction.changeView()}"/>
+            </h:panelGrid>
+            <div style="clear: right"/>
+        </h:form>  
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LRH_PS_text}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedParamSanction.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PS_creatin_desision}" widgetVar="dlgAddDecision" closeOnEscape="true"
+                      resizable="false" dynamic="true" modal="true">
+                <p:panelGrid columns="2" style="width: 100%">
+                    <p:outputLabel value="#{lab.L_libelle} : "/>
+                    <p:inputText value="#{managedParamSanction.decisionSanction.libelle}"/> 
+                    <p:outputLabel value="#{lab.L_description} : "/>
+                    <p:inputTextarea value="#{managedParamSanction.decisionSanction.descriptionMotif}"/>
+                    <p:outputLabel value="#{lab.LRH_PS_duree_en_jour} : "/>
+                    <pe:inputNumber value="#{managedParamSanction.decisionSanction.duree}"/>
+                </p:panelGrid>
+                <f:facet name="footer">
+                    <p:commandButton value="#{lab.L_enregistrer}" style="width: 100%" oncomplete="dlgAddDecision.hide()"
+                                     actionListener="#{managedParamSanction.saveNewDecision()}"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PS_creatin_faute}" widgetVar="dlgAddFaute" closeOnEscape="true"
+                      resizable="false" dynamic="true" modal="true">
+                <p:panelGrid columns="2" style="width: 100%">
+                    <p:outputLabel value="#{lab.L_libelle} : "/>
+                    <p:inputText value="#{managedParamSanction.fauteSanction.libelle}"/> 
+                </p:panelGrid>
+                <f:facet name="footer">
+                    <p:commandButton value="#{lab.L_enregistrer}" style="width: 100%" oncomplete="dlgAddFaute.hide()"
+                                     actionListener="#{managedParamSanction.saveNewFaute()}"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="body_param_sanction">
+            <p:outputPanel id="form_param_sanction_00">
+                <p:dataTable value="#{managedParamSanction.listSanction}" var="sanc" rowKey="#{sanc.id}"
+                             selectionMode="single" rendered="#{managedParamSanction.viewList}">
+                    <p:ajax event="rowSelect" listener="#{managedParamSanction.loadOnView}"/>
+                    <p:ajax event="rowUnselect" listener="#{managedParamSanction.unLoadOnView}"/>
+                    <p:column width="16">
+                        <h:graphicImage library="img"  name="#{(sanc.selectActif)?'connecte.png':'deconnecte.png'}" width="15" height="15"/>
+                    </p:column> 
+                    <p:column headerText="#{lab.L_description}">
+                        <p:outputLabel value="#{sanc.description}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PS_faute}">
+                        <p:outputLabel value="#{sanc.faute.libelle}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PS_decision}">
+                        <p:outputLabel value="#{sanc.decision.libelle}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PS_point}">
+                        <p:outputLabel value="#{sanc.point}"/>
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>
+            <p:outputPanel id="form_param_sanction_01">
+                <p:panelGrid columns="1" style="width: 95%;margin: auto" rendered="#{!managedParamSanction.viewList}">
+                    <p:panelGrid style="width: 100%">
+                        <p:row>
+                            <p:column>
+                                <p:outputLabel value="#{lab.L_code} : "/>
+                            </p:column>
+                            <p:column colspan="3">
+                                <p:inputText value="#{sanction.code}">
+                                    <p:ajax event="blur" global="false"/>
+                                </p:inputText>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column>
+                                <p:outputLabel value="#{lab.L_description} : "/>
+                            </p:column>
+                            <p:column colspan="3">
+                                <p:inputTextarea value="#{sanction.description}" style="width: 80%">
+                                    <p:ajax event="blur" global="false"/>
+                                </p:inputTextarea>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column>
+                                <p:outputLabel value="#{lab.LRH_PS_faute} : "/>
+                            </p:column>
+                            <p:column>
+                                <p:selectOneMenu value="#{sanction.faute.id}" valueChangeListener="#{managedParamSanction.chooseFaute}">
+                                    <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedParamSanction.listFauteSanction}" var="faut"
+                                                   itemValue="#{faut.id}" itemLabel="#{faut.libelle}"/>
+                                    <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                    <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/>
+                                    <p:ajax event="valueChange" global="false"/>
+                                </p:selectOneMenu>
+                            </p:column>
+                            <p:column>
+                                <p:outputLabel value="#{lab.LRH_PS_decision} : "/>
+                            </p:column>
+                            <p:column>
+                                <p:selectOneMenu value="#{sanction.decision.id}" valueChangeListener="#{managedParamSanction.chooseDecision}">
+                                    <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedParamSanction.listDecisionSanction}" var="decis"
+                                                   itemValue="#{decis.id}" itemLabel="#{decis.libelle}"/>
+                                    <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                    <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/>
+                                    <p:ajax event="valueChange" global="false"/>
+                                </p:selectOneMenu>
+                            </p:column>
+                        </p:row>
+                        <p:row>
+                            <p:column>
+                                <p:outputLabel value="#{lab.LRH_PS_point} : "/>
+                            </p:column>
+                            <p:column colspan="3">
+                                <pe:inputNumber value="#{sanction.point}">
+                                    <p:ajax event="blur" global="false"/>
+                                </pe:inputNumber>
+                            </p:column>
+                        </p:row>
+                    </p:panelGrid>
+                </p:panelGrid>
+            </p:outputPanel>
+        </h:form>
+    </ui:define>
+</ui:composition>

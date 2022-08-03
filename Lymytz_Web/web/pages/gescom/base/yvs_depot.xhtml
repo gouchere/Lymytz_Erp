@@ -1,0 +1,1642 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Dépôts','modGescom', 'smenDepotCom', true,managedDepot)}
+    </ui:define>   
+    <ui:define name="contents">
+        #{managedUser.doNothing()}
+        #{managedPointVente.doNothing()}
+        #{managedInventaire.doNothing()}
+        #{managedLotReception.doNothing()}
+
+        #{managedStockArticle.load(false)}
+        #{managedCreneauEmploye.init()} 
+
+        #{managedAgence.loadAllUsable()}
+        #{managedDepot.load()}
+        #{managedDepot.addParamActif_(true, false)}
+        #{managedDepot.addParamAgence_()} 
+        #{Marticle.loadActifArticle(true, true)}
+        #{managedFamilleArticle.addParamActif_(true)}
+        #{MEmps.addParamActif(true)}  
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('depot');
+                collapseForm('article_depot');
+                collapseForm('liaison_depot');
+                collapseForm('emplacement_depot');
+                collapseForm('point_vente_depot0');
+                collapseForm('creneau');
+                collapseForm('operation');
+            });
+        </script>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des livreurs
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PCP_liste_users}" widgetVar="dlgListUsers" modal="true" width="50%"  closeOnEscape="true"> 
+                <p:dataTable id="data_employe_creneau" value="#{managedUser.listUser}" var="art" rowKey="#{art.id}"
+                             selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false" >
+                    <p:ajax event="rowSelect" global="false" listener="#{managedCreneauEmploye.loadOnViewUsers}" oncomplete="dlgListUsers.hide()"/>
+                    <p:column  style="width: 2%">
+                        <span>#{art.codeUsers}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PCP_noms}" style="width: 6%">
+                        <span>#{art.nomUsers}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PCP_groupe}" style="width: 4%">
+                        <span>#{art.categorie.libelle}</span>
+                    </p:column>
+                </p:dataTable>
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:inputText value="#{managedUser.numSearch}" style="margin-left: -10px">
+                            <p:ajax event="valueChange" global="false" update="data_employe_creneau" listener="#{managedUser.searchUsersActif(false)}"/>
+                        </h:inputText>
+                    </h:panelGroup>                    
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedUser.loadAll(false,false)}" global="false" update="data_employe_creneau" icon="ui-icon-circle-triangle-w" disabled="#{managedUser.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedUser.paginator.currentPage}/#{managedUser.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedUser.loadAll(true,false)}" global="false" update="data_employe_creneau" icon="ui-icon-circle-triangle-e" disabled="#{managedUser.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedUser.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedUser.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedUser.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_employe_creneau"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>  
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form>
+            <p:remoteCommand name="saveNewArticleEmplacement_" actionListener="#{managedDepot.saveNewArticleEmplacement()}"/>
+        </h:form>
+
+        <h:form id="main_creneau_employe" prependId="false">
+            <p:dialog header="Ajouter un planning" widgetVar="dlgAddPlanning" closeOnEscape="true" resizable="false">
+                <div class="dlg_part_fix">
+                    <p:commandButton value="#{lab.L_enregistrer}" id="save_creneau_employe" actionListener="#{managedCreneauEmploye.saveNew()}" icon="ui-icon-disk"/>
+                </div>
+                <ui:include src="creneau_horaire/form.xhtml"/>
+                <f:facet name="footer">
+                    &copy; Lymytz
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+
+
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddArticleEmplacement" width="80%" header="#{lab.LDB_PD_liste_articles_depot}"  resizable="false"
+                      height="650">                                                                      
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:inputText title="#{lab.LDB_PD_reference_article}" value="#{managedStockArticle.numSearch}" 
+                                     style="width: 180px;background: #009999;color:white;text-align: center;margin-left: -10px">
+                            <p:ajax event="valueChange" global="false" update="data_article_emplacement_depot :main_depot:tabview_depot:data_article_depot" listener="#{managedStockArticle.searchArticleByRef()}"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedStockArticle.categorieSearch}">
+                            <f:selectItem itemLabel="--" itemValue="#{null}"/>
+                            <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" /> 
+                            <p:ajax event="valueChange" listener="#{managedStockArticle.searchArticleByCategorie()}" update="data_article_emplacement_depot :main_depot:tabview_depot:data_article_depot"/>
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedStockArticle.paramActifF}" valueChangeListener="#{managedStockArticle.addParamActif}">
+                            <f:selectItem itemValue="#{true}"  itemLabel="#{lab.L_actif}" />
+                            <f:selectItem itemValue="#{false}"  itemLabel="#{lab.L_inactif}" />
+                            <f:selectItem itemValue="#{null}"  itemLabel="#{lab.L_tout}" />
+                            <p:ajax event="valueChange" update="data_article_emplacement_depot :main_depot:tabview_depot:data_article_depot" />
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedStockArticle.init(false)}"  update="data_article_emplacement_depot :main_depot:tabview_depot:data_article_depot" icon="ui-icon-circle-triangle-w" disabled="#{managedStockArticle.p_article.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedStockArticle.p_article.currentPage}/#{managedStockArticle.p_article.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedStockArticle.init(true)}"  update="data_article_emplacement_depot :main_depot:tabview_depot:data_article_depot" icon="ui-icon-circle-triangle-e" disabled="#{managedStockArticle.p_article.disNext}"/>
+                        <p:selectOneMenu value="#{managedStockArticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedStockArticle.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedStockArticle.paginations}"/>
+                            <p:ajax event="valueChange"  update="data_article_emplacement_depot :main_depot:tabview_depot:data_article_depot"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>    
+                <p:dataTable id="data_article_emplacement_depot" value="#{managedStockArticle.articles_depot}" var="artf" rowKey="#{artf.id}" 
+                             rowIndexVar="artfIdx" style="clear: right">
+                    <p:column width="20" style="color: #{artf.stockMin > artf.quantiteStock?'red':''}" headerText="N°">
+                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{artf.new_}"/>
+                        <span>#{artfIdx+1}</span>
+                        <span style="float: right;font-weight: bold;color:red;display: #{artf.sellWithoutStock?'none':''}" title="#{lab.LDB_PD_text3}"><s>S</s></span>                                            
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_article}" style="color: #{artf.stockMin > artf.quantiteStock?'red':''}" styleClass="#{managedDepot.verifyArticleEmplacement(artf)?'line_actiftrue':'_'}">
+                        [<span title="#{lab.LDB_PD_depot_de_calcul_pr} : #{artf.depotPr.designation}" style="font-weight: bold">#{artf.article.refArt}</span>] 
+                        <span title="#{lab.LDB_PD_depot_de_calcul_pr} : #{artf.depotPr.designation}" style="margin-left: 5px">#{artf.article.designation}</span>
+                        <p:commandLink global="false" style="width: 18px; height: 18px;float: right">
+                            <h:graphicImage title="#{lab.LDB_PD_depot_determination_pr}" library="icones" name="#{art_emp.defaultPr?'favoris.png':'ic_star_rate_black_18dp_2x.png'}" width="18" height="18"  />
+                        </p:commandLink>
+                    </p:column>                    
+                    <p:column headerText="#{lab.LDB_PD_depot_calcul_pr}" style="width: 15%;text-align: center;color: #{artf.stockMin > artf.quantiteStock?'red':''}">                                 
+                        <h:outputText title="#{lab.LDB_PD_depot_de_calcul_pr}" value="#{artf.depotPr.designation}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_suivi}" width="20" style="text-align: center;color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                        <h:graphicImage library="img"  name="#{(artf.suiviStock)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_actif}" width="20" style="text-align: center;color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                        <h:graphicImage library="img"  name="#{(artf.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                    </p:column>
+                    <p:column width="20" style="text-align: center;color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                        <p:commandButton icon="#{managedDepot.verifyArticleEmplacement(artf)?'ui-icon-minusthick':'ui-icon-plusthick'}" style="width: 22px;height: 22px"
+                                         actionListener="#{managedDepot.saveArticleEmplacement(artf)}" update="data_article_emplacement_depot" global="false"/>
+                    </p:column>
+                </p:dataTable> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgOptionSeuil" width="30%" header="#{lab.LDB_PD_periode_evaluation}" 
+                      resizable="false">
+                <h:panelGrid columns="3" >
+                    <span>#{lab.LDB_PC_periode}</span>
+                    <p:calendar value="#{managedStockArticle.periodeDebut}" pattern="dd-MM-yyyy" size="8"
+                                navigator="true"/>
+                    <p:calendar value="#{managedStockArticle.periodeFin}" pattern="dd-MM-yyyy" size="8"
+                                navigator="true"/>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_calculer}" style="width: 100%" actionListener="#{managedStockArticle.loadSeuilsStocks()}" 
+                                 />
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">            
+            <p:dialog widgetVar="dlgCalculSeuils" width="80%" header="#{lab.LDB_PD_determination_seuil_stock_article}"  height="600">                
+                <p:dataTable value="#{managedStockArticle.listeSeuil}" var="is_" selectionMode="single" rowKey="#{is_.id}"
+                             id="liste_seuil"  style="max-height: 580px; overflow-y: auto; font-size: 0.9em">
+                    <p:column headerText="Id" width="10">
+                        #{is_.id}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_designation}"  >
+                        #{is_.designation}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_unite_ref}"  >
+                        <h:outputText value="#{is_.refUnite}" style="font-size: 0.8em; color: #006666"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_besoin_moyen}" style="text-align: right"  >
+                        <h:outputText value="#{is_.besoinMoy}" converter="DNS"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_besoin_max}" style="text-align: right">
+                        <h:outputText value="#{is_.besoinMax}" converter="DNS" />
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_delai_max}" style="text-align: center">
+                        <h:outputText value="#{is_.delaiMax}" /> 
+                        <h:outputText value="(#{lab.L_jours})" style="font-size: 0.8em; color: #006666"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_delai_moyen}"  style="text-align: center">
+                        <h:outputText value="#{is_.delaiMoy}" />
+                        <h:outputText value="(#{lab.L_jours})" style="font-size: 0.8em; color: #006666"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_stock_sec}"  style="text-align: right">
+                        <h:outputText value="#{is_.stockSecurite}" converter="DNS" />
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_pt_commande}" style="text-align: right">
+                        <h:outputText value="#{is_.pointCmde}" converter="DNS" />
+                    </p:column>
+                    <p:column headerText="" width="25">
+                        <p:contextMenu for="btn_option_seuils" event="left click">
+                            <p:menuitem value="#{lab.LDB_PD_details} " actionListener="#{managedStockArticle.loadDetailMvtDay(is_)}" 
+                                        update=":form_detail:liste_seuil_detail_day" oncomplete="dlgMvtStock.show()"/>
+                        </p:contextMenu>
+                        <p:commandButton icon="ui-icon-gear" id="btn_option_seuils" style="width: 22px; height: 22px" type="button"/>
+                    </p:column>
+                </p:dataTable>
+                <p:commandButton value="#{lab.L_appliquer}" icon="ui-icon-circle-chek"  style="width: 100%" actionListener="#{managedStockArticle.applySeuilStocks()}"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_detail">            
+            <p:dialog widgetVar="dlgMvtStock" width="60%" header="#{lab.LDB_PD_detail_mouvement_par_jour}" 
+                      height="600">                
+                <p:dataTable value="#{managedStockArticle.detailDay}" var="det_" selectionMode="single" rowKey="#{det_.id}"
+                             id="liste_seuil_detail_day" style="max-height: 580px; overflow-y: auto">                    
+                    <p:column headerText="#{lab.LDB_PD_designation}" width="200">
+                        #{det_.designation}
+                    </p:column>
+                    <p:column headerText="#{lab.L_date}"  style="text-align: center;" width="100">
+                        <h:outputText value="#{det_.date}" converter="DATE"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_quantite}" width="80"  style="text-align: right; background: #{(managedStockArticle.selectedSeuil.besoinMoy lt det_.pointCmde)?'#ffcccc':inherit}" >
+                        <h:outputText value="#{det_.pointCmde}" converter="DNS"/>
+                        <h:outputText value="#{managedStockArticle.selectedSeuil.refUnite}" style="font-size: 0.8em; color: #006666"/>
+                    </p:column>
+                    <p:column headerText="" width="30" style="text-align: center">
+                        <p:contextMenu for="btn_option_mvt_date_" event="left click">
+                            <p:menuitem value="#{lab.LDB_PD_details} " actionListener="#{managedStockArticle.loadDetailMvt(det_)}" />
+                            <p:separator />
+                            <p:menuitem value="#{lab.LDB_PD_exclure} " actionListener="#{managedStockArticle.excludeDay(det_.date)}" />
+                        </p:contextMenu>
+                        <p:commandButton icon="ui-icon-gear" id="btn_option_mvt_date_" style="width: 22px; height: 22px"
+                                         type="button"/>
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">            
+            <p:dialog widgetVar="dlgDetailMvtStock" width="50%" header="#{lab.LDB_PD_details_utilisateur}" height="600">                
+                <p:dataTable value="#{managedStockArticle.detailStocks}" var="dm_" selectionMode="single" rowKey="#{dm_.id}"
+                             id="liste_seuil_detail_mvt" style="max-height: 590px; overflow-y: auto">
+                    <p:column headerText="Id" width="10">
+                        #{dm_.id}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_designation}" width="150" >
+                        #{dm_.article.designation}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_quantite}"  width="80" style="text-align: right">
+                        <h:outputText value="#{dm_.quantite}" converter="DNS" />
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_description}" >
+                        <h:outputText value="#{dm_.description}" />
+                    </p:column>
+                    <p:column headerText="" width="20">
+                        <p:contextMenu for="btn_option_mvt_ex" event="left click">
+                            <p:menuitem value="#{lab.LDB_PD_inclure} " icon="ui-icon-arrowthickstop-1-n" actionListener="#{managedStockArticle.excludeMvt(dm_)}"
+                                        rendered="#{managedStockArticle.contains(dm_)}" update="liste_seuil_detail_mvt"/>
+                            <p:menuitem value="#{lab.LDB_PD_exclure} " icon="ui-icon-arrowthickstop-1-s"  actionListener="#{managedStockArticle.includeMvt(dm_)}"
+                                        rendered="#{!managedStockArticle.contains(dm_)}" update="liste_seuil_detail_mvt"/>
+                        </p:contextMenu>
+                        <p:commandButton icon="ui-icon-gear" id="btn_option_mvt_ex" style="width: 22px; height: 22px"
+                                         type="button"/>
+                    </p:column>
+                </p:dataTable>                
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            #{managedFamilleArticle.loadFamilleByActif(true)}
+            <p:dialog header="#{lab.LDB_PD_importer_articles}" widgetVar="dlgImportArticle" modal="true" closeOnEscape="true">  
+                <h:panelGrid columns="2" style="width: 100%;" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LDB_PD_famille}</span>
+                    <h:selectOneMenu value="#{managedStockArticle.famille}" title="#{lab.L_select_one}" style="width: 100%">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedFamilleArticle.familles}" var="famA"  itemLabel="#{famA.designation}" itemValue="#{famA.id}" />
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu>   
+                    <span>#{lab.LDB_PD_categorie}</span>
+                    <h:selectOneMenu value="#{managedStockArticle.categorie}" style="min-width: 120px">
+                        <f:selectItem itemLabel="--" itemValue=""/>
+                        <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" /> 
+                        <p:ajax event="valueChange" process="@this" global="false" />
+                    </h:selectOneMenu> 
+                    <span>Activer le suivi par lot</span>
+                    <p:selectBooleanCheckbox value="#{managedStockArticle.suiviParLot}" />
+                    <f:facet name="footer">
+                        <p:commandButton icon="ui-icon-arrowstop-1-s" value="Importer" actionListener="#{managedDepot.insertAllArticle()}" process="@this" 
+                                         update=":main_depot:tabview_depot:data_article_depot" style="float: right" oncomplete="dlgImportArticle.hide()"/>
+                    </f:facet>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>  
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" rendered="false">
+            <p:dialog header="#{lab.LDB_PD_liste_article}" widgetVar="dlgListArticle" modal="true" width="50%"  closeOnEscape="true">  
+                <h:panelGrid columns="2" style="width: 100%;margin-bottom: -5px;margin-top: -5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <p:outputPanel style="float: left;margin-left: -10px">
+                        <h:inputText value="#{Marticle.numSearch}">
+                            <p:ajax event="valueChange" listener="#{Marticle.addParamReference()}" update="data_articles_depot_"/>
+                        </h:inputText>
+                    </p:outputPanel>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(false,false)}" global="false" update="data_articles_depot_" icon="ui-icon-circle-triangle-w" disabled="#{Marticle.pa.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{Marticle.pa.currentPage}/#{Marticle.pa.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(true,false)}" global="false" update="data_articles_depot_" icon="ui-icon-circle-triangle-e" disabled="#{Marticle.pa.disNext}"/>
+                        <p:selectOneMenu value="#{Marticle.pa.rows}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{Marticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_articles_depot_"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </h:panelGrid>
+                <p:dataTable id="data_articles_depot_" value="#{Marticle.articlesResult}" var="art" rowKey="#{art.id}"
+                             selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false" >
+                    <p:ajax event="rowSelect" global="false" listener="#{managedStockArticle.loadOnViewOneArticle}" oncomplete="dlgListArticle.hide()"/>
+                    <p:column headerText="#{lab.LDB_PD_reference}" style="width: 2%">
+                        <span title="#{art.designation}">#{art.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_designation}" style="width: 6%">
+                        <span title="#{art.designation}">#{art.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_categorie}" style="width: 4%">
+                        <span title="#{art.designation}">#{art.categorie}</span>
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>  
+
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des conditionnements
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PD_liste_conditionnements}" widgetVar="dlgListConditionnement" width="50%" closeOnEscape="true"> 
+                <p:outputPanel id="blog_conditionnement_depot">
+                    <h:panelGrid id="form_conditionnement_depot" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <f:facet name="header">
+                            <div align="left" style="padding-left: 10px">
+                                <span style="font-weight: normal">#{lab.LDB_PD_article} : <span style="font-weight: bold">#{managedStockArticle.article.article.designation}</span></span>
+                            </div>
+                        </f:facet>
+                        <span>#{lab.LDB_PD_conditionnement}</span>
+                        <h:selectOneMenu value="#{managedStockArticle.conditionnement.conditionnement.id}" style="width: 100%">
+                            <f:selectItem itemValue="0" itemLabel="--"/>
+                            <f:selectItems value="#{managedStockArticle.article.article.conditionnements}" var="y" 
+                                           itemValue="#{y.id}" itemLabel="#{y.unite.libelle}"/>
+                            <p:ajax event="valueChange" global="false" listener="#{managedStockArticle.chooseConditionnement()}"/>
+                        </h:selectOneMenu>
+                        <span>#{lab.LDB_PD_operation}</span>
+                        <h:selectOneMenu value="#{managedStockArticle.conditionnement.operation.id}" style="width: 100%">
+                            <f:selectItem itemValue="0" itemLabel="--"/>
+                            <f:selectItems value="#{managedDepot.depot.operations}" var="o" 
+                                           itemValue="#{o.id}" itemLabel="[#{o.type}] #{o.operation}"/>
+                            <p:ajax event="valueChange" global="false" listener="#{managedStockArticle.chooseOperation(managedDepot.depot)}"/>
+                        </h:selectOneMenu>
+                        <f:facet name="footer">
+                            <p:commandButton value="#{lab.L_nouveau}" style="float: left" actionListener="#{managedStockArticle.resetFicheConditionnement()}" 
+                                             update="form_conditionnement_depot"/>
+                            <p:commandButton value="#{lab.L_enregistrer}" style="float: right" actionListener="#{managedStockArticle.saveNewConditionnement()}" 
+                                             update="blog_conditionnement_depot"/>
+                        </f:facet>
+                    </h:panelGrid>
+                    <p:dataTable id="data_conditionnement_depot" value="#{managedStockArticle.article.conditionnements_}" var="cond" rowKey="#{cond.id}"
+                                 selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false" >
+                        <p:ajax event="rowSelect" global="false" listener="#{managedStockArticle.loadOnViewConditionnement}"/>
+                        <p:ajax event="rowUnselect" global="false" listener="#{managedStockArticle.unLoadOnViewConditionnement}"/>
+                        <p:column headerText="#{lab.LDB_PD_conditionnement}" style="text-align: center">
+                            <span>#{cond.conditionnement.unite.libelle}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PD_type}" style="text-align: center">
+                            <span>#{cond.operation.type}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PD_operation}" style="text-align: center">
+                            <span>#{cond.operation.operation}</span>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <p:commandButton actionListener="#{managedStockArticle.deleteBeanConditionnement(cond)}" icon="ui-icon-circle-minus"
+                                             global="false"  style="width: 20px; height: 20px" update="data_conditionnement_depot"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>  
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue de creation des types de creneau
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog id="dlgAddTrancheHoraire_" header="#{lab.LDB_PD_creation_tranche_horaire}" widgetVar="dlgAddTrancheHoraire" 
+                      modal="true" width="30%"  closeOnEscape="true" footer="#{lab.L_copy}" > 
+                <p:panelGrid columns="2" style="width: 98%;margin: auto" id="form_tranche_horaire">
+                    <span>#{lab.LDB_PD_heure_debut} </span>
+                    <pe:timePicker value="#{managedDepot.type.heureDebut}"/>
+                    <span>#{lab.LDB_PD_heure_fin} </span>
+                    <pe:timePicker value="#{managedDepot.type.heureFin}"/>
+                    <p:outputLabel value="#{lab.LDB_PD_critere} " for="event0" />
+                    <p:autoComplete id="event0" value="#{managedDepot.type.critere}" completeMethod="#{managedDepot.completeText}">
+                        <p:ajax event="itemSelect" listener="#{managedDepot.onCritereSelect}" global="false"/>
+                        <p:ajax event="blur" global="false"/>
+                        <!--<p:ajax event="query" global="false"/>-->
+                    </p:autoComplete>
+                </p:panelGrid>
+                <p:commandButton actionListener="#{managedDepot.saveNewType()}" style="width: 100%"
+                                 update="form_tranche_horaire" oncomplete="dlgAddTrancheHoraire.hide()"
+                                 value="#{lab.L_enregistrer}"/>
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des employes 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgAddPointVente_">
+            <p:dialog id="dlgAddPointVente_" header="#{lab.LDB_PD_creation_point_vente}" widgetVar="dlgAddPointVente"
+                      modal="true" width="30%" closeOnEscape="true" footer="#{lab.L_copy}">                        
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LDB_PD_reference} </span>
+                    <h:inputText value="#{managedDepot.point.code}"/>
+                    <span>#{lab.LDB_PD_designation} </span>
+                    <h:inputText value="#{managedDepot.point.libelle}"/>
+                    <span>#{lab.LDB_PD_adresse} </span>
+                    <h:inputText value="#{managedDepot.point.adresse}"/>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" style="width: 100%" oncomplete="dlgAddPointVente.hide()" actionListener="#{managedDepot.saveNewPoint()}"
+                                 update="dlgAddPointVente_ :main_depot:tabview_depot:select_point_vente"/>
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des employes 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgEmplacement_">
+            <p:dialog id="dlgEmplacement_" header="#{lab.LDB_PD_emplacements_article}" widgetVar="dlgEmplacement"
+                      modal="true" width="35%" closeOnEscape="true">
+                <p:outputPanel>
+                    <p:dataTable id="data_emplacement_article" value="#{managedDepot.emplacementsArticle}" var="empl_" rowKey="#{empl_.id}" rowIndexVar="emplIdx_">
+                        <p:column headerText="N°" style="width: 10%">
+                            <span>#{emplIdx_+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PD_code}">
+                            <span>#{empl_.code}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PD_designation}">
+                            <span>#{empl_.designation}</span>                 
+                        </p:column>
+                        <p:column style="width: 10%;text-align: center">
+                            <h:selectBooleanCheckbox  value="#{empl_.selectActif}"/>
+                        </p:column>
+                        <p:column style="width: 10%;text-align: center">
+                            <p:commandButton title="#{(empl_.selectActif?'Retire':'Ajouter')}" icon="#{(empl_.selectActif?'ui-icon-minusthick':'ui-icon-plusthick')}" 
+                                             actionListener="#{managedDepot.changeSelectEmplacement(empl_)}" style="width: 22px;height: 16px"
+                                             update="data_emplacement_article  :dlg_article_depot:txt_emplacements"/>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des employes 
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="form_dlgEmploye_0">
+            <p:dialog id="dlgEmploye_0" header="#{lab.LDB_PD_selectionner_employe}" widgetVar="dlgListEmployes" modal="true" width="55%" height="450" closeOnEscape="true" footer="#{lab.L_copy}">
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:inputText value="#{MEmps.numSearch}" style="margin-left: -10px">
+                            <p:ajax event="valueChange" global="false" update="data_responsable_depot" listener="#{MEmps.searchEmployeActif(false)}"/>
+                        </h:inputText>
+                    </h:panelGroup>                    
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{MEmps.pagineResult(false)}" global="false" update="data_responsable_depot" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.pa.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{MEmps.pa.currentPage}/#{MEmps.pa.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{MEmps.pagineResult(true)}" global="false" update="data_responsable_depot" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.pa.disNext}"/>
+                        <p:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{MEmps._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{MEmps.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_responsable_depot"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>  
+                </h:panelGrid>
+                <p:dataTable id="data_responsable_depot" value="#{MEmps.listEmployes}" var="empl" rowKey="#{empl.id}" 
+                             rowIndexVar="emplIdx" selectionMode="single" scrollable="true" scrollHeight="385">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedDepot.loadOnViewEmploye}" oncomplete="dlgListEmployes.hide()"/>
+                    <p:column headerText="N°" style="width: 1%;text-align: center">
+                        <span>#{emplIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_matricule}" width="70">
+                        <span>#{empl.matricule}</span>                 
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_noms_prenoms}" width="150">
+                        <span>#{empl.nom_prenom}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PD_agence}" style="width: 7%">
+                        <span>#{empl.agence.designation}</span>
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            #{managedDepot.loadAllDepot()}
+            <p:dialog header="#{lab.LDB_PD_depot_de_calcul_pr}" widgetVar="dlgChangeDepotPr" closeOnEscape="true" footer="#{lab.L_copy}">                
+                <h:panelGrid columns="2" style="width: 100%">
+                    <h:selectOneMenu value="#{managedStockArticle.depotPr.id}" title="#{lab.LDB_PD_selectionner_depot}" style="width: 100%">
+                        <f:selectItem itemLabel="" itemValue="0" />
+                        <f:selectItems value="#{managedDepot.depots_all}" var="depC" itemLabel="#{depC.designation}" itemValue="#{depC.id}"/>  
+                        <p:ajax event="valueChange" global="false" listener="#{managedStockArticle.chooseDepotPr()}"/> 
+                    </h:selectOneMenu>  
+                    <p:commandButton value="#{lab.L_enregistrer}" oncomplete="collapseForm('article_depot');dlgChangeDepotPr.hide()"
+                                     update=":main_depot:tabview_depot:blog_form_article_depot" actionListener="#{managedStockArticle.changeDepotPr()}"/>
+                </h:panelGrid>
+            </p:dialog>            
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PD_mode_approvisionnement}" widgetVar="dlgChangeModeAppro" closeOnEscape="true" footer="#{lab.L_copy}">                
+                <h:panelGrid columns="2" style="width: 100%">
+                    <h:selectOneMenu value="#{managedStockArticle.modeAppro}">
+                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>   
+                        <f:selectItems value="#{constantes.MODES_APPRO}" var="MA" itemLabel="#{MA.libelle}" itemValue="#{MA.valeur}"/>                          
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectOneMenu>  
+                    <p:commandButton value="#{lab.L_enregistrer}" oncomplete="collapseForm('article_depot');dlgChangeModeAppro.hide()"
+                                     update=":main_depot:tabview_depot:blog_form_article_depot" actionListener="#{managedStockArticle.changeModeAppro()}"/>
+                </h:panelGrid>
+            </p:dialog>            
+        </h:form>
+        <h:form prependId="false" id="dlg_article_depot">
+            <p:dialog header="#{lab.LDB_PD_ajout_article}" widgetVar="dlgAddArticleDepot" width="50%" closeOnEscape="true" footer="#{lab.L_copy}">
+                <p:outputPanel id="blog_article_depot">
+                    <h:panelGrid id="form_article_depot" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0"> 
+                        <span>#{lab.LDB_PD_article}</span>
+                        <h:panelGroup>
+                            <h:inputText value="#{managedStockArticle.article.article.refArt}" style="color: #{managedStockArticle.article.article.error?'red':''}">
+                                <p:ajax event="valueChange" listener="#{managedStockArticle.searchArticle()}" update="@this txt_des_art_depot data_articles_depot choix_unite_article_depot"/>
+                            </h:inputText> 
+                            <h:outputText value="#{managedStockArticle.article.article.id}" styleClass="style_identifiant" />
+                            <p:commandButton icon="ui-icon-note" style="float: right; width: 20px;height: 22px" title="Liste Articles" global="false"
+                                             actionListener="#{managedStockArticle.initArticles()}" update="data_articles_depot"/>
+                        </h:panelGroup>         
+                        <span>#{lab.LDB_PD_designation} </span>
+                        <h:inputText id="txt_des_art_depot" value="#{managedStockArticle.article.article.designation}" style="width: 95%" readonly="true"/>     
+                        <span>#{lab.LDB_PD_suivi_stock}</span>
+                        <h:panelGroup>
+                            <p:selectBooleanCheckbox value="#{managedStockArticle.article.suiviStock}" />                           
+                            <h:panelGroup style="float: right">
+                                <p:selectBooleanCheckbox value="#{managedStockArticle.article.sellWithoutStock}" itemLabel="Vendre sans stock ?"/>  
+                            </h:panelGroup>
+                        </h:panelGroup>
+                        <span>#{lab.LDB_PD_marge_stock}</span>
+                        <h:panelGroup>
+                            <pe:inputNumber value="#{managedStockArticle.article.stockMin}" style="width: 30%;text-align: right" decimalPlaces="0">
+                                <p:ajax event="blur" global="false" update="txt_stock_alert_art_depot_dep"/>
+                            </pe:inputNumber>
+                            <span> #{lab.LDB_PD_a} </span>
+                            <pe:inputNumber value="#{managedStockArticle.article.stockMax}" style="width: 30%;text-align: right" decimalPlaces="0"/>
+                        </h:panelGroup>            
+                        <span>#{lab.LDB_PD_stock_securite}</span>
+                        <h:panelGroup>
+                            <pe:inputNumber value="#{managedStockArticle.article.stockSecurite}" style="width: 30%;text-align: right" decimalPlaces="0">
+                                <p:ajax event="blur" global="false" update="txt_stock_alert_art_depot_dep"/>
+                            </pe:inputNumber>
+                            <div style="float: right;font-size: 0.8em;font-style: italic;margin-top: 5px">
+                                #{lab.LDB_PD_stock_alert} :
+                                <h:outputText value="#{managedStockArticle.article.stockAlert}" converter="DN" style="color: blue" id="txt_stock_alert_art_depot_dep"/>
+                            </div>
+                        </h:panelGroup>   
+                        <span title="#{lab.LDB_PD_mode_approvisionnement}">#{lab.LDB_PD_approv} </span>
+                        <h:selectOneMenu value="#{managedStockArticle.article.modeAppro}">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>   
+                            <f:selectItems value="#{constantes.MODES_APPRO}" var="MA" itemLabel="#{MA.libelle}" itemValue="#{MA.valeur}"/>                          
+                            <p:ajax event="valueChange" global="false" listener="#{managedStockArticle.chooseModeApprovisionnement()}"/>
+                        </h:selectOneMenu>    
+                        <h:panelGroup>
+                            <span title="#{lab.LDB_PD_generer_automatiquement_document}">Générer.Document</span>
+                            <h:selectBooleanCheckbox value="#{managedStockArticle.article.genererDocument}" style="float: right">
+                                <p:ajax event="valueChange" global="false" update="select_type_generer_depot_article"/>
+                            </h:selectBooleanCheckbox>
+                        </h:panelGroup>
+                        <h:selectOneMenu id="select_type_generer_depot_article" value="#{managedStockArticle.article.typeDocumentGenerer}" disabled="#{!managedStockArticle.article.genererDocument}">
+                            <f:selectItem itemLabel="#{constantes.TYPE_FA_NAME}" itemValue="#{constantes.TYPE_FA}"/>                    
+                            <f:selectItem itemLabel="#{constantes.TYPE_FT_NAME}" itemValue="#{constantes.TYPE_FT}"/>                    
+                            <p:ajax event="valueChange" global="false" />
+                        </h:selectOneMenu>   
+                        <span title="#{lab.LDB_PD_mode_reappro}">#{lab.LDB_PD_reapprov} </span>
+                        <h:selectOneMenu value="#{managedStockArticle.article.modeReappro}">
+                            <f:selectItems value="#{constantes.MODES_REAPPRO}" var="MRA" itemLabel="#{MRA.libelle}" itemValue="#{MRA.valeur}" />                    
+                            <p:ajax event="valueChange" global="false" listener="#{managedStockArticle.chooseModeReApprovisionnement()}" update="val_delai_alert"/>
+                        </h:selectOneMenu> 
+                        <span title="#{lab.LDB_PD_lot_reapprov}">#{lab.LDB_PD_lot_reappro} </span>
+                        <h:panelGroup>
+                            <h:inputText value="#{managedStockArticle.article.lotLivraison}" style="text-align: right" title="#{lab.LDB_PA_lot_reapprov}"/>
+                            <h:panelGroup style="float: right;margin-top:5px">
+                                <span>Activer la gestion par lot </span>
+                                <h:selectBooleanCheckbox value="#{managedStockArticle.article.requiereLot}"/>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                        <span title="#{lab.LDB_PD_interval_reappro}">Int.Reappro </span>
+                        <h:panelGroup id="val_delai_alert">
+                            <pe:inputNumber value="#{managedStockArticle.article.intervalApprov}" style="width: 30%"
+                                            disabled="#{(managedStockArticle.article.modeReappro != 'PERIODIQUE')}"/>
+                            <p:spacer/>
+                            <h:selectOneMenu value="#{managedStockArticle.article.uniteInterval}" disabled="#{(managedStockArticle.article.modeReappro != 'PERIODIQUE')}">
+                                <f:selectItems value="#{constantes.UNITES_TIMES_ALL}" var="tps" 
+                                               itemLabel="#{tps[1]}" itemValue="#{tps[0]}" />    
+                            </h:selectOneMenu> 
+                        </h:panelGroup>   
+                        <h:outputText value="Catégorie" rendered="#{managedStockArticle.article.defaultPr}"/>
+                        <h:selectOneMenu value="#{managedStockArticle.article.categorie}" style="min-width: 120px;max-width: 150px" rendered="#{managedStockArticle.article.defaultPr}">
+                            <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" /> 
+                            <p:ajax event="valueChange" process="@this" global="false" />
+                        </h:selectOneMenu>
+                        <span>#{lab.LDB_PD_unite_stock_par_defaut}</span>
+                        <h:selectOneMenu value="#{managedStockArticle.article.conditionnement.id}" id="choix_unite_article_depot" style="width: 100%">
+                            <f:selectItems value="#{managedStockArticle.article.article.conditionnements}" var="i_cond" itemLabel="#{i_cond.unite.libelle}" itemValue="#{i_cond.id}"/>                    
+                            <p:ajax event="valueChange" global="false" />
+                        </h:selectOneMenu>
+                        <span>#{lab.LDB_PD_depot_calcul_pr}</span>
+                        <h:selectOneMenu value="#{managedStockArticle.article.depotPr.id}" title="Selectionner le dépôt" id="choix_depot_pr_article" style="width: 100%">
+                            <f:selectItem itemLabel="" itemValue="0" />
+                            <f:selectItems value="#{managedDepot.depots_all}" var="depot_" itemLabel="#{depot_.designation}" itemValue="#{depot_.id}"/>   
+                        </h:selectOneMenu>    
+                        <span>#{lab.LDB_PD_emplacement} </span>
+                        <h:panelGroup>
+                            <h:inputText id="txt_emplacements" value="#{managedStockArticle.article.emplacements}" readonly="true" style="width: 84%"/>
+                            <p:commandButton actionListener="#{managedStockArticle.initEmplacement()}" style="width: 15%;float: right" title="Emplacements"
+                                             oncomplete="dlgEmplacement.show()" global="false" icon="ui-icon-arrow-4-diag" disabled="#{!managedStockArticle.article.update}"/>
+                        </h:panelGroup>  
+                        <f:facet name="footer">
+                            <p:commandButton id="cancel_article_depot" value="#{lab.L_nouveau}" style="float: left" oncomplete="collapseForm('article_depot')"
+                                             update="form_article_depot data_articles_depot" actionListener="#{managedStockArticle.resetFicheArticle()}"/>
+                            <p:commandButton id="save_article_depot" value="#{lab.L_enregistrer}" style="float: right" oncomplete="collapseForm('article_depot')"
+                                             update=":main_depot:tabview_depot:blog_form_article_depot blog_article_depot" actionListener="#{managedDepot.saveNewArticle()}"/>
+                        </f:facet>
+                    </h:panelGrid>
+                    <br/>
+                    <p:outputPanel id="data_articles_depot">
+                        <h:panelGroup rendered="#{managedStockArticle.listArt}">
+                            <div style="width: 100%;background: black">
+                                <span style="color: white">#{lab.LDB_PD_liste_articles}</span>
+                            </div>
+                            <p:dataTable value="#{Marticle.articlesResult}" var="art" rowKey="#{art.id}"
+                                         selectionMode="single" scrollable="true" scrollHeight="100">
+                                <p:ajax event="rowSelect" global="false" listener="#{managedStockArticle.loadOnViewOneArticle}" 
+                                        update=":dlg_article_depot:data_articles_depot :dlg_article_depot:form_article_depot"/>
+                                <p:column filterBy="#{art.refArt}" style="width: 1.5%">
+                                    <span>#{art.refArt}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PD_designation}" style="width: 5%">
+                                    <span>#{art.designation}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PD_categorie}" style="width: 3.5%">
+                                    <span>#{art.categorie}</span>
+                                </p:column>
+                            </p:dataTable>
+                            <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                <p:commandButton actionListener="#{Marticle.loadActifArticle(false,false)}" global="false" update="data_articles_depot" icon="ui-icon-circle-triangle-w"/>
+                                <p:outputPanel ><p:outputLabel value="#{Marticle.currentPage}/#{Marticle.totalPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                <p:commandButton actionListener="#{Marticle.loadActifArticle(true,false)}" global="false" update="data_articles_depot" icon="ui-icon-circle-triangle-e"/>
+                                <p:selectOneMenu value="#{Marticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                                    <f:selectItems value="#{Marticle.paginations}"/>
+                                    <p:ajax event="valueChange" global="false" update="data_articles_depot"/>
+                                </p:selectOneMenu>
+                            </p:outputPanel>  
+                        </h:panelGroup>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmChangeRequiereLot" closeOnEscape="true"
+                             message="#{lab.LDB_PA_text9}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedStockArticle.activeRequiredLot(managedStockArticle.selectArticle)}"
+                                 oncomplete="dlgConfirmChangeRequiereLot.hide()" update=":main_depot:tabview_depot:data_article_depot"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmChangeRequiereLot.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedDepot.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedDepot.deleteBean_()}" oncomplete="dlgConfirmDelete_.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticleSelect" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text5}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedStockArticle.deleteAllBeanArticle()}"  update=":main_depot:tabview_depot:data_article_depot"
+                                 oncomplete="dlgConfirmDeleteArticleSelect.hide();collapseForm('depot');collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticleSelect.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticle" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedStockArticle.deleteBeanArticle()}"  update=":main_depot:tabview_depot:data_article_depot"
+                                 oncomplete="dlgConfirmDeleteArticle.hide();collapseForm('depot');;collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticle.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticle_" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedStockArticle.deleteBeanArticle_()}"  update=":main_depot:tabview_depot:data_article_depot"
+                                 oncomplete="dlgConfirmDeleteArticle_.hide();collapseForm('depot');;collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticle_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteLiaison" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteBeanLiaisonDepot()}" update=":main_depot:tabview_depot:data_liaison_depot"
+                                 oncomplete="dlgConfirmDeleteLiaison.hide();collapseForm('depot');;collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteLiaison.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteLiaison_" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteBeanLiaisonDepot_()}" update=":main_depot:tabview_depot:data_liaison_depot"
+                                 oncomplete="dlgConfirmDeleteLiaison_.hide();collapseForm('depot');;collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteLiaison_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteEmplacement" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteBeanEmplacement()}" update=":main_depot:tabview_depot:data_emplacement_depot"
+                                 oncomplete="dlgConfirmDeleteEmplacement.hide();collapseForm('depot');;collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteEmplacement.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteEmplacement_" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteBeanEmplacement_()}" update=":main_depot:tabview_depot:data_emplacement_depot"
+                                 oncomplete="dlgConfirmDeleteEmplacement_.hide();collapseForm('depot');;collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteEmplacement_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteArticleEmplacement" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteArticleEmplacement()}" update=":form_dlgEmplacement_:data_emplacement_article :dlg_article_depot:txt_emplacements"
+                                 oncomplete="dlgConfirmDeleteArticleEmplacement.hide();collapseForm('depot');;collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteArticleEmplacement.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeletePoint" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteBeanPoint()}" update=":main_depot:tabview_depot:data_point_vente_depot0"
+                                 oncomplete="dlgConfirmDeletePoint.hide();collapseForm('point_vente_depot0');collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeletePoint.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeletePoint_" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteBeanPoint_()}" update=":main_depot:tabview_depot:data_point_vente_depot0"
+                                 oncomplete="dlgConfirmDeletePoint_.hide();collapseForm('point_vente_depot0');collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeletePoint_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteCreneau" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteBeanCreneau()}" update=":main_depot:tabview_depot:data_creneau"
+                                 oncomplete="dlgConfirmDeleteCreneau.hide();collapseForm('creneau')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteCreneau.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteCreneau_" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteBeanCreneau_()}" update=":main_depot:tabview_depot:data_creneau"
+                                 oncomplete="dlgConfirmDeleteCreneau_.hide();collapseForm('creneau')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteCreneau_.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteOpe" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="Oui" actionListener="#{managedDepot.deleteBeanOpe()}" update=":main_depot:tabview_depot:data_operation"
+                                 oncomplete="dlgConfirmDeleteOpe.hide();collapseForm('operation')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteOpe.hide()"/>
+            </p:confirmDialog>
+            <p:dialog hideEffect="explode" widgetVar="dlgConfirmDeleteOpe_" closeOnEscape="true" header="Confirmation">
+                <span>#{lab.LDB_PD_text4}</span>
+                <f:facet name="footer">
+                    <h:selectBooleanCheckbox value="#{managedDepot.memoriseDeletepoint}"/>
+                    <span style="margin-right: 10px">#{lab.LDB_PD_text7}</span>
+                    <p:commandButton value="#{lab.L_oui}" actionListener="#{managedDepot.deleteBeanOpe_()}" update=":main_depot:tabview_depot:data_operation"
+                                     oncomplete="dlgConfirmDeleteOpe_.hide();collapseForm('operation')"/>
+                    <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteOpe_.hide()"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgChangeAbbreviation" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text6}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" global="false" actionListener="#{managedDepot.changeAbbreviation()}" oncomplete="dlgChangeAbbreviation.hide()"/>
+                <p:commandButton value="#{lab.L_non}" global="false" actionListener="#{managedDepot.changeAbbreviation_()}" oncomplete="dlgChangeAbbreviation.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_depot">    
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_enregistrer}" id="save_depot" actionListener="#{managedDepot.saveNew()}"
+                               icon="ui-icon-disk" update="blog_form_depot">
+                    <p:menuitem value="#{lab.L_nouveau}" id="cancel_depot" actionListener="#{managedDepot.resetFiche()}"  icon="ui-icon-document"
+                                oncomplete="collapseForm('depot');collapseForm('depot');collapseForm('article_depot');collapseForm('liaison_depot');collapseForm('point_vente_depot0');collapseForm('emplacement_depot');collapseForm('creneau');collapseForm('operation')"/>                     
+                    <p:separator />
+                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()" global="false" />
+                </p:splitButton>
+                <p:splitButton value="#{lab.L_supprimer}" id="delete_depot" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()"  global="false" style="font-size: 0.8em">
+                    <p:menuitem value="Activer" icon="ui-icon-check" actionListener="#{managedDepot.activeDepots()}" update=":main_depot:data_depot"/>
+                    <p:menuitem value="Désactiver" icon="ui-icon-cancel" actionListener="#{managedDepot.desactiveDepots()}" update=":main_depot:data_depot"/>
+                </p:splitButton>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedDepot.parcoursInAllResult(false)}" update="txt_parc_linear_depot data_depot"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('depot')"/>
+                    <h:inputText value="#{managedDepot.offset}" style="width: 35px; text-align: center;"  title="Aller au N°..." id="txt_parc_linear_depot"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedDepot.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                    </p:outputPanel>
+                    <p:commandButton actionListener="#{managedDepot.parcoursInAllResult(true)}" update="txt_parc_linear_depot data_depot" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('depot')"/>
+                </h:panelGroup>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('depot');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_liste}" onclick="collapseList('depot');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_depot">
+                    <p:outputPanel id="blog_form_depot" style="width: 99%; margin: auto; background: white">   
+                        <p:outputPanel autoUpdate="true">
+                            <span>#{managedDepot.depot.code}</span>
+                        </p:outputPanel>
+                        <p:tabView style="clear: left; height: 100%" id="tabview_depot">
+                            <p:tab title="Générale" >
+                                <div style="float: left; width: 60%">
+                                    <ui:include src="depot/form.xhtml"/>
+                                </div>
+                                <div style="margin-left: 60.5%;width: 39.5%">
+                                    <h:panelGrid columns="1" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                        <f:facet name="header">
+                                            <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                                <h:panelGroup style="float: left;padding: 5px">
+                                                    <span>#{lab.LDB_PD_operations}</span>
+                                                    <p:spacer width="15"/>
+                                                    <h:selectOneMenu value="#{managedDepot.ope.type}" >
+                                                        <f:selectItem itemLabel="#{constantes.TRANSFERT}" itemValue="#{constantes.TRANSFERT}"/>                              
+                                                        <f:selectItem itemLabel="#{constantes.ENTREE}" itemValue="#{constantes.ENTREE}"/>                              
+                                                        <f:selectItem itemLabel="#{constantes.SORTIE}" itemValue="#{constantes.SORTIE}"/>                              
+                                                        <f:selectItem itemLabel="#{constantes.AUTRE}" itemValue="#{constantes.AUTRE}"/>                              
+                                                        <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseTypeOpe()}" update="select_operation"/>
+                                                    </h:selectOneMenu>
+                                                </h:panelGroup>
+                                                <h:panelGroup id="blog_operation_check" style="float: right;margin-top: 5px">
+                                                    <h:graphicImage library="img" name="#{(managedDepot.depot.opProduction)?'P_on.png':'P_off.png'}" width="16" height="16" title="#{lab.LDB_PD_production}"/>
+                                                    <p:spacer width="2"/>
+                                                    <h:graphicImage library="img" name="#{(managedDepot.depot.opAchat)?'A_on.png':'A_off.png'}" width="16" height="16" title="#{lab.LDB_PD_achat}"/>
+                                                    <p:spacer width="2"/>
+                                                    <h:graphicImage library="img" name="#{(managedDepot.depot.opVente)?'V_on.png':'V_off.png'}" width="16" height="16" title="#{lab.LDB_PD_vente}"/>
+                                                    <p:spacer width="2"/>
+                                                    <h:graphicImage library="img" name="#{(managedDepot.depot.opTransit)?'T_on.png':'T_off.png'}" width="16" height="16" title="#{lab.LDB_PD_transit}"/>
+                                                    <p:spacer width="2"/>
+                                                    <h:graphicImage library="img" name="#{(managedDepot.depot.opRetour)?'R_on.png':'R_off.png'}" width="16" height="16" title="#{lab.LDB_PD_retour}"/>
+                                                    <p:spacer width="2"/>
+                                                    <h:graphicImage library="img" name="#{(managedDepot.depot.opTechnique)?'E_on.png':'E_off.png'}" width="16" height="16" title="#{lab.LDB_PD_technique}"/>
+                                                    <p:spacer width="2"/>
+                                                    <h:graphicImage library="img" name="#{(managedDepot.depot.opReserv)?'S_on.png':'S_off.png'}" width="16" height="16" title="#{lab.LDB_PD_reservation_sortie}"/>
+                                                </h:panelGroup>
+                                            </h:panelGrid>
+                                        </f:facet>
+                                        <h:panelGrid columns="3" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                            <p:commandLink title="#{lab.LDB_PD_importer_toutes_operations}" actionListener="#{managedDepot.insertAllOperation()}" process="@this" update="data_operation" 
+                                                           style="float: left;border: 2px solid black; border-radius: 5px;padding: 2px;margin-bottom: -5px">
+                                                <p:graphicImage library="icones" name="db_update.png" width="15" height="18" />
+                                            </p:commandLink> 
+                                            <h:panelGrid id="form_operation" columns="3" style="padding-top: 5px;margin-bottom: -5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                                <span>#{lab.LDB_PD_operation} </span>
+                                                <h:selectOneMenu value="#{managedDepot.ope.operation}" id="select_operation">
+                                                    <f:selectItem itemLabel="--" itemValue=" " noSelectionOption="true"/>
+                                                    <f:selectItems value="#{managedDepot.typesOpe}" var="typo" itemLabel="#{typo}" itemValue="#{typo}" />                     
+                                                </h:selectOneMenu>
+                                                <p:commandButton icon="ui-icon-plusthick" style="width: 20px;height: 20px" oncomplete="collapseForm('operation')"
+                                                                 title="#{lab.LDB_PD_ajouter_liaison_depot}" update="form_operation data_operation" actionListener="#{managedDepot.saveNewOpe()}"/>
+                                            </h:panelGrid>
+
+                                        </h:panelGrid>
+                                        <p:outputPanel>
+                                            <h:inputHidden id="input_hide_operation" value="#{managedDepot.tabIds_operation}"/>
+                                            <p:dataTable id="data_operation" value="#{managedDepot.operations}" var="oper" scrollable="true"
+                                                         rowKey="#{oper.id}" rowIndexVar="operIdx" selectionMode="single" scrollHeight="300">
+                                                <p:ajax event="rowSelect" global="false" listener="#{managedDepot.loadOnViewOpe}" update=":main_depot:tabview_depot:form_operation"/>
+                                                <p:ajax event="rowUnselect" global="false" listener="#{managedDepot.unLoadOnViewOpe}" update=":main_depot:tabview_depot:form_operation"/>
+                                                <p:column style="width: 9%" headerText="N°">
+                                                    <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{oper.new_}"/>
+                                                    <span>#{operIdx+1}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LDB_PD_type}" style="width: 30%">
+                                                    <span>#{oper.type}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LDB_PD_operation}">
+                                                    <span>#{oper.operation}</span>
+                                                </p:column>
+                                                <p:column style="width: 8%;text-align: center">
+                                                    <p:contextMenu for="btn_option_operation" event="left click" style="font-size: 0.8em">
+                                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedDepot.deleteBeanOpe_(oper)}"/>
+                                                    </p:contextMenu>                           
+                                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_operation" type="button"/>
+                                                </p:column> 
+                                                <p:column style="width: 8%;text-align: center" rendered="false">
+                                                    <f:facet name="header">
+                                                        <h:selectBooleanCheckbox styleClass="chek_all_line_operation" value="false"
+                                                                                 onclick="selectionAllLineTab(#{managedDepot.operations.size()}, 'operation')">
+                                                        </h:selectBooleanCheckbox>
+                                                    </f:facet>
+                                                    <h:selectBooleanCheckbox  value="#{oper.selectActif}" styleClass="chek_line_operation" 
+                                                                              onclick="selectionLineTab(#{oper.id}, 'operation')">
+                                                    </h:selectBooleanCheckbox>
+                                                </p:column>
+                                            </p:dataTable>
+                                            <p:commandButton value="#{lab.L_supprimer}" id="delete_operation" global="false" rendered="false"
+                                                             onclick="dlgConfirmDeleteOpe.show()" style="float: right"/>
+                                        </p:outputPanel>                                        
+                                    </h:panelGrid>
+                                </div>
+                            </p:tab>
+                            <p:tab title="#{lab.LDB_PD_articles}" disabled="#{managedDepot.depot.id le 0}"> 
+                                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                    <p:splitButton value="Importer" type="button" icon="ui-icon-arrowthickstop-1-s" title="#{lab.LDB_PD_importer_tous_articles}" 
+                                                   onclick="dlgImportArticle.show()" ajax="false">
+                                        <p:menuitem value="Ajouter" icon="ui-icon-plusthick" title="#{lab.LDB_PD_ajouter_article}" 
+                                                    onclick="dlgAddArticleDepot.show()" />
+                                    </p:splitButton>                                    
+                                </h:panelGrid>
+                                <p:outputPanel id="blog_form_article_depot">
+                                    <h:inputHidden id="input_hide_article_depot" value="#{managedStockArticle.tabIds}"/> 
+                                    <p:dataTable id="data_article_depot" value="#{managedStockArticle.articles_depot}" var="artf" rowKey="#{artf.id}" 
+                                                 rowIndexVar="artfIdx" style="clear: right" selection="#{managedStockArticle.articlesSelect}"
+                                                 scrollable="true" styleClass="dynamicHeightScrollableTable">
+                                        <p:ajax event="rowSelect" listener="#{managedStockArticle.loadOnViewArticle}" update=":dlg_article_depot:form_article_depot" oncomplete="dlgAddArticleDepot.show()"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedStockArticle.unLoadOnViewArticle}" update=":dlg_article_depot:form_article_depot" oncomplete="dlgAddArticleDepot.show()"/>
+                                        <p:column width="10" >
+                                            <p:rowToggler rendered="#{artf.article.conditionnements.size() gt 1 and artf.suiviStock}"/>
+                                        </p:column>
+                                        <p:column width="20" style="color: #{artf.stockMin > artf.quantiteStock?'red':''}" headerText="N°">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{artf.new_}"/>
+                                            <span>#{artfIdx+1}</span>
+                                            <span style="float: right;font-weight: bold;color:red;display: #{artf.sellWithoutStock?'none':''}" title="#{lab.LDB_PD_text3}"><s>S</s></span>                                            
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_article}" style="color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                                            [<span title="#{lab.LDB_PD_depot_de_calcul_pr}: #{artf.depotPr.designation}" style="font-weight: bold">#{artf.article.refArt}</span>] 
+                                            <span title="#{lab.LDB_PD_depot_de_calcul_pr} : #{artf.depotPr.designation}" style="margin-left: 5px">#{artf.article.designation}</span>
+                                            <p:commandLink actionListener="#{Marticle.applyDepotPr_(artf)}" update="data_article_depot" styleClass="right button_gear_small">
+                                                <h:graphicImage title="#{lab.LDB_PD_depot_determination_pr}" library="icones" name="#{artf.defaultPr?'favoris.png':'ic_star_rate_black_18dp_2x.png'}" width="18" height="18"  />
+                                            </p:commandLink>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_stock}" width="80" style=";text-align: right;color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                                            <p:commandLink title="#{(artf.sellWithoutStock)?'Suspendre la possiblité de vendre sans stock immédiat':'Autorise la vente sans stock immédiat'}" style="width: 20px; float: left"
+                                                           actionListener="#{managedStockArticle.activeSellWithoutStock(artf)}" update="data_article_depot">
+                                                <h:graphicImage library="img"  name="#{(artf.sellWithoutStock)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                                            </p:commandLink>                                            
+                                            <h:outputText value="#{artf.quantiteStock}" converter="DNS"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_stocks}" width="100" style="color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                                            <span>#{lab.LDB_PD_min} :</span>
+                                            <h:outputText value="#{artf.stockMin}" converter="DN" style="font-weight: bold"/>
+                                            <span> - </span>
+                                            <span>#{lab.LDB_PD_max} :</span>
+                                            <h:outputText value="#{artf.stockMax}" converter="DN" style="font-weight: bold"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_securite}" style="text-align: right;width: 12%;color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                                            <div style="float: left;font-size: 0.8em;font-style: italic;margin-top: 2px" title="#{lab.LDB_PD_stock_alerte}">
+                                                #{lab.LDB_PD_alert}:
+                                                <h:outputText value="#{artf.stockAlert}" converter="DN" style="color: blue"/>
+                                            </div>
+                                            <h:outputText value="#{((artf.stockAlert-artf.stockMin)>0?(artf.stockAlert-artf.stockMin):0)}" converter="DN" style="font-weight: bold"/>                                     
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_depot_calcul_pr}" width="150" style="text-align: left;color: #{artf.stockMin > artf.quantiteStock?'red':''}">                                 
+                                            <h:outputText title="#{lab.LDB_PD_depot_calcul_pr}" value="#{artf.depotPr.designation}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_suivi} par lots" width="85" style="text-align: center;color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                                            <p:commandLink style="margin-top: 5px" title="#{(artf.requiereLot)?'Desactiver':'Activer'}" actionListener="#{managedStockArticle.activeRequiredLot(artf, false)}" global="false" update="data_article_depot">
+                                                <h:graphicImage library="img"  name="#{(artf.requiereLot)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_suivi}" width="35" style="text-align: center;color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                                            <p:commandLink style="margin-top: 5px" title="#{(artf.suiviStock)?'Desactiver':'Activer'}" actionListener="#{managedStockArticle.activeSuiviEnStock(artf)}" global="false" update="data_article_depot">
+                                                <h:graphicImage library="img"  name="#{(artf.suiviStock)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_actif}" width="35" style="text-align: center;color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                                            <p:commandLink style="margin-top: 5px" title="#{(artf.actif)?'Desactiver':'Activer'}" actionListener="#{managedStockArticle.activeActicle(artf)}" global="false" update="data_article_depot">
+                                                <h:graphicImage library="img"  name="#{(artf.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                        <p:column width="20" style="text-align: center;color: #{artf.stockMin > artf.quantiteStock?'red':''}">
+                                            <f:facet name="header">
+                                                <p:contextMenu for="delete_article_depot" event="left click" style="width: 300px">
+                                                    <p:menuitem value="#{lab.LDB_PD_depot_calcul_pr}"  icon="ui-icon-person" global="false" onclick="dlgChangeDepotPr.show()"/>
+                                                    <p:menuitem value="Definir principal calcul PR"  icon="ui-icon-plus" actionListener="#{managedStockArticle.definedDepotPrPrincipal(true)}"
+                                                                update="data_article_depot" title="Definir comme depot principal de calcul du pr"/>
+                                                    <p:menuitem value="Retirer principal calcul PR"  icon="ui-icon-minus" actionListener="#{managedStockArticle.definedDepotPrPrincipal(false)}"
+                                                                update="data_article_depot" title="Rétirer en tant que depot principal de calcul du pr"/>
+                                                    <p:separator />
+                                                    <p:menuitem value="Activer"  icon="ui-icon-transferthick-e-w" actionListener="#{managedStockArticle.toogleActiveAllBeanArticle(true)}"
+                                                                update="data_article_depot"/>
+                                                    <p:menuitem value="Désactiver"  icon="ui-icon-transferthick-e-w" actionListener="#{managedStockArticle.toogleActiveAllBeanArticle(false)}"
+                                                                update="data_article_depot"/>
+                                                    <p:menuitem value="#{lab.LDB_PD_activer_suivi_stock}"  icon="ui-icon-check" actionListener="#{managedStockArticle.toogleActiveAllSuiviAllArticle(true)}" title="#{lab.LDB_PD_activer_suivi_stock}"
+                                                                update="data_article_depot"/>
+                                                    <p:menuitem value="#{lab.LDB_PD_desactiver_suivi_stock}"  icon="ui-icon-close" actionListener="#{managedStockArticle.toogleActiveAllSuiviAllArticle(false)}" title="#{lab.LDB_PD_desactiver_suivi_stock}"
+                                                                update="data_article_depot"/>
+                                                    <p:separator />
+                                                    <p:menuitem value="Transferer le stock"  icon="ui-icon-transferthick-e-w" actionListener="#{managedTransfertStock.tryToSendAll(managedDepot.selectDepot)}"
+                                                                rendered="#{accesRessource.base_depot_send_all_stock}"/>
+                                                    <p:menuitem value="Active gestion des lots"  icon="ui-icon-check" actionListener="#{managedStockArticle.toogleActiveAllRequireLot(true)}"
+                                                                update="data_article_depot" title="Activer la gestion des lots"/>
+                                                    <p:menuitem value="Désactive gestion des lots"  icon="ui-icon-close" actionListener="#{managedStockArticle.toogleActiveAllRequireLot(false)}" 
+                                                                update="data_article_depot" title="Désactiver la gestion des lots"/>
+                                                    <p:separator />
+                                                    <p:menuitem value="#{lab.LDB_PD_mode_approvisionnement}" title="#{lab.LDB_PD_mode_approvisionnement}"  icon="ui-icon-transferthick-e-w"
+                                                                global="false" onclick="dlgChangeModeAppro.show()"/>
+                                                    <p:menuitem value="#{lab.LDB_PD_seuils_stock}"  icon="ui-icon-arrowthick-1-ne" onclick="dlgOptionSeuil.show()"/>
+                                                    <p:separator />
+                                                    <p:menuitem value="#{lab.LDB_PD_telecharger}"  icon="ui-icon-print" actionListener="#{managedDepot.printInventaire()}"  ajax="false"/>
+                                                    <p:separator />
+                                                    <p:menuitem value="#{lab.LDB_PD_sup_selection}" onclick="dlgConfirmDeleteArticleSelect.show()" icon="ui-icon-trash"/>
+                                                </p:contextMenu>
+                                                <p:commandButton id="delete_article_depot" icon="ui-icon-gear"  type="button" style="width: 22px; height: 22px"/>   
+                                            </f:facet>
+                                            <p:contextMenu for="btn_option_article_depot" event="left click" style="font-size: 0.8em">
+                                                <p:menuitem value="Calculer le stock" actionListener="#{managedStockArticle.onCalculerStock(artf)}" update="data_article_depot"/>
+                                                <p:menuitem value="#{lab.LDB_PD_conditionnement}" icon="ui-icon-newwin" actionListener="#{managedStockArticle.initConditionnement(artf)}" oncomplete="dlgListConditionnement.show()"
+                                                            update=":dlg_article_depot:form_article_depot"/>
+                                                <p:menuitem value="#{artf.suiviStock?'Des. Suivi stock':'Act. Suivi stock'}" icon="ui-icon-newwin" actionListener="#{managedStockArticle.activeSuiviEnStock(artf)}"
+                                                            update="data_article_depot" />
+                                                <p:menuitem value="#{artf.requiereLot?'Désactiver':'Activer'} lot" icon="ui-icon-newwin" actionListener="#{managedStockArticle.activeRequiredLot(artf)}"
+                                                            update="data_article_depot" />
+                                                <p:separator />
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedStockArticle.deleteBeanArticle_(artf)}" oncomplete="dlgConfirmDeleteArticle_.show()"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_article_depot" type="button"/>
+                                        </p:column> 
+                                        <p:column selectionMode="multiple" style="width:16px;text-align:center" />
+                                        <p:rowExpansion >
+                                            <ui:repeat value="#{artf.article.conditionnements}" var="i_ac" >
+                                                <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0"
+                                                             style="width: 10%; font-size: 0.8em; color: #333333" >
+                                                    <span style="width: 100%;display: inline-block">#{i_ac.unite.libelle}</span>
+                                                    <h:outputText value="#{managedStockArticle.giveStockStock(art_emp.article.id, i_ac.id, art_emp.depot.id)}" 
+                                                                  converter="DNS" style="font-weight: bold; float: right"/>
+                                                </h:panelGrid>                                                                                        
+                                            </ui:repeat>
+                                        </p:rowExpansion>
+                                    </p:dataTable> 
+                                    <p:inplace label="filtrer" style="font-style: italic; color: blue;">
+                                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                            <h:panelGroup>
+                                                <h:panelGrid columns="4">
+                                                    <span>Référence</span>
+                                                    <h:outputText value="Catégorie" />
+                                                    <h:outputText value="Famille" />
+                                                    <h:outputText value="Actif" />
+                                                    <h:inputText title="#{lab.LDB_PD_reference_article}" value="#{managedStockArticle.numSearch}" 
+                                                                 style="width: 180px;background: #009999;color:white;text-align: center;margin-left: -10px">
+                                                        <p:ajax event="valueChange" update="data_article_depot" listener="#{managedStockArticle.searchArticleByRef()}"/>
+                                                    </h:inputText>
+                                                    <h:selectOneMenu value="#{managedStockArticle.categorieSearch}" style="background: #009999;color:white">
+                                                        <f:selectItem itemLabel="--" itemValue="#{null}"/>
+                                                        <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" /> 
+                                                        <p:ajax event="valueChange" listener="#{managedStockArticle.searchArticleByCategorie()}" update="data_article_depot"/>
+                                                    </h:selectOneMenu> 
+                                                    <h:selectOneMenu value="#{managedStockArticle.familleSearch}" style="background: #009999;color:white">
+                                                        <f:selectItem itemLabel="--" itemValue="#{null}"/>
+                                                        <f:selectItems value="#{managedFamilleArticle.familles}" var="ifam_" itemValue="#{ifam_.id}" itemLabel="#{ifam_.designation}" /> 
+                                                        <p:ajax event="valueChange" listener="#{managedStockArticle.searchArticleByFamille()}" update="data_article_depot"/>
+                                                    </h:selectOneMenu> 
+                                                    <h:selectOneMenu value="#{managedStockArticle.paramActifF}" valueChangeListener="#{managedStockArticle.addParamActif}">
+                                                        <f:selectItem itemValue="#{true}"  itemLabel="Actifs" />
+                                                        <f:selectItem itemValue="#{false}"  itemLabel="Inactifs" />
+                                                        <f:selectItem itemValue="#{null}"  itemLabel="Tout" />
+                                                        <p:ajax event="valueChange" update="data_article_depot" />
+                                                    </h:selectOneMenu>
+                                                </h:panelGrid>                                                
+                                            </h:panelGroup>
+                                            <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                                <p:commandButton actionListener="#{managedStockArticle.init(false)}"  update="data_article_depot" icon="ui-icon-circle-triangle-w" disabled="#{managedStockArticle.p_article.disPrev}"/>
+                                                <p:outputPanel ><p:outputLabel value="#{managedStockArticle.p_article.currentPage}/#{managedStockArticle.p_article.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                                <p:commandButton actionListener="#{managedStockArticle.init(true)}"  update="data_article_depot" icon="ui-icon-circle-triangle-e" disabled="#{managedStockArticle.p_article.disNext}"/>
+                                                <p:selectOneMenu value="#{managedStockArticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedStockArticle.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                                    <f:selectItems value="#{managedStockArticle.paginations}"/>
+                                                    <p:ajax event="valueChange"  update="data_article_depot"/>
+                                                </p:selectOneMenu>
+                                            </p:outputPanel>
+                                        </h:panelGrid>
+                                    </p:inplace>                                        
+                                </p:outputPanel>
+                                <div style="clear: both"/>
+                            </p:tab>
+                            <p:tab title="#{lab.LDB_PD_emplacements}" id="blog_form_emplacement_depot" disabled="#{managedDepot.depot.id le 0}">
+                                <div style="width: 30%;float: left">
+                                    <h:panelGrid id="form_emplacement_depot" columns="2" style="width: 100%" styleClass="yvs_table"
+                                                 cellpadding="0" cellspacing="0"> 
+                                        <f:facet name="header">
+                                            <div align="right">
+                                                <span>#{lab.LDB_PD_defaut} </span>
+                                                <h:selectBooleanCheckbox value="#{managedDepot.emplacement.defaut}"/>                                                 
+                                            </div>
+                                        </f:facet>
+                                        <span>#{lab.LDB_PD_code}</span>
+                                        <h:inputText value="#{managedDepot.emplacement.code}"/>
+                                        <span>#{lab.LDB_PD_designation}</span>
+                                        <h:inputText value="#{managedDepot.emplacement.designation}"/>             
+                                        <span>#{lab.LDB_PD_parent} </span>
+                                        <h:selectOneMenu value="#{managedDepot.emplacement.parent.id}" style="min-width: 200px">
+                                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>   
+                                            <f:selectItems value="#{managedDepot.emplacementsParents}" var="emplaP" 
+                                                           itemLabel="#{emplaP.designation}" itemValue="#{emplaP.id}"/>                           
+                                            <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseEmplacementParent()}"/>
+                                        </h:selectOneMenu>  
+                                    </h:panelGrid> 
+                                    <span>#{lab.LDB_PD_description}</span>
+                                    <h:inputTextarea value="#{managedDepot.emplacement.description}" id="txt_desc_empl_depot" rows="3" style="width: 100%"/>
+                                    <div style="margin-top: 5px">
+                                        <p:commandButton id="cancel_emplacement_depot" value="#{lab.L_nouveau}" style="float: left" oncomplete="collapseForm('emplacement_depot')"
+                                                         update="form_emplacement_depot txt_desc_empl_depot" actionListener="#{managedDepot.resetFicheEmplacement()}" global="false"/>
+                                        <p:commandButton id="save_emplacement_depot" value="#{lab.L_enregistrer}" actionListener="#{managedDepot.saveNewEmplacement(true)}"
+                                                         update="form_emplacement_depot data_emplacement_depot txt_desc_empl_depot" style="float: right"/>
+                                    </div>
+                                </div>
+                                <div style="margin-left: 31%;width: 69%">
+                                    <h:inputHidden id="input_hide_emplacement_depot" value="#{managedDepot.tabIds_emplacement}"/>
+                                    <p:dataTable id="data_emplacement_depot" value="#{managedDepot.emplacements}" var="empla" rowKey="#{empla.id}" 
+                                                 rowIndexVar="emplaIdx" selectionMode="single" scrollable="true" scrollHeight="230">
+                                        <p:ajax event="rowSelect" global="false" listener="#{managedDepot.loadOnViewEmplacement}" update=":main_depot:tabview_depot:form_emplacement_depot :main_depot:tabview_depot:txt_desc_empl_depot"/>
+                                        <p:ajax event="rowUnselect" global="false" listener="#{managedDepot.unLoadOnViewEmplacement}" update=":main_depot:tabview_depot:form_emplacement_depot :main_depot:tabview_depot:txt_desc_empl_depot"/>
+                                        <p:column style="width: 8%" headerText="N°">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{empla.new_}"/>
+                                            <span>#{emplaIdx+1}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_code}">
+                                            <span>#{empla.code}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_designation}">
+                                            <h:outputText value="#{empla.designation}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_defaut}" style="width: 8%;text-align: center">
+                                            <p:commandLink global="false" actionListener="#{managedDepot.defautEmplacement(empla)}" update="data_emplacement_depot">
+                                                <h:graphicImage library="img"  name="#{(empla.defaut)?'yes.png':'no.png'}" width="15" height="15"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_actif}" style="width: 8%;text-align: center">
+                                            <p:commandLink title="#{(empla.actif)?'Desactiver':'Activer'}" global="false" 
+                                                           actionListener="#{managedDepot.activeEmplacement(empla)}" update="data_emplacement_depot">
+                                                <h:graphicImage library="img"  name="#{(empla.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                        <p:column style="width: 5%;text-align: center">
+                                            <p:contextMenu for="btn_option_emplacement_depot" event="left click" style="font-size: 0.8em">
+                                                <p:menuitem value="#{lab.LDB_PD_articles}" icon="ui-icon-newwin" actionListener="#{managedDepot.onArticleEmplacement(empla)}" rendered="#{accesRessource.base_depots_add_article_emplacement}"/>
+                                                <p:menuitem value="#{lab.LDB_PD_telecharger_inventaire}" icon="ui-icon-arrowthickstop-1-s" actionListener="#{managedDepot.printInventaire(empla, false)}" ajax="false"/>
+                                                <p:separator/>
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedDepot.deleteBeanEmplacement_(empla)}" oncomplete="dlgConfirmDeleteEmplacement_.show()"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_emplacement_depot" type="button"/>
+                                        </p:column> 
+                                        <p:column style="width: 5%;text-align: center" rendered="false">
+                                            <f:facet name="header">
+                                                <h:selectBooleanCheckbox styleClass="chek_all_line_article_depot" value="false"
+                                                                         onclick="selectionAllLineTab(#{managedDepot.emplacements.size()}, 'emplacement_depot')">
+                                                </h:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <h:selectBooleanCheckbox  value="#{empla.selectActif}" styleClass="chek_line_article_depot" 
+                                                                      onclick="selectionLineTab(#{empla.id}, 'emplacement_depot')">
+                                            </h:selectBooleanCheckbox>
+                                        </p:column>
+                                    </p:dataTable>
+                                    <p:commandButton id="delete_emplacement_depot" value="#{lab.L_supprimer}" style="float: right" rendered="false"
+                                                     onclick="dlgConfirmDeleteEmplacement.show()" global="false"/>
+                                </div>     
+                                <div style="clear: both"/>
+                            </p:tab>                            
+                            <p:tab title="#{lab.LDB_PD_relations}" id="blog_form_liaison_depot" disabled="#{managedDepot.depot.id le 0}">
+                                <div style="width: 49.5%;float: left">
+                                    <h:panelGrid columns="1" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                        <f:facet name="header">
+                                            <span style="float: left;padding: 5px">#{lab.LDB_PD_com_depot}</span>                                            
+                                        </f:facet>
+                                        <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                                            <h:panelGrid id="form_liaison_depot" columns="4" style="padding-top: 5px;margin-bottom: -5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                                <span>#{lab.LDB_PD_agence} </span>
+                                                <h:selectOneMenu value="#{managedDepot.agenceDepot}" id="select_agence_depot" style="min-width: 140px; max-width: 200px">
+                                                    <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                                    <f:selectItems value="#{managedAgence.listAgence}" var="ag" 
+                                                                   itemLabel="#{ag.designation}" itemValue="#{ag.id}" />                                 
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseAgence(true)}" update="select_depot_liaison"/>
+                                                </h:selectOneMenu>         
+                                                <span>#{lab.LDB_PD_depot} </span>
+                                                <h:selectOneMenu value="#{managedDepot.liaison.depot.id}" id="select_depot_liaison" style="min-width: 140px; max-width: 200px">
+                                                    <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                                    <f:selectItems value="#{managedDepot.depots_agence}" var="dep_" 
+                                                                   itemLabel="#{dep_.designation}" itemValue="#{dep_.id}" />        
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseDepot()}"/>                         
+                                                </h:selectOneMenu>  
+                                            </h:panelGrid>
+                                            <p:commandButton icon="ui-icon-plusthick" style="float: right;width: 20px;height: 20px" oncomplete="collapseForm('liaison_depot')"
+                                                             title="#{lab.LDB_PD_ajouter_liaison_depot}" update="form_liaison_depot data_liaison_depot" actionListener="#{managedDepot.saveNewLiasonDepot()}"/>
+                                        </h:panelGrid>
+                                        <p:outputPanel>
+                                            <h:inputHidden id="input_hide_liaison_depot" value="#{managedDepot.tabIds_liaison}"/>
+                                            <p:dataTable id="data_liaison_depot" value="#{managedDepot.liaisons_depot}" var="liais" rowKey="#{liais.id}" 
+                                                         rowIndexVar="liaisIdx" selectionMode="single">
+                                                <p:ajax event="rowSelect" global="false" listener="#{managedDepot.loadOnViewLiaison}" update=":main_depot:tabview_depot:form_liaison_depot"/>
+                                                <p:ajax event="rowUnselect" global="false" listener="#{managedDepot.unLoadOnViewLiaison}" update=":main_depot:tabview_depot:form_liaison_depot"/>
+                                                <p:column style="width: 7%;" headerText="N°">
+                                                    <span>#{liaisIdx+1}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LDB_PD_depot_liaison}">
+                                                    <span>#{liais.depotLier.designation}</span>
+                                                    <h:graphicImage title="#{lab.LDB_PD_depot_transit}" library="img"  name="bookmark.png" width="15" height="15" rendered="#{liais.transit}" style="float: right"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LDB_PD_agence}">
+                                                    <span>#{liais.depotLier.agence.designation}</span>
+                                                </p:column>
+                                                <p:column style="width: 5%;text-align: center">
+                                                    <p:contextMenu for="btn_option_liaison_depot" event="left click" style="font-size: 0.8em;width: 230px">
+                                                        <p:menuitem value="#{lab.LDB_PD_definir_comme_transit}" icon="ui-icon-star" global="false" actionListener="#{managedDepot.activeTransit(liais)}" update="data_liaison_depot"/>
+                                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedDepot.deleteBeanLiaisonDepot_(liais)}" oncomplete="dlgConfirmDeleteLiaison_.show()"/>
+                                                    </p:contextMenu>                           
+                                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_liaison_depot" type="button"/>
+                                                </p:column> 
+                                                <p:column style="width: 5%;text-align: center" rendered="false">
+                                                    <f:facet name="header">
+                                                        <h:selectBooleanCheckbox styleClass="chek_all_line_liaison_depot" value="false"
+                                                                                 onclick="selectionAllLineTab(#{managedDepot.liaisons_depot.size()}, 'liaison_depot')">
+                                                        </h:selectBooleanCheckbox>
+                                                    </f:facet>
+                                                    <h:selectBooleanCheckbox  value="true" styleClass="chek_line_liaison_depot" 
+                                                                              onclick="selectionLineTab(#{liais.id}, 'liaison_depot')">
+                                                    </h:selectBooleanCheckbox>
+                                                </p:column>
+                                            </p:dataTable>
+                                            <p:commandButton id="delete_liaison_depot" value="#{lab.L_supprimer}" style="float: right" rendered="false"
+                                                             onclick="dlgConfirmDeleteLiaison.show()" global="false"/>
+                                        </p:outputPanel>
+                                    </h:panelGrid>
+                                </div>
+                                <div style="width: 49.5%;margin-left: 50.5%">
+                                    <h:panelGrid columns="1" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                        <f:facet name="header">
+                                            <span style="float: left;padding: 5px">#{lab.LDB_PD_com_point_vente}</span>       
+                                        </f:facet>
+                                        <h:panelGrid columns="2" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                                            <h:panelGrid id="form_point_vente_depot" columns="4" style="padding-top: 5px;margin-bottom: -5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                                <span>#{lab.LDB_PD_agence} </span>
+                                                <h:selectOneMenu value="#{managedDepot.agencePoint}" id="select_agence_point_depot" style="min-width: 140px; max-width: 200px">
+                                                    <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                                    <f:selectItems value="#{managedAgence.listAgence}" var="ag" 
+                                                                   itemLabel="#{ag.designation}" itemValue="#{ag.id}" />                                 
+                                                    <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseAgence(false)}" update="select_point_vente"/>
+                                                </h:selectOneMenu>
+                                                <span>#{lab.LDB_PD_point_vente} </span>
+                                                <h:selectOneMenu value="#{managedDepot.pointDepot.pointVente.id}" id="select_point_vente"
+                                                                 onchange="openDialog(dlgAddPointVente, $(this))" style="min-width: 140px; max-width: 200px">
+                                                    <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>   
+                                                    <f:selectItems value="#{managedDepot.pointsvente}" var="point" 
+                                                                   itemLabel="#{point.libelle}" itemValue="#{point.id}"/> 
+                                                    <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>   
+                                                    <f:selectItem itemLabel="#{lab.L_creer}" itemValue="-1"/>                             
+                                                </h:selectOneMenu>
+                                            </h:panelGrid>
+                                            <p:commandButton icon="ui-icon-plusthick" style="float: right;width: 20px;height: 20px" oncomplete="collapseForm('point_vente_depot0')"
+                                                             title="#{lab.LDB_PD_ajouter_liaison_point_vente}" update="form_point_vente_depot data_point_vente_depot0" actionListener="#{managedDepot.saveNewPointDepot()}"/>
+                                        </h:panelGrid>
+                                        <p:outputPanel>
+                                            <h:inputHidden id="input_hide_point_vente_depot0" value="#{managedDepot.tabIds_liaison}"/>
+                                            <p:dataTable id="data_point_vente_depot0" value="#{managedDepot.points_depot}" var="com_"
+                                                         rowKey="#{com_.id}" rowIndexVar="comIdx_" selectionMode="single">
+                                                <p:ajax event="rowSelect" global="false" listener="#{managedDepot.loadOnViewPoint}" update=":main_depot:tabview_depot:form_point_vente_depot"/>
+                                                <p:ajax event="rowUnselect" global="false" listener="#{managedDepot.unLoadOnViewPoint}" update=":main_depot:tabview_depot:form_point_vente_depot"/>
+                                                <p:column style="width: 7%;" headerText="N°">
+                                                    <span>#{comIdx_+1}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LDB_PD_point_vente}">
+                                                    <span>#{com_.pointVente.libelle}</span>
+                                                    <h:graphicImage title="#{lab.LDB_PD_point_principal}" library="img"  name="bookmark.png" width="15" height="15" rendered="#{com_.principal}" style="float: right"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LDB_PD_agence}">
+                                                    <span>#{com_.pointVente.agence.designation}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_actif}" style="width: 8%;text-align: center">
+                                                    <p:commandLink title="#{(com_.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedDepot.activePoint(com_)}" style="margin-top: 5px" update="data_point_vente_depot0">
+                                                        <h:graphicImage library="img"  name="#{(com_.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                                    </p:commandLink>
+                                                </p:column>
+                                                <p:column style="width: 5%;text-align: center">
+                                                    <p:contextMenu for="btn_option_point_vente_depot0" event="left click" style="font-size: 0.8em">
+                                                        <p:menuitem value="#{lab.L_set_principal}" icon="ui-icon-star" global="false" actionListener="#{managedDepot.activePrincipal(com_)}" update="data_point_vente_depot0"/>
+                                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedDepot.deleteBeanPoint_(com_)}" oncomplete="dlgConfirmDeletePoint_.show()"/>
+                                                    </p:contextMenu>                           
+                                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_point_vente_depot0" type="button"/>
+                                                </p:column> 
+                                                <p:column style="width: 5%;text-align: center" rendered="false">
+                                                    <f:facet name="header">
+                                                        <h:selectBooleanCheckbox styleClass="chek_all_line_point_vente_depot" value="false"
+                                                                                 onclick="selectionAllLineTab(#{managedDepot.points_depot.size()}, 'point_vente_depot0')">
+                                                        </h:selectBooleanCheckbox>
+                                                    </f:facet>
+                                                    <h:selectBooleanCheckbox  value="#{com_.select}" styleClass="chek_line_point_vente_depot" 
+                                                                              onclick="selectionLineTab(#{com_.id}, 'point_vente_depot0')">
+                                                    </h:selectBooleanCheckbox>
+                                                </p:column>
+                                            </p:dataTable>
+                                            <p:commandButton value="#{lab.L_supprimer}" id="delete_point_vente_depot0" global="false" rendered="false"
+                                                             onclick="dlgConfirmDeletePoint.show()" style="float: right"/>
+                                        </p:outputPanel>
+                                    </h:panelGrid>
+                                </div>
+                                <div style="clear: both"/>
+                            </p:tab>
+                            <p:tab title="#{lab.LDB_PD_creneaux}" id="blog_form_creneau_depot" disabled="#{managedDepot.depot.id le 0}">
+                                <div style="width: 35%; float: left">
+                                    <h:panelGrid columns="2" id="form_creneau_depot" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                        <span>#{lab.LDB_PD_critere_creneau} </span>
+                                        <h:selectOneMenu value="#{managedDepot.creneau.critere}" id="select_critere" disabled="#{managedDepot.updateCrenau}">
+                                            <f:selectItem itemLabel="--" itemValue="" noSelectionOption="true"/>
+                                            <f:selectItems value="#{managedDepot.criteres}" var="cri_" 
+                                                           itemLabel="#{cri_}" itemValue="#{cri_}"/>                                 
+                                            <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseCritere()}" update="select_type_creneau"/>
+                                        </h:selectOneMenu>
+                                        <span>#{lab.LDB_PD_jour} </span>
+                                        <h:panelGroup>
+                                            <h:selectOneMenu id="txt_jour_creneau" value="#{managedDepot.creneau.jour.id}" disabled="#{managedDepot.creneau.permanent}">
+                                                <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                                <f:selectItems value="#{managedDepot.jours}" var="jr_" 
+                                                               itemLabel="#{jr_.jour}" itemValue="#{jr_.id}" />                                 
+                                                <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseJour()}"/>
+                                            </h:selectOneMenu>
+                                            <h:selectBooleanCheckbox value="#{managedDepot.creneau.permanent}" title="#{lab.LDB_PD_creneau_permanent}" style="float: right">
+                                                <p:ajax event="valueChange" global="false" update="txt_jour_creneau"/>
+                                            </h:selectBooleanCheckbox>
+                                        </h:panelGroup>
+                                        <span>#{lab.LDB_PD_tranche_horaire} </span>
+                                        <h:selectOneMenu value="#{managedDepot.creneau.tranche.id}" id="select_type_creneau">
+                                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                            <f:selectItems value="#{managedDepot.types}" var="typC_" 
+                                                           itemLabel="#{typC_.titre}" itemValue="#{typC_.id}" /> 
+                                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                            <f:selectItem itemLabel="#{lab.L_creer}" itemValue="-1"/>                                
+                                            <p:ajax event="valueChange" global="false" listener="#{managedDepot.chooseType()}"
+                                                    update="gpe_heure_travail"/>
+                                        </h:selectOneMenu>
+                                        <span>#{lab.LDB_PD_heure_travail} </span>
+                                        <h:panelGroup id="gpe_heure_travail">
+                                            <span>#{lab.L_de} </span>
+                                            <h:inputText value="#{managedDepot.creneau.tranche.heureDebut}" converter="TIME" readonly="true" style="width: 25%"/>
+                                            <span> #{lab.L_a} </span>
+                                            <h:inputText value="#{managedDepot.creneau.tranche.heureFin}" converter="TIME" readonly="true" style="width: 25%"/>
+                                        </h:panelGroup>
+                                    </h:panelGrid>
+                                    <div style="margin-top: 5px">
+                                        <p:commandButton value="#{lab.L_nouveau}" id="cancel_creneau" global="false" actionListener="#{managedDepot.resetFicheCreneau()}"
+                                                         update="form_creneau_depot" oncomplete="collapseForm('creneau')"/>
+                                        <p:commandButton value="#{lab.L_enregistrer}" id="save_creneau" actionListener="#{managedDepot.saveNewCreneau()}"
+                                                         update="form_creneau_depot data_creneau" style="float: right"/>
+                                    </div>
+                                </div>
+                                <div style="margin-left: 36%;width: 64%">
+                                    <h:inputHidden id="input_hide_creneau" value="#{managedDepot.tabIds_creneau}"/>
+                                    <p:dataTable id="data_creneau" value="#{managedDepot.creneaux}" var="cren_" rows="7" paginator="true"
+                                                 rowKey="#{cren_.id}" rowIndexVar="crenIdx_" selectionMode="single" paginatorAlwaysVisible="false">
+                                        <p:ajax event="rowSelect" global="false" listener="#{managedDepot.loadOnViewCreneau}" update=":main_depot:tabview_depot:form_creneau_depot"/>
+                                        <p:ajax event="rowUnselect" global="false" listener="#{managedDepot.unLoadOnViewCreneau}" update=":main_depot:tabview_depot:form_creneau_depot"/>
+                                        <p:column style="width: 7%;color: #{cren_.tranche.actif?'':'red'}" headerText="N°">
+                                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{cren_.new_}"/>
+                                            <span>#{crenIdx_+1}</span>
+                                        </p:column>
+                                        <p:column headerText="Id" style="width: 7%;color: #{cren_.tranche.actif?'':'red'}">
+                                            <span>#{cren_.id}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_jour}" style="width: 20%;color: #{cren_.tranche.actif?'':'red'}">
+                                            <span>#{(cren_.permanent)?'-- Permanent -- ':cren_.jour.jour}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_type}" style="width: 20%;color: #{cren_.tranche.actif?'':'red'}">
+                                            <span>#{cren_.critere}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LDB_PD_heure_travail}" style=";color: #{cren_.tranche.actif?'':'red'}">
+                                            <span>#{lab.L_de} </span>
+                                            <h:outputText value="#{cren_.tranche.heureDebut}" converter="TIME"/>
+                                            <span> #{lab.L_a} </span>
+                                            <h:outputText value="#{cren_.tranche.heureFin}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_actif}" style="width: 8%;text-align: center;color: #{cren_.tranche.actif?'':'red'}">
+                                            <p:commandLink title="#{(cren_.actif)?'Desactiver':'Activer'}" global="false" actionListener="#{managedDepot.activeCreneau(cren_)}" update="data_creneau">
+                                                <h:graphicImage library="img"  name="#{(cren_.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                            </p:commandLink>
+                                        </p:column>
+                                        <p:column style="width: 5%;text-align: center;color: #{cren_.tranche.actif?'':'red'}">
+                                            <p:contextMenu for="btn_option_creneau" event="left click" style="font-size: 0.8em">
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedDepot.deleteBeanCreneau_(cren_)}" oncomplete="dlgConfirmDeleteCreneau_.show()"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_creneau" type="button"/>
+                                        </p:column> 
+                                        <p:column style="width: 5%;text-align: center" rendered="false">
+                                            <f:facet name="header">
+                                                <h:selectBooleanCheckbox styleClass="chek_all_line_creneau" value="false"
+                                                                         onclick="selectionAllLineTab(#{managedDepot.creneaux.size()}, 'creneau')">
+                                                </h:selectBooleanCheckbox>
+                                            </f:facet>
+                                            <h:selectBooleanCheckbox  value="#{cren_.selectActif}" styleClass="chek_line_creneau" 
+                                                                      onclick="selectionLineTab(#{cren_.id}, 'creneau')">
+                                            </h:selectBooleanCheckbox>
+                                        </p:column>
+                                    </p:dataTable>
+                                    <p:commandButton value="#{lab.L_supprimer}" id="delete_creneau" onclick="dlgConfirmDeleteCreneau.show()" rendered="false"
+                                                     global="false" style="float: right"/>
+                                </div>     
+                                <div style="clear: both"/>                                            
+                            </p:tab>
+                            <p:tab title="#{lab.LDB_PD_accessibilite}" disabled="#{managedDepot.depot.id le 0}">
+                                <p:dataTable value="#{managedDepot.users}" var="iuser" selectionMode="single" rowIndexVar="line_u" rowKey="#{iuser.id}"
+                                             id="table_2_user" style="max-height: 400px; overflow-y: auto; width: 40%">
+                                    <p:column headerText="N°" width="15">
+                                        #{line_u+1}
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PD_noms_prenoms}" styleClass="#{(iuser.depot ne null and iuser.depot.id gt 0)?'line_actiftrue':'_'}"
+                                              filterBy="#{iuser.nomUsers}">
+                                        #{iuser.nomUsers}
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_agence}" styleClass="#{(iuser.depot ne null and iuser.depot.id gt 0)?'line_actiftrue':'_'}">
+                                        #{iuser.agence.designation}
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PD_vu}" width="15" style="text-align: center">
+                                        <p:commandButton icon="#{(iuser.new_)?'ui-icon-circle-minus':'ui-icon-circle-plus'}" title="#{(iuser.new_)?'Dépôt invisible pour cet utilisateur':'Rendre visible pour cet utilisateur'}"
+                                                         actionListener="#{managedDepot.addLiaisonDepotUser(iuser)}" update="table_2_user @this" style="width: 22px; height: 22px"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </p:tab>
+                        </p:tabView>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_depot" style="width: 99%; margin: auto; background: white">
+                    <h:inputHidden id="input_hide_depot" value="#{managedDepot.tabIds}"/>
+                    <p:dataTable id="data_depot" value="#{managedDepot.depots}" var="dep" rowKey="#{dep.id}" rowIndexVar="depIdx"
+                                 selectionMode="single">
+                        <p:ajax event="rowSelect" listener="#{managedDepot.loadOnView}"  update=":main_depot:input_hide_depot"/>
+                        <p:column headerText="N°" style="width: 5%;text-align: center">
+                            <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{dep.id eq managedDepot.depot.id}"/>
+                            <span>#{depIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PD_code}" style="width: 12%">
+                            <span>#{dep.code}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PD_abbreviation}" style="width: 12%">
+                            <span>#{dep.abbreviation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PD_designation}">
+                            <span>#{dep.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PD_agence}">
+                            <span>#{dep.agence.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PD_operations}" style="text-align: center">
+                            <h:panelGroup>
+                                <h:graphicImage library="img" name="#{(dep.opProduction)?'P_on.png':'P_off.png'}" width="16" height="16" title="#{lab.LDB_PD_production}"/>
+                                <p:spacer width="5"/>
+                                <h:graphicImage library="img" name="#{(dep.opAchat)?'A_on.png':'A_off.png'}" width="16" height="16" title="#{lab.LDB_PD_achat}"/>
+                                <p:spacer width="5"/>
+                                <h:graphicImage library="img" name="#{(dep.opVente)?'V_on.png':'V_off.png'}" width="16" height="16" title="#{lab.LDB_PD_vente}"/>
+                                <p:spacer width="5"/>
+                                <h:graphicImage library="img" name="#{(dep.opTransit)?'T_on.png':'T_off.png'}" width="16" height="16" title="#{lab.LDB_PD_transit}"/>
+                                <p:spacer width="5"/>
+                                <h:graphicImage library="img" name="#{(dep.opRetour)?'R_on.png':'R_off.png'}" width="16" height="16" title="#{lab.LDB_PD_retour}"/>
+                                <p:spacer width="5"/>
+                                <h:graphicImage library="img" name="#{(dep.opTechnique)?'E_on.png':'E_off.png'}" width="16" height="16" title="#{lab.LDB_PD_technique}"/>
+                                <p:spacer width="5"/>
+                                <h:graphicImage library="img" name="#{(dep.opReserv)?'S_on.png':'S_off.png'}" width="16" height="16" title="#{lab.LDB_PD_reservation_sortie}"/>
+                            </h:panelGroup>
+                        </p:column>                                                                                       
+                        <p:column  width="20" style="text-align: center" headerText="#{lab.L_actif}">
+                            <h:graphicImage library="img" name="#{(dep.actif)?'vu.png':'erase-128.png'}" width="10" height="10"/>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <p:contextMenu for="btn_option_depot" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="Planifier" icon="ui-icon-calendar" actionListener="#{managedDepot.addPlanning(dep)}" oncomplete="dlgAddPlanning.show()"/>
+                                <p:menuitem value="#{(dep.actif)?'Desactiver':'Activer'}" icon="#{(dep.actif)?'ui-icon-locked':'ui-icon-unlocked'}" actionListener="#{managedDepot.activeDepot(dep)}" update="data_depot"/>
+                                <p:separator />
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedDepot.deleteBean_(dep)}" oncomplete="dlgConfirmDelete_.show()"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_depot" type="button"/>
+                        </p:column> 
+                        <p:column style="width: 5%;text-align: center">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_depot" value="false"
+                                                         onclick="selectionAllLineTab(#{managedDepot.depots.size()}, 'depot')">
+                                </h:selectBooleanCheckbox>
+                            </f:facet>
+                            <h:selectBooleanCheckbox  value="#{dep.selectActif}" styleClass="chek_line_depot" 
+                                                      onclick="selectionLineTab(#{dep.id}, 'depot')">
+                            </h:selectBooleanCheckbox>
+                        </p:column>
+                    </p:dataTable>     
+                    <span class="nbSelectdepot" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedDepot.init(false)}"  update="data_depot" icon="ui-icon-circle-triangle-w" disabled="#{managedDepot.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedDepot.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedDepot.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedDepot.gotoPagePaginator()}" update="data_depot"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedDepot.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedDepot.init(true)}"  update="data_depot" icon="ui-icon-circle-triangle-e" disabled="#{managedDepot.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedDepot.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedDepot.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedDepot.paginations}"/>
+                            <p:ajax event="valueChange"  update="data_depot"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>       
+                </div>   
+            </div>                
+        </h:form>
+    </ui:define>  
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="cacher"/>  
+            <div class="zone_find">
+                <div class="yvs_form_depot display_auteur size-08" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedDepot.selectDepot.dateSave}" converter="LD" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le}<h:outputText value="#{managedDepot.selectDepot.dateUpdate}" converter="LD" styleClass="valeur" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedDepot.selectDepot.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="5" cellpadding="0" cellspacing="0" id="zone_search_dept">
+                    <h:outputText value="" />
+                    <h:outputText value="#{lab.LDB_PD_agence}" />
+                    <h:outputText value="#{lab.LDB_PD_type}" />
+                    <h:outputText value="#{lab.L_actif}" />
+                    <h:outputText value="#{lab.LDB_PD_reference}" />
+                    <p:commandButton icon="ui-icon-bullet" styleClass="button_gear" actionListener="#{managedDepot.clearParams()}" 
+                                     update=":main_depot:data_depot zone_search_dept"/>
+                    <h:selectOneMenu value="#{managedDepot.agenceSearch}" valueChangeListener="#{managedDepot.addParamAgence}">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                        <p:ajax event="valueChange" update=":main_depot:data_depot" oncomplete="collapseList('depot')"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedDepot.typeSearch}"  valueChangeListener="#{managedDepot.addParamType}">
+                        <f:selectItem itemLabel="--" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{constantes.PRODUCTION}" itemValue="#{constantes.PRODUCTION}"/>
+                        <f:selectItem itemLabel="#{constantes.ACHAT}" itemValue="#{constantes.ACHAT}"/>
+                        <f:selectItem itemLabel="#{constantes.VENTE}" itemValue="#{constantes.VENTE}"/>
+                        <f:selectItem itemLabel="#{constantes.TRANSFERT}" itemValue="#{constantes.TRANSFERT}"/>
+                        <f:selectItem itemLabel="#{constantes.RESERVATION}" itemValue="#{constantes.RESERVATION}"/>
+                        <f:selectItem itemLabel="#{constantes.TECHNIQUE}" itemValue="#{constantes.TECHNIQUE}"/>
+                        <f:selectItem itemLabel="#{constantes.RETOUR}" itemValue="#{constantes.RETOUR}"/>
+                        <p:ajax event="valueChange" update=":main_depot:data_depot" oncomplete="collapseList('depot')"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedDepot.actifSearch}" valueChangeListener="#{managedDepot.addParamActif}">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" update=":main_depot:data_depot" oncomplete="collapseList('depot')"/>
+                    </h:selectOneMenu>
+                    <h:inputText value="#{managedDepot.codeSearch}" style="width: 140px">
+                        <p:ajax event="valueChange" listener="#{managedDepot.addParamCode(managedDepot.codeSearch)}" update=":main_depot:data_depot" oncomplete="collapseList('depot')"/>
+                    </h:inputText>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

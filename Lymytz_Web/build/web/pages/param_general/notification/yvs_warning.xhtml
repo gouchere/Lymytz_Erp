@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml" 
+                xmlns:h="http://java.sun.com/jsf/html" 
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Warning document','modParam', 'smenWarning', true,managedWorkflow)}
+    </ui:define>  
+    <ui:define name="contents">
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('warning');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script> 
+        <h:form prependId="false" >
+            <p:dialog header="Signataires documents" width="80%" widgetVar="dlgSignature"
+                      closeOnEscape="true" >
+                <h:panelGrid columns="5" styleClass="yvs_table" cellpadding="0" cellspacing="0" id="form-save-signature"
+                             >
+                    <f:facet name="header">
+                        <div align="left">
+                            #{managedWorkflow.giveNameSousPage(managedWorkflow.selectModelDoc.titreDoc)}
+                        </div>
+                    </f:facet>
+                    <span>Titre1</span>
+                    <h:outputText value="Titre 2" />
+                    <h:outputText value="Titre 3" />
+                    <h:outputText value="Titre 4" />
+                    <h:outputText value="Titre 5" />
+                    <h:inputText value="#{managedWorkflow.signature.titre1}" />
+                    <h:inputText value="#{managedWorkflow.signature.titre2}" />
+                    <h:inputText value="#{managedWorkflow.signature.titre3}" />
+                    <h:inputText value="#{managedWorkflow.signature.titre4}" />
+                    <h:inputText value="#{managedWorkflow.signature.titre5}" />
+                </h:panelGrid>                
+                <p:splitButton value="Enregistrer" icon="ui-icon-plus" actionListener="#{managedWorkflow.addSignature()}"
+                               style="float: right">
+                    <p:menuitem value="Nouveau" icon="ui-icon-document" actionListener="#{managedWorkflow.resetForm()}" />
+                </p:splitButton>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_warning">
+            #{managedWorkflow.loadAll('W,A')}  
+            <div class="part_scroll">
+                <p:dataTable value="#{managedWorkflow.warnings}" var="etape" rowKey="#{etape.id}"
+                             id="data_warning_doc" editable="true" rowIndexVar="idxY">
+                    <p:ajax event="rowEdit" listener="#{managedWorkflow.onRowWarningEdit}"/>
+                    <p:column headerText="N°" width="50" style="text-align: center" styleClass="line_valide_#{etape.id gt 0}">
+                        #{idxY+1}
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference} " styleClass="line_valide_#{etape.id gt 0}" style="text-align: left">
+                        #{etape.model.titreDoc}
+                    </p:column>
+                    <p:column headerText="#{lab.LMP_PW_document} " styleClass="line_valide_#{etape.id gt 0}" style="text-align: left">
+                        #{managedWorkflow.giveNameSousPage(etape.model.titreDoc)}
+                    </p:column>
+                    <p:column headerText="#{lab.L_description} " styleClass="line_valide_#{etape.id gt 0}" style="text-align: left">
+                        #{etape.model.description}
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PTBVs_ecart}" styleClass="line_valide_#{etape.id gt 0}" style="text-align: right">
+                        <f:facet name="header">
+                            <div align="left">
+                                <span>#{lab.LC_PTBVs_ecart}</span>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-s" style="float: right;width: 18px;height: 18px;background: white!important"
+                                                 title="#{lab.LMP_PW_ajouter_tout}" actionListener="#{managedWorkflow.addAddWarning()}"/>
+                            </div>
+                        </f:facet>
+                        <p:cellEditor>
+                            <f:facet name="output">
+                                <h:outputText value="#{etape.ecart}" converter="DNS"/>
+                                <h:outputText styleClass="style_unite" value="Jour(s)" />
+                            </f:facet>
+                            <f:facet name="input">
+                                <h:inputText  value="#{etape.ecart}" style="width:70%"/>
+                            </f:facet>
+                        </p:cellEditor>
+                    </p:column>
+                    <p:column style="text-align: center;width: 5px">
+                        <p:rowEditor />
+                    </p:column>  
+                    <p:column style="text-align: center;width: 5px">
+                        <p:commandButton icon="ui-icon-gear" styleClass="button_gear" id="btn-param" type="button" />
+                        <p:contextMenu for="btn-param" event="left click">
+                            <p:menuitem value="Signature doc." icon="ui-icon-openfolder" 
+                                        actionListener="#{managedWorkflow.selectModelDocToAdd(etape.model)}"/>
+                        </p:contextMenu>
+                    </p:column>  
+                </p:dataTable>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

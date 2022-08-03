@@ -1,0 +1,378 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"      
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Note de frais', 'modRh', 'smenNoteFrais', true,managedNoteDeFrais)}
+    </ui:define>      
+    <ui:define name="content" >
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('noteFrais');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        #{managedNoteDeFrais.onPageNote(true)} 
+        #{managedNoteDeFrais.loadAll()}
+        #{managedNoteDeFrais.loadAllTypeDepense()}
+        <h:form prependId="false" id="entete-note-00">           
+            <h:panelGrid columns="1"  style="float: right" rendered="#{managedNoteDeFrais.faireSuivre}">                  
+                <p:outputPanel style="float: right">
+                    <div style="float: right">
+                        <li class="file_#{noteDeFrais.statut=='Créee'}" >#{lab.LRH_PNF_cree}</li>
+                        <li class="file_#{noteDeFrais.statut=='Soumise'}">#{lab.LRH_PNF_soumise}</li>
+                        <li class="file_#{noteDeFrais.statut=='Approuvée'}">#{lab.LRH_PNF_approuvee}</li>
+                        <li class="file_#{noteDeFrais.statut=='Refusée'}">#{lab.LRH_PNF_refusee} </li>
+                        <li class="file_#{noteDeFrais.statut=='Payée'}">#{lab.LRH_PNF_payee}</li>
+                    </div>
+                </p:outputPanel>
+            </h:panelGrid>  
+            <div style="clear: right"/>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteD" closeOnEscape="true"
+                             message="#{lab.LRH_PNF_text}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNoteDeFrais.deleteAllDepense()}" oncomplete="dlgConfirmDeleteD.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmDeleteD.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteN" closeOnEscape="true"
+                             message="#{lab.LDB_PD_text3}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedNoteDeFrais.deleteBeanNoteFrais()}" oncomplete="dlgConfirmDeleteN.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmDeleteN.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form prependId="false" id="dialog-parma-note-00">  
+            <p:dialog header="#{lab.LRH_PNF_liste_type_depense}" widgetVar="dlgTypeDepense" width="500" height="350"
+                      closeOnEscape="true" resizable="false" dynamic="true">
+                <p:outputPanel id="dialog-parma-not-01">
+                    <h:panelGrid columns="2" rendered="#{!managedNoteDeFrais.vueListeType}" style="float: left">
+                        <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedNoteDeFrais.saveNewTypeDepense()}"/>
+                        <p:commandButton value="#{lab.L_annuler}" actionListener="#{managedNoteDeFrais.resetFicheTypeDepense()}"/>
+                    </h:panelGrid>
+                    <h:panelGrid columns="1" style="float: right">
+                        <p:commandButton value="#{managedNoteDeFrais.nameVueDialogType}" actionListener="#{managedNoteDeFrais.changeVueDialogType()}"/>
+                    </h:panelGrid>
+                    <div style="clear: right"/>
+                </p:outputPanel>
+                <p:separator style="width: 100%"/>   
+                <p:outputPanel id="dialog-parma-not-00">
+                    <p:outputPanel id="dialog-parma-not-001" rendered="#{managedNoteDeFrais.vueListeType}">
+                        <p:dataTable value="#{managedNoteDeFrais.listTypeDepense}" var="typ1" rowKey="#{typ1.id}" selectionMode="single" 
+                                     scrollable="true" scrollHeight="250"> 
+                            <p:ajax event="rowSelect" listener="#{managedNoteDeFrais.loadOnViewTypeDepense2}"/>
+                            <p:ajax event="rowUnselect" listener="#{managedNoteDeFrais.unLoadOnViewTypeDepense2}"/>
+                            <p:column headerText="#{lab.LRH_PNF_type_depense}" filterMatchMode="contains"> 
+                                <h:outputText value="#{typ1.typeDepense}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_montant}" filterMatchMode="contains">
+                                <h:outputText value="#{typ1.montant}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PNF_marge}">
+                                <h:outputText value="#{typ1.marge}" converter="DN"/>
+                            </p:column>
+                        </p:dataTable>
+                    </p:outputPanel>
+                    <p:outputPanel id="dialog-parma-not-002" rendered="#{!managedNoteDeFrais.vueListeType}">
+                        <p:panelGrid columns="2" style="width: 100%">
+                            <p:outputLabel value="#{lab.LRH_PNF_type_depense} : "/>
+                            <p:inputText value="#{managedNoteDeFrais.typeDepense.typeDepense}">
+                                <p:ajax event="blur" global="false"/>
+                            </p:inputText>
+                            <p:outputLabel value="#{lab.L_montant} : "/>
+                            <pe:inputNumber value="#{managedNoteDeFrais.typeDepense.montant}">
+                                <p:ajax event="blur"/>
+                            </pe:inputNumber>
+                            <p:outputLabel value="#{lab.LRH_PNF_marge} : "/>
+                            <pe:inputNumber value="#{managedNoteDeFrais.typeDepense.marge}" converter="DN">
+                                <p:ajax event="blur"/>
+                            </pe:inputNumber>
+                        </p:panelGrid>
+                    </p:outputPanel>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="form_realiseT_02">         
+            <p:dialog header="#{lab.LDB_PCB_liste_employes_actif}" widgetVar="dlgEmploye" width="85%" height="600"
+                      closeOnEscape="true" resizable="false"  modal="true" footer="#{lab.L_copy}">  
+                <p:inputText value="#{MEmps.matriculeToUpdate}" style="float: left">
+                    <p:ajax event="keyup" listener="#{MEmps.findEmploye()}"
+                            update="gridEmployes_noteDF tabEmployes_noteDF" global="false" process="@this"
+                            oncomplete="collapseGrid('employe_formation');"/>
+                </p:inputText>
+                <div style="float: right" >                        
+                    <h:link onclick="collapseList('employe_formation');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link  onclick="collapseGrid('employe_formation');
+                            return false" title="#{lab.LP_PPG_vue_hieraechique}">
+                        <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                                               
+                </div>         
+                <div style="clear: right"/>  
+                <div class="yvs_list_employe_noteDF">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                 widgetVar="tabEmployes" id="tabEmployes_noteDF" selectionMode="single"
+                                 scrollable="true" scrollHeight="500" > 
+                        <p:ajax event="rowSelect" listener="#{managedNoteDeFrais.loadViewEmploye}"/>
+                        <p:column headerText="N°" width="15" style="text-align: center">
+                            <h:outputText value="#{line_e+1}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                            <h:outputText value="#{emp.nom} #{emp.prenom}" />
+                        </p:column>                        
+                        <p:column headerText="#{lab.LCF_PSL_matricule}" width="90" style="text-align: center">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PD_poste} " width="200">
+                            <h:outputText value="#{emp.posteActif.intitule}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+                <div class="yvs_grid_employe_formation">
+                    <p:dataGrid value="#{MEmps.listEmployes}" var="emp1" columns="3" 
+                                id="gridEmployes_noteDF" >
+                        <p:panelGrid columns="1"  style="width: 100%">
+                            <f:facet name="header">
+                                <p:commandLink   actionListener="#{managedNoteDeFrais.choixEmploye1(emp1)}"
+                                                 >
+                                    <p:graphicImage library="lymytz/documents/docEmps/perso/photo" name="#{(emp1.photos==null)?'user1.png':emp1.photos}" width="100" height="100" />                                                                      
+                                    <f:setPropertyActionListener value="#{emp1}" target="#{managedTacheEmps.employe}" />
+                                </p:commandLink>
+                            </f:facet>
+                        </p:panelGrid>
+                        <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                            <span>#{lab.L_noms_prenoms}</span>
+                            <h:outputText value="#{emp1.prenom} #{emp1.nom}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LCF_PSL_matricule}</span>
+                            <h:outputText value="#{emp1.matricule}" style="font-weight: bold; font-size: 1.1em"/> 
+                            <span>#{lab.LRH_PD_poste}</span>
+                            <h:outputText value="#{emp1.posteActif.intitule}" style="font-weight: bold; font-size: 1.1em"/> 
+                        </h:panelGrid>
+                    </p:dataGrid>
+                </div>               
+            </p:dialog>
+        </h:form>             
+        <h:form prependId="false"  id="blog-note-00">
+            <div class="part_fix">
+                <div style="float: left">
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedNoteDeFrais.saveNew()}" id="save_noteFrais"/>
+                    <p:commandButton value="#{lab.L_annuler}" actionListener="#{managedNoteDeFrais.resetFiche()}" id="cancel_noteFrais"/>
+                    <p:menuitem value="#{lab.L_supprimer}" actionListener="#{managedNoteDeFrais.deleteBean()}" id="delete_noteFrais"/>
+                </div>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('noteFrais');
+                            return false;">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>          
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('noteFrais');
+                            return false;" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>    
+                </div>
+                <div style="clear: right" />
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_noteFrais">
+                    <h:panelGrid columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="">
+                        <span>#{lab.L_date}</span>
+                        <p:calendar value="#{noteDeFrais.date}" pattern="dd-MM-yyyy" navigator="true" size="8"/>
+                        <span>#{lab.LRH_PPT_employe}</span>
+                        <h:panelGroup>
+                            <p:inputText value="#{noteDeFrais.employe.nom}" />
+                            <p:commandButton icon="ui-icon-search" onclick="dlgEmploye.show()"/>                    
+                        </h:panelGroup> 
+                    </h:panelGrid>
+                    <div>#{lab.L_description}</div>
+                    <h:inputTextarea value="#{noteDeFrais.description}" rows="4" style="width: 100%" />
+                    <h:panelGrid columns="4"  style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <span>#{lab.LRH_PNF_centre_analytique} </span>
+                        <h:selectOneMenu value="#{managedNoteDeFrais.centre.id}" valueChangeListener="#{managedNoteDeFrais.choixCentreAnalytique}">
+                            <f:selectItem itemValue="0" itemLabel="" />
+                            <f:selectItem itemValue="1" itemLabel="#{lab.LRH_PPT_departements}" />
+                            <f:selectItem itemValue="2" itemLabel="#{lab.LDB_PCB_missions}" />
+                            <f:selectItem itemValue="3" itemLabel="#{lab.LRH_PNF_formations}" />
+                            <p:ajax event="valueChange" />
+                        </h:selectOneMenu>
+                        <span>#{lab.LRH_PNF_element}</span>
+                        <h:selectOneMenu id="select-analytique-note" value="#{managedNoteDeFrais.centre.idSource}"
+                                         valueChangeListener="#{managedNoteDeFrais.choixObjetAnalytique}">
+                            <f:selectItem itemValue="0" itemLabel="" />
+                            <f:selectItems  value="#{managedNoteDeFrais.listEltAnalytique}" var="elt"
+                                            itemValue="#{elt.id}" itemLabel="#{elt.libelle}"/>                            
+                            <p:ajax event="valueChange" />
+                        </h:selectOneMenu>
+                        <span>#{lab.LRH_PNF_type_de_depense}</span>
+                        <h:selectOneMenu value="#{managedNoteDeFrais.depense.typeDeDepense.id}"
+                                         valueChangeListener="#{managedNoteDeFrais.choixTypeDepense}">
+                            <f:selectItem itemValue="0" itemLabel="" />
+                            <f:selectItems  value="#{managedNoteDeFrais.listTypeDepense}" var="typ2"
+                                            itemValue="#{typ2.id}" itemLabel="#{typ2.typeDepense}"/>   
+                            <f:selectItem  itemValue="0" itemLabel="" />
+                            <f:selectItem  itemValue="-1" itemLabel="#{lab.L_plus_de_choix}" />                         
+                            <p:ajax event="valueChange" />
+                        </h:selectOneMenu>
+                        <p:outputLabel value="#{lab.L_montant} : " />
+                        <pe:inputNumber value="#{managedNoteDeFrais.depense.montant}"/>                                
+                        <p:outputLabel value="#{lab.LRH_PNF_montant_approuve} : " />
+                        <pe:inputNumber value="#{managedNoteDeFrais.depense.montantApprouve}"/>
+                        <f:facet name="footer">
+                            <p:commandButton value="#{managedNoteDeFrais.nameBtnAddDepense}" actionListener="#{managedNoteDeFrais.addDepenseNote()}"/>
+                            <p:commandButton value="#{lab.L_nouveau}" actionListener="#{managedNoteDeFrais.resetFicheDepense()}" style="float: right"/>
+                        </f:facet>  
+                    </h:panelGrid>
+                    <p:panelGrid  style="width: 100%" styleClass="yvs_table">
+                        <h:panelGrid columns="2">
+                            <p:outputLabel value="#{lab.LRH_PNF_total_montant} : " />
+                            <h:outputText value="#{noteDeFrais.totalMontant}" converter="DN"/>
+                            <p:outputLabel value="#{lab.LRH_PNF_total_montant_approuve} : "/>
+                            <h:outputText value="#{noteDeFrais.totalMontantApprouve}" converter="DN"/>
+                        </h:panelGrid>
+
+                        <p:panel header="#{lab.LDB_PCB_depenses}"  id="blog-depense-note">
+                            <p:panelGrid columns="2" style="width: 100%">
+                                <p:panelGrid columns="1" id="tab-depense-note">
+                                    <p:dataTable value="#{managedNoteDeFrais.listDepense}" var="dep2" rowKey="#{dep2.typeDeDepense.id}"
+                                                 selectionMode="multiple" selection="#{managedNoteDeFrais.listSelectDepense}">
+                                        <p:ajax event="rowSelect" listener="#{managedNoteDeFrais.loadOnViewDepense}"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedNoteDeFrais.unLoadOnViewDepense}"/>
+                                        <p:column headerText="Depense" filterMatchMode="contains"> 
+                                            <h:outputText value="#{dep2.typeDeDepense.typeDepense}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_montant}" filterMatchMode="contains"> 
+                                            <h:outputText value="#{dep2.montant}" converter="DN"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LRH_PNF_montant_approuve}" filterMatchMode="contains"> 
+                                            <h:outputText value="#{dep2.montantApprouve}" converter="DN"/>
+                                        </p:column>
+                                    </p:dataTable>
+                                    <f:facet name="footer">
+                                        <p:commandButton value="#{lab.L_supprimer}" actionListener="#{managedNoteDeFrais.removeDepenseNote()}"
+                                                         rendered="#{managedNoteDeFrais.updateDepense}"/>
+                                    </f:facet>
+                                </p:panelGrid>
+                            </p:panelGrid>
+                        </p:panel>
+                    </p:panelGrid>
+                </div>
+                <div class="yvs_list_noteFrais">
+                    <p:dataTable value="#{managedNoteDeFrais.listNote}" var="notes"
+                                 widgetVar="tableauRegle" rowKey="#{notes.id}" selectionMode="single" style="text-align: center"> 
+                        <p:ajax event="rowSelect" listener="#{managedNoteDeFrais.loadOnView}"/>
+                        <p:ajax event="rowUnselect" listener="#{managedNoteDeFrais.unLoadOnView}"/>
+                        <f:facet name="header">
+                            #{managedNoteDeFrais.nameTableauNote}
+                        </f:facet>
+                        <p:column width="5%">
+                            <h:graphicImage library="img"  name="#{(notes.selectActif)?'connecte.png':'deconnecte.png'}" width="15" height="15"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PT_employe}" filterMatchMode="contains"> 
+                            <h:outputText value="#{notes.employe.prenom} #{notes.employe.nom}"/>
+                        </p:column>                    
+                        <p:column headerText="#{lab.LRH_PNF_source}" filterMatchMode="contains"> 
+                            <h:outputText value="#{notes.centreAnal.nameSource}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date}" filterMatchMode="contains">
+                            <h:outputText value="#{notes.date}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_description}">
+                            <h:outputText value="#{notes.description}"/>
+                        </p:column>
+                        <p:rowExpansion>
+                            <p:dataTable value="#{notes.depenses}" var="dep1" rowKey="#{dep1.typeDeDepense.id}" style="text-align: left">
+                                <p:column headerText="#{lab.LDB_PCB_depenses}">
+                                    <h:outputText value="#{dep1.typeDeDepense.typeDepense}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_montant}">
+                                    <h:outputText value="#{dep1.montant}" converter="DN"/>
+                                </p:column>  
+                                <p:column headerText="#{lab.LRH_PNF_montant_approuve}">
+                                    <h:outputText value="#{dep1.montantApprouve}" converter="DN"/>
+                                </p:column>                                                        
+                            </p:dataTable>
+                        </p:rowExpansion>
+                    </p:dataTable>
+                </div>
+            </div>        
+            <p:outputPanel id="form-note-01" rendered="#{!managedNoteDeFrais.vueListe and !managedNoteDeFrais.faireSuivre}">
+                #{managedNoteDeFrais.loadAllTypeDepense()}
+
+            </p:outputPanel>
+            <p:outputPanel id="form-note-02" rendered="#{managedNoteDeFrais.faireSuivre}">
+                <p:panel>
+                    <h:panelGrid columns="2" style="float: left"> 
+                        <p:commandButton value="#{lab.LRH_PNF_soumettre}" actionListener="#{managedNoteDeFrais.soumettreNote()}"
+                                         rendered="#{managedNoteDeFrais.soumis}"/>
+                        <p:commandButton value="#{lab.LRH_PNF_approuver}" actionListener="#{managedNoteDeFrais.approuverNote()}"
+                                         rendered="#{managedNoteDeFrais.approuver}"/>
+                        <p:commandButton value="#{lab.LRH_PNF_refuser}" actionListener="#{managedNoteDeFrais.refuserNote()}"
+                                         rendered="#{managedNoteDeFrais.refuser}"/>
+                        <p:commandButton value="#{lab.L_annuler}" actionListener="#{managedNoteDeFrais.annulerNote()}"
+                                         rendered="#{managedNoteDeFrais.annuler}"/>
+                        <p:commandButton value="#{lab.LRH_PNF_relancer}" actionListener="#{managedNoteDeFrais.relancerNote()}"
+                                         rendered="#{managedNoteDeFrais.relancer}"/>
+                        <p:commandButton value="#{lab.LCF_POD_payer}" actionListener="#{managedNoteDeFrais.payerNote()}"
+                                         rendered="#{managedNoteDeFrais.payer}"/>                        
+                    </h:panelGrid>
+                    <p:separator style="width: 100%"/>  
+                    <h:panelGrid columns="1" style="width: 100%">
+                        <h:panelGrid columns="2" style="width: 100%;margin-top: 3%">
+                            <h:panelGrid columns="2">
+                                <p:outputLabel value="#{lab.L_nom_prenom} :"/>
+                                <h:outputText value="#{noteDeFrais.employe.prenom} #{noteDeFrais.employe.nom}" style="float: left"/>
+                                <p:outputLabel value="#{lab.LDB_PCB_poste} :"/>
+                                <h:outputText value="#{noteDeFrais.employe.posteDeTravail.intitule}"/>
+                                <p:outputLabel value="#{lab.LRH_PA_departement} :"/>
+                                <h:outputText value="#{noteDeFrais.employe.posteDeTravail.departement.intitule}"/>
+                            </h:panelGrid>
+                            <h:panelGrid columns="2">
+                                <p:outputLabel value="#{lab.LRH_PNF_date_note}:"/>
+                                <h:outputText value="#{noteDeFrais.date}" converter="DATE"/>
+                                <p:outputLabel value="#{lab.L_description} :"/>
+                                <h:outputText value="#{noteDeFrais.description}"/>
+                                <p:outputLabel value="#{lab.LRH_PNF_centre_analytique} :"/>
+                                <h:outputText value="#{noteDeFrais.centreAnal.nameSource}"/>
+                            </h:panelGrid>
+                        </h:panelGrid>
+                        <h:panelGrid columns="2" style="width: 100%;margin-top: 3%">
+                            <p:dataTable value="#{noteDeFrais.depenses}" var="dep2" rowKey="#{dep2.typeDeDepense.id}" style="text-align: left">
+                                <p:column headerText="#{lab.LDB_PCB_depenses}">
+                                    <h:outputText value="#{dep2.typeDeDepense.typeDepense}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_montant}">
+                                    <h:outputText value="#{dep2.montant}" converter="DN"/>
+                                </p:column>  
+                                <p:column headerText="#{lab.LRH_PNF_montant_approuve}">
+                                    <h:outputText value="#{dep2.montantApprouve}" converter="DN"/>
+                                </p:column>                                                        
+                            </p:dataTable>
+                            <f:facet name="footer">                             
+                                <h:panelGrid columns="2" style="float: right">
+                                    <p:outputLabel value="#{lab.LC_PES_montant_total} :" style="font-weight: 900;font-size: medium"/>
+                                    <h:outputText value="#{managedNoteDeFrais.totalMontant}" style="font-weight: 900;font-size: medium"/>
+                                </h:panelGrid>
+                            </f:facet>
+                        </h:panelGrid>
+                        <f:facet name="footer">
+                            <h:panelGrid columns="2" style="float: left">
+                                <p:outputLabel value="#{lab.LRH_PNF_montant_payer} :" style="font-weight: 900;font-size: x-large"/>
+                                <h:outputText value="#{managedNoteDeFrais.totalMontantApprouve}" style="font-weight: 900;font-size: x-large"/>
+                            </h:panelGrid>
+                        </f:facet>
+                    </h:panelGrid>
+                </p:panel>
+            </p:outputPanel>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,81 @@
+<script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height()- $('body').find('#bottom').height()-30);                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 135);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('facture_vente');
+                collapseForm('contenu_facture_vente');
+                collapseForm('mensualite_facture_vente');
+                collapseForm('reglement_vente');
+                collapseForm('remise_vente');
+                collapseList('facture_vente_');
+                // slideZoneOnClick(null, 'form_sub_piece');
+            });
+        </script>
+        #{managedParamForm.loadParamFormulaire('EDITION_FACTURE_VENTE')}
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmDelSubPiece" closeOnEscape="true"
+                             message="Souhaitez-vous réellement supprimer cette pièce ?">
+                <h:panelGrid columns="2" style="font-size: 0.8em; float: right">
+                    <span>Ne plus me rappeler</span>
+                    <p:selectBooleanCheckbox value="#{managedReglementVente.remindDelSubPiece}" />
+                </h:panelGrid>       
+                <p:commandButton value="Annuler" onclick="dlgConfirmDelSubPiece.hide()"  type="button" icon="ui-icon-circle-close"/>                    
+                <p:commandButton value="Continuer"  icon="ui-icon-circle-check" actionListener="#{managedReglementVente.deleteSubPieceCaisse()}" oncomplete="dlgConfirmDelSubPiece.hide()"/>
+                </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="Gestion des pièce extournées" widgetVar="dlgotherP" width="65%" style=" max-height: 600px">
+                <div >
+                    <span class="button_slide" style="float: right; cursor: pointer; display: inline-block; height: 15px; margin-bottom: 10px"
+                          onclick="slideZoneOnClick('button_slide', 'form_sub_piece')">[+]</span>
+                    <div id="form_sub_piece" style="clear: right">
+                        <h:panelGrid columns="2" style="width: 100%" id="form_edit_sub_piece">                        
+                            <span>Caisses/Banques</span>
+                            <h:selectOneMenu value="#{managedReglementVente.avance.caisse.id}">
+                                <f:selectItem itemValue="#{0}" itemLabel="" />
+                                <f:selectItems value="#{managedCaisses.caisses}" var="_icaiss" itemLabel="#{_icaiss.intitule}" itemValue="#{_icaiss.id}" />
+                                <p:ajax event="valueChange"/>
+                            </h:selectOneMenu>
+                            <span>Montant</span>
+                            <pe:inputNumber value="#{managedReglementVente.avance.montant}" />
+                            <f:facet name="header">
+                                <h:inputTextarea rows="2" style="width: 100%" value="#{managedReglementVente.avance.description}" />
+                            </f:facet>
+                        </h:panelGrid>
+                        <p:commandButton value="Modifier" icon="ui-icon-refresh" actionListener="#{managedReglementVente.updateSubPiece()}" 
+                                         style="float: right"/>
+                    </div>
+                </div>
+                <p:dataTable value="#{managedReglementVente.selectedPiece.othersReglements}" var="ioreg" selectionMode="single" rowKey="#{ioreg.id}"
+                             id="data_sous_pieces_facture_vente">
+                    <p:ajax event="rowSelect" listener="#{managedReglementVente.chooseLineSubPiece}" 
+                            oncomplete="slideZoneOnClick_('button_slide', 'form_sub_piece',false)"/>
+                    <p:column headerText="Numéro" styleClass="statut_#{ioreg.statutPiece}">
+                        #{ioreg.numeroPiece}
+                    </p:column>
+                    <p:column headerText="Notes" styleClass="statut_#{ioreg.statutPiece}">
+                        #{ioreg.note}
+                    </p:column>
+                    <p:column headerText="Banque/Caisse" styleClass="statut_#{ioreg.statutPiece}">
+                        #{ioreg.caisse.intitule}
+                    </p:column>
+                    <p:column headerText="Montant" styleClass="statut_#{ioreg.statutPiece}">
+                        <h:outputText value="#{ioreg.montant}" converter="#{managedFactureVente.converter}" />
+                    </p:column>
+                    <p:column headerText="Statuts" styleClass="statut_#{ioreg.statutPiece}">
+                        <h:outputText value="#{managedFactureVente.giveNameStatut(ioreg.statutPiece)}" />
+                    </p:column>
+                    <p:column headerText="" >
+                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btn_for_sous_piece"/>
+                        <p:contextMenu for="btn_for_sous_piece" event="left click">
+                            
+                            <p:menuitem value="#{(ioreg.statutPiece eq constantes.STATUT_DOC_PAYER)?'Annuler':'Régler'}" icon="#{(ioreg.statutPiece eq constantes.STATUT_DOC_PAYER)?'ui-icon-close':'ui-icon-circle-check'}"
+                                        />
+                            <p:menuitem value="Comptabiliser" icon="ui-icon-arrowthick-2-e-w" />
+                            <p:separator />
+                            <p:menuitem value="Supprimer" icon="ui-icon-trash" actionListener="#{managedReglementVente.openConfirDeleteSubPiece(ioreg)}"/>
+                        </p:contextMenu>
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>

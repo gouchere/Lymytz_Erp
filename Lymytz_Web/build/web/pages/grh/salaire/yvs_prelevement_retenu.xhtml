@@ -1,0 +1,1060 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml" 
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:pe="http://primefaces.org/ui/extensions" 
+                xmlns:f="http://java.sun.com/jsf/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Prélèvement','modRh', 'smenPrelevement', true,managedRetenue)}
+    </ui:define>      
+    <ui:define name="contents">
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 160);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('retenueEmploye');
+            });
+        </script>  
+        #{managedRetenue.loadAll()}
+        #{managedRetenue.loadAllPrelevement(true, true)}
+        #{managedRetenue.loadAllTypeElementAdd()}        
+        #{MEmps.loadAllEmployesByAgence(true, true)}    
+        #{managedCompte.doNothing()}
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue de creation des catégories comptable
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PTA_liste_compte}" widgetVar="dlgListComptes" modal="true" width="50%" closeOnEscape="true">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PTT_saisir_compte_g}" for="txt_cmpte_comptes_type_retenu"/>
+                    <p:watermark value="#{lab.LDB_PTT_saisir_nature_compte}" for="txt_nature_comptes_type_retenu"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_comptes_type_retenu">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_type_retenu" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_comptes_type_retenu">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_type_retenu" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_type_retenu" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_type_retenu" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_type_retenu"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_type_retenu" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cptIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedRetenue.loadOnViewCompte}"  oncomplete="dlgListComptes.hide()"/>
+                        <p:column width="15">
+                            <span>#{cptIdx+1}</span>
+                        </p:column>
+                        <p:column  headerText="#{lab.L_numero}" width="30">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>  
+                </div>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="form_form_pan_ret_reg">
+            <p:dialog width="50%" widgetVar="dlgPcVente" header="#{lab.LRH_PRS_piece_vente} " closeOnEscape="true" >
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                             id="form_pan_ret_reg">
+                    <f:facet name="header">
+                        <div align="left">
+                            <span style="font-style: normal">#{lab.LRH_PRS_piece_caisse_numero} :</span>
+                            <h:outputText  value=" #{managedRetenue.selectedRetenue.piceReglement.numeroPiece}"  style="width: 100%; font-weight: bold"/>
+                            <span style="display: #{(managedRetenue.selectedRetenue.piceReglement.statutPiece==constantes.STATUT_DOC_ATTENTE)?'inline-block':'none'}; width: 10px; height: 10px; background: #444;" title="#{lab.LC_PFA_en_attente_paiment}"></span>
+                            <span style="display: #{(managedRetenue.selectedRetenue.piceReglement.statutPiece==constantes.STATUT_DOC_ENCOUR)?'inline-block':'none'}; width: 10px; height: 10px; background: #f6a828" title="#{lab.LC_PFA_en_cours_paiment}"></span>
+                            <span style="display: #{(managedRetenue.selectedRetenue.piceReglement.statutPiece==constantes.STATUT_DOC_PAYER)?'inline-block':'none'}; width: 10px; height: 10px; background: #006666" title="#{lab.LC_PFA_piece_regler}"></span>
+                        </div>
+                    </f:facet>
+                    <span>#{lab.LRH_PRS_montant_piece} :</span>
+                    <h:outputText value="#{managedRetenue.selectedRetenue.piceReglement.montant}"/>
+                    <span>#{lab.LC_PFA_facture_n} </span>
+                    <h:outputText value="#{managedRetenue.selectedRetenue.piceReglement.vente.numDoc}"/>
+                    <span>#{lab.LC_PFA_clients}</span>
+                    <h:outputText value="#{managedRetenue.selectedRetenue.piceReglement.vente.client.nom_prenom}"/>
+                    <span>#{lab.LDB_PC_date_facturation} :</span>
+                    <h:outputText value="#{managedRetenue.selectedRetenue.piceReglement.vente.dateValider}" converter="DATE" />                    
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="confirmDeleteRet" message="#{lab.LRH_PRS_text}"
+                             header="#{lab.LRH_PRS_supprimer_retenue}">
+                <p:commandButton value="#{lab.L_oui}"  icon="ui-icon-circle-check" update=":body_prelevement_00:table_p_retenue"
+                                 actionListener="#{managedRetenue.deleteOneRetenue()}" oncomplete="confirmDeleteRet.hide()"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" onclick="confirmDeleteRet.hide()"
+                                 type="button"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmReplanif" message="#{lab.LRH_PRS_text1}"
+                             header="#{lab.LRH_PRS_replanifier_retenue}"> 
+                <div align="right">
+                    <span  style="float: left">Voulez-vous réinitialiser les mensualité ?</span>
+                    <p:commandButton value=" #{lab.L_oui}"  icon="ui-icon-circle-check" update=":body_prelevement_00:table_p_retenue"
+                                     actionListener="#{managedRetenue.saveNew(true,true)}" oncomplete="dlgConfirmReplanif.hide()"/>
+                    <p:commandButton value=" #{lab.L_non}"  icon="ui-icon-circle-close" update=":body_prelevement_00:table_p_retenue"
+                                     actionListener="#{managedRetenue.saveNew(true,false)}" oncomplete="dlgConfirmReplanif.hide()"/>                    
+                    <p:commandButton value=" #{lab.LRH_PRS_fermer} " icon="ui-icon-close" onclick="dlgConfirmReplanif.hide()"
+                                     type="button" style="float: right"/>
+                </div>
+                <f:facet name="footer">
+                </f:facet>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PRS_retenues_de}" widgetVar="dlgRetenuEmp" closeOnEscape="true" width="60%"
+                      footer="&copy;Lymytz 2014" >
+                <p:dataTable value="#{managedRetenue.listeRetenues}" var="retEmps" rowKey="#{retEmps.id}"
+                             widgetVar="tableauDetailPlanPrelevement" rowIndexVar="line_retE"
+                             selectionMode="single" id="table_retenueEmp">
+                    <p:column width="20" headerText="N°" style="text-align: center"
+                              styleClass="statutMesn_#{retEmps.statutReglement}">
+                        #{line_retE+1}
+                    </p:column>                                
+                    <p:column headerText="#{lab.LC_PFV_date_prevelement}" width="100" style="text-align: left"
+                              styleClass="statutMesn_#{retEmps.statutReglement}">
+                        <h:outputText value="#{retEmps.datePrelevement}" converter="LD"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference}" width="200" style="text-align: center"
+                              styleClass="statutMesn_#{retEmps.statutReglement}">
+                        <h:outputText value="#{retEmps.reference}" />
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PRS_montant_prelevement}" width="100" style="text-align: right"
+                              styleClass="statutMesn_#{retEmps.statutReglement}">
+                        <h:outputText value="#{retEmps.valeur}" converter="DN"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PRS_etat} " width="25" style="text-align: center"
+                              styleClass="statutMesn_#{retEmps.statutReglement}">
+                        <h:outputText value="#{(retEmps.statutReglement=='R')?'Réglé ':(retEmps.statutReglement=='S')?lab.LCF_PVC_suspendu:lab.LC_PFA_en_cours}"
+                                      id="text_etat_retEmps" />
+                        <p:contextMenu event="click" for="text_etat_retEmps" style="background: #000; color: #FFF"
+                                       >
+                            <p:menuitem value="#{lab.LC_PFV_suspendre}" icon="ui-icon-cancel" actionListener="#{managedRetenue.supendreRetenu(retEmps)}" process="@this"
+                                        update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{retEmps.statutReglement!='S'}"/>                                
+                            <p:menuitem value="#{lab.LRH_PRS_marquer_regler}" icon="ui-icon-circle-check"  actionListener="#{managedRetenue.changeStatutRetenueRegle(retEmps)}" process="@this"
+                                        update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{retEmps.statutReglement!='R'}"/>
+                            <p:menuitem value="#{lab.LRH_PRS_marquer_en_cours}" icon="ui-icon-pencil"  actionListener="#{managedRetenue.changeStatutEditableRetenue(retEmps)}" process="@this"
+                                        update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{retEmps.statutReglement!='E'}"/>
+                            <p:menuitem value="#{lab.LRH_PRS_reculer_ech}" icon="ui-icon-circle-arrow-n" actionListener="#{managedRetenue.avancerLaretenue(retEmps,false)}" process="@this"
+                                        update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" />                            
+                            <p:menuitem value="#{lab.LRH_PRS_avancer_ech}." icon="ui-icon-circle-arrow-s" actionListener="#{managedRetenue.avancerLaretenue(retEmps,true)}" process="@this"
+                                        update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" />                            
+                        </p:contextMenu>
+                    </p:column>                                
+                    <f:facet name="footer">
+                        <div align="right" style="width: 100%">
+                            <p:commandButton value="#{lab.LRH_PRS_enregistrer_plan}" icon="ui-icon-disk" actionListener="#{managedRetenue.saveListeDetail()}" style="font-size: 0.8em"
+                                             update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:table_p_retenue" rendered="#{!managedRetenue.elementAdd.planifie and managedRetenue.elementAdd.listPrelevement.size()>0}"/>
+                        </div>
+                    </f:facet>
+                </p:dataTable>         
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmDeplanif" message="#{lab.LRH_PRS_text2} "
+                             header="#{lab.LRH_PRS_deplanifier_remboursement}">
+                <p:commandButton value="#{lab.L_oui}"  icon="ui-icon-circle-check" update=":body_prelevement_00:table_p_retenue"
+                                 actionListener="#{managedRetenue.confirmDeplanif()}" oncomplete="dlgConfirmDeplanif.hide()"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" onclick="dlgConfirmDeplanif.hide()"
+                                 type="button"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false"  id="form_composantR" >
+            <p:dialog header="#{lab.LRH_PRS_details_retenues}" widgetVar="dlgDetailRet" width="50%" modal="true"
+                      dynamic="true" height="450" footer="&copy; Lymytz 2014">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseForm('detailR');
+                    });
+                </script> 
+                <div align="right">
+                    <h:link onclick="collapseForm('detailR');
+                            return false" title="#{lab.L_mode_creation}" >
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>              
+                    <h:link  onclick="collapseList('detailR');
+                            return false" title="#{lab.L_mode_hierrachique}">
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div class="yvs_form_detailR">
+                    <h:panelGrid columns="2" cellpadding="0" cellspacing="0" styleClass="yvs_table"
+                                 id="form_add_composantR" style="width: 100%">
+                        <span>#{lab.LRH_PRS_motif}</span>
+                        <h:panelGroup>
+                            <h:inputText value="#{managedRetenue.newComposant.reference}" />
+                            <span>#{lab.L_date} </span>
+                            <p:calendar pattern="dd-MM-yyyy"  size="8" value="#{managedRetenue.newComposant.dateAjout}"/>
+                        </h:panelGroup>
+                        <span>#{lab.L_montant}</span>
+                        <pe:inputNumber value="#{managedRetenue.newComposant.montant }" symbolPosition="suffix" symbol="Fcfa" />
+                        <span>#{lab.L_actif}</span>
+                        <p:selectBooleanCheckbox value="#{managedRetenue.newComposant.actif }"/>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedRetenue.saveNewComposantRetenu()}"
+                                     update=":form_composantR:table_detail_retenu form_add_composantR :body_prelevement_00:form_P_retenue :body_prelevement_00:chmp_zone_mtn_ret
+                                     :body_prelevement_00:table_p_retenue" style="float: right"/>
+                </div>
+                <div class="yvs_list_detailR">
+                    <p:dataTable value="#{managedRetenue.listComposantRetenue}" var="retD" selectionMode="single"
+                                 rowKey="#{retD.id}" rowIndexVar="line_ret" id="table_detail_retenu">
+                        <p:ajax event="rowSelect" listener="#{managedRetenue.chooseOneComposantRetenu}" 
+                                oncomplete="collapseForm('detailR')" />
+                        <p:column headerText="N°" width="20" style="text-align: center">#{line_ret+1}</p:column>
+                        <p:column headerText="Date" width="60" style="text-align: center">
+                            <h:outputText value="#{retD.dateAjout}" converter="DATE" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_motif}" width="120">
+                            #{retD.motif}
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}" width="80" style="text-align: right">
+                            <h:outputText value="#{retD.montant}" converter="DN" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" width="20" style="text-align: center">
+                            <p:commandLink process="@this" actionListener="#{managedRetenue.toogleActive(retD)}"
+                                           update=":form_composantR:table_detail_retenu">
+                                <h:graphicImage library="img" name="#{(retD.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                                <!--<p:confirm message="Souhaitez-vous vraiment Modifier l'état de cet élément de retenue?" header="Activer/Désactiver !" />-->
+                            </p:commandLink>
+                        </p:column>
+                        <p:column headerText="" width="20" style="text-align: center">
+                            <p:commandButton icon="ui-icon-trash" style="width: 20px; height: 20px"  title="#{lab.LRH_PPT_supprimer_ligne}" actionListener="#{managedRetenue.removeComposantRetenu(retD)}"
+                                             process="@this" update=":form_composantR:table_detail_retenu">
+                                <!--<p:confirm message="Souhaitez-vous vraiment supprimer cet élément de retenue?" header="Supprimer !" />-->
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="formNewPR">
+            <p:dialog header="#{lab.LRH_PRS_plan_retenues}" footer="#{lab.L_copy}" width="60%" widgetVar="dlgPlanRetenue" 
+                      closeOnEscape="true" modal="true" >
+                <script type="text/javascript">
+                    $(function() {
+                        collapseForm('planRetenue');
+                    });
+                </script> 
+                <div align="right">                      
+                    <h:link onclick="collapseForm('planRetenue');
+                            return false" title="#{lab.L_mode_creation}" >
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>              
+                    <h:link  onclick="collapseList('planRetenue');
+                            return false" title="#{lab.L_mode_hierrachique}">
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                           
+                </div>
+                <div class="yvs_form_planRetenue">
+                    <h:panelGrid columns="1" id="form_editPlR" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <h:panelGroup >
+                            <span>#{lab.L_reference}</span>
+                            <h:inputText value="#{managedRetenue.newPlanRetenu.reference}" style="float: right"/>
+                        </h:panelGroup>
+                        <h:panelGrid columns="4" style="width: 100%" cellpadding="0" cellspacing="0">
+                            <span>#{lab.LRH_PRS_decoupage_base_sur} :</span>
+                            <p:selectOneRadio value="#{managedRetenue.newPlanRetenu.basePlan}" layout="pageDirection"
+                                              styleClass="yvs_nostyle">
+                                <f:selectItem itemValue="T" itemLabel="#{lab.LRH_PRS_un_taux}" />
+                                <f:selectItem itemValue="D" itemLabel="#{lab.LRH_PRS_une_duree} " />
+                                <f:selectItem itemValue="F" itemLabel="#{lab.LRH_PRS_valeur_fixe} " />
+                                <p:ajax event="valueChange" update="type_base_PR" global="false" process="@this" />
+                            </p:selectOneRadio>
+                            <span>#{lab.L_valeur}</span>
+                            <h:panelGroup id="type_base_PR">
+                                <pe:inputNumber value="#{managedRetenue.newPlanRetenu.valeur}" rendered="#{(managedRetenue.newPlanRetenu.basePlan=='T')}" symbol=" %" symbolPosition="suffix"
+                                                style="width: 100px"/>
+                                <pe:inputNumber value="#{managedRetenue.newPlanRetenu.valeur}" rendered="#{(managedRetenue.newPlanRetenu.basePlan=='F')}" style="width: 100px"/>
+                                <pe:inputNumber value="#{managedRetenue.newPlanRetenu.valeur}" rendered="#{(managedRetenue.newPlanRetenu.basePlan=='D')}" symbol=" (mois)" symbolPosition="suffix"
+                                                style="width: 100px"/>
+                            </h:panelGroup>
+                            <span>#{lab.LRH_PRS_plan_par_defaut}</span>
+                            <h:selectBooleanCheckbox value="#{managedRetenue.newPlanRetenu.defaut}" />
+                            <span>#{lab.LRH_PRS_retenu_basee_sur} :</span>
+                            <p:selectOneRadio value="#{managedRetenue.newPlanRetenu.base}" styleClass="yvs_nostyle">
+                                <f:selectItem itemValue="S" itemLabel="#{lab.LRH_PRS_salaire}" />
+                                <f:selectItem itemValue="D" itemLabel="#{lab.LRH_PRS_dette} " />
+                            </p:selectOneRadio>                        
+                        </h:panelGrid>
+                        <h:panelGroup >
+                            <p:selectBooleanCheckbox value="#{managedRetenue.newPlanRetenu.actif}" itemLabel="Actif"/>
+                            <p:selectBooleanCheckbox value="#{managedRetenue.newPlanRetenu.visibleEnGescom}" itemLabel="#{lab.LRH_PRS_visible_en_gescom}" style="float: right"/>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedRetenue.saveNewPlanRetenue()}" style="float: right" 
+                                     update="tabPlanRet :body_prelevement_00:zone_planP form_editPlR"/>
+                </div>
+                <div class="yvs_list_planRetenue">
+                    <p:dataTable value="#{managedRetenue.plansRetenues}" var="pRet"  selectionMode="single"
+                                 rowKey="#{pRet.id}" rowIndexVar="line_p" id="tabPlanRet">
+                        <p:ajax event="rowSelect" listener="#{managedRetenue.chooseOnePlan}" update=":body_prelevement_00:zone_planP"/>
+                        <p:column headerText="N° " width="20"
+                                  style="text-align: center">
+                            <span style="display: #{(pRet.visibleEnGescom)?'inline':'none'}; font-weight: bold;color: #000; font-size: 1em">GC</span>
+                            #{line_p+1}</p:column>
+                        <p:column headerText="#{lab.L_reference} " width="100">
+                            #{pRet.referencePlan}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_type_decoupage} " width="100">
+                            #{(pRet.basePlan=='T')?lab.LRH_PRS_taux_fixe:(pRet.basePlan=='F')?lab.LRH_PRS_retenue_fixe:lab.LRH_PM_duree}
+                        </p:column>
+                        <p:column headerText="#{lab.L_valeur} " width="100">
+                            <h:outputText value="#{pRet.valeur}" converter="DN" />
+                            <span>#{(pRet.basePlan=='T')?'%':(pRet.basePlan=='F')?' ':lab.L_mois}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_base_retenue} " width="100">
+                            #{(pRet.basePlan=='S')?lab.LRH_PRS_salaire:lab.LRH_PRS_dette}
+                        </p:column>                            
+                        <p:column headerText="#{lab.L_actif}" width="30" style="text-align: center">
+                            <h:graphicImage library="img" name="#{(pRet.actif)?'vu.png':'vu_non.png'}" width="15" height="15" />
+                        </p:column>
+                        <p:column headerText="" width="30" style="text-align: center">
+                            <p:commandButton title="#{lab.L_modifier}" style="width: 22px; height: 22px" oncomplete="collapseForm('planRetenue');"
+                                             update=":formNewPR:form_editPlR" actionListener="#{managedRetenue.chooseOnePlanToUpdate(pRet)}"
+                                             icon="ui-icon-refresh"/>
+                        </p:column>
+                        <p:column headerText="" width="30" style="text-align: center">
+                            <p:commandButton title="#{lab.LRH_PPT_supprimer_ligne}" style="width: 22px; height: 22px" icon="ui-icon-trash"
+                                             update=":formNewPR:form_editPlR :formNewPR:tabPlanRet :body_prelevement_00:zone_planP" 
+                                             actionListener="#{managedRetenue.deletePlanRetenue(pRet)}" >
+                                <!--<p:confirm header="Supprimer le plan" message="Confirmez-vous la suppression de ce plan ?"/>-->
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">          
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LRH_PRS_text}">
+                <p:commandButton value="#{lab.L_oui}"  icon="ui-icon-circle-check" update=":body_prelevement_00:input_hide_retenueEmploye :body_prelevement_00:tab_prelevement_detail"
+                                 actionListener="#{managedRetenue.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" onclick="dlgConfirmDelete.hide()"
+                                 type="button"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form_pptes_compta">
+            <p:dialog  width="60%" widgetVar="dlgPpteCompta" closeOnEscape="true" header="Pièces comptable">
+                <ui:include src="../../finance_compta/compta_general/yvs_schema_compta.xhtml" />
+                <f:facet name="footer">
+                    &copy;Lymytz 2014
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">            
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete_" closeOnEscape="true"
+                             message="#{lab.LRH_PRS_text}">
+                <p:commandButton value="#{lab.L_oui}"  icon="ui-icon-circle-check" update=":body_prelevement_00:tab_prelevement_detail"
+                                 actionListener="#{managedRetenue.deletePrelevenement()}" oncomplete="dlgConfirmDelete_.hide()"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" onclick="dlgConfirmDelete_.hide()"
+                                 type="button"/>
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteP" closeOnEscape="true" header="#{lab.LRH_PRS_annuler_planification}"
+                             message="#{lab.LRH_PRS_text3}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedRetenue.deleteBeanPrelevement()}"
+                                 oncomplete="dlgConfirmDeleteP.hide()"
+                                 update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:table_p_retenue"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" onclick="dlgConfirmDeleteP.hide()"
+                                 type="button"/>
+            </p:confirmDialog>
+        </h:form>        
+        <h:form>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgComptabiliseAll" message="#{lab.LC_PFV_text19}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedRetenue.comptabiliserRetenue()}"
+                                 update=":body_prelevement_00:table_p_retenue :body_prelevement_00:btn_comptabilised_ret" oncomplete="dlgComptabiliseAll.hide()"/>
+                <p:commandButton value="#{lab.LC_PFV_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgComptabiliseAll.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgComptabilise" message="#{lab.LC_PFV_text19}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.comptabiliserRetenue(managedRetenue.selectedRetenue, true)}"
+                                 update=":body_prelevement_00:table_p_retenue :body_prelevement_00:btn_comptabilised_ret" oncomplete="dlgComptabilise.hide()"/>
+                <p:commandButton value="#{lab.LC_PFV_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgComptabilise.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgUnComptabilise" message="#{lab.LC_PFV_text18}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.unComptabiliserRetenue(managedRetenue.selectedRetenue, true)}"
+                                 update=":body_prelevement_00:table_p_retenue :body_prelevement_00:btn_comptabilised_ret" oncomplete="dlgUnComptabilise.hide()"/>
+                <p:commandButton value="#{lab.LC_PFV_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgUnComptabilise.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmFusion" closeOnEscape="true"
+                             message="#{lab.LRH_PRS_text4}">
+                <p:commandButton value="#{lab.L_fusionner}" actionListener="#{managedRetenue.fusionnerDetail()}" oncomplete="dlgConfirmFusion.hide()"/>
+                <p:commandButton value="#{lab.LRH_PRS_reporter}" actionListener="#{managedRetenue.reporterDetail()}" oncomplete="dlgConfirmFusion.hide()"/>
+                <p:commandButton value="#{lab.L_annuler}" onclick="dlgConfirmFusion.hide()" type="button"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="form_body_type_retenue">
+            <p:dialog header="#{lab.LRH_PRS_types_retenues}" widgetVar="dlgRetenu" width="60%"
+                      closeOnEscape="true" resizable="false" modal="true">
+                <p:commandButton value="#{lab.L_nouveau}" icon="ui-icon-document" actionListener="#{managedRetenue.resetFormAddTypeRetenu}" 
+                                 update="form_new_type_retenue" global="false" style="float: left"/>
+                <div style="float: right">                            
+                    <h:link onclick="collapseForm('retenueTypeR');
+                            return false" title="#{lab.L_mode_creation}" >
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>              
+                    <h:link  onclick="collapseList('retenueTypeR');
+                            return false" title="#{lab.L_mode_hierrachique}">
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                           
+                </div>
+                <div style="clear: both"/> 
+                <div class="yvs_form_retenueTypeR">
+                    <p:tooltip for="txt_code_type_retenu" showEffect="slide" hideEffect="scale" />                        
+                    <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                                 id="form_new_type_retenue">
+                        <span>#{lab.L_code}</span>
+                        <h:inputText value="#{managedRetenue.typeElement.code}" id="txt_code_type_retenu" title="#{lab.LRH_PRS_text5}"/>
+                        <span>#{lab.L_designation}</span>
+                        <h:inputText value="#{managedRetenue.typeElement.libelle}"/>                              
+                        <span>#{lab.L_compte}</span>  
+                        <h:panelGroup>
+                            <h:panelGroup id="txt_compte_type_retenu">
+                                <h:inputText value="#{managedRetenue.typeElement.compte.numCompte}" style="color: #{managedRetenue.typeElement.compte.error?'red':''};width: 35%" tabindex="90">
+                                    <p:ajax event="valueChange" global="false" listener="#{managedRetenue.searchCompte()}" update="txt_compte_type_retenu"/>
+                                </h:inputText>    
+                                <h:outputText value="#{managedRetenue.typeElement.compte.intitule}" style="color: green"/>
+                            </h:panelGroup>
+                            <p:commandButton icon="ui-icon-note" style="float: right; width: 20px;height: 22px" title="#{lab.LDB_PP_liste_compte}" global="false"
+                                             oncomplete="dlgListComptes.show()"/>
+                        </h:panelGroup>  
+                        <span>#{lab.L_description}</span>
+                        <h:inputTextarea value="#{managedRetenue.typeElement.description}" cols="30" rows="5" />
+                        <p:selectBooleanCheckbox value="#{managedRetenue.typeElement.actif}" itemLabel="#{lab.L_actif}"/>
+                        <p:selectBooleanCheckbox value="#{managedRetenue.typeElement.visibleEnGescom}" itemLabel="#{lab.LRH_PRS_visible_en_gescom}" style="float: right"/>
+                        <p:selectBooleanCheckbox value="#{managedRetenue.generer}" itemLabel="#{lab.LRH_PRS_text6}" />
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-circle-check" actionListener="#{managedRetenue.addTypeElt()}" 
+                                     style="margin-left: 40%" update="table_type_elt_retenu"
+                                     global="false"   />
+                    <p:commandButton value="#{lab.LRH_PPT_enregistrer_fermer}" icon="ui-icon-circle-check" actionListener="#{managedRetenue.addTypeElt()}" 
+                                     oncomplete="dlgRetenu.hide()" style="float: right" update="table_type_elt_retenu"
+                                     global="false"   />
+                </div>
+                <div class="yvs_list_retenueTypeR">
+                    <p:dataTable value="#{managedRetenue.listTypesElts}" rowIndexVar="line_typElt" var="typER"
+                                 id="table_type_elt_retenu" selectionMode="single" rowKey="#{typER.id}">
+                        <p:ajax event="rowSelect" listener="#{managedRetenue.selectOneTyepeR}" global="false" process="@this" 
+                                update=":form_body_type_retenue:form_new_type_retenue" oncomplete="collapseForm('retenueTypeR')"   />
+                        <p:column headerText="N°" width="25">                            
+                            #{line_typElt+1}                            
+                        </p:column>
+                        <p:column headerText="#{lab.L_code}" width="100">
+                            #{typER.codeElement}
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="100">
+                            #{typER.libelle}
+                            <span style="display: #{(typER.visibleEnGescom)?'inline':'none'}; font-weight: bold;color: #000; font-size: 1em; float: right">GC</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_compte}" width="150">
+                            <span title="#{typER.compte.intitule}">#{typER.compte.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_description}" width="150">
+                            #{typER.codeElement}
+                        </p:column>
+                    </p:dataTable>
+                </div>                                        
+                <f:facet name="footer">
+                    &copy;Lymytz 2014
+                </f:facet>
+            </p:dialog>
+        </h:form>        
+        <h:form prependId="false" id="form_prelev_02">        
+            <p:dialog header="#{lab.LRH_PA_liste_employe_actif}" widgetVar="dlgEmploye" width="85%" height="600"
+                      closeOnEscape="true" resizable="false"  modal="true">                    
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('employe_retenue');
+                    });
+                </script>
+                <div class="dlg_part_fixe">
+                    <p:inputText value="#{MEmps.matriculeToUpdate}" style="float: left">
+                        <p:ajax event="keyup" listener="#{MEmps.findEmploye(MEmps.matriculeToUpdate)}"
+                                update="tabEmployes_prelev" global="false" process="@this"
+                                oncomplete="collapseList('employe_retenue');"/>
+                    </p:inputText>
+                    <div style="float: right" >  
+                        <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                            <h:selectOneMenu value="#{managedConges.agence_}" valueChangeListener="#{MEmps.addParamAgence}" >
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                <f:selectItems value="#{MEmps.currentScte.agences}" var="itemA" itemValue="#{itemA.id}" itemLabel="#{itemA.designation}" />
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.LDB_PCB_toutes_societe}" />
+                                <p:ajax event="valueChange" update="tabEmployes_prelev"/>
+                            </h:selectOneMenu>
+                            <p:commandButton actionListener="#{MEmps.pagineResult(false)}" update="tabEmployes_prelev" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{MEmps.paginator.currentPage} / #{MEmps.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton actionListener="#{MEmps.pagineResult(true)}" update="tabEmployes_prelev" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{MEmps.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{MEmps.paginations}"/>
+                                <p:ajax event="valueChange" update="tabEmployes_prelev"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel>                                                           
+                    </div> 
+                </div>
+                <div style="clear: both"/>  
+                <div class="dlg_part_scroll">
+                    <div class="yvs_list_employe_retenue">
+                        <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                     widgetVar="tabEmployes" id="tabEmployes_prelev" selectionMode="single"> 
+                            <p:ajax event="rowSelect" listener="#{managedRetenue.loadViewEmploye}" oncomplete="dlgEmploye.hide()"/>
+                            <p:column headerText="N°" width="15" style="text-align: center">
+                                <h:outputText value="#{line_e+1}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                                <h:outputText value="#{emp.nom} #{emp.prenom}" />
+                            </p:column>                        
+                            <p:column headerText="#{lab.LCF_PSL_matricule}" width="90" style="text-align: center">
+                                <h:outputText value="#{emp.matricule}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PD_poste} " width="200">
+                                <h:outputText value="#{emp.posteActif.intitule}" />
+                            </p:column> 
+                            <p:column headerText="#{lab.LRH_PPT_contrat}" width="90" >
+                                <h:outputText value="#{emp.contrat.referenceContrat}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                                <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                            </p:column>
+                        </p:dataTable> 
+                    </div>                    
+                </div>
+                <f:facet name="footer">                    
+                    <h:outputText value="&copy; Lymytz 2014" escape="true" />                    
+                </f:facet>
+            </p:dialog>
+        </h:form>      
+        <h:form prependId="false" id="body_prelevement_00">
+            <div class="part_fix" >
+                <h:panelGrid columns="2" style="float: left" >
+                    <p:splitButton value="#{lab.L_enregistrer}" id="save_retenueEmploye" update=":body_prelevement_00:table_p_retenue"
+                                   actionListener="#{managedRetenue.saveNew(false,false)}" icon="ui-icon-disk">
+                        <p:menuitem value="#{lab.L_nouveau}" actionListener="#{managedRetenue.resetFiche(false)}"
+                                    id="cancel_retenueEmploye" icon="ui-icon-document"
+                                    update=":body_prelevement_00:form_P_retenue :body_prelevement_00:tab_prelevement_detail"   /> 
+                        <p:separator />
+                        <p:menuitem value="#{lab.L_supprimer}" onclick="dlgConfirmDelete_.show()"
+                                    global="false" icon="ui-icon-trash" />
+                    </p:splitButton>
+
+                </h:panelGrid>
+                <h:panelGrid columns="2" style="float: left" > 
+                    <p:splitButton value="#{lab.L_gerer}" id="delete_retenueEmploye" type="button">                                               
+                        <p:menuitem value="#{lab.LC_PFV_comptabiliser}" onclick="dlgComptabiliseAll.show()" global="false" icon="ui-icon-arrowthick-2-e-w"/> 
+                        <p:menuitem value="#{lab.LRH_PRS_deplanifier}" onclick="dlgConfirmDeleteP.show()" global="false" icon="ui-icon-shuffle"/>
+                        <p:separator style="width: 100%" />     
+                        <p:menuitem value="#{lab.L_supprimer}" onclick="dlgConfirmDelete_.show()" global="false" icon="ui-icon-trash" />
+                    </p:splitButton>
+                </h:panelGrid>                   
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedRetenue.p_parcoursInAllResult(false)}" update="txt_parc_linear_retenueEmploye" icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('retenueEmploye')"/>
+                    <h:inputText value="#{managedRetenue.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_retenueEmploye"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedRetenue.p_prevelement.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedRetenue.p_parcoursInAllResult(true)}" update="txt_parc_linear_retenueEmploye" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('retenueEmploye')"
+                                     />
+                </h:panelGroup>                
+                <div style="float: right">                    
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('retenueEmploye');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>       
+                    <p:spacer />            
+                    <h:link onclick="collapseList('retenueEmploye');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>           
+                    <p:spacer />        
+                    <h:link title="#{lab.L_mode_consultation} " onclick="collapseGrid('retenueEmploye');
+                            return false">
+                        <p:graphicImage library="icones" name="ico_arbre.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>  
+                </div>
+            </div>
+            <div class="part_scroll">    
+                <div class="yvs_form_retenueEmploye">
+                    <p:outputPanel style="background: white" id="form_P_retenue">                            
+                        <h:panelGrid style="width: 100%" columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <f:facet name="header">
+                                <h:panelGroup style="float: right" rendered="#{managedRetenue.elementAdd.id gt 0}">
+                                    <p:commandLink value="#{managedRetenue.isComptabiliseBean(managedRetenue.elementAdd)?'COMPTABILIS&Eacute;':'COMPTABILISER'}"
+                                                   type="button" styleClass="#{(managedRetenue.elementAdd.comptabilise)?'statut_valide':'etat_formation_true'}"
+                                                   onclick="dlgComptabilise.show()" global="false" id="btn_comptabilised_ret"/>
+                                    <p:contextMenu for="btn_comptabilised_ret" style="font-size: 0.7em">
+                                        <p:menuitem icon="ui-icon-eject" value="#{lab.LC_PFA_proprietes}" actionListener="#{managedSaisiePiece.displayPieceComptable(managedRetenue.elementAdd.id, constantes.SCR_RETENUE)}" 
+                                                    update=":form_pptes_compta:table_pptes_compta" oncomplete="dlgPpteCompta.show()"/>
+                                        <p:separator style="width: 100%" />
+                                        <p:menuitem icon="ui-icon-circle-arrow-w" value="#{lab.L_annuler}" onclick="dlgUnComptabilise.show()" global="false"/>
+                                    </p:contextMenu>
+                                </h:panelGroup>
+                            </f:facet>
+                            <span>#{lab.LRH_PB_employe}</span>
+                            <h:panelGroup id="id_zone_empPrelev">                                
+                                <h:panelGroup style="float: left; display: inline-block; margin-top: 25px">
+                                    <h:inputText value="#{managedRetenue.elementAdd.contrat.employe.matricule}" id="chp_champ_employe_retenu">
+                                        <p:ajax event="blur" listener="#{managedRetenue.findOneEmploye()}"/>
+                                    </h:inputText>                                    
+                                    <span>#{managedRetenue.elementAdd.contrat.employe.nom_prenom}</span>
+                                    <p:commandButton icon="ui-icon-circle-arrow-e" style="height: 18px; width: 40px;background: none; margin-left: 10px"
+                                                     actionListener="#{managedRetenue.navigueInListEmploye()}"
+                                                     update=":body_prelevement_00:form_P_retenue :body_prelevement_00:tab_prelevement_detail"/>
+                                    <p:commandButton icon="ui-icon-search" style="width: 22px; height: 22px; margin-right: 100px" type="button"
+                                                     title="#{lab.LRH_PRS_afficher_tous_employes}" onclick="dlgEmploye.show();"/> 
+                                </h:panelGroup>                               
+                                <h:panelGrid columns="2" style="float: right" styleClass="yvs_nostyle">
+                                    <span>#{lab.LRH_PRS_contrat}</span>
+                                    <h:inputText value="#{managedRetenue.elementAdd.contrat.reference}" id="chp_contrat_retenue_employe"/> 
+                                    <span>#{lab.LRH_PRS_salaire_mensuel} </span>
+                                    <h:outputText value="#{managedRetenue.elementAdd.contrat.salaireMensuel}" converter="DN"
+                                                  styleClass="input_dis" style="float: right"/>
+                                </h:panelGrid>
+                            </h:panelGroup>
+                            <span>#{lab.LRH_PRS_type_retenu}</span>
+                            <h:selectOneMenu value="#{managedRetenue.elementAdd.typeElt.id}" id="txt_prevelement_type_elt"
+                                             onchange="openDialog(dlgRetenu, $(this));
+                                                     collapseForm('retenueTypeR');">
+                                <f:selectItem itemValue="0" itemLabel="" />
+                                <f:selectItems value="#{managedRetenue.listTypesElts}" var="typE"
+                                               itemValue="#{typE.id}" itemLabel="#{typE.libelle}"/>
+                                <f:selectItem itemValue="0" itemLabel="" />
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" />
+                            </h:selectOneMenu>
+                            <span>#{lab.LRH_PRS_motif} </span>
+                            <h:inputTextarea value="#{managedRetenue.elementAdd.description}" rows="3" style="width: 98%" />                                                               
+                        </h:panelGrid>                            
+                        <h:panelGrid columns="5" styleClass="yvs_table" cellpadding="0" cellspacing="0"  style="width: 100%">                                                                
+                            <span>#{lab.LRH_PRS_montant_retenue}</span>
+                            <pe:inputNumber value="#{managedRetenue.elementAdd.montant}" style="width: 100px" id="chmp_zone_mtn_ret"/>
+                            <p:selectOneRadio value="#{managedRetenue.elementAdd.plan.defaut}" style="border: none; float: left" id="option_choose_plan"
+                                              valueChangeListener="#{managedRetenue.findDefaultPlan}" styleClass="yvs_nostyle">
+                                <f:selectItem itemLabel="#{lab.LRH_PRS_appliquer_plan_defaut} " itemValue="true" />
+                                <f:selectItem itemLabel="#{lab.LRH_PRS_appliquer_autre_plan}" itemValue="false" />
+                                <p:ajax event="valueChange" global="false" update="zone_planP" process="@this" />
+                            </p:selectOneRadio>
+                            <span>#{lab.LRH_PRS_plan}</span>
+                            <h:selectOneMenu value="#{managedRetenue.elementAdd.plan.id}"  
+                                             id="zone_planP" valueChangeListener="#{managedRetenue.choisirPlan}">
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                                <f:selectItems value="#{managedRetenue.plansRetenues}" var="planR" itemValue="#{planR.id}" itemLabel="#{planR.referencePlan}" rendered="#{planR.actif}"/>
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"  />
+                                <p:ajax event="valueChange" update="panel_prelevement_choix" process="@this" />
+                            </h:selectOneMenu>
+                        </h:panelGrid>
+                        <h:panelGrid columns="7" style="width: 100%; background: #EEEEEE; font-weight: bold; color: #003333; font-size: 0.9em   " id="panel_prelevement_choix">
+                            <p:selectOneRadio value="#{managedRetenue.elementAdd.plan.basePlan}" 
+                                              disabled="true" style="font-weight: bold;">
+                                <f:selectItem itemValue="F" itemLabel="#{lab.LRH_PRS_montant_fixe}"  />
+                                <f:selectItem itemValue="T" itemLabel="#{lab.LRH_PRS_pourcentage}"  />
+                                <f:selectItem itemValue="D" itemLabel="#{lab.LRH_PM_duree} "  />
+                            </p:selectOneRadio>                                
+                            <span>#{lab.L_valeur} </span>
+                            <pe:inputNumber value="#{managedRetenue.elementAdd.plan.valeur}" rendered="#{(managedRetenue.elementAdd.plan.basePlan=='T')}" symbol=" %" symbolPosition="suffix"
+                                            style="width: 100px" disabled="true"/>
+                            <pe:inputNumber value="#{managedRetenue.elementAdd.plan.valeur}" rendered="#{(managedRetenue.elementAdd.plan.basePlan=='F')}" style="width: 100px"
+                                            disabled="true"/>
+                            <pe:inputNumber value="#{managedRetenue.elementAdd.plan.valeur}" rendered="#{(managedRetenue.elementAdd.plan.basePlan=='D')}" symbol=" (mois)" symbolPosition="suffix"
+                                            style="width: 100px" disabled="true"/>                               
+                            <p:selectOneRadio value="#{managedRetenue.elementAdd.plan.base}" disabled="true">
+                                <f:selectItem itemValue="S" itemLabel="Salaire"  />
+                                <f:selectItem itemValue="D" itemLabel="Dette"  />
+                            </p:selectOneRadio>
+                            <span>#{lab.LRH_PRS_placer_partir_du}</span>
+                            <p:calendar size="8" pattern="dd-MM-yyyy" value="#{managedRetenue.debutPlanif}" />
+                            <p:commandButton value="Placer" update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" icon="ui-icon-play"
+                                             actionListener="#{managedRetenue.etalerRetenue()}" />
+                        </h:panelGrid>  
+                        <div align="center" style="display: #{(managedRetenue.elementAdd.montant ne managedRetenue.elementAdd.montantPlanifie)?'block':'none'}; color: brown; font-weight: bold">
+                            #{lab.LRH_PRS_text7}
+                        </div>
+                        <p:dataTable value="#{managedRetenue.elementAdd.listPrelevement}" var="det_" rowKey="#{det_.id}"
+                                     widgetVar="tableauDetailPlanPrelevement" rowIndexVar="line_detailP"
+                                     selectionMode="single" id="tab_prelevement_detail" selection="#{managedRetenue.selectedDetailPrelevement}">
+                            <p:column width="20" headerText="N°" style="text-align: center"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                #{line_detailP+1}
+                                <p:graphicImage library="img" name="blocked.png" rendered="#{det_.retenuFixe}" title="#{lab.LRH_PRS_retenue_verouiller_permanence}" />
+                            </p:column>                                
+                            <p:column headerText="#{lab.LC_PFV_date_prevelement}" width="200" style="text-align: left"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{det_.datePrelevement}" converter="LD"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" width="200" style="text-align: center"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{det_.reference}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PRS_montant_prelevement}" width="200" style="text-align: right"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{det_.valeur}" converter="DN"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PRS_etat} " style="text-align: center" styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{(det_.statutReglement==constantes.STATUT_DOC_PAYER)?lab.LC_PCV_regler:(det_.statutReglement=='S')?lab.LCF_PVC_suspendu:lab.LC_PFA_en_cours}" />
+                            </p:column>    
+                            <p:column headerText="" width="20" style="text-align: center" styleClass="statutMesn_#{det_.statutReglement}">                               
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="text_etat_plan" type="button"/>
+                                <p:contextMenu event="click" for="text_etat_plan"  styleClass="context_menu">                                   
+                                    <p:menuitem value="#{lab.LRH_PRS_marquer_regler}" icon="ui-icon-circle-check"  actionListener="#{managedRetenue.changeStatutRetenueRegle(det_)}" process="@this"
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{det_.statutReglement!='P'}"/>
+                                    <p:menuitem value="#{lab.LRH_PRS_marquer_en_cours}" icon="ui-icon-pencil"  actionListener="#{managedRetenue.changeStatutEditableRetenue(det_)}" process="@this"
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{det_.statutReglement!='E'}"/>
+                                    <p:menuitem value="#{lab.LRH_PRS_reculer_ech}." icon="ui-icon-circle-arrow-n" actionListener="#{managedRetenue.avancerLaretenueImp(det_,false)}" process="@this"
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" />
+                                    <p:menuitem value="#{lab.LRH_PRS_avancer_ech}." icon="ui-icon-circle-arrow-s" actionListener="#{managedRetenue.avancerLaretenueImp(det_,true)}" process="@this"
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" />
+                                    <p:menuitem value="#{lab.LRH_PRS_fixer}" icon="ui-icon-circle-arrow-s" actionListener="#{managedRetenue.fixeAndInitRetenue(det_)}" process="@this"
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" title="#{lab.LRH_PRS_fixer_retenue_permanence}" />
+                                    <p:separator style="width: 98%;margin: auto"/>
+                                    <p:menuitem value="#{lab.L_suspendre}" icon="ui-icon-cancel" actionListener="#{managedRetenue.supendreRetenu(det_)}" process="@this"
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{det_.statutReglement!='S'}"/>                                
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedRetenue.deleteMensualite(det_)}" process="@this"
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" title="#{lab.LRH_PRS_supprimer_mentualite}" />
+                                </p:contextMenu>
+                            </p:column>
+                            <f:facet name="footer">
+                                <div align="right" style="width: 100%">
+                                    <p:commandButton value="#{lab.LRH_PRS_enregistrer_plan}" icon="ui-icon-disk" actionListener="#{managedRetenue.saveListeDetail()}" style="font-size: 0.8em"
+                                                     update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:table_p_retenue" 
+                                                     rendered="#{!managedRetenue.elementAdd.planifie and managedRetenue.elementAdd.listPrelevement.size()>0}"/>
+                                </div>
+                            </f:facet>
+                        </p:dataTable>                            
+                    </p:outputPanel>
+                </div>
+                <div class="yvs_list_retenueEmploye">
+                    <h:inputText value="#{managedRetenue.chaineSelectPrelev}" id="input_hide_retenuePlan" />
+                    <p:dataTable value="#{managedRetenue.listPrelevement}" var="dets" rowKey="#{dets.id}" rowIndexVar="dIdx"
+                                 selectionMode="single" id="data_prelevement_detail">
+                        <p:ajax event="rowSelect" listener="#{managedRetenue.loadOnViewDetail}" oncomplete="collapseForm('retenueEmploye')"
+                                update=":body_prelevement_00:form_P_retenue"   />
+                        <p:column width="20" headerText="N°" style="text-align: center"
+                                  styleClass="statutMesn_#{dets.statutReglement}">
+                            #{dIdx+1}
+                            <p:graphicImage library="img" name="blocked.png" rendered="#{dets.retenuFixe}" title="#{lab.LRH_PRS_retenue_verouiller_permanence}" />
+                        </p:column>        
+                        <p:column headerText="#{lab.LRH_PB_matricule} " width="70" styleClass="statutMesn_#{dets.statutReglement}"> 
+                            <h:outputText value="#{dets.retenue.contrat.employe.matricule}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.LDB_PT_employe}" width="100" style="text-align: left"  styleClass="statutMesn_#{dets.statutReglement}">
+                            <h:outputText value="#{dets.retenue.contrat.employe.nom_prenom}"/>
+                        </p:column> 
+                        <p:column headerText="#{lab.LRH_PRS_type_retenu}"  styleClass="statutMesn_#{dets.statutReglement}" width="50"> 
+                            <h:outputText value="#{dets.retenue.typeElement.libelle}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_date_prelevement}" width="100" style="text-align: left" styleClass="statutMesn_#{dets.statutReglement}">
+                            <h:outputText value="#{dets.datePrelevement}" converter="LD"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_reference}" width="100" style="text-align: center" styleClass="statutMesn_#{dets.statutReglement}">
+                            <h:outputText value="#{dets.reference}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PFV_montant_prevelement}" width="50" style="text-align: right" styleClass="statutMesn_#{dets.statutReglement}">
+                            <h:outputText value="#{dets.valeur}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_etat} " width="10" style="text-align: center" styleClass="statutMesn_#{dets.statutReglement}">
+                            <h:outputText value="#{(dets.statutReglement==constantes.STATUT_DOC_PAYER)?lab.LC_PFA_regler:(dets.statutReglement=='S')?lab.LCF_PVC_suspendu:lab.LP_PSO_en_cours}"/>
+                        </p:column>
+                        <p:column headerText="" width="20" style="text-align: center" styleClass="statutMesn_#{dets.statutReglement}">
+                            <f:facet name="header">
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="text_etat_plan_many" 
+                                                 type="button"/>
+                                <p:contextMenu event="click" for="text_etat_plan_many"  styleClass="context_menu">                                   
+                                    <p:menuitem value="#{lab.LRH_PRS_marquer_regler}" icon="ui-icon-circle-check"  actionListener="#{managedRetenue.changeStatutRetenueRegleMany()}" 
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" />
+                                    <p:menuitem value="#{lab.LRH_PRS_marquer_en_cours}" icon="ui-icon-pencil"  actionListener="#{managedRetenue.changeStatutEditableRetenueMany()}" process="@this"
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail"/>
+                                    <p:menuitem value="#{lab.LRH_PRS_fixer}" icon="ui-icon-circle-arrow-s" actionListener="#{managedRetenue.fixeAndInitRetenueMany()}"  
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" title="#{lab.LRH_PRS_fixer_retenue_permanence}" />
+                                    <p:separator style="width: 98%;margin: auto"/>
+                                    <p:menuitem value="#{lab.LRH_PRS_reculer_ech}." icon="ui-icon-circle-arrow-n" actionListener="#{managedRetenue.avancerLaretenueMany(false)}" process="@this :body_prelevement_00:input_hide_retenuePlan"
+                                                update=":body_prelevement_00:data_prelevement_detail" />
+                                    <p:menuitem value="#{lab.LRH_PRS_avancer_ech}." icon="ui-icon-circle-arrow-s" actionListener="#{managedRetenue.avancerLaretenueMany(true)}" process="@this :body_prelevement_00:input_hide_retenuePlan"
+                                                update=":body_prelevement_00:data_prelevement_detail" />
+                                    <p:separator style="width: 98%;margin: auto"/>
+                                    <p:menuitem value="#{lab.L_suspendre}" icon="ui-icon-cancel" actionListener="#{managedRetenue.supendreRetenuMany()}"
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{det_.statutReglement!='S'}"/>                                
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedRetenue.deleteMensualiteMany()}" 
+                                                update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" title="#{lab.LRH_PRS_supprimer_mentualite}" />
+                                </p:contextMenu>
+                            </f:facet>
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="text_etat_plan" type="button"/>
+                            <p:contextMenu event="click" for="text_etat_plan"  styleClass="context_menu">                                   
+                                <p:menuitem value="#{lab.LRH_PRS_marquer_regler}" icon="ui-icon-circle-check"  actionListener="#{managedRetenue.changeStatutRetenueRegle(dets)}" process="@this"
+                                            update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{dets.statutReglement!='P'}"/>
+                                <p:menuitem value="#{lab.LRH_PRS_marquer_en_cours}" icon="ui-icon-pencil"  actionListener="#{managedRetenue.changeStatutEditableRetenue(dets)}" process="@this"
+                                            update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{dets.statutReglement!='E'}"/>
+                                <p:menuitem value="#{lab.LRH_PRS_reculer_ech}." icon="ui-icon-circle-arrow-n" actionListener="#{managedRetenue.avancerLaretenueImp(dets,false)}" process="@this"
+                                            update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" />
+                                <p:menuitem value="#{lab.LRH_PRS_avancer_ech}." icon="ui-icon-circle-arrow-s" actionListener="#{managedRetenue.avancerLaretenueImp(dets,true)}" process="@this"
+                                            update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" />
+                                <p:menuitem value="#{dets.retenuFixe?'Annuler la fixation':'Fixer'}" icon="#{dets.retenuFixe?'ui-icon-unlocked':'ui-icon-locked'}" actionListener="#{managedRetenue.fixeAndInitRetenue(dets)}" process="@this"
+                                            update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" title="#{lab.LRH_PRS_fixer_retenue_permanence}" />
+                                <p:separator style="width: 98%;margin: auto"/>
+                                <p:menuitem value="#{lab.L_suspendre}" icon="ui-icon-cancel" actionListener="#{managedRetenue.supendreRetenu(dets)}" process="@this"
+                                            update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" rendered="#{dets.statutReglement!='S'}"/>                                
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedRetenue.deleteMensualite(dets)}" process="@this"
+                                            update=":body_prelevement_00:tab_prelevement_detail :body_prelevement_00:data_prelevement_detail" title="#{lab.LRH_PRS_supprimer_mentualite}" />
+                            </p:contextMenu>
+                        </p:column>
+                        <p:column width="25" style="text-align: center" >
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox value="false" class="chek_all_line_retenuePlan" onclick="selectionAllLineTab(#{managedRetenue.listPrelevement.size()}, 'retenuePlan')"/>
+                            </f:facet>
+                            <h:selectBooleanCheckbox value="false" class="chek_line_retenuePlan" onclick="selectionLineTab(#{dIdx}, 'retenuePlan')"/>
+                        </p:column>
+                    </p:dataTable> 
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedRetenue.paginePrelevement(false)}" update=":body_prelevement_00:data_prelevement_detail" icon="ui-icon-circle-triangle-w" disabled="#{managedRetenue.p_prevelement.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedRetenue.p_prevelement.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedRetenue.p_prevelement.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedRetenue.gotoPagePaginatorPrelevement()}" update=":body_prelevement_00:data_prelevement_detail"/>
+                                </pe:inputNumber>
+                            </p:inplace>
+                            <p:outputLabel value="/#{managedRetenue.p_prevelement.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedRetenue.paginePrelevement(true)}" update=":body_prelevement_00:data_prelevement_detail" icon="ui-icon-circle-triangle-e" disabled="#{managedRetenue.p_prevelement.disNext}"/>
+                        <p:selectOneMenu value="#{managedRetenue.p_prevelement.rows}" label="#{lab.L_nombre_max_resultat}" 
+                                         valueChangeListener="#{managedRetenue.changeMaxPrelevement}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedRetenue.paginations}"/>
+                            <p:ajax event="valueChange" update=":body_prelevement_00:data_prelevement_detail" />
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>   
+                <div class="yvs_grid_retenueEmploye">        
+                    <h:inputHidden value="#{managedRetenue.chaineSelectPlan}" id="input_hide_retenueEmploye" />              
+                    <p:dataTable value="#{managedRetenue.listRetenues}" var="cont" rowKey="#{cont.id}" 
+                                 selectionMode="multiple"  rowIndexVar="line_" id="table_p_retenue" selection="#{managedRetenue.selectRetenues}"> 
+                        <p:ajax event="rowSelect" listener="#{managedRetenue.loadOnView}" oncomplete="collapseForm('retenueEmploye')"
+                                update=":body_prelevement_00:form_P_retenue"   />
+                        <p:column width="20" styleClass="statutMesn_#{cont.statut}" style="text-align: center">                            
+                            #{line_+1}
+                            <p:graphicImage library="icones" name="warn.png" rendered="#{cont.montantPlanifie!=cont.montantElement}"  height="15" style="float: right"/>
+                        </p:column>                           
+                        <p:column headerText="#{lab.LRH_PRS_date_retenu}" width="100" styleClass="statutMesn_#{cont.statut}" style="text-align: center"> 
+                            <h:outputText value="#{cont.dateElement}" converter="DATE"/>
+                            <h:panelGroup style="float: right">
+                                <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{managedRetenue.isComptabilise(cont)}" styleClass="style_statut"/>
+                            </h:panelGroup>
+                        </p:column>  
+                        <p:column headerText="#{lab.LRH_PB_matricule} " width="70" styleClass="statutMesn_#{cont.statut}"> 
+                            <h:outputText value="#{cont.contrat.employe.matricule}" />
+                        </p:column>   
+                        <p:column headerText="#{lab.LRH_PB_employe} " width="250" styleClass="statutMesn_#{cont.statut}"> 
+                            <h:outputText value="#{cont.contrat.employe.nom} #{cont.contrat.employe.prenom}" />
+                        </p:column>   
+                        <p:column headerText="#{lab.LRH_PRS_type_retenu}"  styleClass="statutMesn_#{cont.statut}"
+                                  width="150"> 
+                            <h:outputText value="#{cont.typeElement.libelle}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}"  width="100" styleClass="statutMesn_#{cont.statut}" style="text-align: right"> 
+                            <h:outputText value="#{cont.montantElement}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PRS_planifier}" width="50" style="text-align: center" styleClass="statutMesn_#{cont.statut}">
+                            <h:graphicImage library="img" name="#{(cont.planifier)?'vu.png':'erase-128.png'}" width="15" height="15"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_statut}" width="60" style="text-align: center" styleClass="statutMesn_#{cont.statut}">
+                            #{(cont.statut==constantes.STATUT_DOC_PAYER)?lab.LC_PFV_regler:(cont.statut==constantes.STATUT_DOC_SUSPENDU)?lab.LCF_PVC_suspendu:lab.LP_PSO_en_cours}
+                        </p:column>
+                        <p:column headerText="" width="20" style="text-align: center" styleClass="statutMesn_#{cont.statut}">
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="config_retenue" type="button"/>
+                            <p:contextMenu event="click" for="config_retenue" styleClass="context_menu">
+                                <p:menuitem value="#{!cont.comptabilise?lab.LC_PFV_comptabiliser:lab.LC_PJV_annuler_comptabilise}" actionListener="#{managedRetenue.setSelectedRetenue(cont)}" 
+                                            oncomplete="#{!cont.comptabilise?'dlgComptabilise.show()':'dlgUnComptabilise.show()'}" icon="ui-icon-arrowthick-2-e-w"/> 
+                                <p:menuitem value="#{lab.LRH_PRS_elements}" icon="ui-icon-plus" actionListener="#{managedRetenue.openViewAddDetailRetenu(cont)}" process="@this" title="#{lab.LRH_PB_ajouter_element}"
+                                            update=":body_prelevement_00:table_p_retenue"/>                                    
+                                <p:menuitem value="#{lab.LRH_PRS_deplanifier}" icon="ui-icon-arrowreturnthick-1-w" actionListener="#{managedRetenue.deplanifierRetenue(cont)}" process="@this"
+                                            rendered="#{cont.planifier}" update=":body_prelevement_00:table_p_retenue"/>
+                                <p:menuitem value="#{lab.LRH_PRS_voir_piece_reg}" icon="ui-icon-note"  oncomplete="dlgPcVente.show()" actionListener="#{managedRetenue.choixLineRetenue(cont)}"
+                                            rendered="#{cont.piceReglement!=null}" update=":form_form_pan_ret_reg:form_pan_ret_reg table_p_retenue"/>
+                                <p:menuitem value="#{lab.LRH_PRS_telecharger_etat}" icon="ui-icon-print" title="#{lab.LRH_PRS_imprimer_etat}" actionListener="#{managedRetenue.printRecapRetenue(cont)}"
+                                            ajax="false"/>
+                                <p:separator style="width: 100%" />
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedRetenue.openDeleteOneRetenue(cont)}"/>
+                            </p:contextMenu>
+                        </p:column>
+                        <p:column width="25" style="text-align: center" >
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox value="false" class="chek_all_line_retenueEmploye" onclick="selectionAllLineTab(#{managedRetenue.listRetenues.size()}, 'retenueEmploye')"/>
+                            </f:facet>
+                            <h:selectBooleanCheckbox value="false" class="chek_line_retenueEmploye" onclick="selectionLineTab(#{line_}, 'retenueEmploye')"/>
+                        </p:column>                            
+                    </p:dataTable> 
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <span class="nbSelectemploye" style="font-size: .8em; font-style: italic; color: #828c95"></span>
+                        <p:commandButton actionListener="#{managedRetenue.pagineResult(false)}" update=":body_prelevement_00:table_p_retenue" icon="ui-icon-circle-triangle-w" disabled="#{managedRetenue.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedRetenue.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedRetenue.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedRetenue.gotoPagePaginator()}" update=":body_prelevement_00:table_p_retenue"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedRetenue.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedRetenue.pagineResult(true)}" update=":body_prelevement_00:table_p_retenue" icon="ui-icon-circle-triangle-e" disabled="#{managedRetenue.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedRetenue.imax}" label="#{lab.L_nombre_max_resultat}" 
+                                         valueChangeListener="#{managedRetenue.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedRetenue.paginations}"/>
+                            <p:ajax event="valueChange" update=":body_prelevement_00:table_p_retenue" />
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div> 
+            </div>                         
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">
+                <div class="yvs_form_retenueEmploye display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedRetenue.selectedRetenue.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedRetenue.selectedRetenue.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedRetenue.selectedRetenue.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <div id="zone_search_retenueEmploye">
+                    <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                        <h:panelGrid columns="6" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                            <h:outputText value="#{lab.LCF_PBP_employe}" />
+                            <h:outputText value="#{lab.LRH_PRS_periode}" />
+                            <h:outputText value="#{lab.L_statut}" />
+                            <h:outputText value="#{lab.LC_PFV_type_retenue}" />
+                            <h:outputText value="#{lab.L_montant}" />
+                            <span>&nbsp;</span>
+                            <p:inputText value="#{managedRetenue.employeDetail}" style="float: right" >
+                                <p:ajax event="blur" listener="#{managedRetenue.loadPrelevementByEmploye(managedRetenue.employeDetail)}" oncomplete="collapseList('retenueEmploye')"
+                                        update=":body_prelevement_00:data_prelevement_detail" />
+                            </p:inputText>
+                            <h:panelGroup id="zone_add_param_date_ret_detail">
+                                <h:selectBooleanCheckbox value="#{managedRetenue.paramDateDetail}" valueChangeListener="#{managedRetenue.addParamDatePrelevement}">
+                                    <p:ajax event="valueChange" update="zone_add_param_date_ret_detail :body_prelevement_00:data_prelevement_detail" oncomplete="collapseList('retenueEmploye')"/>
+                                </h:selectBooleanCheckbox>
+                                <p:calendar value="#{managedRetenue.debutDetail}" size="7" title="Filtrer à partir du" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedRetenue.paramDateDetail}">                                                   
+                                    <p:ajax event="dateSelect" process="@this" listener="#{managedRetenue.addParamDate1Prelevement}" 
+                                            oncomplete="collapseList('retenueEmploye')" update=":body_prelevement_00:data_prelevement_detail"/>
+                                </p:calendar>
+                                <p:calendar value="#{managedRetenue.finDetail}" size="7" title="Filtrer jusqu'au" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedRetenue.paramDateDetail}">
+                                    <p:ajax event="dateSelect" process="@this" listener="#{managedRetenue.addParamDate2Prelevement}" 
+                                            oncomplete="collapseList('retenueEmploye')" update=":body_prelevement_00:data_prelevement_detail"/>
+                                </p:calendar>
+                            </h:panelGroup>
+                            <h:selectOneMenu value="#{managedRetenue.statutDetail}" title="Filtrer les retenues par statut"
+                                             valueChangeListener="#{managedRetenue.addParamStatutPrelevement}">
+                                <f:selectItem itemLabel="" itemValue="#{' '}"/>
+                                <f:selectItem itemLabel="#{lab.LC_PFV_en_cours}" itemValue="#{'E'}"/>
+                                <f:selectItem itemLabel="#{lab.LCF_PVC_suspendu}" itemValue="#{'S'}"/>
+                                <f:selectItem itemLabel="#{lab.LC_PFV_regler}" itemValue="#{'R'}"/>
+                                <p:ajax event="valueChange" process="@this" update=":body_prelevement_00:data_prelevement_detail" oncomplete="collapseList('retenueEmploye')"/>
+                            </h:selectOneMenu>
+                            <h:selectOneMenu value="#{managedRetenue.typeRetenuDetail}" valueChangeListener="#{managedRetenue.addParamTypeElementPrelevement}">
+                                <f:selectItem itemValue="0" itemLabel="" />
+                                <f:selectItems value="#{managedRetenue.listTypesElts}" var="typE_"
+                                               itemValue="#{typE_.id}" itemLabel="#{typE_.libelle}"/>
+                                <p:ajax event="valueChange" process="@this" update=":body_prelevement_00:data_prelevement_detail" oncomplete="collapseList('retenueEmploye')"/>
+                            </h:selectOneMenu>
+                            <h:panelGroup >
+                                <pe:inputNumber value="#{managedRetenue.montant1Detail}" style="width: 90px" >
+                                    <p:ajax event="blur" listener="#{managedRetenue.addParamMontantPrelevement()}" oncomplete="collapseList('retenueEmploye')"
+                                            update=":body_prelevement_00:data_prelevement_detail" />
+                                </pe:inputNumber>
+                                <pe:inputNumber value="#{managedRetenue.montant2Detail}" style="width: 90px" >
+                                    <p:ajax event="blur" listener="#{managedRetenue.addParamMontantPrelevement()}" oncomplete="collapseList('retenueEmploye')"
+                                            update=":body_prelevement_00:data_prelevement_detail"/>
+                                </pe:inputNumber>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </h:panelGrid>
+                </div>
+                <div id="zone_find_retenueEmploye">
+                    <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                        <h:panelGrid columns="7" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                            <h:outputText value="#{lab.LCF_PBP_employe}" />
+                            <h:outputText value="#{lab.LRH_PM_periode}" />
+                            <h:outputText value="#{lab.LRH_PRS_etat_planifier}" />
+                            <h:outputText value="#{lab.L_statut}" />
+                            <h:outputText value="#{lab.LC_PFV_type_retenue}" />
+                            <h:outputText value="#{lab.L_montant}" />
+                            <span>&nbsp;</span>
+                            <p:inputText value="#{managedRetenue.employe}" style="float: right" >
+                                <p:ajax event="blur" listener="#{managedRetenue.loadRetenueByEmploye(managedRetenue.employe)}" oncomplete="collapseGrid('retenueEmploye')"
+                                        update=":body_prelevement_00:table_p_retenue" />
+                            </p:inputText>
+                            <h:panelGroup id="zone_add_param_date_ret">
+                                <h:selectBooleanCheckbox value="#{managedRetenue.paramDate}" valueChangeListener="#{managedRetenue.addParamDate}">
+                                    <p:ajax event="valueChange" update="zone_add_param_date_ret :body_prelevement_00:table_p_retenue" oncomplete="collapseGrid('retenueEmploye')"/>
+                                </h:selectBooleanCheckbox>
+                                <p:calendar value="#{managedRetenue.debutF}" size="7" title="Filtrer à partir du" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedRetenue.paramDate}">                                                   
+                                    <p:ajax event="dateSelect" process="@this" listener="#{managedRetenue.addParamDate1}" oncomplete="collapseGrid('retenueEmploye')"/>
+                                </p:calendar>
+                                <p:calendar value="#{managedRetenue.finF}" size="7" title="Filtrer jusqu'au" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedRetenue.paramDate}">
+                                    <p:ajax event="dateSelect" process="@this" listener="#{managedRetenue.addParamDate2}" oncomplete="collapseGrid('retenueEmploye')"/>
+                                </p:calendar>
+                            </h:panelGroup>
+                            <p:selectOneRadio value="#{managedRetenue.planifier}" style="font-size: 0.8em"
+                                              valueChangeListener="#{managedRetenue.addParamPlanifier}">
+                                <f:selectItem itemLabel="#{lab.LRH_PRS_planifie}" itemValue="1"/>
+                                <f:selectItem itemLabel="#{lab.LRH_PRS_non_planifier}" itemValue="2"/>
+                                <f:selectItem itemLabel="#{lab.LRH_PRS_tout}" itemValue="0"/>                        
+                                <p:ajax event="valueChange" process="@this" update=":body_prelevement_00:table_p_retenue" oncomplete="collapseGrid('retenueEmploye')"/>
+                            </p:selectOneRadio>
+                            <h:selectOneMenu value="#{managedRetenue.statut}" title="Filtrer les retenues par statut"
+                                             valueChangeListener="#{managedRetenue.addParamStatut}">
+                                <f:selectItem itemLabel="" itemValue="#{' '}"/>
+                                <f:selectItem itemLabel="#{lab.LC_PFA_en_cours}" itemValue="#{'E'}"/>
+                                <f:selectItem itemLabel="#{lab.LCF_PVC_suspendu}" itemValue="#{'S'}"/>
+                                <f:selectItem itemLabel="#{lab.LC_PFV_regler}" itemValue="#{'R'}"/>
+                                <p:ajax event="valueChange" process="@this" update=":body_prelevement_00:table_p_retenue" oncomplete="collapseGrid('retenueEmploye')"/>
+                            </h:selectOneMenu>
+                            <h:selectOneMenu value="#{managedRetenue.typeRetenu}"
+                                             valueChangeListener="#{managedRetenue.addParamTypeElement}">
+                                <f:selectItem itemValue="0" itemLabel="" />
+                                <f:selectItems value="#{managedRetenue.listTypesElts}" var="typE_"
+                                               itemValue="#{typE_.id}" itemLabel="#{typE_.libelle}"/>
+                                <p:ajax event="valueChange" process="@this" update=":body_prelevement_00:table_p_retenue" oncomplete="collapseGrid('retenueEmploye')"/>
+                            </h:selectOneMenu>
+                            <h:panelGroup >
+                                <pe:inputNumber value="#{managedRetenue.montant1}" style="width: 90px" 
+                                                >
+                                    <p:ajax event="blur" listener="#{managedRetenue.addParamMontant()}" oncomplete="collapseGrid('retenueEmploye')"
+                                            update=":body_prelevement_00:table_p_retenue" />
+                                </pe:inputNumber>
+                                <pe:inputNumber value="#{managedRetenue.montant2}" style="width: 90px" 
+                                                >
+                                    <p:ajax event="blur" listener="#{managedRetenue.addParamMontant()}" oncomplete="collapseGrid('retenueEmploye')"
+                                            update=":body_prelevement_00:table_p_retenue"/>
+                                </pe:inputNumber>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </h:panelGrid>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>  

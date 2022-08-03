@@ -1,0 +1,1020 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Ecarts Vendeur - Inventaire','modGescom', 'smenEcartVente', true,managedEcartVenteOrStock)}
+    </ui:define>           
+    <ui:define name="contents">
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('ecart_vente');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        #{managedVente.doNothing()} 
+        #{managedRetenue.doNothing()}  
+        #{managedInventaire.doNothing()}
+        #{managedTiers.doNothing()}
+        #{managedSaisiePiece.doNothing()}
+        #{managedEcartVenteOrStock.doNothing()}
+
+        #{managedAgence.loadAllUsable()}
+        #{managedDepot.loadAllDepotActif()}
+        #{managedCaisses.loadAllCaisseActif(true)}  
+        #{managedPointVente.loadAllPointVente()}   
+        #{managedUser.loadActif(true)}
+        #{managedCategoriePerso.loadAll()}
+
+        <h:form prependId="false" id="search-more_ecart_vente">
+            <p:dialog header="#{lab.L_plus_option}" width="40%"  closeOnEscape="true" widgetVar="dlgPlusOption" resizable="false"> 
+                <h:panelGrid id="blog_more_ecart_vente" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">  
+                    <h:outputText value="#{lab.L_comptabilise}" />
+                    <h:selectOneMenu value="#{managedEcartVenteOrStock.comptabiliseSearchVente}" style="width: 100%" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamComptabiliseVente()}"/>
+                    </h:selectOneMenu>  
+                    <h:selectOneMenu value="#{managedEcartVenteOrStock.comptabiliseSearchStock}" style="width: 100%" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamComptabiliseStock()}"/>
+                    </h:selectOneMenu>  
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="form-ecart_stock">  
+            <p:dialog width="80%" widgetVar="dlgBuildEcart" closeOnEscape="true" header="Ecarts des vendeurs" resizable="false">
+                <h:panelGrid columns="2" style="font-size: 0.8em;margin-right: 5%">
+                    <h:outputText value="#{lab.LDB_PU_code}" />
+                    <h:outputText value="#{lab.LDB_PU_groupe}"/>
+                    <h:inputText value="#{managedEcartVenteOrStock.vendeurSearch}">
+                        <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.onSearchUsers()}"/>
+                    </h:inputText>
+                    <h:selectOneMenu value="#{managedEcartVenteOrStock.groupeSearch}">
+                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                        <f:selectItems value="#{managedCategoriePerso.categories}" var="catP" itemLabel="#{catP.libelle}" itemValue="#{catP.id}" />   
+                        <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.onSearchUsers()}"/>                  
+                    </h:selectOneMenu> 
+                </h:panelGrid>
+                <p:dataTable id="data-programme_ecart_vente" value="#{managedEcartVenteOrStock.programmes}" var="ecr" rowKey="#{ecr.id}" rowIndexVar="EIdx"
+                             paginator="true" rows="15" paginatorAlwaysVisible="false"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             currentPageReportTemplate="{startRecord}-{endRecord} of {totalRecords} records" rowsPerPageTemplate="5,10,15,50,100,200">
+                    <p:column headerText="N°" width="30">
+                        <span>#{EIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PEV_users}">
+                        <span>#{ecr.users.nomUsers}</span>
+                    </p:column>
+                    <p:column headerText="Agence" style="text-align: center">
+                        <span>#{ecr.users.agence.codeagence}</span>
+                    </p:column>
+                    <p:column headerText="Groupe" width="100">
+                        <h:outputText value="#{ecr.users.categorie.libelle}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_date_debut}" style="text-align: center">
+                        <h:outputText value="#{ecr.dateDebut}" converter="DATE"/>
+                    </p:column> 
+                    <p:column headerText="#{lab.L_date_fin}" style="text-align: center">
+                        <h:outputText value="#{ecr.dateEcart}" converter="DATE"/>
+                    </p:column> 
+                    <p:column headerText="#{lab.L_montant}" style="text-align: right">
+                        <h:outputText value="#{ecr.montant}" converter="DN"/>
+                    </p:column> 
+                    <p:column width="20" style="text-align: center">
+                        <p:selectBooleanCheckbox value="#{ecr.inclure}" disabled="true"/>
+                    </p:column> 
+                    <p:column width="20" style="text-align: center">
+                        <p:contextMenu for="btn_option-programme_ecart_vente" event="left click" style="font-size: 0.8em">
+                            <p:menuitem value="#{ecr.inclure?'Exclure':'Inclure'}" icon="#{ecr.inclure?'ui-icon-minus':'ui-icon-plus'}"
+                                        actionListener="#{managedEcartVenteOrStock.onChangeInclure(ecr)}" update="data-programme_ecart_vente"/>
+                            <p:separator/>
+                            <p:menuitem value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedEcartVenteOrStock.saveEcart(ecr, false)}" rendered="#{ecr.id le 0}"/>
+                            <p:menuitem value="#{lab.L_enregistrer} et valider" icon="ui-icon-disk" actionListener="#{managedEcartVenteOrStock.saveEcart(ecr, true)}" rendered="#{ecr.id le 0}"/>
+                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedEcartVenteOrStock.removeEcart(ecr)}" rendered="#{ecr.id gt 0}"/>
+                        </p:contextMenu>                           
+                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option-programme_ecart_vente" type="button"/>
+                    </p:column> 
+                    <p:columnGroup type="footer">
+                        <p:row>
+                            <p:column/>
+                            <p:column>
+                                <f:facet name="footer">
+                                    <h:outputText value="TOTAUX"/> 
+                                </f:facet>
+                            </p:column> 
+                            <p:column/>
+                            <p:column/>
+                            <p:column/>
+                            <p:column/>
+                            <p:column style="text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedEcartVenteOrStock.ecartTotal}" converter="DN" style="color: #0066ff"/> 
+                                </f:facet>
+                            </p:column> 
+                            <p:column/> 
+                            <p:column/> 
+                        </p:row>
+                    </p:columnGroup>
+                </p:dataTable>
+                <f:facet name="footer">
+                    <div align="left">
+                        <h:panelGrid columns="2" cellpadding="0" cellspacing="0" style="width: 100%">
+                            <h:panelGrid columns="2" cellpadding="0" cellspacing="0">
+                                <p:selectOneMenu value="#{managedEcartVenteOrStock.agenceTiers}">
+                                    <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0"/>
+                                    <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                                </p:selectOneMenu>
+                                <p:commandButton value="#{lab.L_charger}" actionListener="#{managedEcartVenteOrStock.onBuildProgramm()}"/>
+                            </h:panelGrid>
+                            <p:splitButton value="#{lab.L_enregistrer}"  style="float: right" actionListener="#{managedEcartVenteOrStock.saveAllEcart(false)}" icon="ui-icon-disk">
+                                <p:menuitem value="#{lab.L_enregistrer} et valider" icon="ui-icon-disk" actionListener="#{managedEcartVenteOrStock.saveAllEcart(true)}"/>
+                            </p:splitButton>
+                        </h:panelGrid>
+                    </div>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-no_planifier_ecart_vente">  
+            <p:dialog width="80%" widgetVar="dlgEcartNoPlanifer" closeOnEscape="true" header="Ecarts non planifiés" resizable="false">
+                <p:outputPanel id="data-no_planifier_ecart_vente">
+                    <p:dataTable value="#{managedEcartVenteOrStock.ecartVenteNoPlanifier}" var="ecrV" rowKey="#{ecrV.id}" rowIndexVar="EIdx" selectionMode="single"
+                                 paginator="true" rows="15" paginatorAlwaysVisible="false" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                        <p:ajax event="rowSelect" listener="#{managedEcartVenteOrStock.loadOnViewEcartVente}" update=":main-ecart_vente:input_hide_ecart_vente" oncomplete="collapseForm('ecart_vente'); dlgEcartNoPlanifer.hide()"/>
+                        <p:column headerText="N°" width="30">
+                            <span>#{EIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_numero}" width="100">
+                            <h:outputText value="#{ecrV.numero}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date}" style="text-align: center">
+                            <h:outputText value="#{ecrV.dateEcart}" converter="DATE"/>
+                        </p:column> 
+                        <p:column headerText="#{lab.LC_PEV_users}">
+                            <span>#{ecrV.users.nomUsers}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}" style="text-align: right">
+                            <h:outputText value="#{ecrV.montant}" converter="DN"/>
+                        </p:column> 
+                        <p:column width="20" style="text-align: center">
+                            <f:facet name="header">
+                                <p:contextMenu for="btn_option_head-no_planifier_ecart_vente" event="left click" style="font-size: 0.8em;width: 200px">
+                                    <p:menuitem value="Planifier" icon="ui-icon-plus" actionListener="#{managedEcartVenteOrStock.onGenererReglementVente()}" update=":form-no_planifier_ecart_vente:data-no_planifier_ecart_vente"/>
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_head-no_planifier_ecart_vente" type="button"/>
+                            </f:facet>
+                            <p:contextMenu for="btn_option-no_planifier_ecart_vente" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="Planifier" icon="ui-icon-plus" actionListener="#{managedEcartVenteOrStock.onGenererReglementVente(ecrV, true)}" update=":form-no_planifier_ecart_vente:data-no_planifier_ecart_vente"/>
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedEcartVenteOrStock.deleteEcartVente(ecrV)}"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option-no_planifier_ecart_vente" type="button"/>
+                        </p:column> 
+                    </p:dataTable>
+                    <p:dataTable value="#{managedEcartVenteOrStock.ecartStockNoPlanifier}" var="ecrS" rowKey="#{ecrS.id}" rowIndexVar="EIdx" selectionMode="single"
+                                 paginator="true" rows="15" paginatorAlwaysVisible="false" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                        <p:ajax event="rowSelect" listener="#{managedEcartVenteOrStock.loadOnViewEcartStock}" update=":main-ecart_vente:input_hide_ecart_vente" oncomplete="collapseForm('ecart_vente'); dlgEcartNoPlanifer.hide()"/>
+                        <p:column headerText="N°" width="30">
+                            <span>#{EIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_numero}" width="100">
+                            <h:outputText value="#{ecrS.numero}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date}" style="text-align: center">
+                            <h:outputText value="#{ecrS.dateEcart}" converter="DATE"/>
+                        </p:column> 
+                        <p:column headerText="#{lab.LC_PEV_users}">
+                            <span>#{ecrS.users.nomUsers}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}" style="text-align: right">
+                            <h:outputText value="#{(ecrS.montant * ecrS.docStock.valeur.montant)/100}" converter="DN"/>%
+                        </p:column> 
+                        <p:column width="20" style="text-align: center">
+                            <p:contextMenu for="btn_option-no_planifier_ecart_stock" event="left click" style="font-size: 0.8em">
+                                <p:menuitem value="Planifier" icon="ui-icon-plus" actionListener="#{managedEcartVenteOrStock.onGenererReglementStock(ecrS, true)}" update=":form-no_planifier_ecart_vente:data-no_planifier_ecart_vente"/>
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedEcartVenteOrStock.deleteEcartStock(ecrS)}"/>
+                            </p:contextMenu>                           
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option-no_planifier_ecart_stock" type="button"/>
+                        </p:column> 
+                    </p:dataTable>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PFV_text44}" modal="true" closeOnEscape="true" widgetVar="dlgChoixTypeRet" width="70%" footer="&copy;Lymytz 2014"> 
+                <h:panelGrid columns="6" style="width: 100%" id="zone_choix_retenu_vente">
+                    <f:facet name="header">
+                        <div align="left">
+                            <h:panelGroup rendered="#{managedEcartVenteOrStock.nature eq 'V'}" >
+                                <h:outputText value="#{managedEcartVenteOrStock.selectReglementVente.piece.users.nomUsers} :" />
+                                <h:outputText value="#{managedEcartVenteOrStock.selectReglementVente.montant}" converter="DN"/>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{managedEcartVenteOrStock.nature ne 'V'}" >
+                                <h:outputText value="#{managedEcartVenteOrStock.selectReglementStock.piece.tiers.nom_prenom} :" />
+                                <h:outputText value="#{managedEcartVenteOrStock.selectReglementStock.montant}" converter="DN"/>
+                            </h:panelGroup>
+                            <br />
+                        </div>
+                    </f:facet>
+                    <span>#{lab.LC_PFV_text15}</span>
+                    <p:calendar size="8" pattern="dd-MM-yyyy" value="#{managedRetenue.debutPlanif}" navigator="true">
+                        <p:ajax global="false" event="dateSelect" />
+                    </p:calendar>
+                    <span>#{lab.LC_PFV_type_retenue}</span>
+                    <h:selectOneMenu value="#{managedRetenue.elementAdd.typeElt.id}" style="min-width: 160px">
+                        <f:selectItem itemValue="0" itemLabel="---" />
+                        <f:selectItems value="#{managedRetenue.listTypesElts}" var="typE"
+                                       itemValue="#{typE.id}" itemLabel="#{typE.libelle}" rendered="#{typE.visibleEnGescom}"/>
+                        <p:ajax event="valueChange" update="tab_prelevement_detail_vente" listener="#{managedRetenue.placerRetenu(managedEcartVenteOrStock.montantRetenue)}" />
+                    </h:selectOneMenu>
+                    <span>#{lab.LC_PFV_plan}</span>
+                    <h:selectOneMenu value="#{managedRetenue.elementAdd.plan.id}" style="min-width: 160px">
+                        <f:selectItem itemValue="0" itemLabel="---" />
+                        <f:selectItems value="#{managedRetenue.plansRetenues}" var="planR" itemValue="#{planR.id}" itemLabel="#{planR.referencePlan}" rendered="#{(planR.actif and planR.visibleEnGescom)}"/>
+                        <p:ajax event="valueChange" update="tab_prelevement_detail_vente" listener="#{managedRetenue.placerRetenu(managedEcartVenteOrStock.montantRetenue)}" />
+                    </h:selectOneMenu>                    
+                    <f:facet name="footer">
+                        <p:dataTable value="#{managedRetenue.elementAdd.listPrelevement}" var="det_" rowKey="#{det_.id}"
+                                     widgetVar="tableauDetailPlanPrelevement" rowIndexVar="line_detailP" rendered="#{managedEcartVenteOrStock.tabIds eq ''}"
+                                     selectionMode="single" id="tab_prelevement_detail_vente" selection="#{managedRetenue.selectedDetailPrelevement}">
+                            <p:column width="20" headerText="N°" style="text-align: center"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                #{line_detailP+1}
+                                <p:graphicImage library="img" name="blocked.png" rendered="#{det_.retenuFixe}" />
+                            </p:column>                                
+                            <p:column headerText="#{lab.LC_PFV_date_prevelement}" width="100" style="text-align: left"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{det_.datePrelevement}" converter="LD"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" width="200" style="text-align: center"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{det_.reference}" />
+                            </p:column>
+                            <p:column headerText=" #{lab.LC_PFV_montant_prevelement}" width="100" style="text-align: right"
+                                      styleClass="statutMesn_#{det_.statutReglement}">
+                                <h:outputText value="#{det_.valeur}" converter="#{managedInventaire.converter}"/>
+                            </p:column>
+                        </p:dataTable>
+                    </f:facet>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" style="float: right" actionListener="#{managedEcartVenteOrStock.onValideRetenue()}" oncomplete="dlgChoixTypeRet.hide()"/>
+            </p:dialog>            
+        </h:form>
+
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgListTiers"  width="70%" closeOnEscape="true" footer="&copy; Lymytz" header="#{lab.LCF_PR_liste_tiers}">
+                <div class="dlg_part_fixe">
+                    <h:selectOneMenu value="true"  style="font-size: 0.7em">
+                        <f:selectItem itemLabel="#{lab.L_actif}" itemValue="#{true}" />
+                        <f:selectItem itemLabel="#{lab.L_inactif}" itemValue="#{false}" />
+                    </h:selectOneMenu>
+                    <p:watermark for="txt_cmpte_fin_by_numT" value="#{lab.L_rechercher}..." />
+                    <h:inputText value="#{managedTiers.numSearch_}" style="font-size: 0.7em" id="txt_cmpte_fin_by_numT">
+                        <p:ajax event="valueChange" listener="#{managedTiers.searchByNum()}" update="data-tiers_ecart_vente" />
+                    </h:inputText>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedTiers.init(false)}" global="false" update="data-tiers_ecart_vente" icon="ui-icon-circle-triangle-w" disabled="#{managedTiers.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedTiers.paginator.currentPage}/#{managedTiers.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedTiers.init(true)}" global="false" update="data-tiers_ecart_vente" icon="ui-icon-circle-triangle-e" disabled="#{managedTiers.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedTiers.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedTiers.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedTiers.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data-tiers_ecart_vente"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </div>
+                <p:dataTable id="data-tiers_ecart_vente" value="#{managedTiers.listTiers}" var="clt" rowKey="#{clt.id}" 
+                             rowIndexVar="cltIdx" style="max-height: 500px; overflow-y: auto; clear: right"
+                             selectionMode="single" emptyMessage="Aucun tiers">
+                    <p:ajax event="rowSelect"  listener="#{managedEcartVenteOrStock.loadOnViewTiers}" oncomplete="dlgListTiers.hide()"/>
+                    <p:column width="30"  headerText="N°" style="text-align: center">
+                        <span>#{cltIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" width="90">
+                        <span>#{clt.codeTiers}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_nom}" width="120">
+                        <span>#{clt.nom_prenom}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_POD_groupes}" width="80">
+                        <span>#{(clt.client)?lab.L_client:''}</span>
+                        <span>#{(clt.fournisseur and clt.client)?lab.L_fournisseur:(clt.fournisseur)?lab.L_fournisseur:''}</span>
+                        <span>#{(clt.employe and (clt.client or clt.fournisseur))?lab.LCF_PBP_employe:(clt.employe)?lab.LCF_PBP_employe:''}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_region}" width="80">
+                        <span>#{clt.region}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_actif}" width="25" style="text-align: center">
+                        <h:graphicImage library="img"  name="#{(clt.actif)?'yes.png':'no.png'}" width="15" height="15"/>
+                    </p:column>
+                </p:dataTable>   
+            </p:dialog>
+        </h:form>
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des journées de vente
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="Liste des inventaires" widgetVar="dlgListInventaire" modal="true" width="60%"  closeOnEscape="true"> 
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="3" cellpadding="0" cellspacing="0" style="font-size: 0.8em">
+                        <h:panelGroup>                            
+                            <h:selectBooleanCheckbox value="#{managedInventaire.date_}">
+                                <p:ajax event="valueChange" listener="#{managedInventaire.chooseDateSearch()}" update="blog_date_search_inventaire data-inventaire_ecart_vente"/>
+                            </h:selectBooleanCheckbox>
+                            <h:outputText value="#{lab.L_date}" />
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.L_reference}" />
+                        <h:outputText value="#{lab.L_depot}" />
+                        <h:panelGroup id="blog_date_search_inventaire">
+                            <p:calendar value="#{managedInventaire.dateDebut_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedInventaire.date_}" size="8" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedInventaire.chooseDateSearch()}" update="data-inventaire_ecart_vente"/>
+                            </p:calendar>
+                            <p:spacer width="5px" style="background: black"/>
+                            <p:calendar value="#{managedInventaire.dateFin_}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedInventaire.date_}" size="8" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedInventaire.chooseDateSearch()}" update="data-inventaire_ecart_vente"/>
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:inputText value="#{managedInventaire.numSearch_}">
+                            <p:ajax event="valueChange" listener="#{managedInventaire.searchByNum()}" update="data-inventaire_ecart_vente"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedInventaire.depotSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedDepot.depots}" var="depS" itemLabel="#{depS.designation}" itemValue="#{depS.id}" />                                 
+                            <p:ajax event="valueChange" listener="#{managedInventaire.chooseDepotSearch()}" update="data-inventaire_ecart_vente"/>
+                        </h:selectOneMenu> 
+                    </h:panelGrid>  
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedInventaire.init(false)}" global="false" update="data-inventaire_ecart_vente" icon="ui-icon-circle-triangle-w" disabled="#{managedInventaire.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedInventaire.paginator.currentPage}/#{managedInventaire.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedInventaire.init(true)}" global="false" update="data-inventaire_ecart_vente" icon="ui-icon-circle-triangle-e" disabled="#{managedInventaire.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedInventaire.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedInventaire.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedInventaire.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data-inventaire_ecart_vente"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>                    
+                </h:panelGrid>
+                <p:dataTable id="data-inventaire_ecart_vente" value="#{managedInventaire.documents}" var="bon" rowIndexVar="bonIdx"
+                             rowKey="#{bon.id}" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                    <p:ajax event="rowSelect" listener="#{managedEcartVenteOrStock.loadOnViewInventaire}" oncomplete="dlgListInventaire.hide()"/>
+                    <p:column width="35" headerText="N°" styleClass="statut_#{bon.statut}">
+                        <h:graphicImage title="#{lab.L_cloturer}" library="img" name="blocked.png" width="15" height="15" rendered="#{bon.cloturer}"/>  
+                        <span>#{bonIdx+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference}" styleClass="statut_#{bon.statut}">
+                        <span title="#{bon.dateSave.toString()}">#{bon.numDoc}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_date}" style="text-align: center;width: 12%" styleClass="statut_#{bon.statut}">
+                        <h:outputText value="#{bon.dateDoc}" converter="DDMMYYYY"/>
+                    </p:column>
+                    <p:column headerText="#{lab.L_depot}" styleClass="statut_#{bon.statut}">
+                        <span title="#{bon.dateSave.toString()}">#{bon.source.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PI_creneau}" styleClass="statut_#{bon.statut}">
+                        <span title="#{bon.dateSave.toString()}">#{bon.creneauSource.semiReference}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PI_responsable}" styleClass="statut_#{bon.statut}">
+                        <span title="#{bon.dateSave.toString()}">#{bon.editeur.nomUsers}</span>
+                    </p:column>
+                </p:dataTable> 
+            </p:dialog>
+        </h:form>
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des livreurs
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PEV_liste_utilisateurs}" widgetVar="dlgListUsers" modal="true" width="60%"  closeOnEscape="true"> 
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="1">
+                        <h:inputText value="#{managedUser.numSearch}" style="margin-left: -10px">
+                            <p:ajax event="valueChange" update="data-users_ecart_vente" listener="#{managedUser.searchUsersActif(false)}"/>
+                        </h:inputText>
+                    </h:panelGrid>                    
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedUser.loadAll(false,false)}" global="false" update="data-users_ecart_vente" icon="ui-icon-circle-triangle-w" disabled="#{managedUser.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedUser.paginator.currentPage}/#{managedUser.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedUser.loadAll(true,false)}" global="false" update="data-users_ecart_vente" icon="ui-icon-circle-triangle-e" disabled="#{managedUser.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedUser.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedUser.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedUser.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data-users_ecart_vente"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>  
+                </h:panelGrid>
+                <p:dataTable id="data-users_ecart_vente" value="#{managedUser.listUser}" var="art" rowKey="#{art.id}"
+                             selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false" >
+                    <p:ajax event="rowSelect" global="false" listener="#{managedEcartVenteOrStock.loadOnViewUsers}" oncomplete="dlgListUsers.hide()"/>
+                    <p:column filterBy="#{art.codeUsers}" style="width: 2%">
+                        <span>#{art.codeUsers}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PEV_noms}" style="width: 6%">
+                        <span>#{art.nomUsers}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_groupe}" style="width: 4%">
+                        <span>#{art.categorie.libelle}</span>
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PEV_selectionner_caisse}" widgetVar="dlgChooseCaisse" modal="true" closeOnEscape="true"> 
+                <h:panelGrid id="form-caisse_ecart_vente" columns="2" cellpadding="0" cellspacing="0">
+                    <h:selectOneMenu value="#{managedEcartVenteOrStock.ecart.caisse.id}" style="min-width: 120px">
+                        <f:selectItem itemValue="0" itemLabel="--"/>
+                        <f:selectItems value="#{managedEcartVenteOrStock.ecart.caisses}" var="iCais" itemValue="#{iCais.id}" itemLabel="#{iCais.intitule}"/>
+                    </h:selectOneMenu>
+                    <p:commandButton value="#{lab.L_confirmer}" update=":main-ecart_vente:grp_btn_etat_ecart_vente"
+                                     actionListener="#{managedEcartVenteOrStock.validerVente()}" oncomplete="dlgChooseCaisse.hide()"/>
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog  header="#{lab.LC_PEV_supprimer_versement}" message="#{lab.LC_PEV_confirmer_vous}" widgetVar="dlgRemoveCaisse" width="50%" >
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedEcartVenteOrStock.removeCaisse()}" oncomplete="dlgRemoveCaisse.hide()" icon="ui-icon-circle-check"
+                                 update=":main-ecart_vente:data-ecart_vente"/>
+                <p:commandButton value="#{lab.L_non}" type="button" onclick="dlgRemoveCaisse.hide()" icon="ui-icon-circle-close" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PEV_text}" header="#{lab.L_confirmation}">
+                <h:panelGroup>
+                    <p:selectBooleanCheckbox value="#{managedEcartVenteOrStock.deleteEcart}" itemLabel="Si l'ecart possède un seul reglement il sera supprimé également">
+                        <p:ajax event="valueChange" global="false"/>
+                    </p:selectBooleanCheckbox>
+                </h:panelGroup>
+                <h:panelGroup style="float: right">
+                    <p:commandButton value="#{lab.L_oui}" actionListener="#{managedEcartVenteOrStock.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+                    <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+                </h:panelGroup>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmOneDelete" closeOnEscape="true"
+                             message="#{lab.LC_PEV_text}" header="#{lab.L_confirmation}">
+                <h:panelGroup>
+                    <p:selectBooleanCheckbox value="#{managedEcartVenteOrStock.deleteEcart}" itemLabel="Si l'ecart possède un seul reglement il sera supprimé également">
+                        <p:ajax event="valueChange" global="false"/>
+                    </p:selectBooleanCheckbox>
+                </h:panelGroup>
+                <h:panelGroup style="float: right">
+                    <p:commandButton value="#{lab.L_oui}" actionListener="#{managedEcartVenteOrStock.deleteOneBean()}" oncomplete="dlgConfirmOneDelete.hide()"/>
+                    <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmOneDelete.hide()"/>
+                </h:panelGroup>
+            </p:confirmDialog>
+        </h:form>        
+        <h:form>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgComptabiliseVente" message="#{lab.LC_PFV_text19}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.comptabiliserRetenue(managedEcartVenteOrStock.selectReglementVente.retenue.retenue, true)}"
+                                 update=":main-ecart_vente:data-reglement_ecart_vente :main-ecart_vente:data-ecart_vente" oncomplete="dlgComptabiliseVente.hide()"/>
+                <p:commandButton value="#{lab.LC_PFV_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgComptabiliseVente.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgComptabiliseStock" message="#{lab.LC_PFV_text19}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.comptabiliserRetenue(managedEcartVenteOrStock.selectReglementStock.retenue.retenue, true)}"
+                                 update=":main-ecart_vente:data-reglement_ecart_stock :main-ecart_vente:data-ecart_vente" oncomplete="dlgComptabiliseStock.hide()"/>
+                <p:commandButton value="#{lab.LC_PFV_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgComptabiliseStock.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgUnComptabiliseVente" message="#{lab.LC_PFV_text18}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.unComptabiliserRetenue(managedEcartVenteOrStock.selectReglementVente.retenue.retenue, true)}"
+                                 update=":main-ecart_vente:data-reglement_ecart_vente :main-ecart_vente:data-ecart_vente" oncomplete="dlgUnComptabiliseVente.hide()"/>
+                <p:commandButton value="#{lab.LC_PFV_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgUnComptabiliseVente.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <h:form>
+            <p:confirmDialog  header="#{lab.L_confirmation}" width="40%" widgetVar="dlgUnComptabiliseStock" message="#{lab.LC_PFV_text18}">
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.unComptabiliserRetenue(managedEcartVenteOrStock.selectReglementStock.retenue.retenue, true)}"
+                                 update=":main-ecart_vente:data-reglement_ecart_stock :main-ecart_vente:data-ecart_vente" oncomplete="dlgUnComptabiliseStock.hide()"/>
+                <p:commandButton value="#{lab.LC_PFV_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgUnComptabiliseStock.hide()" />
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main-ecart_vente">    
+            <div class="part_fix">
+                <div style="float: left;width: 30%">
+                    <p:splitButton value="#{lab.L_enregistrer}" id="save_ecart_vente" actionListener="#{managedEcartVenteOrStock.saveNew()}" 
+                                   update="blog-numero_ecart_vente grp_btn_etat_ecart_vente" icon="ui-icon-disk">
+                        <p:menuitem value="#{lab.L_nouveau}" icon="ui-icon-document" actionListener="#{managedEcartVenteOrStock.resetFiche()}" oncomplete="collapseForm('ecart_vente');"/>
+                        <p:separator/>
+                        <p:menuitem value="Equilibrer" icon="ui-icon-pin-s" actionListener="#{managedEcartVenteOrStock.equilibreEcart()}"/>
+                        <p:menuitem value="Générer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onGenererRetenue()}"/> 
+                        <p:menuitem value="Ecart non planifié" icon="ui-icon-alert" actionListener="#{managedEcartVenteOrStock.onLoadEcartNoPlanifier()}" oncomplete="dlgEcartNoPlanifer.show()"/>
+                        <p:menuitem value="Programmation" icon="ui-icon-copy" global="false" onclick="dlgBuildEcart.show()" rendered="#{managedEcartVenteOrStock.nature eq 'V'}"/>
+                        <p:separator/>
+                        <p:menuitem value="Ecart Financier" icon="#{managedEcartVenteOrStock.nature eq 'V'?'ui-icon-bullet':'ui-icon-radio-on'}" actionListener="#{managedEcartVenteOrStock.setNature('V')}" style="margin-left: 10px"
+                                    update="blog-ecart_vente save_ecart_vente type_ecart_vente data-ecart_vente :search-ecart_vente :search-more_ecart_vente:blog_more_ecart_vente"/>
+                        <p:menuitem value="Ecart Inventaire" icon="#{managedEcartVenteOrStock.nature eq 'S'?'ui-icon-bullet':'ui-icon-radio-on'}" actionListener="#{managedEcartVenteOrStock.setNature('S')}" style="margin-left: 10px"
+                                    update="blog-ecart_vente save_ecart_vente type_ecart_vente data-ecart_vente :search-ecart_vente :search-more_ecart_vente:blog_more_ecart_vente"/>
+                        <p:separator/>
+                        <p:menuitem value="#{lab.L_supprimer}" global="false" icon="ui-icon-trash" oncomplete="dlgConfirmOneDelete.show()"/>
+                    </p:splitButton>
+                    <h:outputText id="type_ecart_vente" value="Vous traitez les écarts #{managedEcartVenteOrStock.nature eq 'V'?' financier':'inventaire'}" 
+                                  style="font-size: 13px; color: #003399"/>
+                    <p:splitButton value="Valider" id="delete_ecart_vente" icon="ui-icon-check" actionListener="#{managedEcartVenteOrStock.validerSelected()}" update="data-ecart_vente">
+                        <p:menuitem value="#{lab.L_supprimer}" global="false" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()" />
+                        <p:menuitem value="Equilibrer" icon="ui-icon-pin-s" actionListener="#{managedEcartVenteOrStock.equilibreAllEcart()}"/>
+                        <p:menuitem value="Générer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onGenererRetenueSelected()}" update="data-ecart_vente"/>
+                    </p:splitButton>
+                </div>
+                <p:outputPanel autoUpdate="true" style="margin-left: 15%">
+                    <p:commandButton actionListener="#{managedEcartVenteOrStock.parcoursInAllResult(false)}" update="txt_parc_linear_ecart_vente" icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('ecart_vente')"/>
+                    <h:inputText value="#{managedEcartVenteOrStock.offset}" style="width: 35px; text-align: center;"  title="Aller au N°..." id="txt_parc_linear_ecart_vente"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedEcartVenteOrStock.currentPaginator().nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedEcartVenteOrStock.parcoursInAllResult(true)}" update="txt_parc_linear_ecart_vente" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('ecart_vente')"/>
+                </p:outputPanel>  
+                <div style="float: right">
+                    <div style="float: right">
+                        <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('ecart_vente');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <p:spacer />
+                        <h:link title="#{lab.L_mode_liste}" onclick="collapseList('ecart_vente');
+                                return false" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>   
+                    </div>
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_ecart_vente">
+                    <p:outputPanel id="blog-ecart_vente">
+                        <h:panelGrid id="form-ecart_vente" style="width: 100%" styleClass="yvs_table" columns="2" cellpadding="0" cellspacing="0">   
+                            <f:facet name="header">
+                                <div align="left">
+                                    <h:panelGroup id="blog-numero_ecart_vente" style="padding: 5px">
+                                        <h:panelGroup rendered="#{managedEcartVenteOrStock.ecart.id gt 0}">
+                                            <span style="font-size: initial">Numéro : </span>
+                                            <h:outputText value="#{managedEcartVenteOrStock.ecart.numero}" style="font-weight: bold"/>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                    <h:panelGroup id="grp_btn_etat_ecart_vente" style="float: right; margin-top: -0.5px">
+                                        <h:panelGroup style="padding: 7px;position: relative" rendered="#{managedEcartVenteOrStock.ecart.id gt 0}">
+                                            <p:commandLink value="#{lab.L_en_attente}" styleClass="#{(managedEcartVenteOrStock.ecart.statut == constantes.STATUT_DOC_EDITABLE or managedEcartVenteOrStock.ecart.statut == constantes.STATUT_DOC_ATTENTE)?'statut_valide':'etat_formation_true'}" 
+                                                           disabled="#{!(managedEcartVenteOrStock.ecart.statut == constantes.STATUT_DOC_VALIDE or managedEcartVenteOrStock.ecart.statut == constantes.STATUT_DOC_ANNULE)}" 
+                                                           actionListener="#{managedEcartVenteOrStock.annuler(false)}"
+                                                           process="@this" update="grp_btn_etat_ecart_vente"/>                                 
+                                            <p:commandLink value="#{lab.L_valider}" styleClass="#{(managedEcartVenteOrStock.ecart.statut == constantes.STATUT_DOC_VALIDE)?'statut_valide':'etat_formation_true'}" 
+                                                           disabled="#{!(managedEcartVenteOrStock.ecart.statut == constantes.STATUT_DOC_EDITABLE)}" 
+                                                           actionListener="#{managedEcartVenteOrStock.valider()}"
+                                                           process="@this" update="grp_btn_etat_ecart_vente"/>
+                                            <p:commandLink value="#{lab.L_annulers}" styleClass="#{(managedEcartVenteOrStock.ecart.statut==constantes.STATUT_DOC_ANNULE)?'statut_valide':'etat_formation_true'}" 
+                                                           disabled="#{managedEcartVenteOrStock.ecart.statut == constantes.STATUT_DOC_ANNULE}" 
+                                                           actionListener="#{managedEcartVenteOrStock.annuler(true)}"
+                                                           process="@this" update="grp_btn_etat_ecart_vente"/>
+                                        </h:panelGroup> 
+                                    </h:panelGroup> 
+                                </div>
+                            </f:facet>
+                            <h:outputText value="#{managedEcartVenteOrStock.nature eq 'V'?'Période écart':'Date écart'}"/>             
+                            <h:panelGroup id="txt-date_debut_ecart_vente">
+                                <p:calendar value="#{managedEcartVenteOrStock.ecart.dateDebut}" pattern="dd-MM-yyyy" size="10" disabled="true" title="Date début"
+                                            rendered="#{managedEcartVenteOrStock.nature eq 'V'}"/> 
+                                <p:spacer style="width: 5px;background: black" rendered="#{managedEcartVenteOrStock.nature eq 'V'}"/>
+                                <p:calendar value="#{managedEcartVenteOrStock.ecart.dateEcart}" pattern="dd-MM-yyyy" size="10" disabled="#{managedEcartVenteOrStock.nature eq 'S'}"
+                                            navigator="true">
+                                    <p:ajax event="valueChange" global="false"/>
+                                </p:calendar>
+                            </h:panelGroup>
+                            <h:outputText value="Inventaire" rendered="#{managedEcartVenteOrStock.nature eq 'S'}"/>    
+                            <h:panelGroup id="txt-inventaire_ecart_vente" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                                <h:inputText value="#{managedEcartVenteOrStock.ecart.inventaire.numDoc}" style="color: #{managedEcartVenteOrStock.ecart.inventaire.error?'red':''}">
+                                    <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.searchInventaire()}" update="txt-inventaire_ecart_vente"/>
+                                </h:inputText>    
+                                <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white" title="Liste Inventaire" global="false" oncomplete="dlgListInventaire.show()"/>
+                                <h:outputText value="#{managedEcartVenteOrStock.ecart.inventaire.montantTotal}" style="color: #006666;margin-left: 10px" converter="DNS"/>Fcfa
+                                (<p:outputPanel autoUpdate="true" style="font-size: 0.8em">
+                                    <h:outputText value="#{100 - managedEcartVenteOrStock.ecart.inventaire.taux}" style="font-weight: bold" converter="DNS"/>
+                                    <h:outputText value="% restant à repartir" style="font-size: 1.2em"/>
+                                </p:outputPanel>)
+                            </h:panelGroup>  
+                            <h:outputText value="#{lab.LC_PEV_users}" rendered="#{managedEcartVenteOrStock.nature eq 'V'}"/>          
+                            <h:panelGroup id="txt-users_ecart_vente" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                                <h:inputText value="#{managedEcartVenteOrStock.ecart.users.codeUsers}" style="color: #{managedEcartVenteOrStock.ecart.users.error?'red':''}">
+                                    <p:ajax event="valueChange"  listener="#{managedEcartVenteOrStock.searchUsers()}" update="txt-users_ecart_vente"/>
+                                </h:inputText>    
+                                <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white" title="Liste Utilisateurs" global="false"
+                                                 oncomplete="dlgListUsers.show()"/>
+                                <h:outputText value="#{managedEcartVenteOrStock.ecart.users.nomUsers}" style="color: #006666;margin-left: 10px"/>
+                            </h:panelGroup>           
+                            <h:outputText value="#{lab.L_tiers}" rendered="#{managedEcartVenteOrStock.nature eq 'S'}"/>          
+                            <h:panelGroup id="txt-tiers_ecart_vente" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                                <h:inputText value="#{managedEcartVenteOrStock.ecart.tiers.codeTiers}" style="color: #{managedEcartVenteOrStock.ecart.tiers.error?'red':''}">
+                                    <p:ajax event="valueChange"  listener="#{managedEcartVenteOrStock.searchTiers()}" update="txt-tiers_ecart_vente"/>
+                                </h:inputText>    
+                                <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px;background: white" title="Liste Tiers" global="false"
+                                                 oncomplete="dlgListTiers.show()"/>
+                                <h:outputText value="#{managedEcartVenteOrStock.ecart.tiers.nom_prenom}" style="color: #006666;margin-left: 10px"/>
+                            </h:panelGroup>           
+                            <h:outputText value="#{managedEcartVenteOrStock.nature eq 'V'?lab.L_montant:lab.L_taux}"/> 
+                            <h:panelGroup id="txt-montant_ecart_vente">
+                                <h:inputText value="#{managedEcartVenteOrStock.ecart.montant}" readonly="true" rendered="#{managedEcartVenteOrStock.nature eq 'V'}"
+                                             style="text-align: center;font-size: 1.0em;" converter="DN"/>
+                                <p:outputPanel autoUpdate="true" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                                    <h:inputText value="#{managedEcartVenteOrStock.ecart.montant}" style="text-align: center;font-size: 1.0em; width: 50px">
+                                        <p:ajax event="valueChange" global="false"/>
+                                    </h:inputText> 
+                                    <h:outputText value="%"/> 
+                                    <h:inputText value="#{(managedEcartVenteOrStock.ecart.montant * managedEcartVenteOrStock.ecart.inventaire.montantTotal)/100}" style="text-align: center;font-size: 1.0em;width: 150px" converter="DNS" readonly="true"/>
+                                </p:outputPanel>
+                                <p:commandButton icon="ui-icon-calculator" value="Calculer l'ecart" actionListener="#{managedEcartVenteOrStock.calculMontant()}" rendered="#{managedEcartVenteOrStock.nature eq 'V'}"/>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                        <p:outputPanel id="form-reglement_ecart">
+                            <div style="clear: both"/>
+                            <h:panelGrid class="headline_data" columns="2" styleClass="yvs_nostyle" style="width: 100%">
+                                <span style="font-weight: bold"> #{lab.LC_PEV_reglements}</span>
+                            </h:panelGrid> 
+                            <h:panelGrid id="form-reglement_ecart_vente" columns="5" cellpadding="0" cellspacing="0">
+                                <h:outputText value="#{lab.L_date}"/>           
+                                <h:outputText value="#{lab.L_montant}"/>  
+                                <h:outputText value="#{lab.LC_PEV_caisse}"/>                         
+                                <h:outputText value=""/>                         
+                                <h:outputText value=""/>                         
+                                <p:calendar value="#{managedEcartVenteOrStock.reglement.dateReglement}" pattern="dd-MM-yyyy" size="10"/>       
+                                <h:inputText value="#{managedEcartVenteOrStock.reglement.montant}" style="text-align: right"/>  
+                                <h:selectOneMenu value="#{managedEcartVenteOrStock.reglement.caisse.id}" style="min-width: 120px">
+                                    <f:selectItem itemValue="0" itemLabel="--"/>
+                                    <f:selectItems value="#{managedCaisses.caisses}" var="iCais" itemValue="#{iCais.id}" itemLabel="#{iCais.intitule}"/>
+                                    <p:ajax event="valueChange" global="false" listener="#{managedEcartVenteOrStock.chooseCaisse(false)}"/>
+                                </h:selectOneMenu>     
+                                <p:commandButton icon="ui-icon-document" value="#{lab.L_nouveau}" actionListener="#{managedEcartVenteOrStock.resetReglement()}"/>
+                                <p:commandButton icon="ui-icon-disk" value="#{lab.L_enregistrer}" actionListener="#{managedEcartVenteOrStock.saveReglement()}" style="float: right"/>
+                            </h:panelGrid>
+                            <p:dataTable id="data-reglement_ecart_vente" value="#{managedEcartVenteOrStock.ecart.reglementsVente}" var="iReg"
+                                         rowKey="#{iReg.id}" rowIndexVar="rIdx" selectionMode="single" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                                <p:ajax event="rowSelect" listener="#{managedEcartVenteOrStock.loadOnViewReglement}" update=":main-ecart_vente:form-reglement_ecart_vente" oncomplete="collapseForm('ecart_vente')"/>
+                                <p:ajax event="rowUnselect" listener="#{managedEcartVenteOrStock.unLoadOnViewReglement}" update=":main-ecart_vente:form-reglement_ecart_vente" oncomplete="collapseForm('ecart_vente')"/>
+                                <p:column headerText="N°" width="30" styleClass="etat_#{iReg.statut}">
+                                    <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{iReg.new_}"/>
+                                    <span>#{rIdx+1}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_reference}" styleClass="etat_#{iReg.statut}">
+                                    <span>#{iReg.numero}</span>
+                                    <h:panelGroup style="float: right">
+                                        <h:outputText title="Rattaché à une reténue" value="R" rendered="#{iReg.retenue ne null}" styleClass="style_statut"/>
+                                        <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{managedRetenue.isComptabilise(iReg.retenue.retenue)}" styleClass="style_statut"/>
+                                    </h:panelGroup> 
+                                </p:column>
+                                <p:column headerText="#{lab.L_date}" style="text-align: center" styleClass="etat_#{iReg.statut}">
+                                    <h:outputText value="#{iReg.dateReglement}" converter="DATE"/>
+                                </p:column>   
+                                <p:column headerText="#{lab.LC_PEV_caisse}" styleClass="etat_#{iReg.statut}">
+                                    <span>#{iReg.caisse.intitule}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_montant}" style="text-align: right" styleClass="etat_#{iReg.statut}">
+                                    <h:outputText value="#{iReg.montant}" converter="DN"/>
+                                </p:column>  
+                                <p:column width="20" style="text-align: center"> 
+                                    <p:contextMenu for="btn_option_piece_ecart_vente" event="left click" style="font-size: 0.8em"> 
+                                        <p:menuitem value="#{!iReg.retenue.retenue.comptabilise?lab.LCF_PMC_comptabiliser:lab.LC_PJV_annuler_comptabilise}" actionListener="#{managedEcartVenteOrStock.setSelectReglementVente(iReg)}" 
+                                                    oncomplete="#{!iReg.retenue.retenue.comptabilise?'dlgComptabiliseVente.show()':'dlgUnComptabiliseVente.show()'}" icon="ui-icon-arrowthick-2-e-w" rendered="#{iReg.retenue ne null}"/> 
+                                        <p:menuitem value="Générer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onGenererRetenueVente(iReg)}" rendered="#{iReg.retenue eq null}"/> 
+                                        <p:menuitem value="Supprimer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onDeleteRetenueVente(iReg)}" rendered="#{iReg.retenue ne null}"/> 
+                                        <p:separator style="width: 98%;margin: auto"/>  
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedEcartVenteOrStock.deleteReglementVente(iReg, false)}"/>
+                                    </p:contextMenu>                           
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_piece_ecart_vente" type="button"/>
+                                </p:column>
+                            </p:dataTable> 
+                            <p:dataTable id="data-reglement_ecart_stock" value="#{managedEcartVenteOrStock.ecart.reglementsStock}" var="iReg"
+                                         rowKey="#{iReg.id}" rowIndexVar="rIdx" selectionMode="single" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                                <p:ajax event="rowSelect" listener="#{managedEcartVenteOrStock.loadOnViewReglement}" update=":main-ecart_vente:form-reglement_ecart_vente" oncomplete="collapseForm('ecart_vente')"/>
+                                <p:ajax event="rowUnselect" listener="#{managedEcartVenteOrStock.unLoadOnViewReglement}" update=":main-ecart_vente:form-reglement_ecart_vente" oncomplete="collapseForm('ecart_vente')"/>
+                                <p:column headerText="N°" width="30" styleClass="etat_#{iReg.statut}">
+                                    <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{iReg.new_}"/>
+                                    <span>#{rIdx+1}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_reference}" styleClass="etat_#{iReg.statut}">
+                                    <span>#{iReg.numero}</span>
+                                    <h:panelGroup style="float: right">
+                                        <h:outputText title="Rattaché à une reténue" value="R" rendered="#{iReg.retenue ne null}" styleClass="style_statut"/>
+                                        <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{managedRetenue.isComptabilise(iReg.retenue.retenue)}" styleClass="style_statut"/>
+                                    </h:panelGroup> 
+                                </p:column>
+                                <p:column headerText="#{lab.L_date}" style="text-align: center" styleClass="etat_#{iReg.statut}">
+                                    <h:outputText value="#{iReg.dateReglement}" converter="DATE"/>
+                                </p:column>   
+                                <p:column headerText="#{lab.LC_PEV_caisse}" styleClass="etat_#{iReg.statut}">
+                                    <span>#{iReg.caisse.intitule}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_montant}" style="text-align: right" styleClass="etat_#{iReg.statut}">
+                                    <h:outputText value="#{iReg.montant}" converter="DN"/>
+                                </p:column>  
+                                <p:column width="20" style="text-align: center"> 
+                                    <p:contextMenu for="btn_option_piece_ecart_stock" event="left click" style="font-size: 0.8em"> 
+                                        <p:menuitem value="#{!iReg.retenue.retenue.comptabilise?lab.LCF_PMC_comptabiliser:lab.LC_PJV_annuler_comptabilise}" actionListener="#{managedEcartVenteOrStock.setSelectReglementStock(iReg)}" 
+                                                    oncomplete="#{!iReg.retenue.retenue.comptabilise?'dlgComptabiliseStock.show()':'dlgUnComptabiliseStock.show()'}" icon="ui-icon-arrowthick-2-e-w" rendered="#{iReg.retenue ne null}"/> 
+                                        <p:menuitem value="Générer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onGenererRetenueStock(iReg)}" rendered="#{iReg.retenue eq null}"/> 
+                                        <p:menuitem value="Supprimer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onDeleteRetenueStock(iReg)}" rendered="#{iReg.retenue ne null}"/> 
+                                        <p:separator style="width: 98%;margin: auto"/>  
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedEcartVenteOrStock.deleteReglementStock(iReg, false)}"/>
+                                    </p:contextMenu>                           
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_piece_ecart_stock" type="button"/>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:outputPanel>
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_ecart_vente" style="width: 99%; margin: auto; background: white">
+                    <h:inputHidden id="input_hide_ecart_vente" value="#{managedEcartVenteOrStock.tabIds}"/>
+                    <p:outputPanel id="data-ecart_vente">
+                        <p:dataTable value="#{managedEcartVenteOrStock.ecartsVente}" var="iEcar" rendered="#{managedEcartVenteOrStock.nature eq 'V'}"
+                                     rowKey="#{iEcar.id}" rowIndexVar="eIdx" selectionMode="single">
+                            <p:ajax event="rowSelect" listener="#{managedEcartVenteOrStock.loadOnView}" update=":main-ecart_vente:input_hide_ecart_vente" oncomplete="collapseForm('ecart_vente')"/>
+                            <p:column headerText="N°" width="30" styleClass="statut_#{iEcar.statut}">
+                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{iEcar.new_}"/>
+                                <span>#{eIdx+1}</span>
+                                <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{iEcar.piece.id eq managedEcartVenteOrStock.ecart.id}"/>
+                                <h:graphicImage library="img" name="danger.png" width="17" height="15" rendered="#{iEcar.piece.montant ne iEcar.montant}" title="Montant non entièrement planifié" style="float: right"/>
+                            </p:column>
+                            <p:column headerText="Ecart" styleClass="statut_#{iEcar.statut}">
+                                <span>#{iEcar.piece.numero}</span> 
+                                <p:spacer width="10px" style="float: right;margin-top: 2px" styleClass="#{iEcar.piece.statut}" title="STATUT : #{managedEcartVenteOrStock.giveNameStatut(iEcar.piece.statut)}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" styleClass="statut_#{iEcar.statut}">
+                                <span>#{iEcar.numero}</span> 
+                                <h:panelGroup style="float: right">
+                                    <h:outputText title="Rattaché à une reténue" value="R" rendered="#{iEcar.retenue ne null}" styleClass="style_statut"/>
+                                    <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{managedRetenue.isComptabilise(iEcar.retenue.retenue)}" styleClass="style_statut"/>
+                                </h:panelGroup> 
+                            </p:column>
+                            <p:column headerText="#{lab.L_date}" style="text-align: center" styleClass="statut_#{iEcar.statut}">
+                                <h:outputText value="#{iEcar.dateReglement}" converter="DATE"/>
+                            </p:column>   
+                            <p:column headerText="Date début" style="text-align: center" styleClass="statut_#{iEcar.statut}">
+                                <h:outputText value="#{iEcar.piece.dateDebut}" converter="DATE"/>
+                            </p:column>   
+                            <p:column headerText="Date fin" style="text-align: center" styleClass="statut_#{iEcar.statut}">
+                                <h:outputText value="#{iEcar.piece.dateEcart}" converter="DATE"/>
+                            </p:column>   
+                            <p:column headerText="#{lab.LC_PEV_users}" styleClass="statut_#{iEcar.statut}">
+                                <span>#{iEcar.piece.users.nomUsers}</span>
+                            </p:column>
+                            <p:column headerText="Agence " styleClass="statut_#{iEcar.statut}">
+                                <span>#{iEcar.piece.agence eq null ? iEcar.piece.users.agence.codeagence : iEcar.piece.agence.codeagence}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_montant}" style="text-align: right" styleClass="statut_#{iEcar.statut}">
+                                <h:outputText value="#{iEcar.montant}" converter="DN"/>
+                            </p:column>   
+                            <p:column headerText="#{lab.LC_PEV_caisse}" styleClass="statut_#{iEcar.statut}">
+                                <span>#{iEcar.caisse.intitule}</span>
+                            </p:column> 
+                            <p:column width="20" style="text-align: center"> 
+                                <p:contextMenu for="btn_option_ecart_vente" event="left click" styleClass="context_menu" style="width: 210px">
+                                    <p:menuitem value="#{!iEcar.retenue.retenue.comptabilise?lab.LCF_PMC_comptabiliser:lab.LC_PJV_annuler_comptabilise}" actionListener="#{managedEcartVenteOrStock.setSelectReglementVente(iEcar)}" 
+                                                oncomplete="#{!iEcar.retenue.retenue.comptabilise?'dlgComptabiliseVente.show()':'dlgUnComptabiliseVente.show()'}" icon="ui-icon-arrowthick-2-e-w" rendered="#{iEcar.retenue ne null}"/> 
+                                    <p:menuitem value="Générer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onGenererRetenueVente(iEcar)}" rendered="#{iEcar.retenue eq null}"/> 
+                                    <p:menuitem value="Supprimer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onDeleteRetenueVente(iEcar)}" rendered="#{iEcar.retenue ne null}"/> 
+                                    <p:separator style="width: 98%;margin: auto"/> 
+                                    <p:menuitem icon="ui-icon-trash" value="#{lab.L_supprimer}" global="false" actionListener="#{managedEcartVenteOrStock.setSelectReglementVente(iEcar)}" oncomplete="dlgConfirmOneDelete.show()"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_ecart_vente" type="button"/>
+                            </p:column> 
+                            <p:column width="30" style="text-align: center">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_ecart_vente" value="false"
+                                                             onclick="selectionAllLineTab(#{managedEcartVenteOrStock.ecartsVente.size()}, 'ecart_vente')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="false" styleClass="chek_line_ecart_vente" 
+                                                          onclick="selectionLineTab(#{eIdx}, 'ecart_vente')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                        </p:dataTable>
+                        <p:dataTable value="#{managedEcartVenteOrStock.ecartsStock}" var="sEcar" rendered="#{managedEcartVenteOrStock.nature eq 'S'}"
+                                     rowKey="#{sEcar.id}" rowIndexVar="eIdx" selectionMode="single">
+                            <p:ajax event="rowSelect" listener="#{managedEcartVenteOrStock.loadOnView}" update=":main-ecart_vente:input_hide_ecart_vente" oncomplete="collapseForm('ecart_vente')"/>
+                            <p:column headerText="N°" width="30" styleClass="statut_#{sEcar.statut}">
+                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{sEcar.new_}"/>
+                                <span>#{eIdx+1}</span>
+                                <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{sEcar.piece.id eq managedEcartVenteOrStock.ecart.id}"/>
+                            </p:column>
+                            <p:column headerText="Ecart" styleClass="statut_#{sEcar.statut}">
+                                <span>#{sEcar.piece.numero}</span> 
+                                <p:spacer width="10px" style="float: right;margin-top: 2px" styleClass="#{sEcar.piece.statut}" title="STATUT : #{managedEcartVenteOrStock.giveNameStatut(sEcar.piece.statut)}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" styleClass="statut_#{sEcar.statut}">
+                                <span>#{sEcar.numero}</span> 
+                                <h:panelGroup style="float: right">
+                                    <h:outputText title="Rattaché à une reténue" value="R" rendered="#{sEcar.retenue ne null}" styleClass="style_statut"/>
+                                    <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{managedRetenue.isComptabilise(sEcar.retenue.retenue)}" styleClass="style_statut"/>
+                                </h:panelGroup> 
+                            </p:column>
+                            <p:column headerText="#{lab.L_date}" style="text-align: center" styleClass="statut_#{sEcar.statut}">
+                                <h:outputText value="#{sEcar.dateReglement}" converter="DATE"/>
+                            </p:column>   
+                            <p:column headerText="#{lab.L_tiers}" styleClass="statut_#{sEcar.statut}">
+                                <span>#{sEcar.piece.tiers.nom_prenom}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_montant}" style="text-align: right" styleClass="statut_#{sEcar.statut}">
+                                <h:outputText value="#{sEcar.montant}" converter="DNS"/>
+                            </p:column>  
+                            <p:column headerText="#{lab.LC_PEV_caisse}" styleClass="statut_#{sEcar.statut}">
+                                <span>#{iEcar.caisse.intitule}</span>
+                            </p:column> 
+                            <p:column width="20" style="text-align: center"> 
+                                <p:contextMenu for="btn_option_ecart_vente" event="left click" styleClass="context_menu" style="width: 210px">
+                                    <p:menuitem value="#{!sEcar.retenue.retenue.comptabilise?lab.LCF_PMC_comptabiliser:lab.LC_PJV_annuler_comptabilise}" actionListener="#{managedEcartVenteOrStock.setSelectReglementStock(sEcar)}" 
+                                                oncomplete="#{!sEcar.retenue.retenue.comptabilise?'dlgComptabiliseStock.show()':'dlgUnComptabiliseStock.show()'}" icon="ui-icon-arrowthick-2-e-w" rendered="#{sEcar.retenue ne null}"/> 
+                                    <p:menuitem value="Générer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onGenererRetenueStock(sEcar)}" rendered="#{sEcar.retenue eq null}"/> 
+                                    <p:menuitem value="Supprimer retenue" icon="ui-icon-tag" actionListener="#{managedEcartVenteOrStock.onDeleteRetenueStock(sEcar)}" rendered="#{sEcar.retenue ne null}"/> 
+                                    <p:separator style="width: 98%;margin: auto"/> 
+                                    <p:menuitem icon="ui-icon-trash" value="#{lab.L_supprimer}" global="false" actionListener="#{managedEcartVenteOrStock.setSelectReglementStock(sEcar)}" oncomplete="dlgConfirmOneDelete.show()"/>
+                                </p:contextMenu>                           
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_ecart_vente" type="button"/>
+                            </p:column> 
+                            <p:column width="30" style="text-align: center">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_ecart_vente" value="false"
+                                                             onclick="selectionAllLineTab(#{managedEcartVenteOrStock.ecartsStock.size()}, 'ecart_vente')">
+                                    </h:selectBooleanCheckbox>
+                                </f:facet>
+                                <h:selectBooleanCheckbox  value="false" styleClass="chek_line_ecart_vente" 
+                                                          onclick="selectionLineTab(#{eIdx}, 'ecart_vente')">
+                                </h:selectBooleanCheckbox>
+                            </p:column>
+                        </p:dataTable>
+                    </p:outputPanel> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedEcartVenteOrStock.paginer(false)}" update="data-ecart_vente" icon="ui-icon-circle-triangle-w" disabled="#{managedEcartVenteOrStock.currentPaginator().disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedEcartVenteOrStock.currentPaginator().currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedEcartVenteOrStock.currentPaginator().gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedEcartVenteOrStock.gotoPagePaginator()}" update="data-ecart_vente"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedEcartVenteOrStock.currentPaginator().nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedEcartVenteOrStock.paginer(true)}" update="data-ecart_vente" icon="ui-icon-circle-triangle-e" disabled="#{managedEcartVenteOrStock.currentPaginator().disNext}"/>
+                        <p:selectOneMenu value="#{managedEcartVenteOrStock.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedEcartVenteOrStock.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedEcartVenteOrStock.paginations}"/>
+                            <p:ajax event="valueChange" update="data-ecart_vente"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </div> 
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC" id="search-ecart_vente">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_ecart_vente display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedEcartVenteOrStock.selectEcartVente.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedEcartVenteOrStock.selectEcartVente.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedEcartVenteOrStock.selectEcartVente.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%;font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="8" style="float: left;font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value=""/>
+                        <h:outputText value="#{lab.L_agence}" />
+                        <h:panelGroup>
+                            <h:selectBooleanCheckbox value="#{managedEcartVenteOrStock.addDateSearchVente}" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                                <p:ajax event="valueChange" update="blog-date_search_ecart_vente" listener="#{managedEcartVenteOrStock.addParamDatesVente()}"/>
+                            </h:selectBooleanCheckbox>
+                            <h:selectBooleanCheckbox value="#{managedEcartVenteOrStock.addDateSearchStock}" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                                <p:ajax event="valueChange" update="blog-date_search_ecart_vente" listener="#{managedEcartVenteOrStock.addParamDatesStock()}"/>
+                            </h:selectBooleanCheckbox>
+                            <h:outputText value="#{lab.L_dates}"/>
+                        </h:panelGroup>
+                        <h:outputText value="#{managedEcartVenteOrStock.nature eq 'V'?lab.LC_PEV_vendeur:lab.L_tiers}"/>
+                        <h:panelGroup>
+                            <h:outputText value="#{lab.L_statut}"/>
+                            <h:selectOneMenu value="#{managedEcartVenteOrStock.operationSearchVente}" style="float:right;margin-right: 5px;" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                                <f:selectItem itemLabel="#{lab.L_egale}" itemValue="="/>
+                                <f:selectItem itemLabel="#{lab.L_different}" itemValue="!="/>
+                                <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamStatutVente()}"/>
+                            </h:selectOneMenu>  
+                            <h:selectOneMenu value="#{managedEcartVenteOrStock.operationSearchStock}" style="float:right;margin-right: 5px;" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                                <f:selectItem itemLabel="#{lab.L_egale}" itemValue="="/>
+                                <f:selectItem itemLabel="#{lab.L_different}" itemValue="!="/>
+                                <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamStatutStock()}"/>
+                            </h:selectOneMenu>  
+                        </h:panelGroup>
+                        <h:panelGroup>
+                            <h:outputText value="#{lab.LC_PEV_regle}"/>
+                            <h:selectOneMenu value="#{managedEcartVenteOrStock.operationRegleSearchVente}" style="float:right;margin-right: 5px;" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                                <f:selectItem itemLabel="#{lab.L_egale}" itemValue="="/>
+                                <f:selectItem itemLabel="#{lab.L_different}" itemValue="!="/>
+                                <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamStatutRegleVente()}"/>
+                            </h:selectOneMenu>  
+                            <h:selectOneMenu value="#{managedEcartVenteOrStock.operationRegleSearchStock}" style="float:right;margin-right: 5px;" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                                <f:selectItem itemLabel="#{lab.L_egale}" itemValue="="/>
+                                <f:selectItem itemLabel="#{lab.L_different}" itemValue="!="/>
+                                <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamStatutRegleStock()}"/>
+                            </h:selectOneMenu>  
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.L_reference}"/>
+                        <h:outputText value=""/>
+                        <p:commandButton icon="ui-icon-bullet" update=":search-ecart_vente" style="width: 22px; height: 22px" 
+                                         actionListener="#{managedEcartVenteOrStock.clearParams()}" oncomplete="collapseList('ecart_vente')"/>
+                        <h:selectOneMenu value="#{managedEcartVenteOrStock.agenceSearch}" style="width: 100%">
+                            <f:selectItem itemLabel="" itemValue="0"/>
+                            <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamAgence()}"  oncomplete="collapseGrid('facture_achat')"/>
+                        </h:selectOneMenu>
+                        <h:panelGroup id="blog-date_search_ecart_vente">
+                            <p:calendar value="#{managedEcartVenteOrStock.dateDebutSearchVente}" size="10" pattern="dd/MM/yyyy" disabled="#{!managedEcartVenteOrStock.addDateSearchVente}" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                                <p:ajax event="dateSelect" listener="#{managedEcartVenteOrStock.addParamDatesVente()}"/>                             
+                            </p:calendar>
+                            <p:calendar value="#{managedEcartVenteOrStock.dateDebutSearchStock}" size="10" pattern="dd/MM/yyyy" disabled="#{!managedEcartVenteOrStock.addDateSearchStock}" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                                <p:ajax event="dateSelect" listener="#{managedEcartVenteOrStock.addParamDatesStock()}"/>                             
+                            </p:calendar>
+                            <p:spacer width="5" style="background: black"/>
+                            <p:calendar value="#{managedEcartVenteOrStock.dateFinSearchVente}" size="10" pattern="dd/MM/yyyy" disabled="#{!managedEcartVenteOrStock.addDateSearchVente}" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                                <p:ajax event="dateSelect" listener="#{managedEcartVenteOrStock.addParamDatesVente()}"/>                             
+                            </p:calendar>
+                            <p:calendar value="#{managedEcartVenteOrStock.dateFinSearchStock}" size="10" pattern="dd/MM/yyyy" disabled="#{!managedEcartVenteOrStock.addDateSearchStock}" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                                <p:ajax event="dateSelect" listener="#{managedEcartVenteOrStock.addParamDatesStock()}"/>                             
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:inputText value="#{managedEcartVenteOrStock.usersSearchVente}" style="min-width: 120px" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                            <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamUsersVente()}"/>
+                        </h:inputText>
+                        <h:inputText value="#{managedEcartVenteOrStock.usersSearchStock}" style="min-width: 120px" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                            <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamUsersStock()}"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedEcartVenteOrStock.statutSearchVente}" style="min-width: 120px" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_editable}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                            <f:selectItem itemLabel="#{lab.L_valide}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                            <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamStatutVente()}"/>
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedEcartVenteOrStock.statutSearchStock}" style="min-width: 120px" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_editable}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                            <f:selectItem itemLabel="#{lab.L_valide}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                            <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamStatutStock()}"/>
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedEcartVenteOrStock.regleSearchVente}" style="min-width: 120px" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_en_attente}" itemValue="#{constantes.ETAT_ATTENTE}"/>
+                            <f:selectItem itemLabel="#{lab.L_en_cours}" itemValue="#{constantes.ETAT_ENCOURS}"/>
+                            <f:selectItem itemLabel="#{lab.LC_PEV_regle.toUpperCase()}" itemValue="#{constantes.ETAT_REGLE}"/>
+                            <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamStatutRegleVente()}"/>
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedEcartVenteOrStock.regleSearchStock}" style="min-width: 120px" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_en_attente}" itemValue="#{constantes.ETAT_ATTENTE}"/>
+                            <f:selectItem itemLabel="#{lab.L_en_cours}" itemValue="#{constantes.ETAT_ENCOURS}"/>
+                            <f:selectItem itemLabel="#{lab.LC_PEV_regle.toUpperCase()}" itemValue="#{constantes.ETAT_REGLE}"/>
+                            <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamStatutRegleStock()}"/>
+                        </h:selectOneMenu> 
+                        <h:inputText value="#{managedEcartVenteOrStock.numeroSearchVente}" style="min-width: 120px" rendered="#{managedEcartVenteOrStock.nature eq 'V'}">
+                            <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamNumeroVente()}"/>
+                        </h:inputText>
+                        <h:inputText value="#{managedEcartVenteOrStock.numeroSearchStock}" style="min-width: 120px" rendered="#{managedEcartVenteOrStock.nature eq 'S'}">
+                            <p:ajax event="valueChange" listener="#{managedEcartVenteOrStock.addParamNumeroStock()}"/>
+                        </h:inputText>
+                        <p:commandLink style="border: 2px solid black; border-radius: 5px;padding: 2px;font-size: 0.8em" 
+                                       onclick="dlgPlusOption.show()" global="false" value="Avancées"/>
+                    </h:panelGrid>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

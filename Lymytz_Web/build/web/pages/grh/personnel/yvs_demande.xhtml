@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html" 
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"> 
+    <h:form prependId="false" id="form-demande-01">
+        #{managedDemande.loadAllDemande()}
+        #{managedDemande.loadAllTypeDemande()}
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        <p:dialog header="Liste des employés actif" widgetVar="dlgEmploye" width="900" height="700"
+                  closeOnEscape="true" resizable="false" >
+            <h:panelGrid columns="2">
+                <p:commandButton value="Vue Grille" actionListener="#{managedDemande.desactiveVueListe()}" update="VL-employe-demande" />
+                <p:commandButton value="Vue Liste" actionListener="#{managedDemande.activeVueList()}" update="VL-employe-demande" />
+            </h:panelGrid>
+            <p:outputPanel id="VL-employe-demande">
+                <p:dataTable value="#{managedDemande.employes}" var="emp" rowKey="#{emp.id}" rendered="#{!managedDemande.vueListe}"
+                             widgetVar="tabEmployes" id="tabEmployes-demande" selectionMode="single" scrollable="true" scrollHeight="500">                    
+                    <p:ajax event="rowSelect" listener="#{managedDemande.choixEmploye}" 
+                            update=":form-demande-02:employe-demande" />
+                    <p:column headerText="Id" width="30">
+                        <h:outputText value="#{emp.id}" />
+                    </p:column>
+                    <p:column headerText="Noms &amp; Prénoms" width="200">
+                        <h:outputText value="#{emp.nom}, #{emp.prenom}" />
+                    </p:column>
+                    <p:column headerText="Code Emp.">
+                        <h:outputText value="#{emp.codeEmploye}" />
+                    </p:column>
+                    <p:column headerText="Code U.">
+                        <h:outputText value="#{emp.codeUser}" />
+                    </p:column>
+                    <p:column headerText="Matricule" width="150">
+                        <h:outputText value="#{emp.matricule}" />
+                    </p:column>
+                    <p:column headerText="Date d'embauche" width="100">
+                        <h:outputText value="#{emp.dateEmbauche}" converter="DATE" />
+                    </p:column>                    
+                    <p:column headerText="Actif">
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:column>
+                </p:dataTable>                
+                <p:dataGrid value="#{managedDemande.employes}" var="emp1" columns="4"
+                            rows="10"  rendered="#{managedDemande.vueListe}">
+                    <p:commandLink  update=":form-demande-02" oncomplete="dlgEmploye.hide()" actionListener="#{managedDemande.choixEmploye1(emp1)}">
+                        <p:panel  header="#{emp1.codeEmploye} , #{emp1.nom}" style="text-align: center">                            
+                            <p:graphicImage library="lymytz/documents/docEmps/photo" name="#{(emp1.photos==null)?'user1.jpg':emp1.photos}" width="100" height="100"/>
+                            <h:outputText value="#{emp1.posteDeTravail.intitule}" />                            
+                        </p:panel>
+                        <f:setPropertyActionListener value="#{emp1}" target="#{managedDemande.seleEmployeEmploye}" /> 
+                    </p:commandLink>
+                </p:dataGrid>
+            </p:outputPanel>
+            <h:panelGrid columns="2" >
+                <p:commandLink actionListener="#{managedDemande.loadAllEmploye(-100, false)}" disabled="#{managedDemande.disPrevEmps}" update="tabEmployes-demande">
+                    <h:graphicImage style="border:none; margin-left: .5em; cursor: pointer;"  alt="img" library="img"  name="dnavigation.png" width="30" height="25"/>                        
+                </p:commandLink>
+                <p:commandLink action="#{managedDemande.loadAllEmploye(100, false)}" disabled="#{managedDemande.disPrevEmps}" update="tabEmployes-demande">
+                    <h:graphicImage style="border:none; margin-left: 1em; cursor: pointer;"  alt="img" library="img"  name="gnavigation.png" width="30" height="25"/>                                                        
+                </p:commandLink>  
+            </h:panelGrid>
+        </p:dialog> 
+    </h:form>
+    <h:form prependId="false" id="form-demande-03">
+        <p:confirmDialog hideEffect="explode" widgetVar="dlgconfirm" closeOnEscape="true"
+                         message="Voulez-vous enregistrer ce nouveau type de demande?">
+            <p:commandButton value="Oui" actionListener="#{managedDemande.saveNewType()}" oncomplete="dlgconfirm.hide()"/>
+            <p:commandButton value="Non" onclick="dlgconfirm.hide()"/>
+        </p:confirmDialog>
+    </h:form>
+    <h:form prependId="false" id="form-demande-05">
+        <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                         message="Êtes-vous sûr de vouloir supprimer?">
+            <p:commandButton value="Oui" actionListener="#{managedDemande.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"/>
+            <p:commandButton value="Non" onclick="dlgConfirmDelete.hide()"/>
+        </p:confirmDialog>
+    </h:form>
+    <p:outputPanel id="bloc-en-tete-demande">
+        <h:form prependId="false" id="form-demande-02">
+            <p:growl autoUpdate="true"/>
+            <h:panelGrid columns="5" style="float: right; margin-top: 0px;">
+                <p:outputLabel value="Employé..."/>
+                <p:inputText id="employe-demande" title="entré le code employé, ou le code utilisateur rataché ou le matricule" 
+                             value="#{demande.recepteur.codeEmploye}">
+                    <p:ajax event="valueChange"/>
+                </p:inputText>                
+                <p:commandButton icon="ui-icon-search"  actionListener="#{managedDemande.findEmps()}"/>
+                <p:commandButton value="Vue" actionListener="#{managedDemande.loadDemandeVue()}"/>
+            </h:panelGrid>
+            <h:panelGrid columns="5" style="float: left">
+                <p:commandButton value="Enregistrer" actionListener="#{managedDemande.saveNew()}" update=":form-demande-04" rendered="#{!managedDemande.activVue}"/>
+                <p:commandButton value="Annuler" actionListener="#{managedDemande.resetFiche()}" rendered="#{!managedDemande.activVue}"/>
+                <p:commandButton value="Modifier" actionListener="#{managedDemande.update}" rendered="#{managedDemande.deleteDemande}"/>
+                <p:splitButton value="Autres options" rendered="#{managedDemande.deleteDemande}">
+                    <p:menuitem value="Supprimer" actionListener="#{managedDemande.confirmation()}" rendered="#{managedDemande.deleteDemande}"/>
+                </p:splitButton>
+            </h:panelGrid>
+        </h:form>
+        <div style="clear: left"/>
+    </p:outputPanel>
+    <p:outputPanel id="bloc-demande">
+        <h:form prependId="false" id="form-demande-00" rendered="#{!managedDemande.activVue}">
+            <p:separator style="width: 100%"/> 
+            <p:panelGrid id="panelVue" columns="2" style="width: 100%">
+                <p:outputLabel value="Type de demande"/>
+                <p:selectOneMenu value="#{demande.type.libelle}" editable="true">
+                    <f:selectItem itemLabel="" itemValue=""/>
+                    <f:selectItems value="#{managedDemande.listType}" var="item" itemLabel="#{item}" itemValue="#{item}"/>
+                    <p:ajax event="valueChange" listener="#{managedDemande.verification()}"/>
+                </p:selectOneMenu>
+                <p:outputLabel value="Motif"/>
+                <p:inputText value="#{demande.motif}">
+                    <p:ajax event="valueChange"/>
+                </p:inputText>
+                <p:outputLabel value="Date de début"/>
+                <p:calendar value="#{demande.dateDebut}" pattern="dd-MM-yyyy">
+                    <p:ajax event="dateSelect"/>
+                </p:calendar>
+                <p:outputLabel value="Date de fin"/>
+                <p:calendar value="#{demande.dateFin}" pattern="dd-MM-yyyy">
+                    <p:ajax event="dateSelect"/>
+                </p:calendar>
+            </p:panelGrid>
+            <br />
+        </h:form>
+        <h:form prependId="false" id="form-demande-04" rendered="#{managedDemande.activVue}">
+            <h:panelGrid columns="2">
+                <p:commandButton value="Vue Grille" actionListener="#{managedDemande.desactiveVueListeDemande()}" update="liste-demande"/>
+                <p:commandButton value="Vue Liste" actionListener="#{managedDemande.activeVueListDemande()}" update="liste-demande"/>
+            </h:panelGrid>
+            <p:outputPanel id="liste-demande">
+                <p:dataTable value="#{managedDemande.listdemande}" var="item2"
+                             emptyMessage="Aucune demande ne correspond à ce critère" 
+                             widgetVar="tableauDemande" filteredValue="#{managedDemande.listfiltree}" selection="#{managedDemande.listselectionDT}"
+                             rowKey="#{item2.id}" selectionMode="multiple" id="tab-demande" rendered="#{!managedDemande.vueListeDemande}"> 
+                    <p:ajax event="rowSelect" listener="#{managedDemande.loadOnView}" update=":form-demande-00 :form-demande-04:tab-demande"/>
+                    <p:ajax event="rowUnselect" listener="#{managedDemande.vider()}"/>
+                    <f:facet name="header">
+                        <p:outputPanel id="panelDeRecherche" style="text-align: right">                      
+                            <h:outputLabel value="Recherche..."/>
+                            <p:inputText id="globalFilter" onkeyup="tableauDemande').filter()" style="width:150px"/>
+                        </p:outputPanel>
+                    </f:facet>
+                    <p:column headerText="Emetteur" filterMatchMode="contains">
+                        <h:outputText value="#{item2.emetteur.nom}"/>
+                    </p:column>
+                    <p:column headerText="Destinataire" filterMatchMode="contains">
+                        <h:outputText value="#{item2.recepteur.nom}"/>
+                    </p:column>
+                    <p:column headerText="Type">
+                        <h:outputText value="#{item2.type.libelle}"/>
+                    </p:column>
+                    <p:column headerText="Motif">
+                        <h:outputText value="#{item2.motif}"/> 
+                    </p:column>
+                    <p:column headerText="Date de la demande">
+                        <h:outputText value="#{item2.dateDemande}" converter="DATE"/>
+                    </p:column>
+                    <p:column headerText="Date de début">
+                        <h:outputText value="#{item2.dateDebut}" converter="DATE"/>
+                    </p:column>
+                    <p:column headerText="Date de fin">
+                        <h:outputText value="#{item2.dateFin}" converter="DATE"/>
+                    </p:column>
+                </p:dataTable>
+                <div style="height: 450px; overflow-y: auto">
+                    <p:dataGrid id="dtgDemande" value="#{managedDemande.listdemande}" var="item3" columns="2"
+                                paginator="true" rendered="#{managedDemande.vueListeDemande}"
+                                >
+                        <p:commandLink actionListener="#{managedDemande.choixDemande(item3)}" >
+                            <p:panel header="Emetteur : #{item3.emetteur.nom}">
+                                <p:selectBooleanCheckbox disabled="true" value="#{item3.check}"/>
+                                <p:panelGrid columns="2">
+                                    <p:panelGrid columns="1" style="text-align: center">
+                                        <p:graphicImage library="lymytz/documents/docEmps/photo" name="#{(item3.recepteur.photos==null)?'user1.jpg':item3.recepteur.photos}" width="100" height="100"/>
+                                        <p:outputLabel value="#{item3.recepteur.nom}"/> 
+                                    </p:panelGrid>
+                                    <p:panelGrid columns="2">
+                                        <p:outputLabel value="Type"/>
+                                        <p:outputLabel value="#{item3.type.libelle}"/>
+                                        <p:outputLabel value="Motif"/>
+                                        <p:outputLabel value="#{item3.motif}"/>
+                                        <p:outputLabel value="Date"/>
+                                        <p:outputLabel value="#{item3.dateDemande}"/>
+                                    </p:panelGrid>
+                                </p:panelGrid>
+                            </p:panel>
+                            <f:setPropertyActionListener value="#{item3}" target="#{managedDemande.selectDemande}"/>
+                        </p:commandLink>
+                    </p:dataGrid>
+                </div>                    
+            </p:outputPanel>
+        </h:form>
+    </p:outputPanel>
+</ui:composition>

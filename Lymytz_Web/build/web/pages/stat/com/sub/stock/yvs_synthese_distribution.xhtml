@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide">
+        <span class="block_slide_title">
+            <span class="slide_title" group="#{lab.LC_PTBS_synthese}">#{lab.LC_PTBS_synthese_distribution}</span>
+            <h:panelGrid columns="2" style="float: right;margin-right: 5px" cellpadding="0" cellspacing="0">
+                <span>#{lab.LC_PTBS_type} </span>
+                <h:selectOneMenu value="#{managedBordStatistique.syntheseDist.nature}" >
+                    <f:selectItem itemValue="#{lab.LP_PTB_classe}" itemLabel="#{lab.LC_PTBS_par_classe}" />
+                    <f:selectItem itemValue="#{lab.L_article.toUpperCase()}" itemLabel="#{lab.LC_PTBS_par_article}" />
+                </h:selectOneMenu>
+            </h:panelGrid>
+        </span> 
+        <div class="zone_slide">
+            <p:dataTable id="data_synthese_production_distribution" value="#{managedBordStatistique.syntheseDist.lignes}" var="classe" rowIndexVar="iRow"
+                         paginator="true" rows="20" paginatorAlwaysVisible="false" style="width: 100%;overflow-x: auto">
+                <p:columnGroup type="header">
+                    <p:row>
+                        <p:column headerText="#{managedBordStatistique.syntheseDist.nature}" rowspan="#{managedBordStatistique.syntheseDist.nature eq 'ARTICLE'?'3':'2'}" style="width: 15%;text-align: center"/>
+                        <c:forEach items="#{managedBordStatistique.syntheseDist.groupes}" var="group">
+                            <p:column headerText="#{group.libelle}" colspan="#{managedBordStatistique.syntheseDist.nature eq 'ARTICLE'?group.position*2:group.position}"/>
+                        </c:forEach>
+                    </p:row>
+                    <p:row>
+                        <c:forEach items="#{managedBordStatistique.syntheseDist.periodes}" var="head">
+                            <p:column headerText="#{head}" colspan="#{managedBordStatistique.syntheseDist.nature eq 'ARTICLE'?'2':'1'}"/>
+                        </c:forEach>
+                    </p:row>
+                    <p:row rendered="#{managedBordStatistique.syntheseDist.nature eq 'ARTICLE'}">
+                        <c:forEach items="#{managedBordStatistique.syntheseDist.periodes}" var="head">
+                            <p:column headerText="#{lab.LC_PTBS_quantite}"/>
+                            <p:column headerText="#{lab.LC_PTBS_valeur}"/>
+                        </c:forEach>
+                    </p:row>
+                </p:columnGroup>
+                <p:column>
+                    <h:outputText value="#{classe.libelle}" /> 
+                </p:column>     
+                <c:forEach items="#{managedBordStatistique.syntheseDist.colonnes}" var="val" varStatus="col">
+                    <p:column style="width: 15%;text-align: right" rendered="#{managedBordStatistique.syntheseDist.nature eq 'ARTICLE'}">
+                         <h:outputText value="#{managedBordStatistique.syntheseDist.iValeur(classe.primaire, val.valeur, val.libelle, 'qte')}" converter="DN"/> 
+                    </p:column>
+                    <p:column style="width: 15%;text-align: right">
+                         <h:outputText value="#{managedBordStatistique.syntheseDist.iValeur(classe.primaire, val.valeur, val.libelle, 'valeur')}" converter="DN"/> 
+                    </p:column>
+                </c:forEach>
+                <p:columnGroup type="footer">
+                    <p:row>
+                        <p:column footerText="#{lab.LC_PTBS_totaux}" style="width: 15%"/>
+                        <c:forEach items="#{managedBordStatistique.syntheseDist.colonnes}" var="val" varStatus="col">
+                            <p:column style="width: 15%;text-align: right" rendered="#{managedBordStatistique.syntheseDist.nature eq 'ARTICLE'}">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.syntheseDist.sumColonne(col.index, val.libelle, 'qte')}" converter="DN"/> 
+                                </f:facet>
+                            </p:column>
+                            <p:column style="width: 15%;text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.syntheseDist.sumColonne(col.index, val.libelle, 'valeur')}" converter="DN"/> 
+                                </f:facet>
+                            </p:column>
+                        </c:forEach>
+                    </p:row>
+                </p:columnGroup>
+            </p:dataTable>
+        </div>
+        <div class="zone_bottom">
+            <h:panelGroup style="float: left;margin-right: 5px">
+                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_synthese_production_distribution" type="button"/>
+                <p:contextMenu for="btn_synthese_production_distribution" event="left click" styleClass="context_menu" style="width: 210px">
+                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadSyntheseDistribution()}" update="data_synthese_production_distribution"/>
+                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.downloadSyntheseDistribution()}" ajax="false"/>           
+                </p:contextMenu>
+                <h:inputText value="#{managedBordStatistique.syntheseDist.varSearch}" id="txt_search_synthese_production_distribution">
+                    <p:ajax event="valueChange" listener="#{managedBordStatistique.syntheseDist.filter()}" update="data_synthese_production_distribution"/>
+                </h:inputText>  
+                <p:watermark for="txt_search_synthese_production_distribution" value="#{lab.L_rechercher}" />
+            </h:panelGroup>
+            <h:panelGroup style="float: right;margin-top: 5px">
+
+            </h:panelGroup>
+        </div>
+    </div>
+</ui:composition>
+

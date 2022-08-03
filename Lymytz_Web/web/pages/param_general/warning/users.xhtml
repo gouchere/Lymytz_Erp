@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <p:dataTable value="#{managedWarning.users}" var="usr" rowKey="#{usr.id}" rowIndexVar="line_user"  selectionMode="single"
+                     paginator="true" rows="50" paginatorAlwaysVisible="false">
+            <f:facet name="header">
+                <div align="left" style="font-weight: bold">
+                    #{managedWarning.warning.description}
+                </div>
+            </f:facet>
+            <p:ajax event="rowSelect"  listener="#{managedWarning.loadOnView}"/>                                
+            <p:column  headerText="N°" style="width:16px">
+                #{line_user+1}
+            </p:column>                                    
+            <p:column headerText="#{lab.LDB_PU_civilite}" width="30">
+                <h:outputText value="#{usr.civilite}"/>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PU_code}">
+                <h:outputText value="#{usr.codeUsers}"/>
+                <h:panelGroup style="float:right">
+                    <h:outputText value="E" title="#{lab.LDB_PU_utilisateur_employer}" styleClass="indice_statut" style="margin-right: 2px" rendered="#{usr.employe != null}"/>
+                    <h:outputText value="C" title="#{lab.LDB_PU_utilisateur_commercial}" styleClass="indice_statut" style="margin-right: 2px" rendered="#{usr.commercial != null}"/>
+                </h:panelGroup>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PU_nom}">
+                <h:outputText value="#{usr.nomUsers}"/>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PU_groupe}"  width="100">
+                <h:outputText value="#{usr.categorie.libelle}"/>
+            </p:column>
+            <p:column headerText="#{lab.LDB_PU_agence}" width="100">
+                <h:outputText value="#{usr.agence.designation}"/>
+            </p:column>
+            <p:column width="100" headerText="#{lab.LDB_PU_planifier}" style="text-align: center">
+                <h:graphicImage library="img" name="#{(usr.connectOnlinePlanning)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+            </p:column>
+            <p:column width="100" headerText="#{lab.LDB_PU_acces_mutiple}" style="text-align: center">
+                <p:commandLink actionListener="#{managedUser.changeAcces(usr, false)}">
+                    <h:graphicImage library="img" name="#{(usr.accesMultiAgence)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                </p:commandLink>
+            </p:column>
+            <p:column width="50" headerText="#{lab.L_actif}" style="text-align: center">
+                <h:graphicImage library="img" name="#{(usr.actif)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+            </p:column>
+        </p:dataTable>   
+    </div>
+</ui:composition>
+

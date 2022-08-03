@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Entretiens d\'Embauche','modRh', 'smenQuestionnaire', true,managedQuestionnaires)}
+    </ui:define>         
+    <ui:define name="contents">
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('questionnaire');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+            $(document).ready(function() {
+                $('.ui-datatable-data').find('.ui-row-toggler').eq(3).trigger('click');
+            });
+        </script> 
+        <h:form prependId="false"> 
+            <p:dialog widgetVar="dlgRubrique" closeOnEscape="true" width="50%" footer="&copy;Lymytz 2014"
+                      resizable="false" height="600" header="Gérer les rubriques de questions" >                                       
+                <div class="yvs_form_rubrique_question" style="clear: right">                                                   
+                    <h:panelGrid columns="5" style="width: 100%; background: #666; color: white; font-weight: bold" styleClass="yvs_table"
+                                 cellpadding="0" cellspacing="0" id="form-grid-rub"> 
+                        <span>Code Rubrique</span>
+                        <h:inputText value="#{managedQuestionnaires.rubrique.codeRubrique}" />
+                        <span>Libellé rubrique</span>
+                        <h:inputText value="#{managedQuestionnaires.rubrique.libelleRubrique}" />
+                        <p:commandButton icon="ui-icon-disk" value="Enregistrer"  actionListener="#{managedQuestionnaires.addRubriqueQuestionnaire()}" 
+                                         update="table_rubriqueQ form-grid-rub"/>                                
+                    </h:panelGrid>  
+                    <p:dataTable value="#{managedQuestionnaires.rubriquesQuestionnaires}" var="dlgRub" rowIndexVar="line_rubrique"
+                                 selectionMode="multiple" rowKey="#{dlgRub.id}" id="table_rubriqueQ"
+                                 selection="#{managedPosteDeTravail.selectTionDetailFraisMission}" 
+                                 style="min-height: 450px; max-height: 550px; overflow-y: auto; width: 100%" scrollHeight="500" scrollable="true">                                
+                        <p:column headerText="N°" style="width: 15px">
+                            #{line_rubrique+1}
+                        </p:column>
+                        <p:column headerText="Code rubrique" width="90">
+                            <h:outputText value="#{dlgRub.codeRubrique}" />
+                        </p:column>
+                        <p:column headerText="Libellé rubrique" width="150">
+                            <h:outputText value="#{dlgRub.libelleRubrique}" />
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>                
+        </h:form>
+        <h:form prependId="false" id="form_questionnaire">
+            <div class="part_fix" style="width: 90%; margin: auto">
+                <div style="float: left">
+                    <p:commandButton value="Nouveau" actionListener="#{managedQuestionnaires.resetFiche()}" update="form_grid_questionnaire" />
+                    <p:commandButton value="Enregistrer" actionListener="#{managedQuestionnaires.addQuestionEntretien()}" update="table_questionnaire"/>
+                </div>
+                <div style="float: right">                        
+                    <h:link title="mode création" onclick="collapseForm('questionnaire');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('questionnaire');
+                            return false" title="vue liste" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+            </div>
+            <div class="part_scroll" >
+                #{managedQuestionnaires.loadAllRubrique()}
+                <div class="yvs_form_questionnaire">
+                    <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 90%; margin: auto"
+                                 id="form_grid_questionnaire">
+                        <span>Rubrique</span>
+                        <h:selectOneMenu value="#{questionsEntretien.rubrique.id}" onchange="openDialog('dlgRubrique', $(this));
+                                collapseForm('rubrique_question');">
+                            <f:selectItem itemValue="" itemLabel="" />
+                            <f:selectItems value="#{managedQuestionnaires.rubriquesQuestionnaires}" var="rub" itemValue="#{rub.id}" itemLabel="#{rub.libelleRubrique}" />
+                            <f:selectItem itemValue="" itemLabel="" />
+                            <f:selectItem itemValue="-1" itemLabel="Créer une rubrique" />
+                        </h:selectOneMenu>
+                        <span>Question N° </span>
+                        <h:inputText  value="#{questionsEntretien.numeroQuestion}" style="width: 50px"/>
+                        <span>Libellé de la question</span>
+                        <h:inputText value="#{questionsEntretien.question}" />                            
+                        <span>Type de réponse</span>
+                        <p:selectOneRadio value="#{questionsEntretien.typeReponse}" layout="pageDirection">
+                            <f:selectItem itemValue="A" itemLabel="Différé" />
+                            <f:selectItem itemValue="B" itemLabel="Choix unique" />
+                            <f:selectItem itemValue="D" itemLabel="Choix Booleen" />
+                            <f:selectItem itemValue="C" itemLabel="Choix multiples" />
+                            <p:ajax event="valueChange" update="zone_rep" global="false"/>
+                        </p:selectOneRadio>
+                        <span>Réponses</span>                                
+                        <h:panelGroup  id="zone_rep">
+                            <h:panelGroup rendered="#{questionsEntretien.typeReponse.equals('B') or questionsEntretien.typeReponse.equals('C')}">
+                                <h:inputText value="#{managedQuestionnaires.newReponse}" /> <p:spacer width="10" />
+                                <p:commandLink actionListener="#{managedQuestionnaires.addReponse()}" update=":form_questionnaire:list_reponse_question">
+                                    <h:graphicImage library="img/icones" name="plus.png"  width="15" height="15" />
+                                </p:commandLink> 
+                                <p:outputPanel id="list_reponse_question" style="float: right">
+                                    <ui:repeat value="#{questionsEntretien.reponses}" var="re" >
+                                        <li style="list-style-type: none; width: 100%">#{re}
+                                            <p:spacer width="10" />
+                                            <p:commandLink actionListener="#{managedQuestionnaires.addReponse()}" >
+                                                <h:graphicImage library="img/icones" name="moins.png"  width="15" height="15" />
+                                            </p:commandLink>   
+                                        </li>
+                                    </ui:repeat>
+                                </p:outputPanel>
+                            </h:panelGroup>
+                        </h:panelGroup>
+                    </h:panelGrid>                          
+                </div>
+                <div class="yvs_list_questionnaire" style="width: 90%; margin: auto">
+                    <p:dataTable value="#{managedQuestionnaires.rubriquesQuestionnaires}" var="rubQ" rowKey="#{rubQ.id}" 
+                                 selectionMode="single"  rowIndexVar="line_R" id="table_questionnaire">
+                        <p:column width="15">
+                            <p:rowToggler />
+                        </p:column>
+                        <p:column headerText="N°" styleClass="line_rubrique">
+                            #{line_R +1} #{subLevel.levelKey}
+                        </p:column>
+                        <p:column headerText="Code Rubrique" styleClass="line_rubrique">
+                            <h:outputText value="#{rubQ.codeRubrique}" />
+                        </p:column>
+                        <p:column headerText="Libellé rubrique" styleClass="line_rubrique">
+                            <h:outputText value="#{rubQ.libelleRubrique}" />
+                        </p:column>
+                        <p:column headerText=" " width="15">
+                            <p:commandLink title="Supprimer cette rubrique"
+                                           actionListener="#{managedQuestionnaires.deleteRubrique(rubQ)}" update="table_questionnaire">
+                                <h:graphicImage library="img" name="no.png" width="15" height="15"/>
+                            </p:commandLink>
+                        </p:column>
+                        <p:rowExpansion>
+                            <p:dataTable value="#{rubQ.questions}" var="ques_" rowKey="#{ques_.id}" 
+                                         selectionMode="single"  rowIndexVar="line_q" 
+                                         id="sub_table_questionnaire"> 
+                                <p:ajax event="rowSelect" listener="#{managedQuestionnaires.loadOnView}" update=":form_questionnaire:form_grid_questionnaire" oncomplete="collapseForm('questionnaire')" />
+                                <p:column headerText="N° "  style="width: 5% !important">
+                                    #{line_q +1}
+                                </p:column>
+                                <p:column  headerText="Questions">
+                                    <h:outputText value="#{ques_.question}"  style="text-align: center;"/>
+                                </p:column>
+                                <p:column headerText="Type Rep.">
+                                    <h:outputText value="#{ques_.typeReponse}" style="text-align: center;"/>
+                                </p:column >
+                                <p:column headerText="Réponses">
+                                    <h:outputText value="#{ques_.reponses}" style="text-align: center;"/>
+                                </p:column>                                
+                                <p:column headerText=" " width="15">
+                                    <p:commandLink title="Supprimer cette question"
+                                                   actionListener="#{managedQuestionnaires.deleteQuestion(ques_)}" update="sub_table_questionnaire">
+                                        <h:graphicImage library="icones" name="delete.png" width="15" height="15"/>
+                                    </p:commandLink>
+                                </p:column>
+                            </p:dataTable> 
+                        </p:rowExpansion>
+                    </p:dataTable> 
+                </div>
+            </div>
+        </h:form>
+
+    </ui:define>
+</ui:composition>

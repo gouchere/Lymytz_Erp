@@ -1,0 +1,1739 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Employés','modRh', 'smenEmploye', true,MEmps)}
+    </ui:define>         
+    <ui:define name="contents">     
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('employe');
+                collapseForm('profilE');
+                collapseForm('EmpBanque');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script> 
+        #{navigations.doNothing()}
+        #{managedContratEmploye.doNothing()}
+        #{managedCentreAnalytique.doNothing()}
+        #{MEmps.loadAllEmployesByAgence(true,true)}        
+        #{managedDepartement.loadAllActif()}
+        #{MEmps.loadAll()}          
+        #{MEmps.loadAllBanques()}
+        #{MEmps.loadAllEquipe()}
+
+        <h:form prependId="false" >
+            <p:dialog header="Options impression" widgetVar="dlpOptionPrint" width="30%" closeOnEscape="true"
+                      >
+                <h:panelGrid columns="1" style="width: 100%">
+                    <span>Trier par...</span>
+                    <p:selectOneListbox value="#{MEmps.orderPrint}"  style="width: 100%">
+                        <f:selectItems value="#{MEmps.colonnesPrint}" var="icol" itemLabel="#{icol.libelle}" itemValue="#{icol.valeur}" />
+                    </p:selectOneListbox>
+                </h:panelGrid>
+                <br />
+                <p:commandButton value="Exporter en pdf" icon="ui-icon-print" actionListener="#{MEmps.print('pdf')}" ajax="false" />
+                <p:commandButton value="Exporter en xls" icon="ui-icon-print" actionListener="#{MEmps.print('xls')}" title="Exporter au format excel"
+                                 ajax="false"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-print"> 
+            <p:dialog hideEffect="explode" widgetVar="dlgView" closeOnEscape="true" header="#{lab.LRH_PE_visualiser_document}" resizable="false" modal="true" width="90%">
+                <p:outputPanel id="media-print">
+                    <p:media value="#{MEmps.selectionDoc.printPath}" width="100%" height="600px" rendered="#{MEmps.selectionDoc.printPath ne null}"/>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="main-statut">
+            <p:dialog header="Activer / Désactiver" closeOnEscape="true" widgetVar="dlgConfirmChangeStatut" resizable="false" modal="true"> 
+                <h:panelGrid id="blog_active_employe" columns="1" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:outputText value="#{MEmps.employes.nom_prenom}" style="font-weight: bold"/>
+                    <p:selectBooleanCheckbox value="true" itemLabel="#{MEmps.employes.actif?' - Désactiver l\'employé':' - Activer l\'employé'}" disabled="true"/>
+                    <p:selectBooleanCheckbox value="#{MEmps.actionTiers}" itemLabel="#{MEmps.employes.actif?' - Désactiver le tiers':' - Activer le tiers'}"/>
+                    <p:selectBooleanCheckbox value="#{MEmps.actionClient}" itemLabel="#{MEmps.employes.actif?' - Désactiver le client':' - Activer le client'}" rendered="#{MEmps.employes.compteTiers.clients.size() gt 0}"/>
+                    <p:selectBooleanCheckbox value="#{MEmps.actionFournisseur}" itemLabel="#{MEmps.employes.actif?' - Désactiver le fournisseur':' - Activer le fournisseur'}" rendered="#{MEmps.employes.compteTiers.fournisseurs.size() gt 0}"/>
+                    <p:selectBooleanCheckbox value="#{MEmps.actionCommercial}" itemLabel="#{MEmps.employes.actif?' - Désactiver le commercial':' - Activer le commercial'}" rendered="#{MEmps.employes.compteTiers.commerciaux.size() gt 0}"/>            
+                    <f:facet name="footer"> 
+                        <div align="right">
+                            <p:commandButton value="#{MEmps.employes.actif?'Désactiver':'Activer'}" icon="#{MEmps.employes.actif?'ui-icon-cancel':'ui-icon-check'}"
+                                             actionListener="#{MEmps.activeTiers(MEmps.employes)}" update="blog_active_employe"/>
+                        </div>
+                    </f:facet>
+                </h:panelGrid>    
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_plus_option}" width="40%"  closeOnEscape="true" widgetVar="dlgPlusOption" resizable="false"> 
+                <h:panelGrid id="blog_more_option_employe" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:selectBooleanCheckbox value="#{MEmps.paramDate}" valueChangeListener="#{MEmps.chooseDateSearch}" style="float: left;margin-left: 5px">
+                            <p:ajax event="valueChange"  update=":form-emps02:empps-dgrig :form-emps02:tabEmployes blog_date_search_employe" oncomplete="collapseGrid('employe')"/>
+                        </h:selectBooleanCheckbox>
+                        <h:outputText value="#{lab.LRH_PE_date_enregistrement}" />
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_employe">
+                        <p:calendar value="#{MEmps.dateDebut}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!MEmps.paramDate}" size="10" style="font-size: 0.8em">
+                            <p:ajax event="dateSelect" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" listener="#{MEmps.addParamDate1}" oncomplete="collapseGrid('employe')"/>
+                            <p:ajax event="valueChange" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" listener="#{MEmps.addParamDate2()}" oncomplete="collapseGrid('employe')"/>
+                        </p:calendar>
+                        <p:spacer width="5px" style="background: black"/>
+                        <p:calendar value="#{MEmps.dateFin}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!MEmps.paramDate}" size="10" style="font-size: 0.8em">
+                            <p:ajax event="dateSelect" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" listener="#{MEmps.addParamDate1}" oncomplete="collapseGrid('employe')"/>
+                            <p:ajax event="valueChange" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" listener="#{MEmps.addParamDate2()}" oncomplete="collapseGrid('employe')"/>
+                        </p:calendar>
+                    </h:panelGroup>
+
+                    <h:panelGroup>
+                        <h:selectBooleanCheckbox value="#{MEmps.date_up}"  style="float: left;margin-left: 5px">
+                            <p:ajax event="valueChange"  update="blog_date_search_client" listener="#{MEmps.addParamDates}" oncomplete="collapseGrid('employe')"/>
+                        </h:selectBooleanCheckbox>
+                        <h:outputText value="#{lab.LDB_PC_dates_last_modif}" />
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_client">
+                        <p:calendar value="#{MEmps.dateDebut_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!MEmps.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{MEmps.addParamDates}" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" oncomplete="collapseGrid('employe')"/>
+                        </p:calendar>
+                        <p:spacer style="width: 5px;background: black"/>
+                        <p:calendar value="#{MEmps.dateFin_}" pattern="dd-MM-yyyy" navigator="true" size="10" disabled="#{!MEmps.date_up}">
+                            <p:ajax event="dateSelect" global="false" listener="#{MEmps.addParamDates}" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" oncomplete="collapseGrid('employe')"/>
+                        </p:calendar>
+                    </h:panelGroup>
+                    <span>Statut social</span>
+                    <h:selectOneMenu value="#{MEmps.statutSocialFilter}" valueChangeListener="#{MEmps.addParamStatutSociel}">
+                        <f:selectItem itemValue="#{null}" itemLabel="Tous" />
+                        <f:selectItem itemValue="#{1}" itemLabel="Employés immatriculés" />
+                        <f:selectItem itemValue="#{2}" itemLabel="Employés Non immatriculés" />
+                        <p:ajax event="valueChange" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" 
+                                oncomplete="collapseGrid('employe')" />
+                    </h:selectOneMenu>
+                </h:panelGrid>    
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LRH_PE_repartition_analytique}" width="70%"  footer="&copy; Lymytz 2014"
+                      widgetVar="dlgAffec">
+                <p:dataTable id="data_centre_analytique_emps" selectionMode="single" value="#{managedCentreAnalytique.centres}" var="cent" rowKey="#{cent.id}" rowIndexVar="xPl"
+                             style="overflow-y: auto; max-height: 600px" paginator="true" rows="50" rowsPerPageTemplate="15,20,50,100"
+                             editMode="cell" editable="true">
+                    <p:ajax event="cellEdit" global="false" update="data_centre_analytique_emps" />
+                    <p:column headerText="N°" width="20" style="text-align: center">
+                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{cent.new_}"/>
+                        #{xPl+1}
+                    </p:column>
+                    <p:column headerText="#{lab.L_reference}" width="100" >
+                        #{cent.codeRef} 
+                        <h:panelGroup style="float: right; opacity: 1px">
+                            <h:outputText title="#{constantes.PRINCIPAL_NAME}" value="P" rendered="#{cent.typeCentre == constantes.PRINCIPAL}"
+                                          style="font-weight: bold;border: 1px solid #666; border-radius: 4px;padding: 2px;background: #0099ff;color: white;font-size: 0.8em"/>
+                            <h:outputText title="#{constantes.AUXILIAIRE_NAME}" value="AX" rendered="#{cent.typeCentre != constantes.PRINCIPAL}"
+                                          style="font-weight: bold;border: 1px solid #666; border-radius: 4px;padding: 2px;background: #0099ff;color: white;font-size: 0.8em"/>
+                        </h:panelGroup>
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}" width="200" styleClass="#{cent.idAffectation gt 0?'line_actiftrue':'line_disable'}">
+                        #{cent.designation}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PE_plan}" width="200" styleClass="#{cent.idAffectation gt 0?'line_actiftrue':'line_disable'}">
+                        #{cent.plan.intitule}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PE_coefficient}" width="20" style="text-align: center" styleClass="#{(cent.idAffectation gt 0 or cent.coeficient>0)?'line_actiftrue':'line_disable'}">
+                        <p:cellEditor>
+                            <f:facet name="output">#{cent.coeficient} %</f:facet>
+                            <f:facet name="input">
+                                <h:inputText value="#{cent.coeficient}" style="width: 80px"/>
+                            </f:facet>
+                        </p:cellEditor>
+                    </p:column>
+                </p:dataTable>
+                <div align="center">
+                    <p:commandButton value="#{lab.L_appliquer}" update=":form-emps02:mainEmps:tableSectionAnal data_centre_analytique_emps" icon="ui-icon-refresh" 
+                                     actionListener="#{MEmps.saveNewSectionsEmployes()}" />
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_profil_e">
+            <p:dialog header="#{lab.LRH_PE_gestion_profil}" footer="&copy; Lymytz 2014" width="50%" widgetVar="dlgProfilEmps" closeOnEscape="true">
+                <div class="dlg_part_fixe">
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{MEmps.createNewProfils()}" 
+                                     update="form_profil_0" oncomplete="dlgProfilEmps.hide()"/>
+                    <div style="float: right">
+                        <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('profilE');
+                                return false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <p:spacer />
+                        <h:link onclick="collapseList('profilE');
+                                return false" title="#{lab.L_mode_liste}" >
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>
+                    </div>
+                </div>
+                <div class="dlg_part_scroll">
+                    <div class="yvs_form_profilE">
+                        <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" 
+                                     id="form_profil_0" style="width: 100%; clear: right">                    
+                            <span>#{lab.LRH_PE_grade}</span>
+                            <h:panelGroup>
+                                <h:selectOneMenu value="#{MEmps.profil.grade.id}" 
+                                                 onchange="openDialog(dlgAddGrade, $(this))" id="txt_grade_employe">
+                                    <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                    <f:selectItems value="#{MEmps.listGradeEmploye}" var="grad" 
+                                                   itemValue="#{grad.id}" itemLabel="#{grad.libelle}"/>
+                                    <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                    <f:selectItem itemLabel="#{lab.L_creer}" itemValue="-1" />
+                                </h:selectOneMenu> 
+                                <p:selectBooleanCheckbox value="#{MEmps.profil.actif}" itemLabel="Actif"  style="float: right"/>
+                            </h:panelGroup>
+                            <span>#{lab.L_statut}</span>
+                            <h:selectOneRadio value="#{MEmps.profil.statut}" styleClass="yvs_nostyle">
+                                <f:selectItem itemLabel="#{lab.LDB_PC_permanent}" itemValue="PE"/>
+                                <f:selectItem itemLabel="#{lab.LRH_PE_temporaire}" itemValue="TEP"/>
+                                <f:selectItem itemLabel="#{lab.LRH_PE_tacheron}" itemValue="Tacheron"/>
+                                <f:selectItem itemLabel="#{lab.LRH_PE_stagiaire}" itemValue="ST"/>
+                            </h:selectOneRadio>
+                        </h:panelGrid>
+                    </div>
+                    <div class="yvs_list_profilE">
+                        <p:dataTable value="#{MEmps.profils}" var="iprof" selectionMode="single"
+                                     rowIndexVar="line_p" rowKey="#{iprof.id}" id="table_form_profil_0">
+                            <p:column headerText="#{lab.L_statut}">
+                                #{iprof.statutProfil}
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PE_grade}">
+                                #{iprof.grade.libelle}
+                            </p:column>
+                            <p:column headerText="#{lab.L_actif}" width="20">
+                                <p:graphicImage library="img" name="#{iprof.actif?'vu.png':'vu_non.png'}" width="17" height="17" />
+                            </p:column>
+                            <p:column headerText="" width="15">
+                                <p:contextMenu event="left click" for="btn_op_prof">
+                                    <p:menuitem value="#{iprof.actif?'Desactiver':'Activer'}" icon="#{iprof.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" actionListener="#{MEmps.toogleActiveProfil(iprof)}" />
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{MEmps.deleteProfil(iprof)}" />
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_op_prof" type="button" />
+                            </p:column>
+                        </p:dataTable>
+                    </div>                    
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_dlg_tiers">
+            <p:dialog header="#{lab.LRH_PE_liste_tiers}" widgetVar="dlgListTiers" modal="true" width="60%"  closeOnEscape="true" footer="&copy;Lymytz 2014"
+                      height="500"> 
+                <div class="dlg_part_fixe">
+                    <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                        <h:inputText value="#{managedTiers.numSearch_}" style="float: left;text-align: center;margin-left: -10px">
+                            <p:ajax event="valueChange" global="false" listener="#{managedTiers.searchByNum()}" update="data_tiers_employe"/>
+                        </h:inputText>   
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                            <p:commandButton actionListener="#{managedTiers.init(false)}" global="false" update="data_tiers_employe" icon="ui-icon-circle-triangle-w" disabled="#{managedTiers.paginator.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{managedTiers.paginator.currentPage}/#{managedTiers.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton actionListener="#{managedTiers.init(true)}" global="false" update="data_tiers_employe" icon="ui-icon-circle-triangle-e" disabled="#{managedTiers.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{managedTiers.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedTiers.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{managedTiers.paginations}"/>
+                                <p:ajax event="valueChange" global="false" update="data_tiers_employe"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel> 
+                    </h:panelGrid>
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_tiers_employe" value="#{managedTiers.listTiers}" var="tier" style="font-size: 0.9em"
+                                 rowKey="#{tier.id}" selectionMode="single" rowIndexVar="tierIdx">
+                        <p:ajax event="rowSelect" global="false" listener="#{MEmps.choisirCompteTiers}" oncomplete="dlgListTiers.hide()" 
+                                update=":form-emps02:mainEmps:txt_num_c_emps_salaire_"/>
+                        <p:column  headerText="N°" style="width: 1%">
+                            <span>#{tierIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_code}" style="width: 3%">
+                            <span>#{tier.codeTiers}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_nom_prenom}" style="width: 6%">
+                            <span>#{tier.nom_prenom}</span>
+                            <h:outputText title="#{lab.LDB_PC_tiers_moral}" value="S" rendered="#{tier.stSociete}"
+                                          style="font-weight: bold;border: 2px solid #666; border-radius: 5px;padding: 2px;background: black;color: white;float: right"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_dlg_compte">
+            <p:dialog header="#{lab.LRH_PE_liste_des_comptes}" widgetVar="dlgCmpteG" width="60%" height="600" closeOnEscape="true"
+                      footer="&copy; Lymytz" >
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PP_saisir_compte_g}" for="txt_cmpte_find_emps_s"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_emps_s">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="table_cptG_employe_s" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="table_cptG_employe_s" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="table_cptG_employe_s" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="table_cptG_employe_s"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable value="#{managedCompte.listComptes}" var="cptG" emptyMessage="Aucun compte"
+                                 rowIndexVar="line_cg" rowKey="#{cptG.id}" selectionMode="single" id="table_cptG_employe_s">
+                        <p:ajax event="rowSelect" listener="#{MEmps.choisirCompte}" 
+                                update=":form-emps02:mainEmps:txt_num_c_emps_salaire"
+                                oncomplete="dlgCmpteG.hide()"/>
+                        <p:column headerText="N°" width="20" style="text-align: center">
+                            #{line_cg+1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_numero}" width="100" >
+                            #{cptG.numCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="200" >
+                            #{cptG.intitule}
+                        </p:column>
+                        <p:column headerText="#{lab.L_type}" width="100" >
+                            #{cptG.typeCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PE_repport}" width="100" >
+                            #{cptG.typeReport}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PE_compte_g}." width="100" >
+                            #{cptG.compteGeneral.numCompte}
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_emps_equipeEmp">
+            <p:dialog header="#{lab.LRH_PPT_gerer_equipes}" widgetVar="dlgEquipe" footer="&copy;Lymytz 2014"
+                      width="60%" >
+                <script type="text/javascript">
+                    $(document).ready(function() {
+                        collapseList('equipeEmp');
+                    });
+                </script>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('equipeEmp');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link onclick="collapseList('equipeEmp');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div style="clear: right"></div>
+                <div class="yvs_form_equipeEmp">
+                    <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                                 style="width: 100%" id="form_edit_equipe">
+                        <span>#{lab.LRH_PPT_titre_equipe}</span>
+                        <h:inputText value="#{MEmps.equipe.titreEquipe}" />
+                        <span>#{lab.LRH_PPT_groupe_service}</span>
+                        <h:inputText value="#{MEmps.equipe.groupeService}" />
+                        <span>#{lab.L_actif}</span>
+                        <h:selectBooleanCheckbox value="#{MEmps.equipe.actif}" />
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{MEmps.createNewEquipe()}"
+                                     update=":form_emps_equipeEmp:emps_tables_equipeEmp :form-emps02:mainEmps:champ_emps_equipe" />
+                </div>
+                <div class="yvs_list_equipeEmp">
+                    <p:dataTable value="#{MEmps.equipesEmployes}" var="equip" selectionMode="single" 
+                                 rowKey="#{equip.id}"
+                                 rowIndexVar="line_eq" id="emps_tables_equipeEmp" >
+                        <p:ajax event="rowSelect" listener="#{MEmps.loadEquipeOnView}" 
+                                update=":form_emps_equipeEmp:form_edit_equipe :form-emps02:mainEmps:champ_emps_equipe" oncomplete="collapseForm('equipeEmp')"/>
+                        <p:column headerText="N°" width="25" style="text-align: center">
+                            #{line_eq+1}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PE_titre}" width="100">
+                            #{equip.titreEquipe}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PE_service}" width="150">
+                            #{equip.groupeService}
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <p:commandLink actionListener="#{MEmps.toggleActifEquipe(equip)}" update=":form_emps_equipeEmp:emps_tables_equipeEmp">
+                                <h:graphicImage library="img" name="#{(equip.actif)?'vu.png':'vu_non.png'}" width="15" height="15" />
+                                <!--<p:confirm header="Activer/Désactiver Equipe" message="Voulez-vous Modifier le statut de  cette equipes?" />-->
+                            </p:commandLink>
+                        </p:column>
+                        <p:column headerText="" style="text-align: center" width="20">
+                            <p:commandButton icon="ui-icon-trash" style="width: 22px; height: 22px" actionListener="#{MEmps.deleteEquipe(equip)}" 
+                                             update=":form_emps_equipeEmp:emps_tables_equipeEmp" >
+                                <!--<p:confirm header="Supprimer les equipes!" message="Voulez-vous supprimer cette equipes?" />-->
+                            </p:commandButton>
+                        </p:column>
+                    </p:dataTable>
+                </div>                    
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PE_ajouter_diplome}" width="50%" closeOnEscape="true" footer="#{lab.L_copy}" widgetVar="dlgAddDiplome"
+                      modal="true">
+                <p:commandButton icon="ui-icon-circle-plus"  
+                                 actionListener="#{MEmps.addDiplome()}" style="float: right; width: 21px; height: 21px"/>                                                            
+                <h:panelGrid columns="4" style="width: 100%; clear: right" id="emp-panel-diplome" 
+                             styleClass="yvs_table" cellpadding="0" cellspacing="0">                                        
+                    <p:outputLabel value="#{lab.L_nom}" />
+                    <h:selectOneMenu value="#{MEmps.diplome.id}" style="width: 100%">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>                                    
+                        <f:selectItems value="#{MEmps.diplomes}" var="dip" itemValue="#{dip.id}" itemLabel="#{dip.designation}"/>                                                                                               
+                    </h:selectOneMenu>
+                    <p:outputLabel value="#{lab.LRH_PE_obtenu_le}" />
+                    <p:calendar value="#{MEmps.diplome.dateObtention}" pattern="dd-MM-yyyy" navigator="true" size="8"/>
+                    <span>#{lab.LRH_PE_ecole}</span>
+                    <h:inputText value="#{MEmps.diplome.ecole}"  />
+                    <p:outputLabel value="#{lab.LRH_PE_mention}"/>
+                    <h:selectOneMenu value="#{MEmps.diplome.mention}">
+                        <f:selectItem itemLabel="#{lab.LRH_PE_passable}" itemValue="Passable"/>
+                        <f:selectItem itemLabel="#{lab.LRH_PE_assez_bien}" itemValue="Assez Bien"/>
+                        <f:selectItem itemLabel="#{lab.LRH_PE_bien}" itemValue="Bien"/>
+                        <f:selectItem itemLabel="#{lab.LRH_PE_tres_bien}" itemValue="Tres Bien"/>
+                    </h:selectOneMenu>                                                                                                                
+                </h:panelGrid> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PE_ajouter_grade}" widgetVar="dlgAddGrade" resizable="false" 
+                      width="30%" closeOnEscape="true" hideEffect="slide">
+                <h:panelGrid columns="3" style="margin: auto" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PE_grade} : </span>
+                    <p:inputText value="#{MEmps.grade.libelle}"/>
+                    <p:commandButton icon="ui-icon-circle-plus" actionListener="#{MEmps.saveNewGrade()}"  style="width: 20px; height: 20px"
+                                     oncomplete="dlgAddGrade.hide()" update=":form_profil_e:txt_grade_employe"/>
+                </h:panelGrid>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>      
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_add_banque">
+            <p:dialog header="#{lab.LRH_PE_banques}" widgetVar="dlgAddBanque" resizable="false"  width="50%" closeOnEscape="true" hideEffect="slide">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('EmpBanque');
+                    });
+                </script> 
+                <div style="float: left">
+                    <p:splitButton value="#{lab.L_enregistrer}"  actionListener="#{MEmps.saveNewBanque()}" update="form_baques" 
+                                   icon="ui-icon-disk" id="save_EmpBanque" >                    
+                        <p:menuitem value="#{lab.L_nouveau}"  actionListener="#{MEmps.resetFicheBanque()}" id="cancel_EmpBanque" update="form_baques" 
+                                    icon="ui-icon-document"/>
+                    </p:splitButton>
+                </div>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('EmpBanque');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link onclick="collapseList('EmpBanque');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div class="yvs_form_EmpBanque">
+                    <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 98%; margin: auto" id="form_baques"> 
+                        <span>#{lab.L_designation} </span>
+                        <h:inputText value="#{MEmps.newBanque.nom}" style="width: 99%">
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:inputText>
+                        <h:outputText value="#{lab.L_pays}" />
+                        <h:selectOneMenu value="#{MEmps.newBanque.pays.id}" id="id-emp-pays-banq" valueChangeListener="#{MEmps.choixPay}" style="width: 99%" >
+                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>                                    
+                            <f:selectItems value="#{MEmps.listPays}" var="pay1" itemValue="#{pay1.id}" itemLabel="#{pay1.libele}"/>
+                            <p:ajax event="valueChange" update="id-emp-vill-banq"/>
+                        </h:selectOneMenu>
+                        <h:outputText value="#{lab.L_ville}" />
+                        <h:selectOneMenu value="#{MEmps.newBanque.ville.id}" id="id-emp-vill-banq" style="width: 99%" >
+                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>                                    
+                            <f:selectItems value="#{MEmps.listVille}" var="vi1" itemValue="#{vi1.id}"  itemLabel="#{vi1.libele}"/>
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:selectOneMenu>
+                        <h:outputText value="#{lab.L_telephone}" />
+                        <h:inputText value="#{MEmps.newBanque.telephone}" style="width: 99%" >
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:inputText>
+                        <h:outputText value="#{lab.L_actif}" />
+                        <h:selectBooleanCheckbox value="#{MEmps.newBanque.actif}" >                        
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:selectBooleanCheckbox>
+                    </h:panelGrid>
+                </div>
+                <div class="yvs_list_EmpBanque">
+                    <p:dataTable value="#{MEmps.listBanques}" var="bq" rowKey="#{bq.id}" selectionMode="single" id="pan-dlg-emp-banq">
+                        <p:ajax event="rowSelect" listener="#{MEmps.selectBanque}" update=":form_add_banque:form_baques :form-emps02:mainEmps:slt-banque-compte-B" />
+                        <p:column headerText="Nom">
+                            #{bq.nom}
+                        </p:column>
+                        <p:column headerText="#{lab.L_telephone}">
+                            #{bq.telephone}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PE_lieu}" width="150"> 
+                            #{bq.pays.libele} :: #{bq.ville.libele}
+                        </p:column>
+                        <p:column headerText=" " width="30" style="text-align: center">
+                            <p:contextMenu for="btn_option_EmpBanque" event="left click">
+                                <p:menuitem value="#{lab.L_modifier}" icon="ui-icon-pencil" actionListener="#{MEmps.openBanqUp(bq)}"
+                                            update=":form_add_banque:form_baques" oncomplete="collapseForm('EmpBanque')"/>
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash"  actionListener="#{MEmps.deleteBanque(bq)}"/>
+                            </p:contextMenu>
+                            <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_EmpBanque"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>                    
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAvancement" width="300" height="75" closeOnEscape="true"
+                      dynamic="true" resizable="false" modal="true">
+                <f:facet name="header">
+                    #{lab.LRH_PP_avancement}
+                </f:facet> 
+                <p:panelGrid columns="2" id="panel-avacement-emps" style="width: 100%">
+                    <p:outputLabel value="#{lab.LRH_PE_categorie_proffesionnelle}" />
+                    <h:selectOneMenu value="#{employe.convention.categorie.id}"
+                                     style="width: 100%">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItems value="#{MEmps.listCategoriePro}" var="cp1" itemValue="#{cp1.id}" itemLabel="#{cp1.categorie}"/>
+                        <p:ajax event="valueChange" listener="#{MEmps.loadAllEchelonByCategorie()}"/>
+                    </h:selectOneMenu>
+                    <p:outputLabel value="#{lab.LRH_PE_echelon}" />
+                    <h:selectOneMenu value="#{employe.convention.echelon.id}"
+                                     style="width: 100%">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItems value="#{MEmps.listEchelon}" var="ec1" itemValue="#{ec1.id}" itemLabel="#{ec1.titre}"/>
+                        <p:ajax event="valueChange" listener="#{MEmps.searchConventionByElement()}" />
+                    </h:selectOneMenu>
+                </p:panelGrid>
+                <h:panelGrid columns="2" style="width: 100%">
+                    <p:commandButton value="#{lab.L_confirmer}" actionListener="#{MEmps.saveNewConvention()}" style="float: left"/>
+                    <p:commandButton value="#{lab.L_annuler}" onclick="dlgAvancement.hide()" style="float: right"/>
+                </h:panelGrid>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.LRH_PE_confirmation_regression}" widgetVar="dlgConfirmationR" 
+                             message="#{lab.LRH_PE_text}">
+                <p:commandButton value="#{lab.L_oui}" onclick="dlgConfirmationR.hide()" />
+                <p:commandButton value="#{lab.L_non}" actionListener="#{MEmps.closeBtAvancement()}" />
+            </p:confirmDialog>
+        </h:form> 
+        <h:form prependId="false"> 
+            <p:confirmDialog widgetVar="dlgConfirmActiv" message="#{lab.LRH_PE_text1}">
+                <f:facet name="header">
+                    <p:outputLabel value="#{lab.L_activer}" id="head_dlg_confirm_actif_00"/>
+                </f:facet>
+                <p:commandButton value="#{lab.L_oui}"  actionListener="#{MEmps.chechActiver()}" oncomplete="dlgConfirmActiv.hide()" />
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmActiv.hide()"/>
+            </p:confirmDialog>
+        </h:form>  
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.LRH_PE_confirmation_suppression}" widgetVar="dlgConfirmDelete" 
+                             message="#{lab.LRH_PE_text2}">
+                <p:commandButton value="#{lab.L_oui}"  actionListener="#{MEmps.deleteBean()}" oncomplete="dlgConfirmDelete.hide()" />
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form> 
+        <!-->formulaire d'ajout d'une nouvelle image <-->
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog widgetVar="dlgUploadImg" width="300" height="100" closeOnEscape="true"
+                      header="#{lab.T_photo}">
+                <p:fileUpload sizeLimit="100000" id="logoEmps"  mode="advanced" dragDropSupport="true" 
+                              allowTypes="/(\.|\/)(gif|jpe?g|png)$/" fileUploadListener="#{MEmps.handleFileUpload}"
+                              uploadLabel="#{lab.L_envoyer}" label="#{lab.L_parcourir}" auto="true"  update=":form-emps02:photos"
+                              oncomplete="dlgUploadImg.hide()"> 
+
+                </p:fileUpload>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog widgetVar="dlgUploadDoc" width="300" height="100" closeOnEscape="true"
+                      dynamic="true" resizable="false" header="#{lab.LRH_PE_autres_documents}">
+                <p:fileUpload sizeLimit="10000000"  mode="advanced" dragDropSupport="true" 
+                              allowTypes="/(\.|\/)(pdf|pdf)$/" fileUploadListener="#{MEmps.handleUploadDocEmps}"
+                              uploadLabel="#{lab.L_envoyer}" label="#{lab.L_parcourir}" auto="true"  
+                              oncomplete="dlgUploadDoc.hide()"> 
+
+                </p:fileUpload>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddLangue" width="35%" closeOnEscape="true"
+                      header="#{lab.LRH_PE_ajouter_nouvelle_langue}" dynamic="true">
+                <h:panelGrid columns="3" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.L_non}</span>
+                    <h:inputText value="#{MEmps.newLangue}"/>                              
+                    <p:commandButton value="#{lab.L_ajouter}" actionListener="#{MEmps.createNewLangue()}" 
+                                     update=":form_list_langue:emp_table_langue :form-emps02:mainEmps:employe-select-langue" oncomplete="dlgAddLangue.hide()"/>                      
+                </h:panelGrid>            
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_list_langue">
+            <p:dialog widgetVar="dlgLangue" width="30%" closeOnEscape="true" header="#{lab.LRH_PE_liste_langue}" dynamic="true" >
+                <p:commandButton icon="ui-icon-circle-plus" type="button" onclick="dlgAddLangue.show()" style="float: right"/>
+                <p:dataTable value="#{MEmps.listLangues}" var="lan1" rowKey="#{lan1.id}"
+                             selectionMode="single" rowIndexVar="lineLangue" id="emp_table_langue">
+                    <p:ajax event="rowSelect" listener="#{MEmps.selectLangue}" process="@this"
+                            update=":form-emps02:mainEmps:employe-select-langue" oncomplete="dlgLangue.hide()"/>
+                    <p:column headerText="N°" width="25">
+                        #{lineLangue+1}
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}" >
+                        #{lan1.langue}
+                    </p:column>                
+                </p:dataTable>                     
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <!-->****************************Gérer les qualifications**********************<-->
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddDomaineQual" width="30%" modal="true" footer="#{lab.L_copy}"
+                      closeOnEscape="true" header="#{lab.LRH_PPT_nouveau_domaine_qualification}">
+                <h:panelGrid columns="3" styleClass="yvs_table" style="width: 100%; margin: auto"
+                             cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PE_titre} </span>                        
+                    <h:inputText value="#{MEmps.newDomaine.titreDomaine}" style="width: 99%"/>                        
+                    <p:commandButton style="margin: auto" icon="ui-icon-circle-plus"
+                                     actionListener="#{MEmps.addNewDomaine()}"
+                                     update=":form-qualif:txt_domaine_qualifC :form-qualif:emp-tab-qualif :form_employe_newQualif:domaine_PQ_1" oncomplete="dlgAddDomaineQual.hide()"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_employe_newQualif">
+            <p:dialog widgetVar="dlgAddQualification" width="40%" modal="true" footer="#{lab.L_copy}"
+                      closeOnEscape="true" header="#{lab.LRH_PPT_creer_qualification}">
+                <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%; margin: auto"
+                             cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PE_domaine}</span>
+                    <h:panelGroup>
+                        <h:selectOneMenu value="#{MEmps.newQualif.domaine.id}" id="domaine_PQ_1">
+                            <f:selectItem itemLabel="" itemValue="" />
+                            <f:selectItems value="#{MEmps.domainesQualification}" var="domai_" itemLabel="#{domai_.titreDomaine}" itemValue="#{domai_.id}" />                            
+                        </h:selectOneMenu> 
+                        <p:commandButton style="margin: auto; width: 20px; height: 20px" icon="ui-icon-circle-plus" title="#{lab.LRH_PE_ajouter_domaine}"
+                                         type="button" onclick="dlgAddDomaineQual.show()"/>
+                        <p:commandButton style="margin: auto; width: 20px; height: 20px" icon="ui-icon-circle-minus"
+                                         actionListener="#{MEmps.RemoveOneDomaine()}" global="false" update="domaine_PQ_1"/>
+                    </h:panelGroup>                                               
+                    <span>#{lab.LRH_PE_code_interne}</span>
+                    <h:inputText value="#{MEmps.newQualif.codeInterne}" style="width: 99%"/>
+                    <span>#{lab.L_intitule}</span>
+                    <h:inputText value="#{MEmps.newQualif.intitule}"/>    
+                    <span>&nbsp;</span>
+                    <p:commandButton value="#{lab.L_ajouter}" actionListener="#{MEmps.createNewQualification()}" 
+                                     oncomplete="dlgAddQualification.hide()" update=":form-qualif:emp-tab-qualif"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>                 
+        <h:form prependId="false" id="form-qualif">     
+            <p:dialog widgetVar="dlgQualification" width="50%" closeOnEscape="true"
+                      header="#{lab.LRH_PE_liste_qualifications}" dynamic="true" height="450">   
+                <script type="text/javascript">
+                    hideButtonDeleteQualification();
+                </script>
+                <div style="float: left">
+                    <span>#{lab.LRH_PE_domaine_qualification}</span>
+                    <h:selectOneMenu value="#{MEmps.selectDomaineQ.id}"  valueChangeListener="#{MEmps.selectDomaineQ}"
+                                     id="txt_domaine_qualifC">
+                        <f:selectItem itemLabel="" itemValue="0" />
+                        <f:selectItems value="#{MEmps.domainesQualification}" var="domain_" itemLabel="#{domain_.titreDomaine}" itemValue="#{domain_.id}" />
+                        <p:ajax event="valueChange" global="false" process="@this" update="emp-tab-qualif" />
+                    </h:selectOneMenu>
+                </div>
+                <div style="float: right">
+                    <p:commandButton icon="ui-icon-document" onclick="dlgAddQualification.show()" type="button" style="width: 20px; height: 20px" title="#{lab.LRH_PE_creer_nouvelle_qualification}"/>                        
+                </div>
+                <div style="clear: both"></div>                    
+                <p:dataTable value="#{MEmps.selectDomaineQ.qualifications}" var="qua1" rowKey="#{qua1.id}"
+                             selectionMode="single" id="emp-tab-qualif"
+                             rowIndexVar="lineQualif">
+                    <p:ajax event="rowSelect" listener="#{MEmps.selectQualification}" process="@this" 
+                            update=":form-emps02:mainEmps:tabQual" />
+                    <p:column headerText="N°" width="25">
+                        #{lineQualif+1}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PE_code_interne}" >
+                        #{qua1.codeInterne}
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}" >
+                        #{qua1.designation}
+                    </p:column>
+                    <p:column width="25">
+                        <p:commandButton icon="ui-icon-trash"  actionListener="#{MEmps.delteQualif(qua1)}" id="delete_employeQualif"
+                                         update=":form-qualif:emp-tab-qualif" style="width: 20px; height: 20px">
+                            <!--<p:confirm  header="Supprimer une qualification!"  message="Supprimer définitivement cette qualification ?" />-->
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-emps03">
+            <p:dialog widgetVar="dlgAddPoste"  closeOnEscape="true"
+                      header="#{lab.LRH_PE_ajouter_nouveau_poste_travail}" dynamic="true">
+                <h:panelGrid columns="2" style="width: 100%" id="gridPoste" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <p:outputLabel value="#{lab.LRH_PE_poste_travail}" />
+                    <h:inputText value="#{employe.posteDeTravail.intitule}"/>
+                    <p:outputLabel value="#{lab.LRH_PCP_niveau}" />
+                    <h:inputText value="#{employe.posteDeTravail.degre}"/>
+                    <p:outputLabel value=" #{lab.LRH_PPT_departements} "/>
+                    <h:selectOneMenu value="#{employe.posteDeTravail.departement.id}">
+                        <f:selectItem itemValue="0" itemLabel=""/>
+                        <f:selectItems value="#{MEmps.departements}" var="dep" itemValue="#{dep.id}" 
+                                       itemLabel="#{(dep.cheminParent==null)?dep.intitule:dep.cheminParent.concat('/').concat(dep.intitule)}" />
+                    </h:selectOneMenu>                                        
+                </h:panelGrid>
+                <h:panelGroup style="margin: auto; float: right">
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{MEmps.createNewPosteDeTravail()}" 
+                                     oncomplete="dlgAddPoste.hide(); dlgPosteDeTravail.hide()"
+                                     update=":form-emps02:mainEmps:employe-select-poste :list_poste_travail:table_poste_"/>&nbsp;
+                    <p:commandButton value="#{lab.L_annuler}" oncomplete="dlgAddPoste.hide()"
+                                     />
+                </h:panelGroup>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="list_poste_travail">
+            <p:dialog widgetVar="dlgPosteDeTravail" width="60%" closeOnEscape="true"
+                      header="#{lab.LRH_PE_liste_postes_travails}" dynamic="true" height="460">
+                <div class="dlg_part_fixe">
+                    <div style="float: left; font-size: 0.8em">
+                        <p:inputText style="font-size: 0.8em" value="#{MEmps.posteSearch}">
+                            <p:ajax event="valueChange" process="@this" global="false" listener="#{MEmps.filterPosteLike(MEmps.posteSearch)}" update="table_poste_"/>
+                        </p:inputText>
+                    </div>
+                    <h:selectOneMenu value="#{MEmps.idDepartSearch}" title="#{lab.LRH_PE_filtrer_departement_service}" valueChangeListener="#{MEmps.filterPoste}" style="font-size: 0.8em">
+                        <f:selectItem itemValue="#{0}" itemLabel="" noSelectionOption="true" />
+                        <f:selectItems value="#{managedDepartement.listValue}" var="iDepart" itemValue="#{iDepart.id}" itemLabel="#{iDepart.intitule}" />
+                        <f:selectItem itemValue="#{-1}" itemLabel="#{lab.LRH_PE_tous}..." noSelectionOption="true" />
+                        <p:ajax event="valueChange" update="table_poste_" process="@this" />
+                    </h:selectOneMenu>
+                    <p:commandButton icon="ui-icon-circle-plus" style="float: right" type="button" onclick="dlgAddPoste.show()" update=":form-emps03:gridPoste"/>
+                </div>
+                <div class="dlg_part_scroll" style="clear: both">
+                    <p:dataTable value="#{MEmps.posteDeTravails}" var="post1" rowKey="#{post1.id}"
+                                 selectionMode="single" id="table_poste_">
+                        <p:ajax event="rowSelect" listener="#{MEmps.selectPoste}" update=":form-emps02:mainEmps:employe-select-poste"
+                                oncomplete="dlgPosteDeTravail.hide()"/>
+                        <p:column headerText="#{lab.L_intitule}" >
+                            #{post1.intitule}
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PPT_departement}" >
+                            <h:outputText value="#{post1.departement.cheminParent} / #{post1.departement.intitule}"/>
+                        </p:column>
+                    </p:dataTable>  
+                </div>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="form_employe_list_pays">
+            <p:dialog widgetVar="dlgPays" width="30%" closeOnEscape="true"
+                      header="#{lab.L_pays}" dynamic="true" height="550">
+                #{MEmps.loadPays(0,true)}
+                <p:commandButton icon="ui-icon-circle-plus" type="button" onclick="dlgAddPays.show()" style="float: right; margin-right: 50%"/>
+                <p:dataTable value="#{MEmps.listPays}" var="pay" rowKey="#{pay.id}" id="table_employe_pays"
+                             selectionMode="single"  style="clear: right">
+                    <p:ajax event="rowSelect" listener="#{MEmps.selectPay}" 
+                            update=":form-emps02:mainEmps:employe-select-pays :form_add_banque:id-emp-pays-banq"
+                            oncomplete="dlgPays.hide()"/>
+                    <p:column headerText="#{lab.L_pays}" >
+                        #{pay.libele}
+                    </p:column>
+                </p:dataTable>                    
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddPays" width="30%" closeOnEscape="true"
+                      header="#{lab.LRH_PE_ajouter_pays}" dynamic="true">            
+                <h:panelGrid columns="3" style="width: 100%" cellpadding="0" cellspacing="0" >
+                    <span>#{lab.L_designation}</span>
+                    <h:inputText value="#{MEmps.pays}" />
+                    <p:commandButton icon="ui-icon-circle-plus" actionListener="#{MEmps.createNewPAys()}" 
+                                     update=":form_employe_list_pays:table_employe_pays :form_add_ville_01:chp_ville_add :form_add_ville_02:chp_ville_add_1"
+                                     oncomplete="dlgAddPays.hide()"/>
+                </h:panelGrid>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgVille" width="30%" closeOnEscape="true"
+                      header="#{lab.L_ville}" dynamic="true" height="350">
+                #{MEmps.loadVille(0, true)}
+                <p:commandButton icon="ui-icon-circle-plus" style="float: right; margin-right: 50%" onclick="dlgAddVille.show()"/>
+                <p:dataTable value="#{MEmps.listVille}" var="vill" rowKey="#{vill.id}"
+                             selectionMode="single">
+                    <p:ajax event="rowSelect" listener="#{MEmps.selectVille}" update=":form-emps02:mainEmps:employe-select-ville"/>
+                    <p:column headerText="#{lab.L_ville}" >
+                        #{vill.libele}
+                    </p:column>
+                </p:dataTable>                    
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>                    
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_add_ville_01">
+            <p:dialog widgetVar="dlgAddVille" width="30%" closeOnEscape="true"
+                      header="#{lab.LRH_PE_ajouter_ville}">
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.L_pays}</span>
+                    <h:selectOneMenu value="#{MEmps.idPays}" id="chp_ville_add">
+                        <f:selectItem itemValue="0" itemLabel="_" noSelectionOption="true"/>                                    
+                        <f:selectItems value="#{MEmps.listPays}" var="pi_" itemValue="#{pi_.id}" itemLabel="#{pi_.libele}"/>
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                    </h:selectOneMenu>
+                    <span>#{lab.LRH_PE_nom_ville}</span>
+                    <p:inputText value="#{MEmps.ville}" />                        
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{MEmps.createNewVille()}"
+                                 update=":form-emps02:mainEmps:employe-select-ville :form-emps02:mainEmps:employe-select-villeCNI 
+                                 :form_add_banque:id-emp-vill-banq" 
+                                 oncomplete="dlgAddVille.hide(); dlgVille.hide()"/>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false" id="main_fusionn_employe">
+            <p:dialog widgetVar="dlgConfirmFusion" header="#{lab.L_fusionner}" dynamic="true" resizable="false" closeOnEscape="true" modal="true">
+                <h:panelGrid id="blog_fusionner_employe" columns="1" styleClass="yvs_nostyle" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <span>#{lab.LDB_PT_text1}</span>
+                    <h:outputText style="font-weight: bold;margin-left: 10px" value="#{MEmps.fusionneTo}"/>
+                    <span>#{lab.LDB_PT_text2}</span>
+                    <c:forEach items="#{MEmps.fusionnesBy}" var="fus">
+                        <span style="margin-left: 10px"> - <span style="font-weight: bold">#{fus}</span></span>
+                    </c:forEach>
+                    <span>#{lab.LDB_PT_text3}</span>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{MEmps.fusionner(false)}" style="float: right" 
+                                 oncomplete="dlgConfirmFusion.hide()"  update=":form-emps02:tabEmployes :form-emps02:empps-dgrig"/> 
+            </p:dialog>
+        </h:form> 
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgVilleCNI" width="22%" closeOnEscape="true"
+                      header="#{lab.LRH_PE_liste_villes}" dynamic="true" height="350">
+                #{MEmps.loadVille(0, true)}
+                <p:commandButton icon="ui-icon-circle-plus" style="float: right" onclick="dlgAddVilleCNI.show()"/>
+                <p:dataTable value="#{MEmps.listVille}" var="vill" rowKey="#{vill.id}"
+                             selectionMode="single">
+                    <p:ajax event="rowSelect" listener="#{MEmps.selectVille1}" global="false" update=":form-emps02:mainEmps:employe-select-villeCNI"/>
+                    <p:column headerText="#{lab.L_ville}" >
+                        #{vill.libele}
+                    </p:column>
+                </p:dataTable>                    
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_add_ville_02">
+            <p:dialog widgetVar="dlgAddVilleCNI" width="30%" closeOnEscape="true"
+                      header="#{lab.LRH_PE_ajouter_ville}">
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>#{lab.L_pays}</span>
+                    <h:selectOneMenu value="#{MEmps.idPays1}" id="chp_ville_add_1">
+                        <f:selectItem itemValue="0" itemLabel="_" noSelectionOption="true"/>                                    
+                        <f:selectItems value="#{MEmps.listPays}" var="pi_1" itemValue="#{pi_1.id}" itemLabel="#{pi_1.libele}"/>
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                    </h:selectOneMenu>
+                    <span>#{lab.LRH_PE_nom_ville}</span>
+                    <h:inputText value="#{MEmps.ville1}" />                        
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{MEmps.createNewVille1()}" 
+                                 update=":form-emps02:mainEmps:employe-select-ville :form-emps02:mainEmps:employe-select-villeCNI 
+                                 :form_add_banque:id-emp-vill-banq" 
+                                 oncomplete="dlgAddVilleCNI.hide();dlgVilleCNI.hide()"/>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>    
+        <h:form prependId="false" id="form-emps02">
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_enregistrer}"  actionListener="#{MEmps.saveNew()}" update=":form-emps02:tabEmployes :form-emps02:empps-dgrig" 
+                               icon="ui-icon-disk" id="save_employe" >                    
+                    <p:menuitem value="#{lab.L_nouveau}"  actionListener="#{MEmps.resetFiche()}" id="cancel_employe" update="employe-main-panel" 
+                                icon="ui-icon-document"/>
+                    <p:menuitem icon="ui-icon-close" value="#{lab.L_supprimer}" onclick="dlgConfirmDelete.show()" global="false"/>
+
+                </p:splitButton>
+                <p:outputPanel id="employe_options" style="display: inline">
+                    <p:splitButton value="#{lab.L_options}" id="delete_employe" icon="ui-icon-star" rendered="#{MEmps.listSelection.size()>0}">                           
+                        <p:menuitem value="#{lab.LP_POF_activer_desactiver}" onclick="dlgConfirmActiv.show()" global="false"/>
+                        <p:menuitem value="#{lab.LRH_PP_avancement}" onclick="dlgAvancement.show()" global="false"/>
+                        <p:separator/>
+                        <p:menuitem value="#{lab.L_fusionner}" icon="ui-icon-refresh" actionListener="#{MEmps.fusionner(true)}" global="false"
+                                    oncomplete="dlgConfirmFusion.show()" update=":main_fusionn_employe:blog_fusionner_employe"/>
+                        <p:menuitem icon="ui-icon-close" value="#{lab.L_supprimer} (#{MEmps.listSelection.size()})" onclick="dlgConfirmDelete.show()" global="false"/>
+                    </p:splitButton> 
+                </p:outputPanel>  
+                <p:contextMenu event="left click" for="btn_empl_other_option" styleClass="context_menu"
+                               style="width: 300px">
+                    <p:menuitem value="#{lab.LRH_PE_parametrer_liaisons_externes}" icon="ui-icon-link" actionListener="#{MEmps.setDisplayParamExt(true)}"
+                                update="zone_param_lien_empl_ext"/>
+                </p:contextMenu>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton title="#{lab.L_autres_option}" type="button"  icon="ui-icon-gear" style="margin-right: 2%" id="btn_empl_other_option"/>
+                    <p:commandButton actionListener="#{MEmps.parcoursInAllResult(false)}" update="txt_parc_linear_employe tabEmployes"   icon="ui-icon-circle-triangle-w" 
+                                     />
+                    <p:outputPanel autoUpdate="true">
+                        <h:inputText value="#{MEmps.offset}" style="width: 35px; text-align: center"  title="Aller au N°..." id="txt_parc_linear_employe"/>
+                        <p:outputLabel value="/#{MEmps.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                    </p:outputPanel>
+                    <p:commandButton actionListener="#{MEmps.parcoursInAllResult(true)}" update="txt_parc_linear_employe tabEmployes" icon="ui-icon-circle-triangle-e" 
+                                     />
+                </h:panelGroup> 
+                <h:panelGroup id="choose_employe">
+                    <h:outputText value="#{lab.LRH_PE_exercice} " />
+                    <h:selectOneMenu value="#{tableauBord.exercice.id}">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedTableauBord.exercices}" var="exo"
+                                       itemLabel="#{exo.reference}" itemValue="#{exo.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedTableauBord.chooseExercice()}" />
+                    </h:selectOneMenu>
+                </h:panelGroup>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('employe');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('employe');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link  onclick="collapseGrid('employe');
+                            return false" title="#{lab.L_mode_hierrachique}">
+                        <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <h:inputHidden id="input_hide_employe" value="#{MEmps.chaineSelectEmploye}" />
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_employe">
+                    <p:outputPanel  id="employe-main-panel">
+                        <p:overlayPanel for="photos" showEvent="mouseover" hideEvent="mouseout" style="border-radius: 15px; background: #ccffff">
+                            <h:panelGrid columns="2" >
+                                <p:outputLabel value="#{lab.LRH_PE_prochain_avancement}:"/>
+                                <h:outputText value="#{employe.dateAvancement}" converter="DATE"/>
+                                <p:outputLabel value="#{lab.LRH_PP_classement} "/>
+                                <h:panelGrid columns="4" style="font-weight: bold; width: 100%">
+                                    <p:outputLabel value="#{lab.L_categorie}  "/>
+                                    <h:outputText value="#{employe.convention.categorie.categorie}" />
+                                    <p:outputLabel value="  #{lab.LRH_PE_echelon}  "/>
+                                    <h:outputText value="#{employe.convention.echelon.echelon}"/>
+                                </h:panelGrid>
+                            </h:panelGrid>
+                        </p:overlayPanel>
+                        <p:panelGrid columns="1" style="width: 15%; float: left">
+                            <f:facet name="header">
+                                <p:contextMenu for="photos" rendered="false">
+                                    <p:menuitem value="#{lab.LRH_PE_recapitulatif}" icon="ui-icon-calendar" oncomplete="collapseTab('employe')"
+                                                actionListener="#{MEmps.loadRecapitulatif()}" update="form_recap_employe"/>
+                                </p:contextMenu>
+                                <p:commandLink title="#{lab.L_modifier}..." onclick="dlgUploadImg.show()">
+                                    <h:graphicImage id="photos" value="data:image/#{employe.photoExtension};base64,#{employe.photos}"
+                                                    alt="photos Employé" style="border: 0px solid #006666; height: 150px; width: 150px"/>
+                                </p:commandLink>
+                            </f:facet>                                
+                        </p:panelGrid>
+                        <h:panelGrid columns="1" style="margin-left: 15%; width: 85%">
+                            <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%;" id="emps-titre" cellpadding="0" cellspacing="0">                    
+                                <h:outputText value="#{lab.L_nom}" />                                    
+                                <h:inputText value="#{employe.nom}" style="width: 99%" tabindex="10"/>                                     
+                                <h:outputText value="#{lab.L_prenom}"/>                                    
+                                <h:inputText value="#{employe.prenom}" style="width: 99%" tabindex="20"/>
+                                <h:outputText value="#{lab.LRH_PE_civilite}"  />
+                                <h:selectOneMenu value="#{employe.civilite}"  valueChangeListener="#{MEmps.choixCivilite}" tabindex="30">
+                                    <f:selectItem itemLabel="M." itemValue="M."/>
+                                    <f:selectItem itemLabel="Mlle" itemValue="Mlle"/>
+                                    <f:selectItem itemLabel="Mme" itemValue="Mme"/>  
+                                    <p:ajax event="valueChange" update="photos"/>
+                                </h:selectOneMenu>                                    
+                                <h:outputText value="#{lab.LRH_PE_nom_jeune_fille}" rendered="#{MEmps.displayName}"/>                                    
+                                <h:inputText value="#{employe.nomDeJeuneFille}" style="width: 99%; background: aliceblue" 
+                                             rendered="#{MEmps.displayName}" tabindex="40"/>                                                                 
+                                <span>#{lab.LRH_PE_utilisateur_rattacher}</span>
+                                <h:selectOneMenu value="#{employe.user.id}" id="employe-select-user">
+                                    <f:selectItem itemValue="0" itemLabel=""  noSelectionOption="true"/>                                    
+                                    <f:selectItems value="#{MEmps.listUsers}" var="usr1" itemValue="#{usr1.id}" itemLabel="#{usr1.nomUsers} [#{usr1.codeUsers}]"/>
+                                    <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                </h:selectOneMenu> 
+                                <f:facet name="footer">
+                                    <span>#{lab.L_actif}</span>
+                                    <h:selectBooleanCheckbox value="#{employe.actif}"/>
+                                    <h:panelGroup id="zone_param_lien_empl_ext" style="float: right" >
+                                        <h:panelGroup rendered="#{MEmps.displayParamExt}">
+                                            <span>#{lab.LDB_PF_code_externe} </span>
+                                            <h:inputText value="#{MEmps.codeExterne}"/>
+                                            <p:commandButton value="#{lab.L_appliquer}" actionListener="#{MEmps.saveLiaison()}"/>
+                                        </h:panelGroup>
+                                    </h:panelGroup>
+                                </f:facet>
+                            </h:panelGrid> 
+                        </h:panelGrid>
+                        <p:tabView id="mainEmps" style="width: 99%; clear: left; min-height: 400px">   
+                            <p:tab title="#{lab.L_general}" id="E-tab-gen">
+                                <h:panelGrid columns="8" styleClass="yvs_nostyle">                                
+                                    <h:outputText value="#{lab.LRH_PE_matricule} "/>
+                                    <h:inputText value="#{employe.matricule}" tabindex="50" />                              
+                                    <h:outputText value="#{lab.LRH_PE_mat_social} "/>
+                                    <h:inputText value="#{employe.matriculeCnps}" tabindex="51"/>
+                                    <span>#{lab.L_statut}</span>
+                                    <h:selectOneMenu value="#{employe.statutEmps.id}"  tabindex="60" 
+                                                     id="slect_statut_emps">
+                                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                        <f:selectItems value="#{MEmps.statutsEmployes}" var="ste_" 
+                                                       itemValue="#{ste_.id}" itemLabel="#{ste_.libelleStatut}"/>
+                                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                        <f:selectItem itemLabel="#{lab.L_creer}" itemValue="-1" />
+                                    </h:selectOneMenu>
+                                    <span>#{lab.LRH_PE_grade}</span>
+                                    <h:selectOneMenu value="#{employe.profil.id}"  tabindex="65"
+                                                     onchange="openDialog(dlgProfilEmps, $(this))" id="slect_profils_emps">
+                                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                        <f:selectItems value="#{MEmps.profils}" var="pro_" 
+                                                       itemValue="#{pro_.id}" itemLabel="#{pro_.statutProfil}-#{pro_.grade.libelle}"/>
+                                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                        <f:selectItem itemLabel="#{lab.L_creer}" itemValue="-1" />
+                                    </h:selectOneMenu>
+                                </h:panelGrid>
+                                <div style="padding: 1px; background: #CCC" align="left">#{lab.LRH_PE_infos_personnel}</div>
+                                <p:outputPanel id="mainEmps00">
+                                    <h:panelGrid columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                                                 >
+                                        <h:outputText value="#{lab.LRH_PE_date_naissance}"/>
+                                        <p:calendar value="#{employe.dateNaissance}" pattern="dd-MM-yyyy" navigator="true" size="8" tabindex="70"/>
+                                        <span>#{lab.LRH_PE_lieu}</span>
+                                        <h:selectOneMenu value="#{employe.villeNaissance.id}" id="employe-select-ville" 
+                                                         onchange="choixLieux_Emp($(this))" tabindex="80">
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>                                    
+                                            <f:selectItems value="#{MEmps.listVille}" var="itvil" itemValue="#{itvil.id}" 
+                                                           itemLabel="#{itvil.libele}"/>
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"/>
+                                        </h:selectOneMenu>
+                                        <span>#{lab.LRH_PE_nationalite}</span>
+                                        <h:selectOneMenu value="#{employe.paysDorigine.id}" id="employe-select-pays" 
+                                                         valueChangeListener="#{MEmps.choixPay}" tabindex="90">
+                                            <f:selectItem itemValue="0" itemLabel="_" noSelectionOption="true"/>                                    
+                                            <f:selectItems value="#{MEmps.listPays}" var="pi" itemValue="#{pi.id}" itemLabel="#{pi.libele}"/>
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItem itemValue="-1" itemLabel="Plus de choix..."/>
+                                            <p:ajax event="valueChange" global="false"/>
+                                        </h:selectOneMenu>                                       
+                                        <h:outputText value="#{lab.LRH_PE_etat_civil}" />                                    
+                                        <h:selectOneMenu value="#{employe.situationFamilial}" tabindex="100">
+                                            <f:selectItem itemLabel="#{lab.LRH_PE_marie}" itemValue="Marié"/>
+                                            <f:selectItem itemLabel="#{lab.LRH_PE_celibataire}" itemValue="Célibataire"/>
+                                            <f:selectItem itemLabel="#{lab.LRH_PE_fiancee}" itemValue="Fiancé(e)"/>
+                                            <f:selectItem itemLabel="#{lab.LRH_PE_divorcee}" itemValue="Divorcé(e)"/>
+                                        </h:selectOneMenu>                                   
+                                        <h:outputText value="#{lab.LRH_PE_cni} : "  />
+                                        <p:inputText value="#{employe.cni}" tabindex="110"/>
+                                        <h:outputText value="#{lab.LRH_PE_lieu_delivrance} : "  />
+                                        <h:selectOneMenu value="#{employe.lieuDelivCni.id}" id="employe-select-villeCNI" 
+                                                         onchange="choixVilleEmploye($(this))" >
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>                                    
+                                            <f:selectItems value="#{MEmps.listVille}" var="Ivi1" itemValue="#{Ivi1.id}" 
+                                                           itemLabel="#{Ivi1.libele}"/>
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText value="#{lab.LRH_PE_date_delivrance} : "  />
+                                        <p:calendar value="#{employe.dateDelivCni}" pattern="dd-MM-yyyy" navigator="true"  size="10">
+                                            <p:ajax event="dateSelect" process="@this"  
+                                                    global="false" listener="#{MEmps.calculDateexpCNI()}" update="emps-dexp-cni"/>
+                                        </p:calendar>   
+                                        <h:outputText value="#{lab.LRH_PE_date_expiration}: "  />
+                                        <p:calendar value="#{employe.dateExpCni}" pattern="dd-MM-yyyy" navigator="true" id="emps-dexp-cni"  size="10"/>                                       
+                                    </h:panelGrid>
+                                    <div style="padding: 3px; background: #CCC" align="left">#{lab.LRH_PE_embauche}</div>
+                                    <h:panelGrid columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                                                 >
+                                        <h:outputText value="#{lab.LRH_PE_motif_entree}"/>
+                                        <h:selectOneMenu value="#{employe.motifDentree}" style="width: 100%">
+                                            <f:selectItem itemLabel="#{lab.LRH_PE_embauche}" itemValue="Embauche"/>
+                                            <f:selectItem itemLabel="#{lab.LRH_PE_mutation}" itemValue="Mutation"/>
+                                            <f:selectItem itemLabel="#{lab.LRH_PE_remplacement}" itemValue="Stage"/>
+                                            <f:selectItem itemLabel="#{lab.LRH_PE_autre}" itemValue="Autre"/>
+                                        </h:selectOneMenu> 
+                                        <h:outputText value="#{lab.LRH_PE_date_embauche} :"/>
+                                        <p:calendar value="#{employe.dateEmbauche}" navigator="true" pattern="dd-MM-yyyy" />                                                                                       
+                                        <h:outputText value="#{lab.LRH_PE_categorie_proffesionnelle}" />
+                                        <h:selectOneMenu value="#{employe.convention.categorie.id}"
+                                                         id="emp-conv-catp" valueChangeListener="#{MEmps.chooseCategorie}">
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItems value="#{MEmps.listCategoriePro}" var="cp" itemValue="#{cp.id}" itemLabel="#{cp.categorie}"/>
+                                            <p:ajax event="valueChange" global="false" update="emp-conv-echp" process="@this"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText value="#{lab.LRH_PE_echelon}" />
+                                        <h:selectOneMenu value="#{employe.convention.echelon.id}"
+                                                         id="emp-conv-echp">
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItems value="#{employe.convention.categorie.listEchelons}" var="ec" itemValue="#{ec.id}" itemLabel="#{ec.echelon}"/>
+                                            <p:ajax event="valueChange" global="false" />
+                                        </h:selectOneMenu>                                                                                      
+                                        <span>#{lab.LRH_PE_groupe_equipe}</span>
+                                        <h:selectOneMenu value="#{employe.equipe.id}" onchange="openDialog(dlgEquipe, $(this))"
+                                                         id="champ_emps_equipe">
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItems rendered="#{eEq.actif}" value="#{MEmps.equipesEmployes}" var="eEq" itemValue="#{eEq.id}" itemLabel="#{eEq.titreEquipe}"/>
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}" noSelectionOption="true"/>
+                                        </h:selectOneMenu>
+                                        <span>#{lab.LRH_PE_poste_travail}</span>
+                                        <h:selectOneMenu value="#{employe.posteDeTravail.id}" onchange="openDialog(dlgPosteDeTravail, $(this))"
+                                                         id="employe-select-poste" disabled="#{employe.posteDeTravail.id gt 0}">
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>                                    
+                                            <f:selectItems value="#{MEmps.posteDeTravails}" var="post" itemValue="#{post.id}" itemLabel="#{post.intitule}"/>
+                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"/>
+                                        </h:selectOneMenu>
+                                        <f:facet name="footer" >
+                                            <span>#{lab.LRH_PE_horaire_travail_dynamique}</span>
+                                            <h:selectBooleanCheckbox value="#{employe.horaireDynamique}" />  
+                                        </f:facet>
+                                    </h:panelGrid>
+                                    <div style="padding: 3px; background: #CCC" align="left">#{lab.LRH_PE_adresses}</div>
+                                    <h:panelGrid columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0"
+                                                 >
+                                        <h:outputText value="#{lab.LRH_PE_adresse}  "/>
+                                        <h:inputText value="#{employe.adresse1}" />
+                                        <h:outputText value="#{lab.LRH_PE_adresse_secondaire}"/>
+                                        <h:inputText value="#{employe.adresse2}" />
+                                        <h:outputText value="#{lab.LRH_PE_telephone} 1 "/>
+                                        <h:inputText value="#{employe.telephone1}"/>
+                                        <h:outputText value="#{lab.LRH_PE_telephone} 2 "/>
+                                        <h:inputText value="#{employe.telephone2}"/>
+                                        <h:outputText value="#{lab.LRH_PE_email} 1 "/>
+                                        <h:inputText value="#{employe.mail1}" converter="EMAIL" />
+                                        <h:outputText value="#{lab.LRH_PE_email} 2 "/>
+                                        <h:inputText value="#{employe.mail2}" converter="EMAIL" />  
+                                    </h:panelGrid>    
+                                </p:outputPanel>
+                            </p:tab> 
+                            <p:tab title="#{lab.LRH_PE_profil}" >                                                                          
+                                <p:outputPanel>
+                                    <div style="float: left; width: 50%">
+                                        <fieldset class="secondFieldSet">
+                                            <legend onclick="toogleFieldSet($(this))"><span>[-]</span>#{lab.LRH_PE_qualifications}</legend>
+                                            <p:commandButton type="button" onclick="dlgQualification.show()" icon="ui-icon-circle-plus" style="width: 20px; height: 20px; margin-left: 50%" />
+                                            <p:dataTable value="#{employe.qualifications}" var="qual"  rowIndexVar="linse_C"
+                                                         rowKey="#{qual.id}" 
+                                                         selectionMode="single" id="tabQual" style="font-size: 0.8em">
+                                                <p:ajax event="rowSelect" listener="#{MEmps.selectedQualif}"/>
+                                                <p:columnGroup type="header">
+                                                    <p:row>
+                                                        <p:column headerText="#{lab.LRH_PE_titre_qualification} " />
+                                                        <p:column headerText="#{lab.LRH_PE_code_interne} " />
+                                                        <p:column headerText=" "  width="30"/>
+                                                        <p:column headerText=" "  width="30"/>
+                                                    </p:row>            
+                                                </p:columnGroup>
+                                                <p:subTable value="#{qual.qualifications}" var="qua_">
+                                                    <f:facet name="header">
+                                                        #{qual.titreDomaine}
+                                                    </f:facet>
+                                                    <p:column>
+                                                        <h:outputText value="#{qua_.designation}" />                                          
+                                                    </p:column>
+                                                    <p:column>
+                                                        <h:outputText value="#{qua_.codeInterne}" />                                          
+                                                    </p:column>
+                                                    <p:column width="15">
+                                                        <h:graphicImage library="img" name="vu.png"  width="13" height="13"/>
+                                                    </p:column>
+                                                    <p:column width="20">
+                                                        <p:commandButton icon="ui-icon-trash" actionListener="#{MEmps.deleteQualif(qual)}"  
+                                                                         style="width: 20px; height: 20px; padding: 0px; margin: 0px" global="false" >
+                                                            <!--<p:confirm header="Supprimer !" message="Voulez-vous vraiment supprimer cette qualification ?" />-->
+                                                        </p:commandButton>
+                                                    </p:column>
+                                                </p:subTable>
+                                            </p:dataTable>
+                                        </fieldset>
+                                    </div>                                                                               
+                                    <div style="margin-left: 50%">
+                                        <fieldset class="secondFieldSet">
+                                            <legend onclick="toogleFieldSet($(this))"><span>[-]</span>#{lab.LRH_PE_diplomes_certifications}</legend>                                                
+                                            <p:commandButton type="button" onclick="dlgAddDiplome.show()" icon="ui-icon-circle-plus" style="width: 20px; height: 20px; margin-left: 50%" />
+                                            <p:dataTable value="#{employe.diplomes}" var="diplome" id="tabDiplome"
+                                                         rowKey="#{diplome.yvsDiplomeEmployePK.diplome}" style="font-size: 0.8em"
+                                                         selectionMode="single">
+                                                <p:column headerText="#{lab.L_nom}">
+                                                    <h:outputText value="#{diplome.diplome.nom}" />
+                                                </p:column>
+                                                <p:column headerText="#{lab.LRH_PE_mention}">
+                                                    <h:outputText value="#{diplome.mention}" />
+                                                </p:column>
+                                                <p:column headerText="" width="20">
+                                                    <p:commandButton icon="ui-icon-trash"  iconPos="rigth top" actionListener="#{MEmps.deleteDiplome(diplome)}"  
+                                                                     style="float: right; width: 20px; height: 20px"/>                                                    
+                                                </p:column>
+                                            </p:dataTable>
+                                        </fieldset>
+                                    </div>                                        
+                                </p:outputPanel>
+                            </p:tab>    
+                            <p:tab title="#{lab.LRH_PE_personnes_tiers}" > 
+                                <p:outputPanel id="tab_pers_charg">
+                                    <div style="width: 50%; float: left">
+                                        <fieldset>
+                                            <legend>#{lab.LRH_PE_personnes_en_charges}</legend>
+                                            <p:commandButton icon="ui-icon-document" actionListener="#{MEmps.resetFormPersonne()}" 
+                                                             style="width: 18px; height: 22px; float: right" title="#{lab.L_nouveau}" update="emp-panel-personne"/>
+                                            <h:panelGrid columns="2" style="width: 100%; clear: right" styleClass="yvs_table"
+                                                         id="emp-panel-personne" cellpadding="0" cellspacing="0">
+                                                <span>#{lab.L_nom_prenom}</span>
+                                                <h:inputText  value="#{MEmps.personne.nom}" style="width: 99%"/>
+                                                <span>#{lab.LRH_PE_naissance_le}</span>
+                                                <p:calendar value="#{MEmps.personne.dateNaissance}"  navigator="true" size="8" pattern="dd-MM-yyyy"/>
+                                                <span>#{lab.L_statut}</span>
+                                                <h:panelGrid columns="6" styleClass="yvs_nostyle" style="font-size: 0.8em">
+                                                    <span>#{lab.LRH_PE_infirme}</span>
+                                                    <h:selectBooleanCheckbox  value="#{MEmps.personne.infirme}"/>                                
+                                                    <span>#{lab.LRH_PE_scolariser}</span>
+                                                    <h:selectBooleanCheckbox  value="#{MEmps.personne.scolarise}"/>
+                                                    <span>#{lab.LRH_PE_epouse}</span>
+                                                    <h:selectBooleanCheckbox  value="#{MEmps.personne.epouse}"/>
+                                                </h:panelGrid>                                                          
+                                                <f:facet name="footer">
+                                                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{MEmps.addPersonneEnCharge()}" 
+                                                                     update="tab-enf emp-panel-personne"/>                                                                                                                                                                                            
+                                                </f:facet>
+                                            </h:panelGrid>
+                                            <p:dataTable value="#{employe.personneEnCharge}" var="enf" id="tab-enf"
+                                                         selectionMode="single" rowKey="#{enf.id}" >  
+                                                <p:ajax event="rowSelect" listener="#{MEmps.selectPersonne}"/>
+                                                <p:column headerText="#{lab.L_nom_prenom}">
+                                                    #{enf.nom}
+                                                </p:column> 
+                                                <p:column headerText="#{lab.LRH_PE_epouse}" width="100">
+                                                    <h:outputText value="#{enf.dateNaissance}" converter="DATE"/>
+                                                </p:column> 
+                                                <p:column headerText="I" width="15">
+                                                    <h:graphicImage  library="img" name="#{(enf.infirme)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                                                </p:column> 
+                                                <p:column headerText="S" width="15">
+                                                    <h:graphicImage  library="img" name="#{(enf.scolarise)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                                                </p:column> 
+                                                <p:column headerText="Ep" width="15">
+                                                    <h:graphicImage  library="img" name="#{(enf.epouse)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                                                </p:column> 
+                                                <p:column width="20">
+                                                    <p:commandButton icon="ui-icon-trash"  actionListener="#{MEmps.deletePersonne(enf)}"  
+                                                                     style="width: 20px; height: 20px" update="tab-enf">
+                                                        <!--<p:confirm header="Supprimer !" message="Voulez-vous vraiment supprimer cette ligne?" />-->
+                                                    </p:commandButton>
+                                                </p:column>
+                                            </p:dataTable>
+                                        </fieldset>
+                                    </div>
+                                    <div style="margin-left: 50%">
+                                        <fieldset>
+                                            <legend>#{lab.LRH_PE_contacts}</legend>
+                                            <p:commandButton icon="ui-icon-document" actionListener="#{MEmps.resetFormContact()}"  style="width: 18px; height: 22px; float: right" title="nouveau"/>
+                                            <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table"
+                                                         id="emp-panel-contact" cellpadding="0" cellspacing="0">
+                                                <p:outputLabel value="#{lab.L_nom_prenom}"/>
+                                                <h:inputText  value="#{MEmps.contactEmps.nom}" style="width: 95%"/>
+                                                <p:outputLabel value="#{lab.L_telephone}"/>
+                                                <h:inputText value="#{MEmps.contactEmps.telephone}" style="width: 50%"/>  
+                                                <p:outputLabel value="#{lab.LRH_PE_adresse}"/>
+                                                <h:inputText value="#{MEmps.contactEmps.adress}" style="width: 95%"/>      
+                                                <f:facet name="footer">
+                                                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{MEmps.addContact()}" update="tab-contact-emps"/>                                                                                              
+                                                </f:facet>  
+                                            </h:panelGrid>
+                                            <p:dataTable value="#{employe.contacts}" var="cont" id="tab-contact-emps"
+                                                         selectionMode="single" rowKey="#{cont.id}" >  
+                                                <p:ajax event="rowSelect" listener="#{MEmps.selectContact}"/>
+                                                <p:column headerText="#{lab.L_nom_prenom}">
+                                                    #{cont.nom}
+                                                </p:column> 
+                                                <p:column headerText=" #{lab.L_telephone}">
+                                                    <h:outputText value="#{cont.telephone}"/>
+                                                </p:column> 
+                                                <p:column headerText="#{lab.LRH_PE_adresse}">
+                                                    <h:outputText value="#{cont.adress}"/>
+                                                </p:column> 
+                                                <p:column width="20">
+                                                    <p:commandButton icon="ui-icon-trash" actionListener="#{MEmps.deleteContact(cont)}"  
+                                                                     style="width: 20px; height: 20px"  update="tab-contact-emps">
+                                                        <!--<p:confirm header="Supprimer !" message="Voulez-vous vraiment supprimer cette ligne?" />-->
+                                                    </p:commandButton>
+                                                </p:column>
+                                            </p:dataTable>
+                                        </fieldset>
+                                    </div>
+                                </p:outputPanel>
+                            </p:tab>
+                            <p:tab title="#{lab.LRH_PE_documents}">
+                                <div style="width: 25%;float: left">                             
+                                    <h:panelGrid columns="2" id="emp-grid-doc" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%"> 
+                                        <p:outputLabel value="#{lab.LRH_PE_titre} " />
+                                        <p:inputText value="#{MEmps.document.titre}" style="width: 100%"/>                                  
+                                        <f:facet name="footer">
+                                            <p:outputLabel value="#{lab.L_description} " />
+                                            <p:inputTextarea style="width: 100%" autoResize="true" value="#{MEmps.document.description}" />  
+                                            <div>                                                   
+                                                <p:commandButton icon="ui-icon-folder-collapsed" value="fichier" onclick="dlgUploadDoc.show()" type="button"/>
+                                                <div style="float: right">
+                                                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{MEmps.addDocument()}" />                                      
+                                                    <p:commandButton value="#{lab.L_annuler}" actionListener="#{MEmps.resetFormDoc()}" /> 
+                                                </div>
+                                            </div>
+                                        </f:facet>
+                                    </h:panelGrid>
+                                </div>
+                                <div style="margin-left: 26%">
+                                    <p:dataTable value="#{employe.documents}" var="docE" id="emp-tab-doc" rowKey="#{docE.id}" selectionMode="single">
+                                        <p:ajax event="rowSelect" listener="#{MEmps.selectDoc}" />
+                                        <p:ajax event="rowUnselect" listener="#{MEmps.unSelectDoc}" />
+                                        <p:column headerText="Titre" style="width: 20%">
+                                            <h:outputText value="#{docE.titre}" title="#{docE.chemin}"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_nom}" style="width: 20%">
+                                            <h:outputText value="#{docE.chemin}" title="#{docE.chemin}" />
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_description}">
+                                            <h:outputText value="#{docE.description}" title="#{docE.chemin}" />
+                                        </p:column>
+                                        <p:column style="width: 10px;text-align: center">
+                                            <h:graphicImage library="img" name="piece_jointe_00.png" style="width: 16px; height: 16px"/>
+                                        </p:column>
+                                        <p:column style="width: 10px;text-align: center">
+                                            <p:contextMenu for="btn_option_emp-tab-doc" event="left click" style="font-size: 0.8em" styleClass="context_menu">
+                                                <p:menuitem value="#{lab.LCF_PBAA_ouvrir}" icon="ui-icon-folder-open" actionListener="#{MEmps.openDocument(docE)}"/>
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{MEmps.deleteDocument(docE)}"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_emp-tab-doc" type="button"/>
+                                        </p:column> 
+                                    </p:dataTable>  
+                                </div>
+                            </p:tab>                                                                            
+                            <p:tab title="#{lab.LRH_PE_compte_bancaire}" >
+                                <h:panelGrid id="grid-cb-emp" columns="5" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                    <p:outputLabel value="#{lab.LRH_PE_banque}" />
+                                    <p:outputLabel value="#{lab.LRH_PE_code_banque}" />
+                                    <p:outputLabel value="#{lab.L_numero}" />
+                                    <p:outputLabel value="#{lab.LRH_PE_cle}" />
+                                    <p:outputLabel value="" />
+                                    <h:selectOneMenu value="#{MEmps.compteBancaire.banque.id}" id="slt-banque-compte-B"
+                                                     onchange="openDialog(dlgAddBanque, $(this));" >
+                                        <f:selectItem itemValue="0" itemLabel="---" noSelectionOption="true" />
+                                        <f:selectItems value="#{MEmps.listBanques}" var="banq" itemValue="#{banq.id}" itemLabel="#{banq.nom}" />
+                                        <f:selectItem itemValue="0" itemLabel="---" noSelectionOption="true" />                                                    
+                                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"  />
+                                    </h:selectOneMenu>
+                                    <p:inputText value="#{MEmps.compteBancaire.codeBanque}" />
+                                    <p:inputText value="#{MEmps.compteBancaire.numeroCompte}"/>
+                                    <p:inputText value="#{MEmps.compteBancaire.cleCompte}"/>
+                                    <h:panelGroup>
+                                        <p:commandButton icon="ui-icon-disk" value="#{lab.L_enregistrer}"  update="tab-compteB-emps grid-cb-emp" actionListener="#{MEmps.saveCompteB()}"/>  
+                                        <p:commandButton icon="ui-icon-document" value="Nouveau"  update="tab-compteB-emps grid-cb-emp" actionListener="#{MEmps.resetFormCB()}"/>                                          
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                                <p:dataTable value="#{employe.comptesBancaires}" var="cb" rowKey="#{cb.id}" 
+                                             selectionMode="single" id="tab-compteB-emps">
+                                    <p:ajax event="rowSelect" listener="#{MEmps.selectCompteB}" />
+                                    <p:column headerText="#{lab.LRH_PE_banque} ">
+                                        #{cb.banque.nom}
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_numero}  ">
+                                        #{cb.codeBanque}-#{cb.numeroCompte}-#{cb.cleCompte}
+                                    </p:column>      
+                                    <p:column headerText=" " width="30" style="text-align: center">
+                                        <p:contextMenu for="btn_option_compteB-emps" event="left click">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash"  actionListener="#{MEmps.removeCompteB(bq)}" update="tab-compteB-emps"/>
+                                        </p:contextMenu>
+                                        <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_compteB-emps"/>
+                                    </p:column>                                  
+                                </p:dataTable>
+                            </p:tab>
+                            <p:tab title="#{lab.LRH_PE_comptabilite}" >
+                                <h:panelGrid columns="2" style="width: 100%">
+                                    <span>#{lab.LRH_PE_compte_collectif}</span>
+                                    <h:panelGroup id="txt_num_c_emps_salaire">
+                                        <h:inputText value="#{employe.compteCollectif.numCompte}" >
+                                            <p:ajax event="blur" global="false" listener="#{MEmps.ecouteSaisieCG(employe.compteCollectif.numCompte)}" update="txt_num_c_emps_salaire"/>
+                                        </h:inputText>
+                                        <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 2%" actionListener="#{managedCompte.loadAllActif(true)}" oncomplete="dlgCmpteG.show()"
+                                                         update=":form_dlg_compte:table_cptG_employe_s"/>
+                                        <h:outputText value="#{employe.compteCollectif.intitule}" style="color: #006666; font-size: 0.9em"  />
+                                    </h:panelGroup>
+                                    <span>#{lab.LRH_PE_compte_tiers_rattacher}</span>                                                                    
+                                    <h:panelGroup id="txt_num_c_emps_salaire_">                                        
+                                        <h:inputText value="#{employe.compteTiers.codeTiers}" >
+                                            <p:ajax event="blur" global="false" listener="#{MEmps.ecouteSaisieCT(employe.compteTiers.codeTiers)}" update="txt_num_c_emps_salaire_"/>
+                                        </h:inputText>
+                                        <p:commandButton icon="ui-icon-arrow-4-diag" title="#{lab.LRH_PE_generer_compte_tier_employer}" actionListener="#{MEmps.generatedCompteTiers()}" rendered="#{employe.compteTiers.id le 0}" 
+                                                         update="txt_num_c_emps_salaire_" style="width: 22px; height: 22px"/>
+                                        <p:commandButton icon="ui-icon-note" style="width: 20px; height: 20px; margin-left: 2%" actionListener="#{managedTiers.loadActif(true)}" oncomplete="dlgListTiers.show()"
+                                                         update=":form_dlg_tiers:data_tiers_employe"/>
+                                        <h:outputText value="#{employe.compteTiers.nom_prenom}" style="color: #006666; font-size: 0.9em"  />
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                                <div style="padding: 2px; background: #aaa">
+                                    #{lab.LRH_PE_section_analytique}
+                                </div>
+                                <p:dataTable value="#{employe.sectionsAnalytiques}" var="secA" selectionMode="single"
+                                             rowKey="#{secA.id}" id="tableSectionAnal" >
+                                    <p:column headerText="#{lab.LRH_PE_section}" width="300">#{secA.centre.designation}</p:column>
+                                    <p:column headerText="#{lab.LRH_PE_coefficient}" width="30">
+                                        <span style="font-weight: bold">#{secA.coeficient}%</span>
+                                    </p:column>
+                                    <p:column headerText="" width="20" style="text-align: center">
+                                        <p:contextMenu for="btn_op_tabsec" event="left click">
+                                            <p:menuitem value="#{lab.L_supprimer}" update="tableSectionAnal" icon="ui-icon-trash" actionListener="#{MEmps.removeLineAffecAnal(secA)}"/>
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" id="btn_op_tabsec" type="button" style="width: 22px; height: 22px" />
+                                    </p:column>
+                                </p:dataTable>
+                                <div align="right">
+                                    <p:commandButton title="#{lab.LRH_PD_ajouter_nouvelle_section}" icon="ui-icon-circle-plus" style="width: 22px; height: 22px" 
+                                                     actionListener="#{MEmps.openListPlanAnal()}"/>
+                                </div>
+                            </p:tab>
+                            <p:tab title="#{lab.LRH_PE_autres}">
+                                <div style="float: left;width: 49.5%">
+                                    <fieldset>
+                                        <legend onclick="toogleFieldSet($(this))"><span>[-]</span>#{lab.LRH_PE_permis_conduire}</legend>
+                                        <h:panelGrid columns="5" id="emp-panel-permi" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">                                        
+                                            <p:outputLabel value="#{lab.L_categorie}" />
+                                            <p:outputLabel value="#{lab.L_numero} " />
+                                            <p:outputLabel value="#{lab.LRH_PE_valide_de} " />
+                                            <p:outputLabel value=" #{lab.L_a} " />
+                                            <p:outputLabel value="" />
+                                            <h:inputText value="#{MEmps.permis.categorie}" style="width: 90px" />
+                                            <h:inputText value="#{MEmps.permis.numero}"  />
+                                            <p:calendar value="#{MEmps.permis.dateObtention}" navigator="true" pattern="dd-MM-yyyy"  size="8"/>
+                                            <p:calendar value="#{MEmps.permis.dateExp}"  navigator="true" pattern="dd-MM-yyyy" size="8"/>   
+                                            <p:commandButton icon="ui-icon-circle-plus" actionListener="#{MEmps.addPermisDeConduire()}"/>                                                                                                                     
+                                        </h:panelGrid>                               
+                                        <p:dataTable value="#{employe.permis}" var="perm" rowKey="#{perm.id}" id="emp-tab-permi" selectionMode="single">
+                                            <p:ajax event="rowSelect" listener="#{MEmps.selectPermi}" />
+                                            <p:column headerText="#{lab.L_categorie}">
+                                                #{perm.categorie}
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_numero}">
+                                                #{perm.numero}
+                                            </p:column>
+                                            <p:column headerText="#{lab.LDB_PC_date_expiration}">
+                                                <h:outputText value="#{perm.dateExpiration}" converter="DATE" />
+                                            </p:column>
+                                            <p:column headerText=" " width="30" style="text-align: center">
+                                                <p:contextMenu for="btn_option_tab-permi" event="left click">
+                                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash"  actionListener="#{MEmps.deletePermis(perm)}" update="emp-tab-permi"/>
+                                                </p:contextMenu>
+                                                <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_tab-permi"/>
+                                            </p:column>   
+                                        </p:dataTable>
+                                    </fieldset>                                                    
+                                </div>
+                                <div style="margin-left: 50%;width: 49.5%">
+                                    <fieldset>
+                                        <legend onclick="toogleFieldSet($(this))"><span>[-]</span>#{lab.LRH_PE_langues}</legend>
+                                        <h:panelGrid columns="5" styleClass="yvs_nostyle" id="emp-panel-langue" cellpadding="0" cellspacing="0">   
+                                            <p:outputLabel value="Langue" />
+                                            <p:outputLabel value="Parlée" />
+                                            <p:outputLabel value="Ecrit" />
+                                            <p:outputLabel value="Lu" />
+                                            <p:outputLabel value="" /> 
+                                            <h:selectOneMenu value="#{MEmps.langue.id}" id="employe-select-langue" 
+                                                             onchange="openDialog(dlgLangue, $(this));">
+                                                <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>                                    
+                                                <f:selectItems value="#{MEmps.listLangues}" var="lan" itemValue="#{lan.id}" itemLabel="#{lan.langue}"/>
+                                                <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/>
+                                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"/>
+                                            </h:selectOneMenu>
+                                            <h:selectBooleanCheckbox value="#{MEmps.langue.parle}" />
+                                            <h:selectBooleanCheckbox value="#{MEmps.langue.ecrit}" />
+                                            <h:selectBooleanCheckbox value="#{MEmps.langue.lu}" />  
+                                            <p:commandButton icon="ui-icon-circle-plus" actionListener="#{MEmps.addLangue()}" update="tabLangue"/>                                                                                                                                                                    
+                                        </h:panelGrid> 
+                                        <p:dataTable value="#{employe.langues}" var="langu" rowKey="#{langu.yvsLangueEmpsPK.langue}" selectionMode="single" id="tabLangue">
+                                            <p:ajax event="rowSelect" listener="#{MEmps.selectedLangue}" />
+                                            <p:ajax event="rowUnselect"  listener="#{MEmps.unSelectLangue}" />
+                                            <p:column headerText="#{lab.LRH_PE_langues}" >
+                                                <h:outputText value="#{langu.langue}" />
+                                            </p:column>
+                                            <p:column headerText="#{lab.LRH_PE_parlee}" style="text-align: center">
+                                                <h:graphicImage  library="img" name="#{(langu.parle)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                                            </p:column>                                        
+                                            <p:column headerText="#{lab.LRH_PE_ecrit}" style="text-align: center">
+                                                <h:graphicImage  library="img" name="#{(langu.ecrit)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                                            </p:column>
+                                            <p:column headerText="#{lab.LRH_PE_lu}" style="text-align: center">
+                                                <h:graphicImage  library="img" name="#{(langu.lu)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                                            </p:column>    
+                                            <p:column headerText=" " width="30" style="text-align: center">
+                                                <p:contextMenu for="btn_option_Langue-emps" event="left click">
+                                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash"  actionListener="#{MEmps.deleteLangue(langu)}" update="tabLangue"/>
+                                                </p:contextMenu>
+                                                <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_Langue-emps"/>
+                                            </p:column>   
+                                        </p:dataTable>
+                                    </fieldset>
+                                </div>
+                            </p:tab>
+                        </p:tabView>
+                    </p:outputPanel>
+                </div>                        
+                <div class="yvs_list_employe">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" 
+                                 id="tabEmployes"  rowIndexVar="lineEmp"
+                                 selection="#{MEmps.listSelection}">                      
+                        <p:ajax event="rowSelect" listener="#{MEmps.choixEmploye}" oncomplete="collapseForm('employe')"
+                                update=":form-emps02:employe-main-panel :form-emps02:delete_employe @this" 
+                                />
+                        <p:ajax event="rowSelectCheckbox" listener="#{MEmps.choixEmploye}" process="@this" 
+                                update=":form-emps02:employe_options" />
+                        <p:ajax event="rowUnselectCheckbox"  update=":form-emps02:employe_options" process="@this"/>
+                        <p:column  width="15" headerText="N°">
+                            <f:facet name="header">
+                                <p:contextMenu event="left click" for="chmp_tab_emp">
+                                    <p:menuitem value="#{lab.LRH_PE_afficher_cahcer}" icon="ui-icon-transfer-e-w" 
+                                                actionListener="#{MEmps.displayIdTab()}" global="false" update="tabEmployes"/>
+                                </p:contextMenu>
+                                <h:outputText value="N°" id="chmp_tab_emp" style="cursor: pointer"/>                                
+                            </f:facet>
+                            #{lineEmp+1}
+                            <h:outputText value="[#{emp.id}]" rendered="#{MEmps.toogleDisplayId}"/>
+                            <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{emp.id eq employe.id}"/>
+                        </p:column>
+                        <p:column headerText="" width="20">
+                            <span style="font-weight: bold">#{emp.civilite}</span>
+                        </p:column>                                        
+                        <p:column headerText="#{lab.L_nom_prenom}" width="200">
+                            <h:outputText value="#{emp.nom} #{emp.prenom}" />
+                        </p:column>                                        
+                        <p:column headerText="#{lab.LRH_PE_matricule}" width="80" style="text-align: center">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PPT_poste}" width="160">
+                            <h:outputText value="#{emp.posteActif.intitule}" />
+                        </p:column>                                                      
+                        <p:column headerText="#{lab.L_telephone}" width="80">
+                            <h:outputText value="#{emp.telephone1}" />
+                        </p:column>                            
+                        <p:column headerText="#{lab.LRH_PE_embaucher_le}" width="80">
+                            <h:outputText value="#{emp.dateEmbauche}" converter="DATE"/>
+                        </p:column>     
+                        <p:column headerText="#{lab.L_agence}" width="100" style="text-align: center">
+                            <span>#{emp.agence.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_adress}" width="100" style="text-align: center">
+                            <span>#{emp.adresse1} / #{emp.adresse2}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PE_profil}" width="100" style="text-align: center">
+                            <span>#{emp.profil.giveStatutProfil()}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PE_numero_securite}" width="100" style="text-align: center">
+                            <span>#{emp.matriculeCnps}</span>
+                            <span style="font-size: 0.9em; padding: 3px; color: #a90329; float: right" title="#{(emp.contrat.id gt 0)?emp.contrat.referenceContrat:''}">#{(emp.contrat.id gt 0)?'C':''}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                        <p:column headerText=" " width="30" style="text-align: center">
+                            <f:facet name="header">
+                                <p:contextMenu for="btn_option_employe_h" event="left click">
+                                    <p:menuitem disabled="true"  value="#{lab.LRH_PE_ordonner}" icon="ui-icon-triangle-2-n-s" style="font-weight: bold" />
+                                    <p:menuitem title="#{lab.LRH_PE_ordonner_par_matricule}" value="#{lab.LRH_PE_par_matricule}" icon="ui-icon-triangle-1-n" style="font-weight: bold; text-indent: 20px;" actionListener="#{MEmps.changeOrderList('y.matricule')}"
+                                                update="tabEmployes"/>
+                                    <p:menuitem title="#{lab.LRH_PE_ordonner_par_nom}" value="#{lab.LRH_PE_par_nom}"  icon="ui-icon-triangle-1-n" style="font-weight: bold; text-indent: 20px;" actionListener="#{MEmps.changeOrderList('y.nom, y.prenom')}"
+                                                update="tabEmployes"/>                                    
+                                </p:contextMenu>
+                                <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_employe_h"/>
+                            </f:facet>
+                            <p:contextMenu for="btn_option_employe" event="left click">
+                                <p:menuitem value="#{lab.LRH_PE_aller_au_contrat}" icon="ui-icon-arrowthick-1-e" global="false" actionListener="#{MEmps.onSelectDistantContrat(emp)}"/>
+                                <p:menuitem value="#{emp.actif?'Désactiver':'Activer'}" icon="#{emp.actif?'ui-icon-cancel':'ui-icon-check'}" actionListener="#{MEmps.setEmployes(emp)}"
+                                            oncomplete="dlgConfirmChangeStatut.show()" update=":main-statut:blog_active_employe"/>
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash"  actionListener="#{MEmps.deleteEmploye(emp)}"/>
+                                <p:menuitem value="#{emp.actif ? lab.L_desactiver : lab.L_activer}" icon="ui-icon-locked"  actionListener="#{MEmps.updateEmploye(emp)}"/>
+
+                            </p:contextMenu>
+                            <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_employe"/>
+                        </p:column>
+                        <p:column width="15" selectionMode="multiple" style="text-align: center"/>
+                    </p:dataTable>                        
+                </div>
+                <div class="yvs_grid_employe">
+                    <p:dataGrid value="#{MEmps.listEmployes}" var="emp1" columns="3"
+                                id="empps-dgrig" rowIndexVar="nbElt" >                                                                   
+                        <!-->pour l'instant, on ne selectionne pas dans la grille<-->
+                        <p:panelGrid columns="2" style="width: 100%" >
+                            <f:facet name="header">
+                                <p:commandLink  actionListener="#{MEmps.choixEmploye1(emp1)}" oncomplete="collapseForm('employe')"
+                                                update=":form-emps02:employe-main-panel" >                                         
+                                    <h:outputText value="#{emp1.nom} #{emp1.prenom}" /><br />    
+                                    <h:graphicImage value="data:image/#{emp1.photoExtension};base64,#{MEmps.getPhoto(emp1)}"
+                                                    alt="photos Employé" style="height: 100px"/>    
+                                </p:commandLink>                                
+                            </f:facet>                        
+                            <h:outputText value="#{lab.L_agence}" />
+                            <h:outputText value="#{emp1.agence.designation}" />
+                            <h:outputText value="#{lab.LRH_PE_matricule}" />
+                            <h:panelGroup>
+                                <h:outputText value="#{emp1.matricule}" /> 
+                                <h:graphicImage  library="img" name="#{(emp1.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px; float: right" />
+                            </h:panelGroup>                             
+                            <h:outputText value="#{lab.LRH_PE_poste}" />
+                            <h:outputText value="#{emp1.posteActif.intitule}" style="font-weight: bold"/>                                      
+                            <h:outputText value="#{lab.L_telephone}" />
+                            <h:outputText value="#{emp1.telephone1} /#{emp1.telephone2}"  /> 
+                            <span>#{lab.LRH_PE_embaucher_le}</span>
+                            <h:outputText value="#{emp1.dateEmbauche}" converter="DATE" style="font-weight: bold"/>
+                            <span>#{lab.L_adress}</span>
+                            <h:outputText value="#{emp1.adresse1}/ #{emp1.adresse2}" style="font-weight: bold"/>
+                            <span>#{lab.LRH_PE_profil}</span>
+                            <h:outputText value="#{emp1.profil.giveStatutProfil()}" style="font-weight: bold"/>
+                            <span>#{lab.LRH_PE_numero_securite}</span>
+                            <h:outputText value="#{emp1.matriculeCnps}" style="font-weight: bold"/>
+                        </p:panelGrid>
+                    </p:dataGrid>
+                </div>                
+                <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                    <span class="nbSelectemploye" style="font-size: .8em; font-style: italic; color: #828c95"></span>
+                    <p:commandButton actionListener="#{MEmps.pagineResult(false)}" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" icon="ui-icon-circle-triangle-w" disabled="#{MEmps.paginator.disPrev}"/>
+                    <p:outputPanel >
+                        <p:inplace label="#{MEmps.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                            <pe:inputNumber value="#{MEmps.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                <p:ajax event="blur" listener="#{MEmps.gotoPagePaginator()}" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes"/>
+                            </pe:inputNumber>
+                        </p:inplace><p:outputLabel value="/#{MEmps.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                    </p:outputPanel>
+                    <p:commandButton actionListener="#{MEmps.pagineResult(true)}" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" icon="ui-icon-circle-triangle-e" disabled="#{MEmps.paginator.disNext}"/>
+                    <h:selectOneMenu value="#{MEmps.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{MEmps.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                        <f:selectItems value="#{MEmps.paginations}"/>
+                        <p:ajax event="valueChange" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes"/>
+                    </h:selectOneMenu>
+                </p:outputPanel>
+            </div>              
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find" > 
+                <div class="yvs_form_employe display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{MEmps.employes.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{MEmps.employes.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{MEmps.employes.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="9" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">                   
+                        <h:outputText value="#{lab.L_agence} "/>
+                        <h:outputText value="#{lab.LRH_PE_employe} " />
+                        <h:outputText value="#{lab.L_statut}" />
+                        <h:outputText value="#{lab.LRH_PE_profil}" />
+                        <h:outputText value="#{lab.LRH_PE_service}" />                    
+                        <h:outputText value="#{lab.LRH_PE_code_tiers}" />                                      
+                        <h:outputText value="#{lab.LRH_PE_poste}" />                                      
+                        <h:outputText value="" />                                      
+                        <span>&nbsp;</span>
+                        <h:selectOneMenu value="#{MEmps.idAgenceSearch}" title="#{lab.LDB_PD_filtrer}"
+                                         valueChangeListener="#{MEmps.addParamAgence}">
+                            <f:selectItem itemValue="0" itemLabel="--.--" />
+                            <f:selectItems value="#{MEmps.currentScte.agences}" var="ag" 
+                                           itemValue="#{ag.id}" itemLabel="#{ag.designation}"/>
+                            <f:selectItem itemValue="0" itemLabel="--.--" />
+                            <f:selectItem itemValue="-1" itemLabel="#{lab.LRH_PPT_toutes_agences}" />
+                            <p:ajax event="valueChange" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes :form-emps02:txt_parc_linear_employe" 
+                                    process="@this" oncomplete="collapseGrid('employe')" />
+                        </h:selectOneMenu>
+                        <p:inputText value="#{MEmps.matriculeToUpdate}" id="matEmps">
+                            <p:ajax event="valueChange" listener="#{MEmps.findEmploye()}" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" global="false" 
+                                    process="@this" oncomplete="collapseGrid('employe')"/>
+                        </p:inputText>
+                        <h:selectOneMenu value="#{MEmps.searchActif}" title="#{lab.LRH_PE_filter_statut_actif_inactif}"
+                                         valueChangeListener="#{MEmps.addParamActif_}">
+                            <f:selectItem itemValue="#{null}" itemLabel="--.--" />
+                            <f:selectItem itemLabel="#{lab.LRH_PE_tous}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_actif}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_inactif}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" 
+                                    process="@this" oncomplete="collapseGrid('employe')" />
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{MEmps.profilF}" title="#{lab.LRH_PE_filtrer_profil}"
+                                         valueChangeListener="#{MEmps.loadEmployeByProfil}">
+                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_tout}" />
+                            <f:selectItems value="#{MEmps.profils}" var="profF" itemLabel="#{profF.statutProfil}-#{profF.grade.libelle}" itemValue="#{profF.id}"/>
+                            <p:ajax event="valueChange" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" 
+                                    process="@this" oncomplete="collapseGrid('employe')" />
+                        </h:selectOneMenu>
+                        <p:inputText value="#{MEmps.depSearch}">
+                            <p:ajax event="valueChange" listener="#{MEmps.findEmployeByDepartement(MEmps.depSearch)}" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" global="false" 
+                                    process="@this" oncomplete="collapseGrid('employe')"/>
+                        </p:inputText>                                          
+                        <p:inputText value="#{MEmps.codeTiesrSearch}">
+                            <p:ajax event="valueChange" listener="#{MEmps.findEmployeByCodeTiers(MEmps.codeTiesrSearch)}" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" global="false" 
+                                    process="@this" oncomplete="collapseGrid('employe')"/>
+                        </p:inputText>     
+                        <p:inputText value="#{MEmps.posteSearch}">
+                            <p:ajax event="valueChange" listener="#{MEmps.addParamPoste(MEmps.posteSearch)}" update=":form-emps02:empps-dgrig :form-emps02:tabEmployes" global="false" 
+                                    process="@this" oncomplete="collapseGrid('employe')"/>
+                        </p:inputText>  
+                        <p:commandLink style="border: 2px solid black; border-radius: 5px;padding: 2px;font-size: 0.8em" 
+                                       onclick="dlgPlusOption.show()" global="false" value="#{lab.L_avancees}"/>   
+                    </h:panelGrid> 
+                    <p:splitButton type="button" global="false" value="#{lab.L_options}" style="font-size: 0.8em">
+                        <p:menuitem value="Télécharger liste des employés"  onclick="dlpOptionPrint.show()" 
+                                    global="false" icon="ui-icon-print" style="font-size: 0.8em;width: 220px"/>
+                        <p:menuitem value="#{lab.LRH_PE_verifier_dossier_photos}" actionListener="#{MEmps.maintenancePhotos()}" process="@this" style="font-size: 0.8em;width: 220px" icon="ui-icon-gear" />
+                    </p:splitButton>                       
+                </h:panelGrid>                                
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

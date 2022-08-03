@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">  
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Report à nouveau','modCompta', 'smenReportNouveau', true)}
+    </ui:define>        
+    <ui:define name="contents">
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('report_nouveau');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+            function handleDrop(event, ui) {
+                var droppedCar = ui.draggable;
+                droppedCar.fadeOut('fast');
+            }
+        </script> 
+        #{managedReportNouveau.loadAll()}
+        #{managedAgence.loadAgence()}
+        #{managedExercice.loadAllExrecice()}
+        #{managedCompte.loadAllForReport()}
+        #{managedJournaux.loadAllActif()}
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LCF_PR_liste_comptes}" widgetVar="dlgListComptes" width="80%" height="500" closeOnEscape="true" footer="&copy; Lymytz">
+                <p:dataTable value="#{managedCompte.comptes_all}" var="cptG" emptyMessage="Aucun compte" id="data-comptes_report" 
+                             rowIndexVar="line_cg" rowKey="#{cptG.id}" selection="#{managedReportNouveau.selectComptes}" 
+                             paginator="true" rows="15" rowsPerPageTemplate="5,10,15,20,25,50,100,200,300,400,500"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             currentPageReportTemplate="{startRecord}-{endRecord} of {totalRecords} records">
+                    <p:ajax event="rowSelect" update=":main-report:blog-comptes_selected" process="@this"/>
+                    <p:ajax event="rowUnselect" update=":main-report:blog-comptes_selected" process="@this"/>
+                    <p:ajax event="rowSelectCheckbox" update=":main-report:blog-comptes_selected" process="@this"/>
+                    <p:ajax event="rowUnselectCheckbox" update=":main-report:blog-comptes_selected" process="@this"/>
+                    <p:ajax event="toggleSelect" update=":main-report:blog-comptes_selected" process="@this" />
+                    <p:column width="20" style="text-align: center">  
+                        <h:outputText value="#{line_cg+1}" />
+                    </p:column>  
+                    <p:column  filterBy="#{cptG.numCompte}" width="100" >
+                        #{cptG.numCompte}
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}" width="200" >
+                        #{cptG.intitule}
+                    </p:column>
+                    <p:column headerText="#{lab.L_type}" width="100" >
+                        #{cptG.typeCompte}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PTT_repport}" width="100" >
+                        #{cptG.typeReport}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PPC_compte_general}" width="100" >
+                        #{cptG.compteGeneral.numCompte}
+                    </p:column>
+                    <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                </p:dataTable> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LCF_PR_liste_comptes}" widgetVar="dlgListCompte" width="55%" closeOnEscape="true" footer="&copy; Lymytz" >
+                <div class="dlg_part_fixe">
+                    <p:watermark for="txt-compte_report" value="#{lab.L_rechercher}..." />
+                    <h:inputText value="#{managedCompte.numCompteF}" style="font-size: 0.7em" id="txt-compte_report">
+                        <p:ajax event="valueChange" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data-compte_report"/>
+                    </h:inputText>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data-compte_report" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data-compte_report" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data-compte_report"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div>
+                <p:dataTable value="#{managedCompte.listComptes}" var="cptG" emptyMessage="Aucun compte" 
+                             rowIndexVar="line_cg" rowKey="#{cptG.id}" selectionMode="single" id="data-compte_report">
+                    <p:ajax event="rowSelect" listener="#{managedReportNouveau.loadOnView}"  oncomplete="dlgListCompte.hide()"/>
+                    <p:column headerText="N°" width="20" style="text-align: center">
+                        #{line_cg+1}
+                    </p:column>
+                    <p:column headerText="#{lab.L_numero}" width="100" >
+                        #{cptG.numCompte}
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}" width="200" >
+                        #{cptG.intitule}
+                    </p:column>
+                    <p:column headerText="#{lab.L_type}" width="100" >
+                        #{cptG.typeCompte}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PTT_repport}" width="100" >
+                        #{cptG.typeReport}
+                    </p:column>
+                    <p:column headerText="#{lab.LDB_PPC_compte_general}" width="100" >
+                        #{cptG.compteGeneral.numCompte}
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main-report">
+            <div class="part_fix">
+                <h:panelGroup id="form_btn_report_nouveau" style="float: left;width: 20%">                      
+                    <p:splitButton icon="ui-icon-disk" value="Reporter" actionListener="#{managedReportNouveau.saveNew()}" id="save_report_nouveau" update="data_contenu_report_nouveau">
+                        <p:menuitem icon="ui-icon-document" value="#{lab.L_nouveau}" id="cancel_report_nouveau" actionListener="#{managedReportNouveau.resetFiche()}" update="data_contenu_report_nouveau form_report_nouveau"/>
+                    </p:splitButton>
+                </h:panelGroup>
+                <div style="float: right">                        
+
+                </div> 
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_report_nouveau">
+                    <h:panelGrid id="form_report_nouveau" columns="7">
+                        <h:outputText value="Agence"/>
+                        <h:outputText value="Exercice"/>
+                        <h:outputText value="Journal"/>
+                        <h:outputText value="Compte Bénéfice"/>
+                        <h:outputText value="Compte Perte"/>
+                        <h:outputText value="Comptes"/>
+                        <h:outputText value="Libelle"/>
+                        <h:selectOneMenu value="#{managedReportNouveau.agence.id}" style="max-width: 200px; min-width: 120px" disabled="#{!managedReportNouveau.currentParam.reportByAgence}">
+                            <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                            <f:selectItems value="#{managedAgence.listAgence}" var="age" itemLabel="#{age.codeagence}" itemValue="#{age.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedReportNouveau.chooseAgence()}" update="select-journal"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedReportNouveau.exercice.id}" style="max-width: 200px; min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                            <f:selectItems value="#{managedExercice.exercices}" var="exo" itemLabel="#{exo.reference}" itemValue="#{exo.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedReportNouveau.chooseExercice()}"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu id="select-journal" value="#{managedReportNouveau.journal.id}" style="max-width: 200px; min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                            <f:selectItems value="#{managedJournaux.journaux}" var="jrn" itemLabel="#{jrn.intitule}" itemValue="#{jrn.id}"/>
+                            <p:ajax event="valueChange" global="false" />
+                        </h:selectOneMenu>
+                        <h:panelGroup id="blog-comptes_benefice">
+                            <h:inputText value="#{managedReportNouveau.compteGain.numCompte}" style="color: #{managedReportNouveau.compteGain.error?'red':'normal'};">
+                                <p:ajax event="valueChange" listener="#{managedReportNouveau.saisieCompte(true)}" update="@this"/>                                        
+                            </h:inputText>
+                            <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.LCF_PR_liste_comptes}" global="false" 
+                                             actionListener="#{managedReportNouveau.setCompteBenefice(true)}" oncomplete="dlgListCompte.show()"/>  
+                        </h:panelGroup>
+                        <h:panelGroup id="blog-comptes_perte">
+                            <h:inputText value="#{managedReportNouveau.comptePerte.numCompte}" style="color: #{managedReportNouveau.comptePerte.error?'red':'normal'};">
+                                <p:ajax event="valueChange" listener="#{managedReportNouveau.saisieCompte(false)}" update="@this"/>                                        
+                            </h:inputText>
+                            <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.LCF_PR_liste_comptes}" global="false" 
+                                             actionListener="#{managedReportNouveau.setCompteBenefice(false)}" oncomplete="dlgListCompte.show()"/>  
+                        </h:panelGroup>
+                        <h:panelGroup id="blog-comptes_selected">
+                            <h:outputText value="#{managedReportNouveau.selectComptes.size()}"/> selectionnés
+                            <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.LCF_PR_liste_comptes}" global="false"  oncomplete="dlgListComptes.show()"/>    
+                        </h:panelGroup>
+                        <h:inputText value="#{managedReportNouveau.libelle}">
+                            <p:ajax event="valueChange" global="false"/>                                     
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:dataTable id="data_contenu_report_nouveau" value="#{managedReportNouveau.contenus}" var="grd" rowIndexVar="ygrd">
+                        <p:columnGroup type="header">
+                            <p:row>
+                                <p:column headerText="#{lab.L_jour}"/>
+                                <p:column headerText="#{lab.L_reference}"  />
+                                <p:column headerText="#{lab.L_libelle}"/>
+                                <p:column headerText="#{lab.LCF_PSS_compte_t}"/>
+                                <p:column headerText="#{lab.LCF_PSL_debit}"/>
+                                <p:column headerText="#{lab.LCF_PSL_credit}"/>
+                                <p:column headerText="#{lab.LCF_PSL_echeance}"/>
+                            </p:row>
+                        </p:columnGroup>
+                        <p:subTable value="#{grd.contents}" var="con" >
+                            <f:facet name="header">
+                                [<h:outputText value="#{grd.code}" />] <h:outputText value="#{grd.intitule}" />
+                            </f:facet>
+                            <p:column style="text-align: center">
+                                <h:outputText value="#{con.jour}" title="#{con.libelle}"/> 
+                            </p:column> 
+                            <p:column>
+                                <h:outputText value="#{con.numRef}" title="#{con.libelle}" /> 
+                            </p:column>       
+                            <p:column style="text-align: center">
+                                <h:outputText value="#{con.libelle}" title="#{con.libelle}"/> 
+                            </p:column>  
+                            <p:column>
+                                <span title="#{managedSaisiePiece.findNameTiers(con.compteTiers, con.tableTiers, 'N')}">
+                                    #{managedSaisiePiece.findNameTiers(con.compteTiers, con.tableTiers, 'R')}
+                                </span>    
+                            </p:column>  
+                            <p:column style="text-align: right">                                
+                                <h:outputText value="#{con.debit}" converter="DNS"  title="#{con.libelle}"/>
+                            </p:column> 
+                            <p:column style="text-align: right">                                
+                                <h:outputText value="#{con.credit}" converter="DNS"  title="#{con.credit}"/>
+                            </p:column> 
+                            <p:column style="text-align: center">
+                                <h:outputText value="#{con.echeance}" converter="DATE"  title="#{con.libelle}"/>
+                            </p:column>  
+                        </p:subTable>
+                    </p:dataTable>
+                </div>
+                <div class="yvs_list_report_nouveau">
+
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

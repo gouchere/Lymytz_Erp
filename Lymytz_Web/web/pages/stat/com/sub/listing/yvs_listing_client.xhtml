@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide">
+        <span class="block_slide_title">
+            <span class="slide_title" group="LISTING">#{lab.LC_PTBV_listing_clients}</span>                                  
+            <h:panelGroup id="select-option_listing_by_client" style="float: right;margin-right: 5px">   
+                <p:selectBooleanCheckbox value="#{managedBordStatistique.listingClient.displayName}" itemLabel="#{lab.LC_PTBV_afficher_noms}" rendered="#{managedBordStatistique.cumulBy eq 1}">
+                    <p:ajax event="valueChange" global="false" update="data_listing_by_client"/>
+                </p:selectBooleanCheckbox> 
+            </h:panelGroup>
+        </span> 
+        <div class="zone_slide">
+            <p:outputPanel id="data_listing_by_client">
+                <p:dataTable value="#{managedBordStatistique.listingClient.lignes}" var="rListC" rowIndexVar="iRowC" rendered="#{managedBordStatistique.vueType eq 2}"
+                             style="width: 100%;overflow-x: auto; overflow-y: auto">
+                    <p:columnGroup type="header">
+                        <p:row>
+                            <p:column style="width: 15%" headerText="#{lab.LC_PTBV_clients}" rowspan="2"/>
+                            <c:forEach items="#{managedBordStatistique.listingClient.colonnes}" var="head_s" varStatus="_head">
+                                <p:column headerText="#{head_s.valeur.toUpperCase()}" colspan="2"/>
+                            </c:forEach>
+                            <p:column style="width: 15%" headerText="#{lab.LC_PTBV_totaux}" rowspan="2"/>
+                        </p:row>
+                        <p:row>
+                            <c:forEach items="#{managedBordStatistique.listingClient.colonnes}" var="head_s" varStatus="_head">
+                                <p:column headerText="#{lab.LC_PTBV_qtes}"/>
+                                <p:column headerText="#{lab.LC_PTBV_ca}"/>
+                            </c:forEach>
+                        </p:row>
+                    </p:columnGroup>   
+                    <p:column styleClass="ui-widget-header" style="width: 15%">
+                        <h:outputText value="#{rListC.valeur}" title="#{rListC.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.listingClient.displayName}"/>
+                        <h:outputText value="#{rListC.libelle}" title="#{rListC.valeur}" style="cursor: pointer" rendered="#{managedBordStatistique.listingClient.displayName}"/>
+                    </p:column>
+                    <c:forEach items="#{managedBordStatistique.listingClient.colonnes}" var="col" varStatus="iHeadC">
+                        <p:column style="text-align: right">
+                            <h:outputText value="#{managedBordStatistique.listingClient.valeur(iRowC, iHeadC.index, 'attente')}" converter="#{managedBordStatistique.converter}"/>
+                        </p:column>
+                        <p:column style="text-align: right">
+                            <h:outputText value="#{managedBordStatistique.listingClient.valeur(iRowC, iHeadC.index)}" converter="#{managedBordStatistique.converter}"/>
+                        </p:column>
+                    </c:forEach>
+                    <p:column styleClass="ui-widget-header" style="text-align: right;font-weight: bold">
+                        <h:outputText value="#{managedBordStatistique.listingClient.sumRow(iRowC, 'valeur')}" converter="#{managedBordStatistique.converter}"/>
+                    </p:column>
+                    <p:columnGroup type="footer">
+                        <p:row>
+                            <p:column style="width: 15%" footerText="#{lab.LC_PTBV_totals}" rowspan="2"/>
+                            <c:forEach items="#{managedBordStatistique.listingClient.colonnes}" varStatus="iHeadC">
+                                <p:column/> 
+                                <p:column style="text-align: right">
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{managedBordStatistique.listingClient.sumColonne(iHeadC.index, 'valeur')}" converter="#{managedBordStatistique.converter}"/> 
+                                    </f:facet>
+                                </p:column>
+                            </c:forEach>
+                            <p:column style="text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.listingClient.sum('valeur')}" converter="#{managedBordStatistique.converter}"/>
+                                </f:facet>
+                            </p:column>
+                        </p:row>
+                    </p:columnGroup>
+                </p:dataTable>
+                <p:dataTable value="#{managedBordStatistique.listingClient.valeurs}" var="rListC" rowIndexVar="iRow" rendered="#{managedBordStatistique.vueType eq 1}"
+                             style="width: 100%;overflow-x: auto; overflow-y: auto">
+                    <p:columnGroup type="header">
+                        <p:row>
+                            <p:column style="width: 15%" headerText="#{lab.LC_PTBV_articles}" rowspan="2"/>
+                            <c:forEach items="#{managedBordStatistique.listingClient.colonnes}" var="head_s" varStatus="_head">
+                                <p:column headerText="#{head_s.valeur.toUpperCase()}" colspan="2"/>
+                            </c:forEach>
+                            <p:column style="width: 15%" headerText="#{lab.LC_PTBV_totaux}" rowspan="2"/>
+                        </p:row>
+                        <p:row>
+                            <c:forEach items="#{managedBordStatistique.listingClient.colonnes}" var="head_s" varStatus="_head">
+                                <p:column headerText="#{lab.LC_PTBV_qtes}"/>
+                                <p:column headerText="#{lab.LC_PTBV_ca}"/>
+                            </c:forEach>
+                        </p:row>
+                    </p:columnGroup>
+                    <p:subTable var="sListC" value="#{rListC.lignes}">
+                        <f:facet name="header">
+                            [<h:outputText value="#{rListC.periode}" style="font-weight: bold"/>] <h:outputText value="#{rListC.secondaire}" />
+                        </f:facet>
+                        <p:column styleClass="ui-widget-header" style="width: 15%">
+                            <h:outputText value="#{sListC.valeur}" title="#{sListC.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.listingClient.displayName}"/>
+                            <h:outputText value="#{sListC.libelle}" title="#{sListC.valeur}" style="cursor: pointer" rendered="#{managedBordStatistique.listingClient.displayName}"/>
+                        </p:column>
+                        <c:forEach items="#{managedBordStatistique.listingClient.colonnes}" var="col" varStatus="iHeadC">
+                            <p:column style="text-align: right">
+                                <h:outputText value="#{managedBordStatistique.listingClient.sValeur(rListC, sListC.id, iHeadC.index, 'attente')}" converter="#{managedBordStatistique.converter}"/>
+                            </p:column>
+                            <p:column style="text-align: right">
+                                <h:outputText value="#{managedBordStatistique.listingClient.sValeur(rListC, sListC.id, iHeadC.index)}" converter="#{managedBordStatistique.converter}"/>
+                            </p:column>
+                        </c:forEach>
+                        <p:column styleClass="ui-widget-header" style="text-align: right;font-weight: bold">
+                            <h:outputText value="#{managedBordStatistique.listingClient.sSumRow(rListC, sListC.id, 'valeur')}" converter="#{managedBordStatistique.converter}"/>
+                        </p:column>
+                        <p:columnGroup type="footer">
+                            <p:row>
+                                <p:column footerText="#{lab.LC_PTBV_totals}"/>   
+                                <c:forEach items="#{managedBordStatistique.listingClient.colonnes}" varStatus="iHeadC">
+                                    <p:column/> 
+                                    <p:column style="text-align: right">
+                                        <f:facet name="footer">
+                                            <h:outputText value="#{managedBordStatistique.listingClient.sSumColonne(rListC, iHeadC.index, 'valeur')}" converter="#{managedBordStatistique.converter}"/> 
+                                        </f:facet>
+                                    </p:column>
+                                </c:forEach>
+                                <p:column style="text-align: right">
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{managedBordStatistique.listingClient.sSum(rListC, 'valeur')}" converter="#{managedBordStatistique.converter}"/> 
+                                    </f:facet>
+                                </p:column>
+                            </p:row>
+                        </p:columnGroup>
+                    </p:subTable>
+                    <p:columnGroup type="footer">
+                        <p:row>
+                            <p:column footerText="#{lab.LC_PTBV_totaux}"/>   
+                            <c:forEach items="#{managedBordStatistique.listingClient.colonnes}" varStatus="iHeadC">
+                                <p:column/> 
+                                <p:column style="text-align: right">
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{managedBordStatistique.listingClient.sSumColonne(iHeadC.index, 'valeur')}" converter="#{managedBordStatistique.converter}"/> 
+                                    </f:facet>
+                                </p:column>
+                            </c:forEach>
+                            <p:column style="text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.listingClient.sSum('valeur')}" converter="#{managedBordStatistique.converter}"/>
+                                </f:facet>
+                            </p:column>
+                        </p:row>
+                    </p:columnGroup>
+                </p:dataTable>
+                <p:dataTable value="#{managedBordStatistique.listingClient.valeurs}" var="rListC" rowIndexVar="iRow" rendered="#{managedBordStatistique.vueType eq 0}"
+                             style="width: 100%;overflow-x: auto; overflow-y: auto">
+                    <p:columnGroup type="header">
+                        <p:row>
+                            <p:column headerText="#{lab.L_dates}" />
+                            <p:column headerText="#{lab.L_article}" rendered="#{managedBordStatistique.cumulBy ne 2}"/>
+                            <p:column headerText="#{lab.LC_PTBV_quantite}" rendered="#{managedBordStatistique.cumulBy ne 2}"/>
+                            <p:column headerText="#{lab.LC_PTBV_prix_total}" />
+                            <p:column headerText="#{lab.LC_PTBV_ristourne}" />
+                            <p:column headerText="#{lab.LC_PTBV_vendeur}" rendered="#{managedBordStatistique.cumulBy==0 or managedBordStatistique.cumulBy==3}"/>
+                        </p:row>
+                    </p:columnGroup>
+                    <p:subTable var="sListC" value="#{rListC.sous}">
+                        <f:facet name="header">
+                            [<h:outputText value="#{rListC.periode}" style="font-weight: bold"/>] <h:outputText value="#{rListC.secondaire}" />
+                        </f:facet>
+                        <p:column style="text-align: center">
+                            <h:outputText value="#{sListC.periode}"/>
+                        </p:column>
+                        <p:column style="text-align: left" rendered="#{managedBordStatistique.cumulBy ne 2}">
+                            <h:outputText value="#{sListC.secondaire}"/>
+                        </p:column>
+                        <p:column style="text-align: right" rendered="#{managedBordStatistique.cumulBy ne 2}">
+                            <h:outputText value="#{sListC.quantite}" converter="DNA"/>
+                            <span style="font-size: 0.6em;color: #003399">#{sListC.numero}</span>
+                        </p:column>
+                        <p:column style="text-align: right">
+                            <h:outputText value="#{sListC.prixrevient}" converter="DNA"/>
+                        </p:column>
+                        <p:column style="text-align: right">
+                            <h:outputText value="#{sListC.prixvente}" converter="DNA"/>
+                        </p:column>
+                        <p:column style="text-align: right" rendered="#{managedBordStatistique.cumulBy==0 or managedBordStatistique.cumulBy==3}">
+                            <h:outputText value="#{sListC.principal}" />
+                        </p:column>
+                        <p:columnGroup type="footer">
+                            <p:row>
+                                <p:column/>       
+                                <p:column rendered="#{managedBordStatistique.cumulBy ne 2}"/>  
+                                <p:column rendered="#{managedBordStatistique.cumulBy ne 2}"/> 
+                                <p:column style="text-align: right">
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{managedBordStatistique.listingClient.summaryGroupResume(rListC.sous, 'pr')}" converter="#{managedBordStatistique.converter}"/> 
+                                    </f:facet>
+                                </p:column> 
+                                <p:column style="text-align: right">
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{managedBordStatistique.listingClient.summaryGroupResume(rListC.sous, 'puv')}" converter="#{managedBordStatistique.converter}"/> 
+                                    </f:facet>
+                                </p:column> 
+                                <p:column rendered="#{managedBordStatistique.cumulBy==0 or managedBordStatistique.cumulBy==3}"/>
+                            </p:row>
+                        </p:columnGroup>
+                    </p:subTable>
+                    <p:columnGroup type="footer">
+                        <p:row>
+                            <p:column footerText="#{lab.LC_PTBV_totaux}"/>        
+                            <p:column rendered="#{managedBordStatistique.cumulBy ne 2}"/>  
+                            <p:column rendered="#{managedBordStatistique.cumulBy ne 2}"/> 
+                            <p:column style="text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.listingClient.summaryGroupsResume('pr')}" converter="#{managedFactureVente.converter}"/> 
+                                </f:facet>
+                            </p:column> 
+                            <p:column style="text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.listingClient.summaryGroupsResume('puv')}" converter="#{managedFactureVente.converter}"/> 
+                                </f:facet>
+                            </p:column> 
+                            <p:column rendered="#{managedBordStatistique.cumulBy==0 or managedBordStatistique.cumulBy==3}"/>
+                        </p:row>
+                    </p:columnGroup>
+                </p:dataTable>
+            </p:outputPanel>
+        </div>
+        <div class="zone_bottom">
+            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px;float: left;margin-right: 5px" id="btn_option_listing_client" type="button"/>
+            <p:contextMenu for="btn_option_listing_client" event="left click" styleClass="context_menu" style="width: 210px">
+                <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadListingByClient()}" update="data_listing_by_client"/>
+                <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.downloadListingByClient()}" ajax="false"/>                               
+                <p:menuitem value="#{lab.L_exporter}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.downloadListingByClient('xls')}" ajax="false"/>                                   
+            </p:contextMenu> 
+        </div>
+    </div>
+</ui:composition>
+

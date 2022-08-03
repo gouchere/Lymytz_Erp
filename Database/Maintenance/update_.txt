@@ -1,0 +1,30 @@
+-- Function: update_()
+-- DROP FUNCTION update_();
+CREATE OR REPLACE FUNCTION update_()
+  RETURNS boolean AS
+$BODY$   
+DECLARE	
+	line_ RECORD;
+
+	id_ BIGINT DEFAULT 0;
+
+	first_ BOOLEAN DEFAULT FALSE;
+BEGIN
+	FOR line_ IN SELECT DISTINCT id_source, name_table FROM yvs_synchro_listen_table WHERE action_name = 'UPDATE'
+	LOOP
+		first_ = TRUE;
+		FOR id_ IN SELECT id FROM yvs_synchro_listen_table WHERE id_source = line_.id_source AND name_table = line_.name_table AND action_name = 'UPDATE' ORDER BY ordre DESC
+		LOOP
+			IF(first_ IS FALSE)THEN
+				RAISE NOTICE 'LIGNE : (%) %', id_, line_.name_table;
+				DELETE FROM yvs_synchro_listen_table WHERE id = id_;
+			END IF;
+			first_ = FALSE;
+		END LOOP;
+	END LOOP;
+	RETURN TRUE;
+END;$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION update_()
+  OWNER TO postgres;

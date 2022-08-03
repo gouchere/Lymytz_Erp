@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <p:dataTable value="#{managedLocationVente.documents}" var="bon" rowKey="#{bon.id}" rowIndexVar="bonIdx" 
+                     selectionMode="single" style="height: 85%; overflow-y: auto">
+            <p:ajax event="rowSelect"  listener="#{managedLocationVente.loadOnView}" 
+                    oncomplete="collapseForm('facture_vente');collapseForm('cout_facture_vente');collapseForm('mensualite_facture_vente');collapseForm('remise_vente')"/>                                
+            <p:column width="35" styleClass="statut_#{bon.statut}">
+                <f:facet name="header">
+                    <p:contextMenu for="f_head_tg_id" event="left click" styleClass="context_menu">
+                        <p:menuitem value="Voir l'id" icon="ui-icon-info" actionListener="#{managedLocationVente.setDisplayId(!managedLocationVente.displayId)}" />
+                    </p:contextMenu>                                        
+                    <h:outputText value="N°" id="f_head_tg_id" />
+                </f:facet>
+                <h:graphicImage library="img" name="pointe.png" width="17" height="15" 
+                                rendered="#{bon.id eq managedLocationVente.docVente.id}"/>
+                <h:graphicImage title="#{lab.L_cloturer}" library="img" name="blocked.png" width="15" height="15" rendered="#{bon.cloturer}"/>  
+                <h:outputText value="#{bonIdx+1}" rendered="#{!managedLocationVente.displayId}"/>
+                <h:outputText value="#{bon.id}" rendered="#{managedLocationVente.displayId}"/>                
+            </p:column>
+            <p:column headerText="#{lab.L_reference}" styleClass="statut_#{bon.statut}" sortBy="#{bon.numDoc}">
+                <span>#{bon.numDoc}</span>
+                <h:panelGroup style="float: right; font-size: 0.7em">
+                    <h:outputText title="#{lab.LC_PBRA_facture_reglee}" value="R" rendered="#{bon.statutRegle == constantes.ETAT_REGLE}" styleClass="style_statut"/>
+                    <p:spacer width="2" rendered="#{bon.statutLivre == constantes.ETAT_LIVRE or bon.livraisonAuto}"/>
+                    <h:outputText title="#{lab.LC_PCV_livraison_automatique}" value="A" rendered="#{bon.livraisonAuto and bon.statutLivre != constantes.ETAT_LIVRE}" styleClass="style_statut" style="font-size: 0.8em"/>
+                    <h:outputText title="#{lab.LC_PBRA_facture_livree}" value="L" rendered="#{bon.statutLivre == constantes.ETAT_LIVRE}" styleClass="style_statut"/>
+                    <p:spacer width="2" rendered="#{bon.consigner and bon.statutLivre != constantes.ETAT_LIVRE}"/>
+                </h:panelGroup>
+            </p:column>
+            <p:column headerText="#{lab.LC_PFV_date_facture}" style="text-align: center" styleClass="statut_#{bon.statut}" sortBy="#{bon.enteteDoc.dateEntete}">
+                <h:outputText value="#{bon.enteteDoc.dateEntete}" converter="DDMMYYYY"/>
+                <span> #{lab.L_a} </span>
+                <h:outputText value="#{bon.heureDoc}" converter="TIME"/>
+            </p:column>
+            <p:column headerText="#{lab.LC_PFV_client}" styleClass="statut_#{bon.statut}" sortBy="#{bon.nom_client}">
+                <span>#{bon.nom_client}</span>                
+            </p:column>
+            <p:column headerText="#{lab.L_point_vente}" styleClass="statut_#{bon.statut}" sortBy="#{bon.enteteDoc.creneau.creneauPoint.point.libelle}">
+                <span>#{bon.enteteDoc.creneau.creneauPoint.point.libelle}</span>
+                <h:panelGroup style="float: right">
+                    <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{bon.comptabilised}" styleClass="style_statut"/>
+                </h:panelGroup>
+            </p:column>
+            <p:column headerText="#{lab.LC_PFV_vendeur}" styleClass="statut_#{bon.statut}" sortBy="#{bon.enteteDoc.creneau.users.nomUsers}" >
+                <span>#{bon.enteteDoc.creneau.users.nomUsers}</span>
+            </p:column>
+            <p:column headerText="#{lab.LC_PFV_numero_externe}" styleClass="statut_#{bon.statut}" sortBy="#{bon.numeroExterne}" width="100">
+                <span>#{bon.numeroExterne}</span>
+            </p:column>
+            <p:column headerText="#{lab.LC_PFV_etapes}"  width="60" styleClass="statut_#{bon.statut}" style="font-size: 0.8em">
+                <h:outputText value="#{bon.libEtapes}" />
+            </p:column>
+            <p:column width="20" style="text-align: center" styleClass="statut_#{bon.statut}">
+                <f:facet name="header">
+                    <p:contextMenu for="btn_option_head_facture_vente" event="left click" styleClass="context_menu" style="width: 210px">   
+                        <p:menuitem icon="ui-icon-person" value="#{lab.LC_PFV_changer_tranche}" actionListener="#{managedLocationVente.initChangeTrancheFacture()}" oncomplete="dlgChangeTranche.show()"/>                                 
+                        <p:menuitem icon="ui-icon-carat-2-e-w" value="#{lab.LC_PFV_maitenance}" actionListener="#{managedLocationVente.maintenance()}"/>                                            
+                        <p:menuitem icon="ui-icon-carat-2-e-w" value="#{lab.LC_PFV_traitement_par_lot}" onclick="dgvTraitementLot.show()" global="false"/>  
+                        <p:menuitem icon="ui-icon-link" value="#{lab.LC_PFV_etat_comptabilise}" onclick="dglEtatComptabilised.show()" global="false"/>
+                    </p:contextMenu>
+                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_head_facture_vente" type="button"/>
+                </f:facet>
+                <p:contextMenu for="btn_option_facture_vente" event="left click" styleClass="context_menu" style="width: 210px">
+                    <p:menuitem icon="ui-icon-pencil" value="#{lab.LC_PFV_modifier_date}" actionListener="#{managedLocationVente.setSelectDoc(bon)}" global="false"  oncomplete="dlgUpdateHeader.show()" update=":main_update_header:date_update_header"/>
+                    <p:menuitem icon="ui-icon-pencil" value="#{lab.LC_PFV_modifier_entete}" actionListener="#{managedLocationVente.onSelectDistantHeader(bon)}"/>
+                    <p:separator style="width: 98%;margin: auto"/>                                        
+                    <p:menuitem icon="ui-icon-carat-2-e-w" value="#{lab.LC_PFV_equilibre_statut}" actionListener="#{managedLocationVente.equilibre(bon)}"/>
+                    <p:menuitem icon="ui-icon-refresh" value="#{lab.LC_PFA_reconstruire_reference}" 
+                                actionListener="#{managedLocationVente.openTochangeNumero(bon)}" />
+                    <p:menuitem icon="ui-icon-person" value="#{lab.LC_PFV_maj_tier}" actionListener="#{managedLocationVente.definedTiers(bon, true)}" 
+                                title="#{lab.LC_PFV_maj_tiers}"/>
+                    <p:menuitem icon="ui-icon-arrowstop-1-s" value="#{lab.LC_PFV_generer_fiche_entree}" actionListener="#{managedLocationVente.genererFicheEntree(bon, true)}" rendered="#{accesRessource.fv_generer_entree}"/>
+                    <p:separator style="width: 98%;margin: auto"/>
+                    <p:menuitem value="#{lab.LC_PFV_aller_aux}" disabled="true" />
+                    <p:menuitem icon="ui-icon-arrowthick-1-e" value="#{lab.LC_PFV_livraisons}"  actionListener="#{managedLocationVente.gotoViewBl(bon)}" />
+                    <p:menuitem icon="ui-icon-arrowthick-1-e" value="#{lab.LC_PFV_reglements}"  actionListener="#{managedLocationVente.gotoViewReglementsVente(bon)}" />
+                    <p:separator style="width: 98%;margin: auto"/>
+                    <p:menuitem value="#{lab.LC_PFV_activer_validation}" title="#{lab.LC_PFV_lier_chaine_validation}" icon="ui-icon-link" actionListener="#{managedLocationVente.activeValidationMultiple(bon)}" rendered="#{bon.statut!=constantes.ETAT_VALIDE and 
+                                                                                                                                           (bon.etapeTotal eq 0)}"/>
+                    <p:menuitem value="#{bon.livraisonAuto?'Désactiver':'Activer'} #{lab.LC_PFV_livraison_auto}" title="#{lab.LC_PCV_livraison_automatique} #{bon.livraisonAuto?'désactivée':'activée'}" icon="ui-icon-link" 
+                                actionListener="#{managedLocationVente.activeLivraisonAuto(bon)}" rendered="#{bon.statut != constantes.ETAT_VALIDE}"/>
+                    <p:menuitem value="#{bon.cloturer?'Déverrouiller':'Verrouiller'}" icon="#{bon.cloturer?'ui-icon-unlocked':'ui-icon-locked'}" 
+                                global="false" actionListener="#{managedLocationVente.cloturer(bon)}" oncomplete="dlgConfirmClose.show()"/>                                        
+                    <p:separator />
+                    <p:menuitem value="#{lab.L_suspendre}" icon="ui-icon-circle-close" global="false" actionListener="#{managedLocationVente.openDlgToConfirmSuspend(bon)}" />
+                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedLocationVente.deleteBean_(bon)}" oncomplete="dlgConfirmDelete_.show()"/>
+                    <p:separator style="width: 98%;margin: auto"/>
+                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedLocationVente.print(bon)}" ajax="false"/>
+                </p:contextMenu>                           
+                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_facture_vente" type="button"/>
+            </p:column> 
+            <p:column width="25" style="text-align: center" styleClass="statut_#{bon.statut}">
+                <f:facet name="header">
+                    <h:selectBooleanCheckbox styleClass="chek_all_line_facture_vente" value="false"
+                                             onclick="selectionAllLineTab(#{managedLocationVente.documents.size()}, 'facture_vente')">
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectBooleanCheckbox>
+                </f:facet>
+                <h:selectBooleanCheckbox  value="#{bon.selectActif}" styleClass="chek_line_facture_vente" 
+                                          onclick="selectionLineTab(#{bonIdx}, 'facture_vente')">
+                    <p:ajax event="valueChange" global="false"/>
+                </h:selectBooleanCheckbox>
+            </p:column>
+        </p:dataTable>   
+    </div>
+</ui:composition>
+

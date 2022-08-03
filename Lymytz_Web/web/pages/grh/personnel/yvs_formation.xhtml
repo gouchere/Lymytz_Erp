@@ -1,0 +1,777 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Formations','modRh', 'smenFormation', true,managedFormation)}
+    </ui:define> 
+    <ui:define name="contents">
+        <h:outputScript library="js/donne_de_base" name="param_db.js"  />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('formation');
+                collapseForm('employe_formation');
+                collapseForm('qualification_formation');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+
+        #{managedFormation.loadAll()}
+        #{managedPosteDeTravail.loadDomaines()}
+        #{managedFormation.loadAllFormateur()}
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddDomaineQual" width="30%" modal="true" footer="#{lab.L_copy}"
+                      closeOnEscape="true" header="#{lab.LRH_PPT_nouveau_domaine_qualification}">
+                <h:panelGrid columns="3" styleClass="yvs_table" style="width: 100%; margin: auto"
+                             cellpadding="0" cellspacing="0" id="formAddDomaineQ">
+                    <span>#{lab.LRH_PE_titre} </span>                        
+                    <h:inputText value="#{managedPosteDeTravail.domaine.titreDomaine}" style="width: 99%"/>                        
+                    <p:commandButton style="margin: auto" icon="ui-icon-circle-plus"
+                                     actionListener="#{managedPosteDeTravail.addNewDomaine()}"
+                                     update="formAddDomaineQ :form_formation_newQualif:domaine_PQF_1" oncomplete="dlgAddDomaineQual.hide()"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_formation_newQualif">
+            <p:dialog widgetVar="dlgAddQualification" width="40%" modal="true" footer="#{lab.L_copy}"
+                      closeOnEscape="true" header="#{lab.LRH_PPT_creer_qualification}">
+                <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%; margin: auto"
+                             cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PE_domaine}</span>
+                    <h:panelGroup>
+                        <h:selectOneMenu value="#{managedFormation.newQualif.domaine.id}" id="domaine_PQF_1">
+                            <f:selectItem itemLabel="" itemValue="" />
+                            <f:selectItems value="#{managedPosteDeTravail.domaines}" var="domai_" itemLabel="#{domai_.titreDomaine}" itemValue="#{domai_.id}" />                            
+                        </h:selectOneMenu> 
+                        <p:commandButton style="margin: auto; width: 20px; height: 20px" icon="ui-icon-circle-plus" title="#{lab.LRH_PPT_ajouter_domaine}"
+                                         type="button" onclick="dlgAddDomaineQual.show()"/>
+                        <p:commandButton style="margin: auto; width: 20px; height: 20px" icon="ui-icon-circle-minus"
+                                         actionListener="#{managedPosteDeTravail.RemoveOneDomaine()}" global="false" update="domaine_PQF_1"/>
+                    </h:panelGroup>                                               
+                    <span>#{lab.LRH_PE_code_interne}</span>
+                    <h:inputText value="#{managedFormation.newQualif.codeInterne}" style="width: 99%"/>
+                    <span>#{lab.L_intitule}</span>
+                    <h:inputText value="#{managedFormation.newQualif.intitule}"/>    
+                    <span>&nbsp;</span>
+                    <p:commandButton value="#{lab.L_ajouter}" actionListener="#{managedFormation.createNewQualification()}" 
+                                     oncomplete="dlgAddQualification.hide()" update=":form_formation_qualif:formation_tab_qualif"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>                             
+        <h:form prependId="false" id="form_formation_qualif">                
+            <p:dialog widgetVar="dlgQualification" width="50%" closeOnEscape="true"
+                      header="#{lab.LRH_PF_liste_qualifications}" dynamic="true" height="450">                      
+                <div style="float: left">
+                    <span>#{lab.LRH_PF_domaine_qualifications}</span>
+                    <h:selectOneMenu value="#{managedFormation.selectDomaineQ.id}"  valueChangeListener="#{managedFormation.choixDomaineQ}">
+                        <f:selectItem itemLabel="" itemValue="0" />
+                        <f:selectItems value="#{managedPosteDeTravail.domaines}" var="domain_" itemLabel="#{domain_.titreDomaine}" itemValue="#{domain_.id}" />
+                        <p:ajax event="valueChange" global="false" process="@this" update="formation_tab_qualif" />
+                    </h:selectOneMenu>
+                </div>
+                <div style="float: right">
+                    <p:commandButton icon="ui-icon-document" onclick="dlgAddQualification.show()" type="button" style="width: 20px; height: 20px" title="#{lab.LRH_PF_creer_nouvelle_qualification}"/>                        
+                </div>
+                <div style="clear: both"></div>                    
+                <p:dataTable value="#{managedFormation.selectDomaineQ.qualifications}" var="qua1" rowKey="#{qua1.id}"
+                             selectionMode="single" id="formation_tab_qualif"
+                             rowIndexVar="lineQualif">
+                    <p:ajax event="rowSelect" listener="#{managedFormation.addQualif}" process="@this" 
+                            update=":bloc-formation:tabview-formation:tabQualifFormation"/>
+                    <p:column headerText="N°" width="25">
+                        #{lineQualif+1}
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PF_code_interne}" >
+                        #{qua1.codeInterne}
+                    </p:column>
+                    <p:column headerText="#{lab.L_intitule}" >
+                        #{qua1.designation}
+                    </p:column>
+                    <p:column width="25">
+                        <p:commandButton icon="ui-icon-trash"  actionListener="#{managedFormation.delteQualif(qua1)}" 
+                                         update=":form_formation_qualif:formation_tab_qualif" style="width: 20px; height: 20px">
+                            <!--<p:confirm  header="Supprimer une qualification!"  message="Supprimer définitivement cette qualification ?" />-->
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable> 
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >                
+            <p:confirmDialog showEffect="fade" hideEffect="explode">
+                <p:commandButton value="#{lab.L_oui}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check" />
+                <p:commandButton value="#{lab.L_non}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+            </p:confirmDialog>
+        </h:form>
+        <div style="clear: right" ></div> 
+        <h:form prependId="false" id="form-formation-01">         
+            <p:dialog header="#{lab.LDB_PCB_liste_employes_actif}" widgetVar="dlgEmploye" width="85%" height="700"
+                      closeOnEscape="true" modal="true" footer="&copy;Lymytz 2014">
+                #{MEmps.loadAllEmployesByAgence(true,true)}
+                <script type="text/javascript">
+                    $(function() {
+                        collapseList('employe_formation');
+                    });
+                </script>
+                <p:inputText value="#{MEmps.matriculeToUpdate}" style="float: left">
+                    <p:ajax event="keyup" listener="#{MEmps.findEmploye(MEmps.matriculeToUpdate)}"
+                            update="gridEmployes_formation tabEmployes_formation" global="false" process="@this"/>
+                </p:inputText>
+                <div style="float: right" >                        
+                    <h:link onclick="collapseList('employe_formation');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                    <h:link  onclick="collapseGrid('employe_formation');
+                            return false" title="#{lab.LP_PPG_vue_hieraechique}">
+                        <p:graphicImage library="icones" name="ico_arbre_2.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>                                                               
+                </div>         
+                <div style="clear: right"/>  
+                <div class="yvs_list_employe_formation">
+                    <p:dataTable value="#{MEmps.listEmployes}" var="emp" rowKey="#{emp.id}" rowIndexVar="line_e" 
+                                 widgetVar="tabEmployes" id="tabEmployes_formation" selectionMode="single"
+                                 scrollable="true" scrollHeight="500" > 
+                        <p:ajax event="rowSelect" listener="#{managedFormation.addFormationEmploye}" 
+                                update=":bloc-formation:tbv_employe_formation:tab_emp_form"/>
+                        <p:column headerText="N°" width="15" style="text-align: center">
+                            <h:outputText value="#{line_e+1}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}" width="200">
+                            <h:outputText value="#{emp.nom} #{emp.prenom}" />
+                        </p:column>                        
+                        <p:column headerText="#{lab.LRH_PF_matricule}" width="90" style="text-align: center">
+                            <h:outputText value="#{emp.matricule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PF_poste} " width="200">
+                            <h:outputText value="#{emp.posteActif.intitule}" />
+                        </p:column> 
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(emp.actif)?'yes.png':'no.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:dataTable> 
+                </div>
+                <div class="yvs_grid_employe_formation">
+                    <p:dataGrid value="#{MEmps.listEmployes}" var="emp1" columns="3" 
+                                id="gridEmployes_formation" style="font-size: 0.8em">
+                        <p:panelGrid columns="1"  style="width: 100%">
+                            <f:facet name="header">
+                                <p:commandLink  actionListener="#{managedFormation.choixEmploye1(emp1)}"
+                                                update=":bloc-formation:tbv_employe_formation:tab_emp_form" >
+                                    <p:graphicImage library="lymytz/documents/docEmps/perso/photo" name="#{(emp1.photos==null)?'user1.png':emp1.photos}" style="max-height: 100px" />                                                                      
+                                    <f:setPropertyActionListener value="#{emp1}" target="#{managedFormation.seleEmployeEmploye}" />
+                                </p:commandLink>
+                            </f:facet>
+                        </p:panelGrid>
+                        <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%;font-size: 0.8em">
+                            <span>#{lab.L_noms_prenoms}</span>
+                            <h:outputText value="#{emp1.prenom} #{emp1.nom}" style="font-weight: bold;"/> 
+                            <span>#{lab.LRH_PF_matricule}</span>
+                            <h:outputText value="#{emp1.matricule}" style="font-weight: bold; "/> 
+                            <span>#{lab.LRH_PF_poste}</span>
+                            <h:outputText value="#{emp1.posteActif.intitule}" style="font-weight: bold; "/> 
+                        </h:panelGrid>
+                    </p:dataGrid>
+                </div>                    
+                <f:facet name="footer">
+                    <span>&copy;Lymytz 2014</span>
+                    <h:selectOneMenu value="#{MEmps.idAgenceSearch}"  style="float: right; font-size: 0.9em"
+                                     valueChangeListener="#{MEmps.addParamAgence}">
+                        <f:selectItem itemValue="0" itemLabel="--.--" />
+                        <f:selectItems value="#{loggin.listAgences}" var="ag" 
+                                       itemValue="#{ag.id}" itemLabel="#{ag.designation}"/>
+                        <f:selectItem itemValue="0" itemLabel="--.--" />
+                        <f:selectItem itemValue="-2" itemLabel="#{lab.LRH_PPT_toutes_agences}" />
+                        <p:ajax event="valueChange" update="gridEmployes_formation tabEmployes_formation" global="false" 
+                                process="@this" oncomplete="collapseGrid('employe')" />
+                    </h:selectOneMenu>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgSpecialite" width="40%" modal="true" closeOnEscape="true" header="#{lab.LRH_PPT_specialite_diplomes}"
+                      resizable="false" footer="&copy;Lymytz 2014">                    
+                <div class="yvs_form_diplomePoste">
+                    <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle">
+                            <span>#{lab.LRH_PPT_specialite}</span>                            
+                            <h:inputText value="#{managedFormation.specialite.designation}" />
+                            <span>#{lab.LRH_PF_code_interne}</span>
+                            <h:inputText value="#{managedFormation.specialite.codeInterne}" /> 
+                        </h:panelGrid>
+                        <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedFormation.createNewSpecialite()}"
+                                         style="float: right" update=":form_formation_Dip:chp_formation_spD  :form_formation_Dip:tab_diplome_formation"
+                                         oncomplete="dlgSpecialite.hide()"/>
+                    </h:panelGrid>
+                </div>                    
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_formation_Dip">
+            <p:dialog  widgetVar="dlgAddDiplome" width="75%" closeOnEscape="true" header="#{lab.LRH_PPT_liste_diplomes}"
+                       resizable="false" footer="&copy;Lymytz 2014">
+                <script type="text/javascript">
+                    $(function() {
+                        collapseForm('diplomeFo');
+                    });
+                </script>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('diplomeFo');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('diplomeFo');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div class="yvs_form_diplomeFo">
+                    <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0"
+                                 id="form_NewDipFormation">
+                        <span>#{lab.LRH_PPT_specialite}</span>
+                        <h:selectOneMenu value="#{managedFormation.newDiplome.specialite.id}" 
+                                         id="chp_formation_spD" onchange="openDialog(dlgSpecialite, $(this))">
+                            <f:selectItem itemValue="0" itemLabel=" " noSelectionOption="true"/>
+                            <f:selectItems value="#{managedFormation.specialites}" var="sp" itemValue="#{sp.id}" itemLabel="#{sp.titreSpecialite}" />
+                            <f:selectItem itemValue="0" itemLabel=" " noSelectionOption="true"/>
+                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" />
+                        </h:selectOneMenu>
+                        <span>#{lab.LRH_PPT_diplome}</span>
+                        <h:inputText value="#{managedFormation.newDiplome.designation}" />
+                        <span>#{lab.LRH_PE_code_interne}</span>
+                        <h:inputText value="#{managedFormation.newDiplome.codeInterne}" />
+                        <span>#{lab.LRH_PPT_serie}</span>
+                        <h:inputText value="#{managedFormation.newDiplome.serie}" />
+                        <span>#{lab.LRH_PPT_cycle}</span>
+                        <p:selectOneRadio value="#{managedFormation.newDiplome.cycle}" layout="grid">
+                            <f:selectItem itemValue="Primaire" itemLabel="#{lab.LRH_PPT_primaire}" />
+                            <f:selectItem itemValue="Secondaire I" itemLabel="#{lab.LRH_PPT_secondaire}" />
+                            <f:selectItem itemValue="Secondaire II" itemLabel="#{lab.LRH_PPT_secondaire_2}" />
+                            <f:selectItem itemValue="Supérieure I" itemLabel="#{lab.LRH_PPT_superieur}" />
+                            <f:selectItem itemValue="Supérieure II" itemLabel="#{lab.LRH_PPT_superieur_2}" />
+                            <f:selectItem itemValue="Supérieure III" itemLabel="#{lab.LRH_PPT_superieur_3}" />                        
+                            <f:selectItem itemValue="Certificat" itemLabel="#{lab.LRH_PF_certificat}" />   
+                        </p:selectOneRadio>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedFormation.createNewDiplome()}"
+                                     style="float: right" update="tab_diplome_formation :bloc-formation:select_diplome_form"/>
+                </div>
+                <div class="yvs_list_diplomeFo">
+                    <p:dataTable value="#{managedFormation.specialites}" var="itemSp"
+                                 rowKey="#{itemSp.id}" selectionMode="single" id="tab_diplome_formation"
+                                 rowIndexVar="line_sp" style="max-height: 450px; overflow-y: auto; width: 98%"
+                                 >                        
+                        <p:columnGroup type="header">
+                            <p:row>
+                                <p:column headerText="#{lab.LRH_PPT_code_inte}"  width="100"/>
+                                <p:column headerText="#{lab.LRH_PPT_diplomes}" width="100"/>
+                                <p:column headerText="#{lab.LRH_PPT_serie} "  width="100"/>
+                                <p:column headerText="#{lab.LRH_PPT_cycle}" width="100"/>
+                                <p:column headerText=""  width="20"/>
+                                <p:column headerText=""  width="15" style="text-align: center"/>
+                            </p:row>            
+                        </p:columnGroup>
+                        <p:subTable value="#{itemSp.diplomes}" var="dip_" >
+                            <f:facet name="header">
+                                <h:outputText value="#{itemSp.titreSpecialite}" />                                    
+                            </f:facet>                                            
+                            <p:column  selectionMode="single">
+                                <h:outputText value="#{dip_.codeInterne}"  style="text-align: center;"/>
+                            </p:column>
+                            <p:column >
+                                <h:outputText value="#{dip_.nom}"  style="text-align: center;"/>
+                            </p:column>
+                            <p:column style="text-align: center">
+                                <h:outputText value="#{dip_.serie}"  style="text-align: center;"/>
+                            </p:column>
+                            <p:column >
+                                <h:outputText value="#{dip_.cycleDipome}"  style="text-align: center;"/>
+                            </p:column>
+                            <p:column style="text-align: center">
+                                <p:commandLink title="#{lab.LRH_PPT_effectuer_choix_diplome}" actionListener="#{managedFormation.choixDiplomes(dip_)}"
+                                               oncomplete="dlgDiplomes.hide()" update=":bloc-formation:select_diplome_form">
+                                    <h:graphicImage library="img/icones" name="plus.png"  width="19" height="19" />
+                                </p:commandLink>
+                            </p:column>
+                            <p:column style="text-align: center">
+                                <p:commandLink actionListener="#{managedFormation.deleteDiplome(dip_)}" title="#{lab.LRH_PPT_supprimer_diplome}">
+                                    <h:graphicImage library="img/icones" name="cancel.png"  width="19" height="19" />
+                                    <!--<p:confirm header="Supprimer !" message="Voulez-vous vraiment supprimer cet élément?" />-->
+                                </p:commandLink>
+                            </p:column>
+                        </p:subTable>                        
+                    </p:dataTable>                        
+                </div>
+            </p:dialog>               
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PF_ajouter_type_cout}" widgetVar="dlgAddTypeCout" closeOnEscape="true" resizable="false" hideEffect="explode"
+                      dynamic="true" modal="true">
+                <p:panelGrid columns="1" style="width: 100%">
+                    <p:outputLabel value="#{lab.L_libelle} : "/>
+                    <p:inputText value="#{managedFormation.typeCout.libelle}"/>
+                </p:panelGrid>
+                <f:facet name="footer" >
+                    <p:commandButton value="#{lab.L_enregistrer}" oncomplete="dlgAddTypeCout.hide()"
+                                     actionListener="#{managedFormation.saveNewTypeCout()}"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PF_ajouter_formateur}" widgetVar="dlgAddFormateur" closeOnEscape="true" 
+                      resizable="false" hideEffect="explode" dynamic="true" width="50%" height="450">
+                <script type="text/javascript">
+                    collapseForm('formateurF');
+                </script>
+                <p:inputText  value="#{managedFormation.textFindFormateur}" style="float: left">
+                    <p:ajax event="keyup" listener="#{managedFormation.findFormateur(managedFormation.textFindFormateur)}" global="false" process="@this"
+                            oncomplete="collapseList('formateurF')" update="table_formateur" />
+                </p:inputText>
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('formateurF');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+
+                    <h:link onclick="collapseList('formateurF');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div class="yvs_form_formateurF" style="clear: both">
+                    <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <span>#{lab.L_nom}</span>
+                        <p:inputText value="#{managedFormation.formateur.nom}"/>
+                        <span>#{lab.L_telephone}</span>
+                        <p:inputText value="#{managedFormation.formateur.telephone}"/>
+                        <span>#{lab.T_adress} </span>
+                        <p:inputText value="#{managedFormation.formateur.adresse}"/>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" style="float: right" 
+                                     actionListener="#{managedFormation.saveNewFormateur()}" update="table_formateur"/>
+                </div>
+                <div class="yvs_list_formateurF">
+                    <p:dataTable value="#{managedFormation.listFormateur}" var="itemFo" rowIndexVar="line_f"
+                                 id="table_formateur" selectionMode="single" rowKey="#{itemFo.id}">
+                        <p:ajax event="rowSelect" listener="#{managedFormation.choixFormateur}" oncomplete="dlgAddFormateur.hide()"/>
+                        <p:column headerText="#{lab.LRH_PF_formateur}" >
+                            #{itemFo.nom}
+                        </p:column>
+                        <p:column headerText="#{lab.L_telephone}" >
+                            #{itemFo.telephone}
+                        </p:column>
+                        <p:column headerText="#{lab.T_adress}" >
+                            #{itemFo.adresse}
+                        </p:column>
+                        <p:column headerText="" style="text-align: center" width="15">
+                            <p:commandLink actionListener="#{managedFormation.deleteFormateur(itemFo)}">
+                                <h:graphicImage library="img/icones" name="cancel.png" />
+                                <!--<p:confirm header="Supprimer " message="Voulez-vous vraiment supprimer cet élément ?" />-->
+                            </p:commandLink>
+                        </p:column>
+                    </p:dataTable>                        
+                </div>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PF_ajouter_qualification}" widgetVar="dlgAddQualif" closeOnEscape="true" resizable="false" hideEffect="explode"
+                      width="40%" height="50">
+                <h:panelGrid columns="3" style="width: 100%">
+                    <p:outputLabel value="#{lab.L_designation}"/>
+                    <h:inputText value="#{managedFormation.newQualif}"/>
+                    <p:commandButton icon="ui-icon-circle-plus"  id="btn-Add-formation-qualif"
+                                     actionListener="#{managedFormation.createQualif()}"/>
+                </h:panelGrid>                    
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+            <p:defaultCommand target="btn-Add-formation-qualif" />
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PE_ajouter_pays}" widgetVar="dlgAddPays" closeOnEscape="true" resizable="false" hideEffect="explode"
+                      width="40%" height="80">
+                <h:panelGrid columns="3" style="width: 100%">                        
+                    <span>#{lab.L_pays}</span>
+                    <p:inputText value="#{managedFormation.newPays}"/>
+                    <p:commandButton value="#{lab.L_enregistrer}" 
+                                     actionListener="#{managedFormation.createPays()}"/>
+                </h:panelGrid>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PE_ajouter_ville}" widgetVar="dlgAddVille" closeOnEscape="true" resizable="false" hideEffect="explode"
+                      width="40%" >
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>Pays</span>
+                    <h:selectOneMenu value="#{managedFormation.pay.id}" onchange="openDialog(dlgAddPays, $(this))"
+                                     id="txt_select_payForm">
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                        <f:selectItems value="#{managedFormation.pays}" var="pay_" 
+                                       itemValue="#{pay_.id}" itemLabel="#{pay_.libele}" />
+                        <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" />
+                    </h:selectOneMenu>
+                    <span>#{lab.L_ville}</span>
+                    <p:inputText value="#{managedFormation.newVille}"/>                        
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" id="btn-Add-formation-ville" style="float: right"
+                                 actionListener="#{managedFormation.createVille()}"/>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+
+        </h:form>
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.T_titleModif}" widgetVar="dlgUpdateEF" closeOnEscape="true" 
+                      hideEffect="explode" 
+                      width="300" height="150">
+                <p:panelGrid columns="2" style="width: 100%" id="grid-update-FE">
+                    <h:outputLabel value="Lieu "/>
+                    <p:selectOneMenu value="#{managedFormation.formEMps.ville.id}" id="select-ville1-form"
+                                     valueChangeListener="#{managedFormation.choixVille}" style="width: 100%" >
+                        <f:selectItem itemValue="0" itemLabel="" /> 
+                        <f:selectItems value="#{managedFormation.villes}" var="itemv1" 
+                                       itemValue="#{itemv1.id}" itemLabel="#{itemv1.titre}" /> 
+                        <f:selectItem  itemValue="0" itemLabel="" />
+                        <f:selectItem  itemValue="-1" itemLabel="#{lab.L_creer}" />
+                        <p:ajax event="valueChange"/>
+                    </p:selectOneMenu>                            
+                    <h:outputLabel value="#{lab.L_debut}"/>
+                    <p:calendar pattern="dd-MM-yyyy" value="#{managedFormation.formEMps.dateDebut}" navigator="true">
+                        <p:ajax event="dateSelect"/>
+                    </p:calendar>
+                    <h:outputLabel value="#{lab.L_fin}"/>
+                    <p:calendar pattern="dd-MM-yyyy" value="#{managedFormation.formEMps.dateFin}" navigator="true">
+                        <p:ajax event="dateSelect"/>
+                    </p:calendar>
+                    <h:outputLabel value="#{lab.LRH_PF_obtention_diplome}"/>
+                    <p:selectBooleanCheckbox value="#{managedFormation.formEMps.valider}" />
+                </p:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}"  id="btn-update-formation"
+                                 actionListener="#{managedFormation.updateEmpsForm()}"/>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+            <p:defaultCommand target="btn-update-formation" />
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PF_attribution_cout_formation}" widgetVar="dlgCoutFormation" closeOnEscape="true"                           
+                      hideEffect="explode" width="40%" height="400" footer="&copy;Lymytz 2014">
+                #{managedFormation.loadAllTypeCout()}
+                <p:panelGrid columns="1" id="coutFormation">
+                    <h:panelGrid columns="2" style="width: 100%" id="coutForm2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <p:outputLabel value="#{lab.L_libelle}"/>
+                        <h:selectOneMenu value="#{managedFormation.cout.typeCout.id}" valueChangeListener="#{managedFormation.chooseTypeCout}">
+                            <f:selectItem itemValue="0" itemLabel="-"/> 
+                            <f:selectItems value="#{managedFormation.listTypeCout}" var="type" 
+                                           itemValue="#{type.id}" itemLabel="#{type.libelle}"/>
+                            <f:selectItem itemValue="0" itemLabel="-"/> 
+                            <f:selectItem itemValue="#{init.MAX}" itemLabel="#{lab.L_creer}"/> 
+                            <p:ajax event="valueChange" global="false"/>
+                        </h:selectOneMenu>
+                        <p:outputLabel value="#{lab.L_montant}"/>
+                        <pe:inputNumber value="#{managedFormation.cout.montant}"/>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}"  style="float: right"
+                                     actionListener="#{managedFormation.saveNewCout()}"/>
+                    <p:dataTable value="#{managedFormation.formEMps.coutFormation}" var="item" 
+                                 selectionMode="multiple" rowKey="#{item.typeCout.id}" id="coutTab2" selection="#{managedFormation.listcout}">                            
+                        <p:ajax event="rowSelect" listener="#{managedFormation.modifCout}"/> 
+                        <p:column headerText="#{lab.L_libelle}">
+                            <p:outputLabel value="#{item.typeCout.libelle}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}">
+                            <p:outputLabel value="#{item.montant}"/>
+                        </p:column>
+                        <f:facet name="footer">
+                            <p:commandButton value="#{lab.L_supprimer}" rendered="#{managedFormation.activBtnDeleteCout}"
+                                             actionListener="#{managedFormation.deleteCout()}"/>
+                        </f:facet>
+                    </p:dataTable>
+                </p:panelGrid>                    
+            </p:dialog>                
+        </h:form>
+        <h:form id="form-formation-04" prependId="false">
+            <p:confirmDialog widgetVar="dlgaddtitreformation" message="#{lab.LRH_PF_ajouter_texte_liste_titre} "
+                             width="200">
+                <p:panelGrid columns="2">
+                    <p:commandButton value="#{lab.L_oui}" actionListener="#{managedFormation.addTitreFormation()}" oncomplete="dlgaddtitreformation.hide()"/>
+                    <p:commandButton value="#{lab.L_non}" onclick="dlgaddtitreformation.hide()"/>
+                </p:panelGrid>
+            </p:confirmDialog>
+        </h:form>
+        <h:form id="form-formation-05" prependId="false">
+            <p:confirmDialog widgetVar="dlgadddiplome" message="#{lab.LRH_PF_ajouter_texte_liste_diplomes} "
+                             width="200">
+                <p:panelGrid columns="2">
+                    <p:commandButton value="#{lab.L_oui}" actionListener="#{managedFormation.addDiplome()}" 
+                                     oncomplete="dlgadddiplome.hide()"/>
+                    <p:commandButton value="#{lab.L_non}" onclick="dlgadddiplome.hide()"/>
+                </p:panelGrid>
+            </p:confirmDialog>
+        </h:form>
+        <h:form id="form-formation-06" prependId="false">
+            <p:confirmDialog widgetVar="dlgaddqualification" message="#{lab.LRH_PF_text} "
+                             width="200">
+                <p:panelGrid columns="2">
+                    <p:commandButton value="#{lab.L_oui}" actionListener="#{managedFormation.addNewQualification()}" 
+                                     oncomplete="dlgaddqualification.hide()"/>
+                    <p:commandButton value="#{lab.L_non}" onclick="dlgaddqualification.hide()"/>
+                </p:panelGrid>
+            </p:confirmDialog>
+        </h:form> 
+        <h:form prependId="false" id="form-formation-08">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteFormation" closeOnEscape="true"
+                             message="#{lab.LRH_PRS_text}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedFormation.deleteBean()}" oncomplete="dlgConfirmDeleteFormation.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmDeleteFormation.hide()"/>
+            </p:confirmDialog> 
+        </h:form>         
+        <h:form prependId="false" id="form-formation-09">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteFormation_" closeOnEscape="true"
+                             message="#{lab.LRH_PRS_text}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedFormation.deleteBean_()}" oncomplete="dlgConfirmDeleteFormation_.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgConfirmDeleteFormation_.hide()"/>
+            </p:confirmDialog> 
+        </h:form>         
+        <h:form prependId="false" id="bloc-formation">
+            <div class="part_fix">
+                <p:splitButton id="save_formation" value="#{lab.L_enregistrer}" icon="ui-icon-disk" actionListener="#{managedFormation.saveNew()}"
+                               update=":bloc-formation:tabForm etapes_valide_formation">                                    
+                    <p:menuitem id="cancel_formation" value="#{lab.L_nouveau}" icon="ui-icon-document" actionListener="#{managedFormation.resetFiche()}"/> 
+                    <p:menuitem value="#{lab.L_supprimer}"  icon="ui-icon-trash" onclick="dlgConfirmDeleteFormation.show()" global="false"/>
+                </p:splitButton>
+
+                <p:commandButton value="#{lab.L_supprimer}" id="delete_formation" icon="ui-icon-trash" onclick="dlgConfirmDeleteFormation_.show()" global="false"/>                                                 
+
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('formation');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('formation');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>   
+                <div style="clear: right"/>
+               
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_formation" style="width: 100%;margin: auto;padding-top: 1%; background: white">
+                    <h:panelGroup style="margin-top: 5px; z-index: 9999" id="etapes_valide_formation">                        
+                        <ui:repeat value="#{formation.etapesValidations}" var="etapeM" >
+                            <p:commandLink value="#{etapeM.etape.labelStatut}" disabled="#{(!etapeM.etapeActive or etapeM.etapeValid)}" title="#{etapeM.etape.titreEtape}" update=":bloc-formation:etapes_valide_formation"
+                                           styleClass="#{(etapeM.etapeValid)?'statu_valide':'etat_formation_true'}" actionListener="#{managedFormation.validEtapeOrdreFormation(etapeM)}" style="float: left"/>                        
+                        </ui:repeat>  
+                        <p:commandLink value="#{lab.LCF_PPC_annuler}" styleClass="etat_formation_true" style="float: right"
+                                       actionListener="#{managedFormation.cancelOrdreMission()}" rendered="#{formation.etapesValidations.size()>0}"
+                                       update="etapes_valide_formation">
+                            <!--<p:confirm header="Annuler l'ordre de mission!"  message="Voulez-vous vraiment annuler cet ordre de mission?" />-->
+                        </p:commandLink>
+                    </h:panelGroup><br /><br />                        
+                    <h:panelGrid id="form-formation-07" columns="1" style="width: 100%; clear: right">
+                        <p:outputPanel>
+                            <p:outputPanel style="width: 50%;float: left">
+                                <h:panelGrid columns="2" style="width: 98%;margin: auto" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                    <span>#{lab.LRH_PF_formateur}</span>
+                                    <h:selectOneMenu value="#{formation.formateur.id}" id="chp_select_formateur"
+                                                     onchange="openDialog(dlgAddFormateur, $(this))">
+                                        <f:selectItem itemValue="0" itemLabel="--" noSelectionOption="true"/>
+                                        <f:selectItems value="#{managedFormation.listFormateur}" var="itemF"
+                                                       itemValue="#{itemF.id}" itemLabel="#{itemF.nom}"/>
+                                        <f:selectItem itemValue="0" itemLabel="--" noSelectionOption="true"/>
+                                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/>
+                                    </h:selectOneMenu>
+                                    <h:outputLabel value="#{lab.LRH_PF_titre}"/> 
+                                    <h:inputText value="#{formation.titreFormation}"/>
+                                    <h:outputLabel value="#{lab.LRH_PF_diplome_obtenu}"/>
+                                    <h:selectOneMenu value="#{formation.diplome.id}" id="select_diplome_form"
+                                                     onchange="openDialog(dlgAddDiplome, $(this))">
+                                        <f:selectItem  itemValue="0" itemLabel="--" />
+                                        <f:selectItems value="#{managedFormation.diplomes}" var="item1" 
+                                                       itemValue="#{item1.id}" itemLabel="#{item1.nom}" />
+                                        <f:selectItem  itemValue="0" itemLabel="--" />
+                                        <f:selectItem  itemValue="-1" itemLabel="#{lab.L_creer}" />
+                                    </h:selectOneMenu>
+                                    <h:outputLabel value="#{lab.L_description}"/>
+                                    <h:inputTextarea style="width: 98%" value="#{formation.description}" rows="5"/>
+                                </h:panelGrid>
+                            </p:outputPanel>
+                            <p:outputPanel style="float: left; width: 50% ">
+                                <p:tabView id="tbv_employe_formation">
+                                    <p:tab title="#{lab.LRH_PF_deroulement_formation}">
+                                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                            <h:outputLabel value="#{lab.LRH_PF_lieu_formation}"/>
+                                            <h:selectOneMenu value="#{formation.lieuParDefaut.id}" id="select-ville-form"
+                                                             onchange="openDialog(dlgAddVille, $(this))" >
+                                                <f:selectItem itemValue="0" itemLabel="--" /> 
+                                                <f:selectItems value="#{managedFormation.villes}" var="itemv" 
+                                                               itemValue="#{itemv.id}" itemLabel="#{itemv.libele}" /> 
+                                                <f:selectItem  itemValue="0" itemLabel="--" />
+                                                <f:selectItem  itemValue="-1" itemLabel="#{lab.L_creer}" />
+                                            </h:selectOneMenu>                            
+                                            <h:outputLabel value="#{lab.L_debut}"/>
+                                            <p:calendar pattern="dd-MM-yyyy" value="#{formation.dateDebut}" navigator="true" size="8"/>
+                                            <h:outputLabel value="#{lab.L_fin}"/>
+                                            <p:calendar pattern="dd-MM-yyyy" value="#{formation.dateFin}" navigator="true" size="8"/>
+                                            <h:outputLabel value="#{lab.LRH_PF_cout} "/>
+                                            <pe:inputNumber value="#{formation.cout}"/>
+                                        </h:panelGrid>   
+                                    </p:tab>
+                                    <p:tab title="#{lab.LRH_PF_employe_inscrit}">                                                                                                                 
+                                        <h:panelGrid columns="3" style="width: 100%" >                                                    
+                                            <p:commandButton  value="#{lab.L_modifier}" onclick="dlgUpdateEF.show()" global="false" rendered="false"/>
+                                            <p:commandButton value="#{lab.LRH_PF_cout_auxiliaires}" onclick="dlgCoutFormation.show()" global="false" rendered="false"/>
+                                        </h:panelGrid>
+                                        <p:commandButton icon="ui-icon-circle-plus" type="button" onclick="dlgEmploye.show()" global="false" style="float: right"/>
+                                        <p:dataTable value="#{formation.employes}" var="iteme" rowKey="#{iteme.id}" rowIndexVar="lineEmplFormation"
+                                                     selectionMode="single" 
+                                                     id="tab_emp_form">
+                                            <p:ajax event="rowSelect" listener="#{managedFormation.choixEmployeForm()}" />
+                                            <p:column headerText="#{lab.LRH_PF_employes}">
+                                                <h:outputText value="#{iteme.employe.nom} #{iteme.employe.prenom} "/>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_debut}" width="90">
+                                                <h:outputText value="#{iteme.dateDebut}" converter="DATE"/>
+                                            </p:column>
+                                            <p:column headerText="#{lab.L_fin}" width="90">
+                                                <h:outputText value="#{iteme.dateFin}" converter="DATE"/>
+                                            </p:column>  
+                                            <p:column width="10">
+                                                <p:commandLink actionListener="#{managedFormation.exporteBulletin(iteme)}" ajax="false"> 
+                                                    <p:graphicImage library="img" name="iconePDF.png" width="15" height="15"/>
+                                                </p:commandLink>
+                                            </p:column> 
+                                            <p:column width="15" style="text-align: center">
+                                                <p:commandLink actionListener="#{managedFormation.deleteEmpsFormation(iteme)}" update=":bloc-formation:tbv_employe_formation:tab_emp_form">
+                                                    <h:graphicImage library="img/icones" name="cancel.png" />
+                                                    <!--<p:confirm header="Supprimer !" message="Voulez-vous vraiment supprimer cet élément ?" />-->
+                                                </p:commandLink>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </p:tab>
+                                </p:tabView>                                    
+                            </p:outputPanel>
+                        </p:outputPanel>
+                        <p:tabView id="tabview-formation"> 
+                            <p:tab title="#{lab.LRH_PF_qualification_obtenu}">
+                                <p:commandButton style="width: 23px; height: 23px; margin-left: 40%" type="button"
+                                                 icon="ui-icon-circle-plus" onclick="dlgQualification.show()"/>
+                                <p:dataTable value="#{formation.qualifications}" var="qual"  rowIndexVar="linse_C"
+                                             rowKey="#{qual.id}" id="tabQualifFormation" style="font-size: 0.8em">
+                                    <p:ajax event="rowSelect" />
+                                    <p:columnGroup type="header">
+                                        <p:row>
+                                            <p:column headerText="#{lab.LRH_PF_titre_qualification} " />
+                                            <p:column headerText="#{lab.LRH_PF_code_interne}" />
+                                            <p:column headerText=" "  width="30"/>
+                                            <p:column headerText=" "  width="30"/>
+                                        </p:row>            
+                                    </p:columnGroup>
+                                    <p:subTable value="#{qual.qualification}" var="qua_">
+                                        <f:facet name="header">
+                                            #{qual.titreDomaine}
+                                        </f:facet>
+                                        <p:column>
+                                            <h:outputText value="#{qua_.intitule}" />                                          
+                                        </p:column>
+                                        <p:column>
+                                            <h:outputText value="#{qua_.codeInterne}" />                                          
+                                        </p:column>
+                                        <p:column width="15">
+                                            <h:graphicImage library="img" name="vu.png"  width="13" height="13"/>
+                                        </p:column>
+                                        <p:column width="20">
+                                            <p:commandButton icon="ui-icon-trash" actionListener="#{managedFormation.deleteQualifFormation(qua_)}"  
+                                                             style="width: 20px; height: 20px; padding: 0px; margin: 0px" global="false" update=":bloc-formation:tabview-formation:tabQualifFormation">
+                                                <!--<p:confirm header="Supprimer !" message="Voulez-vous vraiment supprimer cette qualification ?" />-->
+                                            </p:commandButton>
+                                        </p:column>
+                                    </p:subTable>
+                                </p:dataTable>
+                            </p:tab>
+                        </p:tabView>
+                    </h:panelGrid>
+                </div>
+                <div class="yvs_list_formation" style="background: white">
+                    <p:outputPanel id="panel-formation">
+                        <h:inputHidden id="input_hide_formation" value="#{managedFormation.chaineSelectFormation}" /> 
+                        <p:dataTable id="tabForm" value="#{managedFormation.listFormations}" var="form4" rowKey="#{form4.id}"
+                                     rowIndexVar="lineFormation" selection="#{managedFormation.selectionFormation}">
+                            <p:ajax event="rowSelect" listener="#{managedFormation.loadOnView}" 
+                                    update=":bloc-formation:form-formation-07 :bloc-formation:etapes_valide_formation :bloc-formation:input_hide_formation"/>                                
+                            <p:ajax event="rowSelectCheckbox" global="false" process="@this" update=":bloc-formation:input_hide_formation :bloc-formation:delete_formation"   />
+                            <p:ajax event="rowUnselectCheckbox" global="false" process="@this" update=":bloc-formation:input_hide_formation :bloc-formation:delete_formation"/>
+                            <p:column width="15" headerText="N°" styleClass="line_statut_#{form4.statutFormation}" style="text-align: center">
+                                #{lineFormation+1}
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PF_titre_formation}" styleClass="line_statut_#{form4.statutFormation}" width="300"> 
+                                #{form4.libelle}
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PF_diplome_obtenu}" width="90" styleClass="line_statut_#{form4.statutFormation}">
+                                #{form4.diplome.codeInterne}
+                            </p:column>                  
+                            <p:column headerText="#{lab.L_debut}" style="text-align: center" width="100" styleClass="line_statut_#{form4.statutFormation}">
+                                <h:outputText value="#{form4.dateDebut}" converter="DATE" />
+                            </p:column>                    
+                            <p:column headerText="#{lab.L_fin}" style="text-align: center" width="100" styleClass="line_statut_#{form4.statutFormation}">
+                                <h:outputText value="#{form4.dateFin}" converter="DATE" />
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PF_cout_formation}" width="100" styleClass="line_statut_#{form4.statutFormation}">
+                                <h:outputText value="#{form4.coutFormation}" converter="DN" />
+                            </p:column>
+                            <p:column headerText="Nbre" width="20" styleClass="line_statut_#{form4.statutFormation}">
+                                <h:outputText value="#{form4.employes.size()}" styleClass="num_"/>
+                            </p:column>
+                            <p:column width="15" style="text-align: center" selectionMode="multiple" />
+                        </p:dataTable>
+                    </p:outputPanel>
+                </div>
+            </div> 
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find" style="font-size: 0.8em">                                                              
+                <p:splitButton id="gestion_list" icon="ui-icon-newwin" value="#{lab.LRH_PF_affichage}">
+                    <p:menuitem value="#{lab.LC_PFA_en_cours}" actionListener="#{managedFormation.loadListeFormationClassique()}"
+                                oncomplete="resetHide('input_hide_formation');collapseList('formation');return false;"/>
+                    <p:menuitem value="#{lab.LRH_PF_toutes}" actionListener="#{managedFormation.loadListeFormationClassique()}"
+                                oncomplete="resetHide('input_hide_formation');collapseList('formation');return false;"/>
+                </p:splitButton>
+                <p:splitButton icon="ui-icon-search" value="#{lab.L_recherche}">
+                    <p:menuitem value="#{lab.LRH_PF_objet_mission}" onclick="dlgRecherchObjet.show()" global="false"/>
+                    <p:menuitem value="#{lab.LRH_PF_lieu_mission}" onclick="dlgRecherchLieu.show()" global="false"/>
+                    <p:menuitem value="#{lab.LRH_PF_date_debut_mission}" onclick="dlgRecherchDate.show()" global="false"/>
+                </p:splitButton>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

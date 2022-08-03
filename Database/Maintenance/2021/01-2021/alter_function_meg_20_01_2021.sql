@@ -1,0 +1,2 @@
+DROP FUNCTION compta_et_grand_livre(bigint, bigint, character varying, date, date, bigint, character varying, boolean);
+DROP FUNCTION compta_et_grand_livre(bigint, bigint, character varying, date, date, bigint, character varying, boolean, boolean);

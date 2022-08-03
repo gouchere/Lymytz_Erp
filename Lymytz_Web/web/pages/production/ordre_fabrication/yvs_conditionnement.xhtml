@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Conditionnement','modProduction', 'smenConditionnement', true)}
+    </ui:define> 
+    <ui:define name="contents"> 
+        #{managedConditionnement.loadAll()}
+        #{managedDepot.loadAllDepotActif(true)}
+        #{Marticle.loadActifArticle(true,true)}
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                collapseForm('conditionnement');
+                slideZoneUp();
+            });
+            function slideZoneUp() {
+                $('.zone_editPC').slideUp();
+            }
+            function slideZoneDown() {
+                $('.zone_editPC').slideDown();
+            }
+            function slideZone() {
+                $('.zone_editPC').slideToggle("fast", function() {
+                    //legend.children("span").html(value);
+                });
+            }
+        </script>
+        <h:form>
+            <p:remoteCommand name="updateBeanCaisse_" actionListener="#{managedConditionnement.updateBean()}"/>
+        </h:form>
+        <!-->
+        *************************************BeanCaisse****************************************
+        Boite de dialogue des articles
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_liste_article}" widgetVar="dlgListArticle" modal="true" width="70%" closeOnEscape="true" height="450"> 
+                <p:watermark for="txt_search_article_nomenclature" value="#{lab.L_reference_article}..." />
+                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_article_nomenclature" value="#{Marticle.article.refArt}" style="text-align: center">
+                        <p:ajax event="keyup" global="false" listener="#{Marticle.searchArticleActif(false)}" update="data_article_fiche_conditionnement"/>
+                    </h:inputText> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(false, false)}" global="false" update="data_article_fiche_conditionnement" icon="ui-icon-circle-triangle-w" disabled="#{Marticle.pa.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{Marticle.pa.currentPage}/#{Marticle.pa.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{Marticle.loadActifArticle(true, false)}" global="false" update="data_article_fiche_conditionnement" icon="ui-icon-circle-triangle-e" disabled="#{Marticle.pa.disNext}"/>
+                        <p:selectOneMenu value="#{Marticle.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle._choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{Marticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_article_fiche_conditionnement"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>
+                <p:dataTable value="#{Marticle.articlesResult}" var="art" rowKey="#{art.id}" rowIndexVar="artIdx"
+                             selectionMode="single" scrollable="true" scrollHeight="385" id="data_article_fiche_conditionnement" style="font-size: 0.9em">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedConditionnement.loadOnViewArticle}" oncomplete="dlgListArticle.hide()"
+                            update=":main_conditionnement:form_entete_conditionnement"/>
+                    <p:column headerText="N°" width="15">
+                        <span title="#{art.designation}">#{artIdx+1}</span>
+                    </p:column>
+                    <p:column width="70">
+                        <span title="#{art.designation}">#{art.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}" width="150">
+                        <span title="#{art.designation}">#{art.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" width="80">
+                        <span title="#{art.designation}">#{art.categorie}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_prix_a}" width="80" style="text-align: right">
+                        <h:outputText value="#{art.pua}" title="#{art.designation}" converter="DN" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_prix_v}" width="80" style="text-align: right">
+                        <h:outputText value="#{art.puv}" title="#{art.designation}" converter="DN" />
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmFinish" closeOnEscape="true"
+                             message="#{lab.LP_PC_text}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedConditionnement.terminer()}" oncomplete="dlgConfirmFinish.hide();collapseForm('conditionnement')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmFinish.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmEditer" closeOnEscape="true"
+                             message="#{lab.LP_PC_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedConditionnement.annuler(false, true)}" oncomplete="dlgConfirmEditer.hide();collapseForm('conditionnement')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmEditer.hide()"/>
+            </p:confirmDialog>
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmAnnuler" closeOnEscape="true"
+                             message="#{lab.LP_PC_text1}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedConditionnement.annuler(true, true)}" oncomplete="dlgConfirmAnnuler.hide();collapseForm('conditionnement')"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmAnnuler.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LP_PC_text2}" header="#{lab.L_confirmation}" width="40%">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedConditionnement.deleteBean()}" 
+                                 oncomplete="dlgConfirmDelete.hide()" update=":main_conditionnement:data_fiche_conditionnement"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_conditionnement">    
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_enregistrer}" id="save_conditionnement" actionListener="#{managedConditionnement.saveNew()}" 
+                               update="blog_conditionnement data_fiche_conditionnement" icon="ui-icon-disk">
+                    <p:menuitem value="#{lab.L_nouveau}" id="cancel_conditionnement" icon="ui-icon-document" global="false" actionListener="#{managedConditionnement.resetFiche()}" update="blog_conditionnement" oncomplete="collapseForm('conditionnement')"/>
+                    <p:menuitem value="#{lab.L_supprimer}"  global="false" icon="ui-icon-trash"  oncomplete="dlgConfirmDelete.show()"/>
+
+                </p:splitButton>
+                <h:panelGroup style="margin-left: 35%">
+                    <p:commandButton actionListener="#{managedConditionnement.parcoursInAllResult(false)}" update="txt_parc_linear_conditionnement" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('conditionnement')"/>
+                    <h:inputText value="#{managedConditionnement.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_conditionnement"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedConditionnement.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedConditionnement.parcoursInAllResult(true)}" update="txt_parc_linear_conditionnement" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('conditionnement')"/>
+                </h:panelGroup> 
+                <div style="float: right">     
+                    <h:link title="#{lab.L_mode_formulaire}" onclick="collapseForm('conditionnement');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link title="#{lab.L_mode_liste}" onclick="collapseList('conditionnement');
+                            return false" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_conditionnement" style="width: 99%; margin: auto; background: white">
+                    <p:outputPanel id="blog_conditionnement">                         
+                        <h:panelGrid id="form_conditionnement" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">     
+                            <f:facet name="header">
+                                <h:panelGrid id="form_entete_conditionnement" columns="2" styleClass="yvs_nostyle" style="width: 100%;margin-bottom: -5px;" cellpadding="0" cellspacing="0">
+                                    <h:panelGrid columns="2" styleClass="yvs_nostyle" style="float: left;font-size: large;background: black;color: white" rendered="#{managedConditionnement.fiche.id gt 0}">   
+                                        <span style="font-size: initial">#{lab.L_numero} : </span>
+                                        <h:outputText id="txt_reference_document_conditionnement" value="#{managedConditionnement.fiche.numero}"/>
+                                    </h:panelGrid>
+                                    <h:panelGroup style="padding: 7px;float: right; position: relative; margin-top: -5px" rendered="#{managedConditionnement.fiche.id gt 0}">
+                                        <p:outputPanel id="grp_btn_etat_conditionnement" styleClass="yvs_form_of" autoUpdate="true">                                    
+                                            <p:commandLink value="#{(managedConditionnement.fiche.statut==constantes.STATUT_DOC_ANNULE)?'Editable':'En Edition'}"
+                                                           styleClass="button-stateOF #{(managedConditionnement.fiche.statut == constantes.STATUT_DOC_EDITABLE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{!(managedConditionnement.fiche.statut == constantes.STATUT_DOC_ANNULE
+                                                                       or managedConditionnement.fiche.statut == constantes.STATUT_DOC_RENVOYE)}"
+                                                           actionListener="#{managedConditionnement.annuler(false, false)}" process="@this" global="false"/>
+                                            <p:commandLink value="#{(managedConditionnement.fiche.statut==constantes.STATUT_DOC_VALIDE)?'Validé':'Valider'}"
+                                                           styleClass="button-stateOF #{(managedConditionnement.fiche.statut==constantes.STATUT_DOC_VALIDE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{!(managedConditionnement.fiche.statut == constantes.STATUT_DOC_EDITABLE)}" 
+                                                           actionListener="#{managedConditionnement.valider()}" process="@this" global="false"/>
+                                            <p:commandLink value="#{(managedConditionnement.fiche.statut==constantes.STATUT_DOC_ANNULE)?'Annulé':'Annuler'}"
+                                                           styleClass="button-stateOF #{(managedConditionnement.fiche.statut==constantes.STATUT_DOC_ANNULE)?'button-stateOF_actif':''}" 
+                                                           disabled="#{!(managedConditionnement.fiche.statut == constantes.STATUT_DOC_VALIDE)}" 
+                                                           actionListener="#{managedConditionnement.annuler(true, false)}" process="@this" global="false"/>
+                                        </p:outputPanel>                                                
+                                    </h:panelGroup>                                     
+                                </h:panelGrid>
+                            </f:facet>
+                            <span style="font-size: initial">#{lab.L_article} : </span>
+                            <h:panelGroup>
+                                <h:inputText value="#{managedConditionnement.fiche.article.refArt}" style="color: #{managedConditionnement.fiche.article.error?'red':''}" tabindex="10">
+                                    <p:ajax event="blur" global="false" listener="#{managedConditionnement.searchArticle(true)}" update="form_conditionnement"/>
+                                </h:inputText>    
+                                <span style="font-weight: bold;color: #000">#{managedConditionnement.fiche.article.designation}</span>
+                                <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="#{lab.L_liste_article}" global="false"
+                                                 actionListener="#{managedConditionnement.initArticles(true)}" oncomplete="dlgListArticle.show()"/>
+                                <h:panelGroup id="desc_article_fiche_conditionnement" style="float: right;margin-top: 5px">
+                                    <h:outputText value="#{managedConditionnement.fiche.article.stock}" converter="DNS" style="font-weight: bold;color: #000"/>
+                                    <h:outputText value=" #{managedConditionnement.fiche.conditionnement.unite.reference}"/>
+                                    <span> #{lab.LP_PC_en_stock} </span>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                            <span>#{lab.LP_PC_nomenclature} </span>  
+                            <h:selectOneMenu value="#{managedConditionnement.fiche.nomenclature.id}" disabled="#{(managedConditionnement.fiche.statut != constantes.STATUT_DOC_EDITABLE)}"
+                                             style="min-width: 200px">
+                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                <f:selectItems value="#{managedConditionnement.nomenclatures}" var="nome" 
+                                               itemLabel="#{nome.reference}" itemValue="#{nome.id}" />                                 
+                                <p:ajax event="valueChange" listener="#{managedConditionnement.chooseNomenclature()}" update="data_reconditionnement desc_article_fiche_conditionnement"/>
+                            </h:selectOneMenu> 
+                            <span>#{lab.L_depot} </span>
+                            <h:selectOneMenu value="#{managedConditionnement.fiche.depot.id}" style="min-width: 120px">
+                                <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                <f:selectItems value="#{managedDepot.depots}" var="dep" itemLabel="#{dep.designation}" itemValue="#{dep.id}" />                          
+                                <p:ajax event="valueChange" global="false" listener="#{managedConditionnement.chooseDepot()}"/>
+                            </h:selectOneMenu> 
+                            <span>#{lab.LP_PC_date_fiche} </span>
+                            <p:calendar value="#{managedConditionnement.fiche.dateConditionnement}" size="10" pattern="dd-MM-yyyy"/>
+                            <span>#{lab.L_quantite} </span>  
+                            <h:panelGroup>
+                                <h:inputText value="#{managedConditionnement.fiche.quantite}">
+                                    <p:ajax event="blur" listener="#{managedConditionnement.blurQuantiteFiche()}" update="data_reconditionnement"/>
+                                </h:inputText>    
+                                <h:outputText value="#{managedConditionnement.fiche.conditionnement.unite.reference}"/>
+                            </h:panelGroup> 
+                            <f:facet name="footer">
+                                <p:dataTable id="data_reconditionnement" value="#{managedConditionnement.fiche.contenus}" var="y" rowKey="#{y.id}" 
+                                             rowIndexVar="yIdx" style="font-size: 0.9em">
+                                    <p:column headerText="N°" style="width: 5%">
+                                        <span>#{yIdx+1}</span>
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{y.new_}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_reference}">
+                                        <span>#{y.article.refArt}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_article}">
+                                        <span>#{y.article.designation}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_quantite}" style="text-align: right;width: 10%">
+                                        <h:outputText value="#{y.quantite}" converter="DNS"/>
+                                        <span title="#{y.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399"> #{y.conditionnement.unite.reference}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LP_PC_stock}." style="text-align: center;width: 5%">
+                                        <h:graphicImage library="icones" name="#{(y.consommable)?'out.png':'in.png'}" width="15" height="15" title="#{(y.consommable)?'Consommable':'Produit final'}"/>
+                                    </p:column>
+                                    <p:column style="width: 5%;text-align: center">
+                                        <p:contextMenu for="btn_option_reconditionnement" event="left click" style="font-size: 0.8em; text-align: center"
+                                                       styleClass="context_menu">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedConditionnement.deleteBeanContenu(y)}"
+                                                        update="data_reconditionnement"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_reconditionnement" type="button"/>
+                                    </p:column> 
+                                </p:dataTable>
+                            </f:facet>
+                        </h:panelGrid> 
+                    </p:outputPanel>
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_conditionnement" style="width: 99%; margin: auto; background: white">
+                    <h:inputHidden value="#{managedConditionnement.tabIds}" id="input_hide_fiche_conditionnement"/>
+                    <p:dataTable id="data_fiche_conditionnement" value="#{managedConditionnement.fiches}" var="mouv" 
+                                 rowKey="#{mouv.id}" rowIndexVar="mouvIdx" selectionMode="single">
+                        <p:ajax event="rowSelect" listener="#{managedConditionnement.loadOnView}" update=":main_conditionnement:blog_conditionnement :main_conditionnement:input_hide_fiche_conditionnement" 
+                                oncomplete="collapseForm('conditionnement'), slideZoneUp()"/>
+                        <p:column headerText="N°" width="15" styleClass="statut_#{mouv.statut}">
+                            <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{mouv.new_}"/>
+                            <span>#{mouvIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_article} " styleClass="statut_#{mouv.statut}">
+                            <h:outputText value="#{mouv.nomenclature.article.designation}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LP_PC_nomenclature} " styleClass="statut_#{mouv.statut}">
+                            <h:outputText value="#{mouv.nomenclature.reference}"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date} " style="width: 12%;text-align: center" styleClass="statut_#{mouv.statut}">
+                            <h:outputText value="#{mouv.dateConditionnement}" converter="DDMMYYYY"/>
+                        </p:column>
+                        <p:column headerText="#{lab.L_depot}" style="width: 20%;" styleClass="statut_#{mouv.statut}">
+                            <span>#{mouv.depot.designation}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_quantite} " style="text-align: right;width: 10%" styleClass="statut_#{mouv.statut}">
+                            <h:outputText value="#{mouv.quantite}" converter="DN"/>
+                            <span title="#{mouv.nomenclature.uniteMesure.unite.libelle}" style="font-size: 0.6em;color: #003399"> #{mouv.nomenclature.uniteMesure.unite.reference}</span>
+                        </p:column>
+                        <p:column headerText="" width="15" styleClass="statut_#{mouv.statut}" style="text-align: center">
+                            <p:contextMenu for="btn_option_conditionnement" event="left click" style="font-size: 0.9em"
+                                           styleClass="context_menu">
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedConditionnement.openTodeleteBean(mouv)}"
+                                            update="data_fiche_conditionnement" oncomplete="dlgConfirmDelete.show()"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" id="btn_option_conditionnement" style="width: 20px; height: 20px" type="button"/>
+                        </p:column>
+                    </p:dataTable> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedConditionnement.paginer(false)}" global="false" update="data_fiche_conditionnement" icon="ui-icon-circle-triangle-w" disabled="#{managedConditionnement.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedConditionnement.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedConditionnement.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedConditionnement.gotoPagePaginator()}" update="data_fiche_conditionnement"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedConditionnement.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedConditionnement.paginer(true)}" global="false" update="data_fiche_conditionnement" icon="ui-icon-circle-triangle-e" disabled="#{managedConditionnement.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedConditionnement.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedConditionnement.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedConditionnement.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_fiche_conditionnement"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </div> 
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_conditionnement display_auteur" align="right"  style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedConditionnement.selectFiche.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedConditionnement.selectFiche.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedConditionnement.selectFiche.author.users.nomUsers}" styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div>
+                <h:panelGrid id="blog_search_conditionnement" columns="2" style="width: 100%; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="5" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="" />
+                        <h:panelGroup>                            
+                            <h:selectBooleanCheckbox value="#{managedConditionnement.date}">
+                                <p:ajax event="valueChange" listener="#{managedValorisation.addParamDates()}" update="blog_date_search_conditionnement :main_conditionnement:data_fiche_conditionnement" oncomplete="collapseList('conditionnement')"/>
+                            </h:selectBooleanCheckbox>
+                            <h:outputText value="#{lab.L_date}" />
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.L_depot}" />
+                        <h:panelGroup>
+                            <h:outputText value="#{lab.L_statut}" style="float:left;margin-top: 2px"/>
+                            <h:selectOneMenu value="#{managedConditionnement.egaliteStatut}" style="float:right;margin-right: 5px;height: 20px">
+                                <f:selectItem itemLabel="#{lab.L_egale}" itemValue="="/>
+                                <f:selectItem itemLabel="#{lab.L_different}" itemValue="!="/>
+                                <p:ajax event="valueChange" update=":main_conditionnement:data_fiche_conditionnement" listener="#{managedConditionnement.addParamStatut()}" oncomplete="collapseList('conditionnement')"/>
+                            </h:selectOneMenu>  
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.L_reference}" />
+                        <p:commandButton icon="ui-icon-bullet" actionListener="#{managedConditionnement.clearParams(true)}" title="#{lab.L_reset_param}" style="width: 20px; height: 22px" 
+                                         update="blog_search_conditionnement"/>
+                        <h:panelGroup id="blog_date_search_conditionnement">
+                            <p:calendar value="#{managedConditionnement.debutSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedConditionnement.date}" size="8" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedValorisation.addParamDates()}" update=":main_conditionnement:data_fiche_conditionnement" oncomplete="collapseList('conditionnement')"/>
+                            </p:calendar>
+                            <p:spacer width="5px" style="background: black"/>
+                            <p:calendar value="#{managedConditionnement.finSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedConditionnement.date}" size="8" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedValorisation.addParamDates()}" update=":main_conditionnement:data_fiche_conditionnement" oncomplete="collapseList('conditionnement')"/>
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:selectOneMenu value="#{managedConditionnement.depotSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedDepot.depots}" var="depS" itemLabel="#{depS.designation}" itemValue="#{depS.id}" />                                 
+                            <p:ajax event="valueChange" listener="#{managedConditionnement.addParamSource()}" oncomplete="collapseList('conditionnement')"
+                                    update=":main_conditionnement:data_fiche_conditionnement"/>
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedConditionnement.statutSearch}"  valueChangeListener="#{managedConditionnement.chooseStatut}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_editable}" itemValue="#{constantes.ETAT_EDITABLE}"/>
+                            <f:selectItem itemLabel="#{lab.L_annuler}" itemValue="#{constantes.ETAT_ANNULE}"/>
+                            <f:selectItem itemLabel="#{lab.L_valider}" itemValue="#{constantes.ETAT_VALIDE}"/>
+                            <p:ajax event="valueChange" update=":main_conditionnement:data_fiche_conditionnement" oncomplete="collapseList('conditionnement')"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedConditionnement.numSearch}">
+                            <p:ajax event="blur" listener="#{managedConditionnement.addParamReference()}" oncomplete="collapseList('conditionnement')"
+                                    update=":main_conditionnement:data_fiche_conditionnement"/>
+                        </h:inputText>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right">
+
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

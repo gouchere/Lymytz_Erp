@@ -1,0 +1,637 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"        
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"     
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">       
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Tableau Bord Clients','modGescom', 'smenDashBoardClient', true,managedBordStatistique)}
+    </ui:define>     
+    <ui:define name="contents">     
+        <script type="text/javascript">
+            var list = false;
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 180);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('tb_clients');
+                slideAll();
+            });
+            function collapse(byGrid) {
+                if (byGrid) {
+                    collapseGrid('tb_clients');
+                    list = true;
+                } else {
+                    if (list) {
+                        collapseForm('tb_clients');
+                    } else {
+                        collapseList('tb_clients');
+                    }
+                    list = !list;
+                }
+            }
+            function slideAll() {
+                slideShow('zone_acomptes_client', 350);
+                slideShow('zone_autres_client', 350);
+                slideShow('zone_progress_client', 350);
+            }
+        </script>       
+        #{managedFactureVenteV2.doNothing()}    
+        #{managedOperationClient.doNothing()}
+        #{managedMensualiteVente.doNothing()}
+        #{managedCatCompt.doNothing()}
+
+        #{managedAgence.loadAgence()}
+        #{managedCategorieClt.loadAllCategorie()}
+        #{managedExercice.loadAllExrecice()}
+        #{Mdico.loadPays()}
+        #{managedBordStatistique.loadInfos(true)}
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LC_PTBC_liste_articles}" widgetVar="dlgListArticle" width="70%"  closeOnEscape="true" height="500"> 
+                <p:watermark for="txt_search_article_dhb_clt" value="#{lab.LC_PTBC_reference_article}..." />
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                    <h:inputText id="txt_search_article_dhb_clt" value="#{Marticle.searchArticle}">
+                        <p:ajax event="keyup" global="false" listener="#{Marticle.findArticle()}" update="data_articles_dhb_client"/>
+                    </h:inputText> 
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{Marticle.loadAllArticle(false,false)}" global="false" update="data_articles_dhb_client" icon="ui-icon-circle-triangle-w" disabled="#{Marticle.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{Marticle.paginator.currentPage}/#{Marticle.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{Marticle.loadAllArticle(true,false)}" global="false" update="data_articles_dhb_client" icon="ui-icon-circle-triangle-e" disabled="#{Marticle.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{Marticle.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{Marticle.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{Marticle.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="data_articles_dhb_client"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGrid>
+                <p:dataTable id="data_articles_dhb_client" value="#{Marticle.listArticle}" var="art" rowKey="#{art.id}"
+                             selectionMode="single"  rowIndexVar="line_a" style="max-height: 470px; overflow-y: auto">
+                    <p:ajax event="rowSelect" global="false" listener="#{managedBordStatistique.choixArticles}"  update=":main_tb_client:table_client_db"/>
+                    <p:column  headerText="N°" width="20">
+                        <span title="#{art.designation}">#{line_a+1}</span>
+                    </p:column>
+                    <p:column  headerText="#{lab.L_reference}" width="100">
+                        <span title="#{art.designation}">#{art.refArt}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}">
+                        <span title="#{art.designation}">#{art.designation}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_categorie}" width="100">
+                        <span title="#{art.designation}">#{art.categorie}</span>
+                    </p:column>
+                </p:dataTable>                
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                    <div style="float: right; font-size: 0.9em">
+                        <span>Catégorie</span>
+                        <h:selectOneMenu value="#{Marticle.categorieSearch}" valueChangeListener="#{Marticle.addParamCategorie_}">
+                            <f:selectItem itemLabel="" itemValue="#{null}" />
+                            <f:selectItem itemLabel="#{lab.LC_PTBC_produit_fini}" itemValue="#{constantes.CAT_PF}" />
+                            <f:selectItem itemLabel="#{lab.LC_PTBC_marchandises}" itemValue="#{constantes.CAT_MARCHANDISE}" />
+                            <p:ajax event="valueChange" update="data_articles_dhb_client" />
+                        </h:selectOneMenu>
+                    </div>
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main_tb_client">
+            <div class="part_fix">
+                <div style="width: 100%; font-size: 0.8em">
+                    <p:commandLink style="float: left" actionListener="#{managedBordStatistique.navigateInViewClient(false)}" oncomplete="collapseForm('tb_clients'); slideAll()"
+                                   update=":main_tb_client:data_client_tb :main_tb_client:form_tb_clients">
+                        <h:graphicImage library="img" name="slide_l.png" width="16" height="16"
+                                        style="border: 2px solid black; border-radius: 5px;padding: 3px;"/>
+                    </p:commandLink>  
+                    <div style="margin-left: 45%;float: left;margin-top: -4px">    
+                        <h:panelGrid columns="2">
+                            <p:outputPanel autoUpdate="true" style="width: 5%;border: 2px solid black; border-radius: 5px;padding: 3px;text-align: center">
+                                <p:inplace label="#{managedBordStatistique.indexClient+1}" style="margin-top: 15px; font-weight: bold">
+                                    <p:inputText value="#{managedBordStatistique.indexClient}" style="width: 30px;text-align: center">
+                                        <p:ajax event="valueChange" listener="#{managedBordStatistique.gotoPageClient()}"/>
+                                    </p:inputText>
+                                </p:inplace>
+                                <span> / #{managedClient.ids_clients.size()}</span>
+                            </p:outputPanel>    
+                            <h:panelGroup>
+                                <h:link title="#{lab.LC_PTBC_change_vue}" onclick="collapse(false);
+                                        return false">
+                                    <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                </h:link>             
+                                <p:spacer />
+                                <h:link title="#{lab.L_mode_liste}" onclick="collapse(true);
+                                        return false" >
+                                    <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                </h:link>    
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </div>
+                    <p:commandLink style="float: right" actionListener="#{managedBordStatistique.navigateInViewClient(true)}" oncomplete="collapseForm('tb_clients'); slideAll()"
+                                   update=":main_tb_client:data_client_tb :main_tb_client:form_tb_clients">
+                        <h:graphicImage library="img" name="slide_r.png" width="16" height="16"
+                                        style="border: 2px solid black; border-radius: 5px;padding: 3px;"/>
+                    </p:commandLink>   
+                </div>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_tb_clients">
+                    <p:outputPanel id="form_tb_clients" autoUpdate="true">
+                        <div class="block_slide" style="width: 99.25%; height: 180px;">
+                            <span class="block_slide_title">
+                                #{lab.LC_PTBC_generale}
+                                <h:panelGroup id="txt_solde_client_dash" style="float: right">
+                                    <span style="margin-right: 100px"> 
+                                        #{lab.LC_PTBC_solde_au} <h:outputText value="#{managedBordStatistique.synthese.dateDebut}" converter="DATE" style="font-style: italic"/> (<h:outputText value="#{managedBordStatistique.synthese.soldeInitial}" converter="DN" style="font-style: normal;font-weight: bold"/>)
+                                    </span>
+                                    <h:panelGroup style="margin-right: 5px;font-style: italic">
+                                        <span>
+                                            #{lab.LC_PTBC_total}(<h:outputText value="#{managedBordStatistique.synthese.soldeImpayes}" converter="DN" style="font-style: normal;font-weight: bold"/>)
+                                        </span>
+                                        -
+                                        <span>
+                                            #{lab.LC_PTBC_avoir}(<h:outputText value="#{managedBordStatistique.synthese.soldeAvoir}" converter="DN" style="font-style: normal;font-weight: bold"/>)
+                                        </span>
+                                        -
+                                        <span> 
+                                            #{lab.LC_PTBC_reglements}(<h:outputText value="#{managedBordStatistique.synthese.soldeAvance}" converter="DN" style="font-style: normal;font-weight: bold"/>)
+                                        </span>
+                                        -
+                                        <span>
+                                            #{lab.LC_PTBC_acomptes} (<h:outputText value="#{managedBordStatistique.synthese.soldeAcompte}" converter="DN" style="font-style: normal;font-weight: bold"/>)
+                                        </span>
+                                        +
+                                        <p:commandLink actionListener="#{managedBordStatistique.gotoCreditClient()}" style="color: black" title="#{lab.LC_PTBC_aller_page_credit_client}">
+                                            #{lab.LC_PTBC_autres} (<h:outputText value="#{managedBordStatistique.synthese.soldeCredit}" converter="DN" style="font-style: normal;font-weight: bold"/>)
+                                        </p:commandLink>
+                                        =
+                                        <h:outputText value="#{managedBordStatistique.synthese.soldeImpayes - managedBordStatistique.synthese.soldeAvoir - managedBordStatistique.synthese.soldeAvance - managedBordStatistique.synthese.soldeAcompte  +  managedBordStatistique.synthese.soldeCredit + managedBordStatistique.synthese.soldeInitial}" converter="DN" style="font-style: normal;font-weight: bold"/>
+                                    </h:panelGroup>
+                                </h:panelGroup>
+                            </span>
+                            <div class="zone_slide" style="width: 99.5%; height: 160px;">
+                                <h:panelGrid columns="1" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                    <h:panelGroup>
+                                        <div style="float: left; width: 10%; border: 1px solid #000">
+                                            <h:graphicImage library="photos" name="user1.jpg" width="100" height="100" />
+                                        </div>
+                                        <h:panelGrid columns="4" style="width: 89%; margin-left: 11%; font-size: 0.8em;">
+                                            <span>#{lab.LC_PTBC_code_client}</span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.codeClient}" style="font-weight: bold"/>
+                                            <span>#{lab.LC_PTBC_nom_prenom}</span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.nom_prenom}" style="font-weight: bold"/>
+                                            <span>#{lab.L_enregistrer_le}</span>
+                                            <h:outputText value="" style="font-weight: bold"/>
+                                            <span>#{lab.LC_PTBC_telephone}</span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.tiers.telephone}" style="font-weight: bold"/>
+                                            <span>#{lab.LC_PTBC_email}</span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.tiers.email}" style="font-weight: bold"/>
+                                            <span>#{lab.L_categorie}</span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.categorie}" style="font-weight: bold"/>
+                                            <f:facet name="footer">
+                                                <div align="right">
+                                                    <h:panelGroup>
+                                                        <h:outputText value="#{managedBordStatistique.synthese.client.id}" style="font-weight: bold;margin-right:5px" styleClass="style_identifiant_white"/>
+                                                        <p:contextMenu for="btn-download_recap_client" event="left click" styleClass="context_menu" style="width: 210px">
+                                                            <p:menuitem value="#{lab.LC_PTBC_recapitulatif_detaille}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.printDashBoardClient('', true)}" ajax="false"/>
+                                                            <p:menuitem value="#{lab.LC_PTBC_recapitulatif_general}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.printDashBoardClient('', false)}" ajax="false"/>                                    
+                                                        </p:contextMenu>
+                                                        <p:commandButton id="btn-download_recap_client" title="#{lab.L_telecharger}" icon="ui-icon-print" style="width: 23px; height: 23px;margin-top: -5px;float: right" type="button"/>
+                                                    </h:panelGroup>
+                                                </div>
+                                            </f:facet>
+                                        </h:panelGrid>
+                                    </h:panelGroup>
+                                    <h:panelGroup>
+                                        <p:panelGrid columns="6" style="width: 100%;font-size: 0.8em;">
+                                            <span>#{lab.LC_PTBC_nationalite} : </span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.tiers.pays.libelle}" style="font-weight: bold"/>
+                                            <span>#{lab.L_ville} : </span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.tiers.ville.libelle}" style="font-weight: bold"/>
+                                            <span>#{lab.LC_PTBC_zone}</span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.tiers.secteur.libelle}" style="font-weight: bold"/>
+                                            <span>#{lab.LC_PTBC_compte_tiers} : </span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.tiers.codeTiers}" style="font-weight: bold"/>                                       
+                                            <span>#{lab.LC_PTBC_compte_collectif} : </span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.compteCollectif.numCompte}" style="font-weight: bold"/> 
+                                            <span>#{lab.LC_PTBC_code_comptable}</span>
+                                            <h:outputText value="#{managedBordStatistique.synthese.client.categorieComptable.designation}" style="font-weight: bold"/>                                      
+                                        </p:panelGrid> 
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </div>
+                        </div>
+                        <div style="clear: both; height: 10px"/>
+                        <div id="zone_impayes_client" class="block_slide" style="float: left;width: 49.25%;height: 350px">
+                            <span  class="block_slide_title" onclick="slideShow('zone_impayes_client', 350)">
+                                <span class="button_slide">[-]</span>
+                                #{lab.LC_PTBC_impayes}     
+                                <div style="float: right; font-weight: bold">
+                                    #{lab.LC_PTBC_solde} : <h:outputText id="txt_solde_impaye_client_dash" value="#{managedBordStatistique.synthese.soldeImpaye}" converter="DN"/>
+                                </div>
+                            </span>
+                            <div class="zone_slide" style="height: 300px">
+                                <p:dataTable value="#{managedBordStatistique.synthese.factures}" var="ach" id="table_client_imp_dash" rowKey="#{ach.id}">
+                                    <p:column headerText="N°" styleClass="statut_#{ach.statut}">
+                                        <h:outputText value="#{ach.numDoc}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_date}" style="text-align: center" styleClass="statut_#{ach.statut}">
+                                        <h:outputText value="#{ach.enteteDoc.dateEntete}" converter="DATE"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_montant}" style="text-align: right" styleClass="statut_#{ach.statut}">
+                                        <h:outputText value="#{ach.montantTotal}" converter="DN"/>                                            
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_avance}" style="text-align: right" styleClass="statut_#{ach.statut}">
+                                        <h:outputText value="#{ach.montantAvance}" converter="DN"/>                                         
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_reste}" style="text-align: right" styleClass="statut_#{ach.statut}">
+                                        <h:outputText value="#{ach.montantResteApayer}" converter="DN"/>                                           
+                                    </p:column>
+                                    <p:column style="width: 5%;text-align: center">
+                                        <p:contextMenu for="btn_option_client_imp_dash" event="left click" style="font-size: 0.8em" styleClass="context_menu">
+                                            <p:menuitem value="#{lab.L_aller_a}" icon="ui-icon-arrowthick-1-e" global="false" actionListener="#{managedBordStatistique.gotoFactureVente(ach)}"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_client_imp_dash" type="button"/>
+                                    </p:column> 
+                                </p:dataTable> 
+                            </div>
+                            <div class="zone_bottom">
+                                <p:contextMenu for="btn_client_imp_dash" event="left click" styleClass="context_menu" style="width: 210px">
+                                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadDataImpayesClient()}" update="table_client_imp_dash txt_solde_impaye_client_dash txt_solde_client_dash"/>
+                                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.printDashBoardClient('F', false)}" ajax="false"/>                                    
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px;float: left" id="btn_client_imp_dash" type="button"/>
+                            </div>
+                        </div>
+                        <div id="zone_creances_client" class="block_slide" style="float: right;width: 49.25%;height: 350px">
+                            <span class="block_slide_title" onclick="slideShow('zone_creances_client', 350)">
+                                <span class="button_slide">[-]</span>
+                                #{lab.LC_PTBC_suivi_mentualites}
+                            </span> 
+                            <div class="zone_slide" style="height: 300px">
+                                <p:dataTable value="#{managedBordStatistique.synthese.mensualites}" var="mens" id="table_client_ret_dash" rowKey="#{mens.id}">
+                                    <p:column headerText="#{lab.L_date}" style="text-align: center" styleClass="statut_#{mens.etat}">
+                                        <h:outputText value="#{mens.dateMensualite}" converter="DATE"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_montant}" style="text-align: right" styleClass="statut_#{mens.etat}">
+                                        <h:outputText value="#{mens.montant}" converter="DN"/>                                            
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_avance}" style="text-align: right" styleClass="statut_#{mens.etat}">
+                                        <h:outputText value="#{mens.avance}" converter="DN"/>                                         
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_reste}" style="text-align: right" styleClass="statut_#{mens.etat}">
+                                        <h:outputText value="#{mens.reste}" converter="DN"/>                                           
+                                    </p:column>
+                                </p:dataTable> 
+                            </div>
+                            <div class="zone_bottom">
+                                <p:contextMenu for="btn_client_ret_dash" event="left click" styleClass="context_menu" style="width: 210px">
+                                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadDataEcheancierClient()}" update="table_client_ret_dash"/>
+                                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.printDashBoardClient('F', false)}" ajax="false"/>                                    
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px;" id="btn_client_ret_dash" type="button"/>
+                            </div>  
+                        </div>  
+                        <div style="clear: both; height: 10px; width: 100%"></div>
+                        <div id="zone_acomptes_client" class="block_slide" style="float: left;width: 49.25%;height: 350px">
+                            <span class="block_slide_title" onclick="slideShow('zone_acomptes_client', 350)">
+                                <span class="button_slide">[-]</span>
+                                #{lab.LC_PTBC_acomptes}
+                                <div style="float: right; font-weight: bold">
+                                    Solde : <h:outputText id="txt_solde_acompte_client_dash" value="#{managedBordStatistique.synthese.soldeAcompte}" converter="DN"/>
+                                </div>
+                            </span>
+                            <div class="zone_slide" style="height: 300px">
+                                <p:dataTable value="#{managedBordStatistique.synthese.acomptes}" var="rec" rowKey="#{rec.id}" id="table_client_acomp_dash">
+                                    <p:column headerText="N°" styleClass="statut_#{managedOperationClient.giveStringStatut(rec.statut)}">
+                                        <h:outputText value="#{rec.numRefrence}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_date_acomptes}" sortBy="#{rec.dateAcompte}" style="text-align: center" styleClass="statut_#{managedOperationClient.giveStringStatut(rec.statut)}">
+                                        <h:outputText value="#{rec.dateAcompte}" converter="DDMMYYYY"/>
+                                    </p:column>
+                                    <p:column headerText="Caisse" styleClass="statut_#{managedOperationClient.giveStringStatut(rec.statut)}">
+                                        <h:outputText value="#{rec.caisse.intitule}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_montant}" style="width: 17%;text-align: right" styleClass="statut_#{managedOperationClient.giveStringStatut(rec.statut)}">
+                                        <h:outputText value="#{rec.montant}" converter="DN"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_reste}" style="width: 17%;text-align: right" styleClass="statut_#{managedOperationClient.giveStringStatut(rec.statut)}">
+                                        <h:outputText value="#{rec.reste}" converter="DN"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </div>
+                            <div class="zone_bottom">
+                                <p:contextMenu for="btn_client_acomp_dash" event="left click" styleClass="context_menu" style="width: 210px">
+                                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadDataAcompteClient()}" update="table_client_acomp_dash txt_solde_acompte_client_dash txt_solde_client_dash"/>
+                                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.printDashBoardClient('A', false)}" ajax="false"/>                                    
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px;float: left" id="btn_client_acomp_dash" type="button"/>
+                            </div>
+                        </div>
+                        <div id="zone_autres_client" class="block_slide" style="float: right;width: 49.25%;height: 350px">
+                            <span class="block_slide_title" onclick="slideShow('zone_autres_client', 350)">
+                                <span class="button_slide">[-]</span>
+                                #{lab.LC_PTBC_performances}     
+                                <h:panelGroup style="float: right">
+                                    <h:selectBooleanCheckbox value="#{managedBordStatistique.displayName}">
+                                        <p:ajax event="valueChange" global="false" update="table_client_db"/>
+                                    </h:selectBooleanCheckbox>
+                                    <span>#{lab.LC_PTBC_afficher_designation}</span>
+                                </h:panelGroup>
+                            </span> 
+                            <div class="zone_slide" style="height: 300px">
+                                <p:dataTable id="table_client_db" value="#{managedBordStatistique.etats.lignes}" var="row" rowIndexVar="iRow" paginator="true" 
+                                             rows="20" paginatorAlwaysVisible="false" style="width: 100%;overflow-x: auto;">
+                                    <p:columnGroup type="header">
+                                        <p:row>
+                                            <p:column headerText="#{lab.L_article}" style="width: 15%"/>
+                                            <c:forEach items="#{managedBordStatistique.etats.colonnes}" var="head" varStatus="_head">
+                                                <p:column headerText="#{head.valeur}" style="width: 15%;font-weight: #{managedBordStatistique.etats.isTotalCol(_head.index)?'bold':'inherit'}"/>
+                                            </c:forEach>
+                                            <p:column headerText="#{lab.LC_PTBC_taux}." style="width: 10%;font-weight: bold"/>
+                                            <p:column headerText="#{lab.LC_PTBC_prog}" style="width: 10%;font-weight: bold"/>
+                                        </p:row>
+                                    </p:columnGroup>   
+                                    <p:column styleClass="ui-widget-header" style="width: 15%">
+                                        <h:outputText value="#{row.valeur}" title="#{row.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.displayName}"/>
+                                        <h:outputText value="#{row.libelle}" title="#{row.valeur}" style="cursor: pointer" rendered="#{managedBordStatistique.displayName}"/>
+                                    </p:column>
+                                    <p:columns value="#{managedBordStatistique.etats.colonnes}" var="col" columnIndexVar="iHead" style="width: 15%;text-align: right"
+                                               styleClass="#{managedBordStatistique.etats.isTotal(iRow, iHead)?'ui-widget-header':'y'}">
+                                        <h:panelGroup rendered="#{managedBordStatistique.etats.type != 'caq'}">
+                                            <h:outputText value="#{managedBordStatistique.etats.valeur(iRow, iHead)}" converter="DN"
+                                                          rendered="#{(managedBordStatistique.etats.isTotalRow(iRow)?managedBordStatistique.etats.type != 'qte':true)}"
+                                                          styleClass="#{managedBordStatistique.etats.isTotal(iRow, iHead)?'texte_total':'inherit'}"/>                                        
+                                        </h:panelGroup>
+                                        <h:panelGroup rendered="#{managedBordStatistique.etats.type == 'caq'?!(managedBordStatistique.etats.isTotalRow(iRow)):false}">
+                                            <h:panelGroup style="float: left">
+                                                [<h:outputText value="#{managedBordStatistique.etats.valeur(iRow, iHead, 'qte')}" converter="DN"
+                                                               styleClass="#{managedBordStatistique.etats.isTotal(iRow, iHead)?'texte_total':'inherit'}"/>]
+                                            </h:panelGroup>
+                                            <h:outputText value="#{managedBordStatistique.etats.valeur(iRow, iHead, 'ca')}" converter="DN"
+                                                          styleClass="#{managedBordStatistique.etats.isTotal(iRow, iHead)?'texte_total':'inherit'}"/>
+                                        </h:panelGroup>
+                                        <h:outputText value="%" rendered="#{managedBordStatistique.etats.type == 'taux'}"/>
+                                    </p:columns>
+                                    <p:column style="width: 10%;text-align: right;font-weight: bold" styleClass="ui-widget-header">
+                                        <h:panelGroup rendered="#{managedBordStatistique.etats.isTotalRow(iRow)?(managedBordStatistique.etats.type != 'caq' and managedBordStatistique.etats.type != 'qte'):true}">
+                                            <h:outputText value="#{managedBordStatistique.etats.tauxTotal(iRow)}" converter="DN"/>
+                                            <h:outputText value="%"/>                                            
+                                        </h:panelGroup>
+                                    </p:column> 
+                                    <p:column style="width: 10%;text-align: right;font-weight: bold" styleClass="ui-widget-header">
+                                        <h:panelGroup rendered="#{!(managedBordStatistique.etats.isTotalRow(iRow))}">
+                                            <h:outputText value="#{managedBordStatistique.etats.progression(iRow)}" converter="DN"/>
+                                            <h:outputText value="%"/>                                            
+                                        </h:panelGroup>
+                                    </p:column> 
+                                </p:dataTable>
+                            </div>
+                            <div class="zone_bottom">
+                                <h:panelGrid columns="2" style="font-size: 0.8em; width: 100%">
+                                    <h:panelGroup style="margin-top: -3px">
+                                        <p:commandButton icon="ui-icon-refresh" title="Load" actionListener="#{managedBordStatistique.loadInfosArticleClient()}" update="table_client_db"/>
+                                        <p:spacer width="10"/>
+                                        <h:selectOneMenu value="#{managedBordStatistique.etats.type}">
+                                            <f:selectItem itemLabel="#{lab.LC_PTBC_ca}" itemValue="ca" />
+                                            <f:selectItem itemLabel="#{lab.LC_PTBC_qte}" itemValue="qte" />
+                                            <f:selectItem itemLabel="#{lab.LC_PTBC_taux}" itemValue="taux" />
+                                            <f:selectItem itemLabel="--" itemValue="--" noSelectionOption="true"/>
+                                            <f:selectItem itemLabel="#{lab.LC_PTBC_qte_ca}" itemValue="caq" />
+                                            <p:ajax event="valueChange" global="false" update="table_client_db"/>
+                                        </h:selectOneMenu>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </div>   
+                            <p:lineChart value="#{managedBordStatistique.synthese.barModel}" legendPosition="e" style="height:280px" rendered="false"
+                                         title="#{lab.LC_PTBC_progression_selon} : #{managedBordStatistique.type == 'ca'?'Le chiffre Affaire':managedBordStatistique.type == 'qte'?'La quantité achétée':'Le taux de progression périodique'}"/>
+                        </div>
+                        <div style="clear: both; height: 10px; width: 100%"></div>
+                        <div id="zone_progress_client" class="block_slide" style="height: 350px;width: 99.5%;">                     
+                            <span class="block_slide_title" onclick="slideShow('zone_progress_client', 350)">
+                                <span class="button_slide">[-]</span>
+                                #{lab.LC_PTBC_progression}
+                            </span>   
+                            <div class="zone_slide" style="height: 300px;width: 99.25%;">
+                                <p:panel id="linear_tb_clients">  
+
+                                </p:panel>
+                            </div>  
+                            <div class="zone_bottom">
+                                <h:panelGrid columns="2" style="font-size: 0.8em; width: 100%">
+                                    <h:panelGroup style="margin-top: -3px">
+                                        <p:commandButton icon="ui-icon-refresh" title="Load" actionListener="#{managedBordStatistique.loadProgressClient(true)}"
+                                                         update="table_client_db"/>
+                                        <p:spacer width="10"/>
+                                        <h:selectOneMenu value="#{managedBordStatistique.type}">
+                                            <f:selectItem itemLabel="#{lab.LC_PTBC_ca}" itemValue="ca" />
+                                            <f:selectItem itemLabel="#{lab.LC_PTBC_qte}" itemValue="qte" />
+                                            <f:selectItem itemLabel="#{lab.LC_PTBC_taux}" itemValue="taux" />
+                                            <p:ajax event="valueChange" global="false" listener="#{managedBordStatistique.loadProgressClient(false)}" update="linear_tb_clients"/>
+                                        </h:selectOneMenu>
+                                        <h:selectOneMenu value="#{managedBordStatistique.natureProgress}">
+                                            <f:selectItem itemLabel="#{lab.LC_PTBC_par_article}" itemValue="A" />
+                                            <f:selectItem itemLabel="#{lab.LC_PTBC_par_annee}" itemValue="Y" />
+                                            <p:ajax event="valueChange" global="false" listener="#{managedBordStatistique.loadProgressClient(false)}" update="linear_tb_clients"/>
+                                        </h:selectOneMenu>
+                                    </h:panelGroup>
+                                </h:panelGrid>  
+                            </div>    
+                        </div>    
+                    </p:outputPanel>
+                </div>
+                <div class="yvs_list_tb_clients" style="width: 100%; margin: auto">
+                    <div  class="part_list">
+                        <div class="block_slide" style="height: 350px">                        
+                            <span class="block_slide_title">
+                                #{lab.LC_PTBC_comparatif_client}
+                            </span>   
+                            <div class="zone_slide" style="height: 300px">
+                                <p:dataTable value="#{managedBordStatistique.ventesClients}" var="vte"  id="table_vente_compare"
+                                             scrollHeight="240" scrollable="true">
+                                    <p:column headerText="#{lab.LC_PTBC_client}">
+                                        <h:outputText value="#{vte[1]}"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_ca}" style="text-align: right">
+                                        <h:outputText value="#{vte[2]}" converter="DN"/>                                            
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_taux} /+" style="text-align: right">
+                                        <h:outputText value="#{vte[3]}" converter="DN"/>                                         
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_nombre_facture}" style="text-align: right">
+                                        <h:outputText value="#{vte[4]}" converter="DN"/>                                          
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_montant_regle}" style="text-align: right">
+                                        <h:outputText value="#{vte[5]}" converter="DN"/>                                            
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PTBC_impaye}" style="text-align: right">
+                                        <h:outputText value="#{vte[6]}" converter="DN"/>                                            
+                                    </p:column>
+                                </p:dataTable>
+                            </div>
+                            <div class="zone_bottom">
+                                <h:panelGrid columns="3" style="font-size: 0.8em; width: 100%">
+                                    <p:commandButton icon="ui-icon-refresh" title="Load" actionListener="#{managedBordStatistique.loadDataVenteClient()}" update="table_vente_compare" style="margin-top: -3px"/>
+                                    <h:panelGroup>
+                                        <span>#{lab.LC_PTBC_zone}</span>
+                                        <h:selectOneMenu value="#{managedBordStatistique.template.id}">
+                                            <f:selectItem itemLabel="" itemValue="#{null}" />
+                                            <f:selectItems value="#{managedTiersTemplate.templates}" var="tmp"
+                                                           itemLabel="#{tmp.libelle}" itemValue="#{tmp.id}" />
+                                        </h:selectOneMenu>
+                                    </h:panelGroup>
+                                </h:panelGrid>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="yvs_grid_tb_clients" style="width: 100%; margin: auto">
+                    <div class="part_list">
+                        <p:dataTable id="data_client_tb" value="#{managedClient.clients}" var="clt" rowKey="#{clt.id}" rowIndexVar="cltIdx" selectionMode="single"> 
+                            <p:ajax event="rowSelect" listener="#{managedBordStatistique.loadOnViewClient}" update=":main_tb_client:data_client_tb :main_tb_client:form_tb_clients" oncomplete="collapseForm('tb_clients'); slideAll()"/>
+                            <p:column headerText="Solde" style="display: none">
+                                <h:outputText value="#{managedClient.creanceByAgence(managedBordStatistique.agence, clt, managedBordStatistique.dateDebut, managedBordStatistique.dateFin)}" converter="DN"/>
+                            </p:column>
+                            <p:column headerText="N°" style="width: 5%">
+                                <span title="#{lab.L_categorie} : #{clt.categorie}"  >#{cltIdx+1}</span>
+                                <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{clt.id eq managedBordStatistique.idClient}"/> 
+                                <h:graphicImage library="img" name="#{(clt.actif)?'vu.png':'vu_non.png'}" width="15" height="15" title="#{(clt.actif)?'Activer':'Désactiver'}" style="float: right"/>
+                            </p:column>
+                            <p:column headerText="#{lab.L_code}" style="width: 10%; ">
+                                <span title="#{lab.L_categorie} : #{clt.categorie}">#{clt.codeClient}</span>
+                                <h:graphicImage library="img" name="danger.png" style="float: right" rendered="#{-(clt.solde) gt clt.seuilSolde}" width="23" height="23" title="Capacité d'endettement dépassé car le seuil est à #{clt.seuilSolde}"/>
+                                <h:outputText value="#{lab.L_defaut}" rendered="#{clt.defaut}" style="float: right;font-weight: bold;font-size: 0.8em;font-style: italic;color: blue"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBC_tiers}" style="width: 10%;">
+                                <span title="#{lab.L_categorie} : #{clt.categorie}">#{clt.tiers.codeTiers}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBC_nom_prenom}" style="width: 20%; "  >
+                                <span title="#{lab.L_categorie} : #{clt.categorie}">#{clt.nom_prenom}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBC_region}" style="width: 15%; ">
+                                <span title="#{lab.L_categorie} : #{clt.categorie}">#{clt.tiers.region}</span>
+                            </p:column>
+                            <p:column headerText="S.I" style="text-align: right;width: 10%">
+                                <h:outputText value="#{-(clt.soldeInitial)}" converter="DN"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBC_debit}" style="text-align: right;width: 10%">
+                                <h:outputText value="#{clt.creance + clt.debit}" converter="DN"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBC_credit}" style="text-align: right;color: blue;width: 10%">
+                                <h:outputText value="#{clt.acompte + clt.credit}" converter="DN"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBC_solde}" style="text-align: right;width: 10%">
+                                <h:outputText value="#{-(clt.solde)}" converter="DN" style="color: #{clt.solde gt 0?'#990000':'black'}"/>
+                            </p:column>
+                        </p:dataTable> 
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">                            
+                            <p:commandButton actionListener="#{managedClient.init(false)}"   update="data_client_tb" icon="ui-icon-circle-triangle-w" disabled="#{managedClient.paginator.disPrev}"/>
+                            <p:outputPanel >
+                                <p:inplace label="#{managedClient.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                    <p:inputText value="#{managedClient.paginator.gotoPage}" style="width: 30px;text-align: center">
+                                        <p:ajax event="valueChange" listener="#{managedClient.gotoPagePaginator()}" update="data_client_tb"/>
+                                    </p:inputText>
+                                </p:inplace><p:outputLabel value="/#{managedClient.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                            </p:outputPanel>
+                            <p:commandButton actionListener="#{managedClient.init(true)}"  update="data_client_tb" icon="ui-icon-circle-triangle-e" disabled="#{managedClient.paginator.disNext}"/>
+                            <p:selectOneMenu value="#{managedClient.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedClient.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{managedClient.paginations}"/>
+                                <p:ajax event="valueChange" update="data_client_tb"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel>
+                    </div>
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" id="main_search_tb_clients">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find" style="height: 60px">
+                <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:panelGrid id="blog_client_dash" columns="6" style="font-size: 0.8em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.LC_PTBC_client} " />
+                        <h:outputText value="#{lab.LC_PTBC_groupe}" />
+                        <h:outputText value="#{lab.LC_PTBC_compte}" />
+                        <h:outputText value="#{lab.L_pays}" />
+                        <h:outputText value="#{lab.L_ville}" />
+                        <h:outputText value="" />
+                        <h:inputText value="#{managedBordStatistique.codeClient}" style="color: #{(managedBordStatistique.synthese.client.error)?'true':'inherit'}">
+                            <p:ajax event="valueChange" listener="#{managedBordStatistique.findOneClient(managedBordStatistique.codeClient)}"
+                                    update="@this blog_client_dash :main_tb_client:data_client_tb" oncomplete="slideAll()"/>
+                        </h:inputText>  
+                        <h:selectOneMenu value="#{managedClient.groupeSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedCategorieClt.categories}" var="cats" itemLabel="#{cats.libelle}" itemValue="#{cats.id}" />
+                            <p:ajax event="valueChange" listener="#{managedBordStatistique.addParamGroupeClient()}" 
+                                    update="blog_client_dash :main_tb_client:data_client_tb" oncomplete="slideAll()"/>                              
+                        </h:selectOneMenu>    
+                        <h:inputText value="#{managedClient.compteSearch}" style="width: 140px">
+                            <p:ajax event="valueChange" listener="#{managedBordStatistique.addParamCompteClient()}" 
+                                    update="blog_client_dash :main_tb_client:data_client_tb" oncomplete="slideAll()"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedClient.paysSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{Mdico.pays}" var="pyss" itemLabel="#{pyss.libele}" itemValue="#{pyss.id}" />                                    
+                            <p:ajax event="valueChange" listener="#{managedBordStatistique.addParamPaysClient()}" 
+                                    update="ville_tb_client_search blog_client_dash :main_tb_client:data_client_tb" oncomplete="slideAll()"/>
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedClient.villeSearch}" id="ville_tb_client_search" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{Mdico.villes}" var="dics" 
+                                           itemLabel="#{dics.libele}" itemValue="#{dics.id}" />                               
+                            <p:ajax event="valueChange" listener="#{managedBordStatistique.addParamVilleClient()}" 
+                                    update="blog_client_dash :main_tb_client:data_client_tb" oncomplete="slideAll()"/>
+                        </h:selectOneMenu> 
+                    </h:panelGrid>  
+                    <h:panelGrid id="blog_search_2nd_dash" columns="5" style="font-size: 0.8em;float: right" cellpadding="0" cellspacing="0">
+                        <h:outputText value="#{lab.LDB_PD_agence}" />
+                        <h:outputText value="#{lab.LC_PTBC_exercice}" />
+                        <h:outputText value="#{lab.LC_PTBC_periodicite}" />
+                        <h:outputText value="#{lab.L_dates}" />
+                        <h:outputText value="" />
+                        <h:selectOneMenu value="#{managedBordStatistique.agence}" valueChangeListener="#{managedDepot.addParamAgence}">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
+                            <p:ajax event="valueChange" global="false" oncomplete="slideAll()"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedBordStatistique.exercice}">
+                            <f:selectItem itemLabel="--" itemValue="0"/>
+                            <f:selectItems value="#{managedExercice.exercices}" var="ox" itemLabel="#{ox.reference}" itemValue="#{ox.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedBordStatistique.chooseExercice()}" oncomplete="slideAll()"
+                                    update=":main_tb_client:data_client_tb"/>
+                        </h:selectOneMenu>
+                        <h:selectOneMenu value="#{managedBordStatistique.periode}">
+                            <f:selectItem itemLabel="#{lab.LC_PTBS_annuel}" itemValue="A" />
+                            <f:selectItem itemLabel="#{lab.LC_PTBS_trimestriel}" itemValue="T" />
+                            <f:selectItem itemLabel="#{lab.LC_PTBS_mensuel}" itemValue="M" />
+                            <f:selectItem itemLabel="#{lab.LC_PTBS_journalier}" itemValue="J" />
+                            <p:ajax event="valueChange" global="false" oncomplete="slideAll()" update=":main_tb_client:data_client_tb"/>
+                        </h:selectOneMenu>
+                        <h:panelGroup id="table_table_client_db">
+                            <p:calendar value="#{managedBordStatistique.dateDebut}" pattern="dd-MM-yyyy" navigator="true" size="10">
+                                <p:ajax event="dateSelect" global="false"/>
+                            </p:calendar>
+                            <p:calendar value="#{managedBordStatistique.dateFin}" pattern="dd-MM-yyyy" navigator="true" size="10">
+                                <p:ajax event="dateSelect" global="false"/>
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:panelGroup>
+                            <p:commandButton icon="ui-icon-refresh" title="Charger" actionListener="#{managedBordStatistique.loadDataClient()}"
+                                         update=":main_tb_client:form_tb_clients" oncomplete="slideAll()" id="other_tb_clients"/>
+                            <p:commandButton icon="ui-icon-refresh" title="Actualiser" actionListener="#{managedClient.loadAllClient(true, true)}" 
+                                             update=":main_tb_client:data_client_tb" oncomplete="slideAll()" id="must_option_tb_clients"/>
+                        </h:panelGroup>
+                        
+                    </h:panelGrid>
+                </h:panelGrid>    
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,311 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">     
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Codes barres','modDonneBase', 'smencodeBarre', true,managedCondArticles)}
+    </ui:define>               
+    <ui:define name="contents">   
+        #{managedCondArticles.loadAll()}           
+        #{managedFamilleArticle.loadFamilleByActif(true)}
+        #{managedGroupeArticle.loadAll(false)}
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - 210);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('article');
+            });
+        </script>
+
+        <h:form prependId="false">
+            <p:dialog header="#{lab.L_plus_option}" width="40%"  closeOnEscape="true" widgetVar="dlgPlusOption" resizable="false"> 
+                <h:panelGrid id="blog_more_option_article" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:selectBooleanCheckbox value="#{managedCondArticles.paramDate}" valueChangeListener="#{managedCondArticles.chooseDateSearch}" style="float: left;margin-left: 5px">
+                            <p:ajax event="valueChange" oncomplete="collapseList('article');collapseList('nav_article')"
+                                    process="@form" update=":formulaire_mainArticle_cond:tab_article_cond"/>
+                        </h:selectBooleanCheckbox>
+                        <h:outputText value="#{lab.L_date}" />
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_employe">
+                        <p:calendar value="#{managedCondArticles.dateDebut}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!Marticle.paramDate}" size="10" style="font-size: 0.8em">
+                            <p:ajax event="dateSelect" update=":formulaire_mainArticle_cond:tab_article_cond" listener="#{managedCondArticles.addParamDate1}" oncomplete="collapseList('article');"/>
+                            <p:ajax event="valueChange" update=":formulaire_mainArticle_cond:tab_article_cond" listener="#{managedCondArticles.addParamDate2()}" oncomplete="collapseList('article');"/>
+                        </p:calendar>
+                        <p:spacer width="5px" style="background: black"/>
+                        <p:calendar value="#{managedCondArticles.dateFin}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!Marticle.paramDate}" size="10" style="font-size: 0.8em">
+                            <p:ajax event="dateSelect" update=":formulaire_mainArticle_cond:tab_article_cond" listener="#{managedCondArticles.addParamDate1}"/>
+                            <p:ajax event="valueChange" update=":formulaire_mainArticle_cond:tab_article_cond" listener="#{managedCondArticles.addParamDate2()}" oncomplete="collapseList('article');"/>
+                        </p:calendar>
+                    </h:panelGroup>
+                </h:panelGrid>    
+            </p:dialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="formulaire_mainArticle_cond">
+            <p:defaultCommand target="save_codes_barres"/>
+            <div class="part_fix">    
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedCondArticles.parcoursInAllResult(false)}" update="txt_parc_linear_article_cond fiche_articles_cond"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('article')"/>
+                    <h:inputText value="#{managedCondArticles.offset}" style="width: 35px; text-align: center;"  title="Aller au N°..." id="txt_parc_linear_article_cond"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedCondArticles.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedCondArticles.parcoursInAllResult(true)}" update="txt_parc_linear_article_cond fiche_articles_cond" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('article')"/>
+                </h:panelGroup>
+                <div style="float: right">
+                    <p:spacer width="10"/>
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('article');
+                            collapseForm('nav_article');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <p:spacer />
+                    <h:link onclick="collapseList('article');
+                            collapseList('nav_article');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_article" style="width: 100%">
+                    <h:panelGroup id="fiche_articles_cond" style="width: 98%">                          
+                        <p:outputPanel id="image_art_prod_cond" style="text-align: center;float: left; width: 15%; height: 200px" autoUpdate="true"> 
+                            <h:panelGrid columns="1" rendered="#{managedCondArticles.conditionnement.photo.length() gt 0}" style="margin: auto">
+                                <p:commandLink actionListener="#{Marticle.buildUploadImage()}" oncomplete="dlgUploadImg.show()" global="false">
+                                    <h:graphicImage id="im_art_prod" library="lymytz/documents/docArticle" name="#{managedCondArticles.conditionnement.photo}" 
+                                                    styleClass="article_img" alt="#{lab.LDB_PA_photos_article}" style="height: 160px"/>
+                                </p:commandLink>                                
+                            </h:panelGrid>
+                        </p:outputPanel>                               
+                        <div style="margin-left: 15%; height: 200px; background: #828c95" >                                                       
+                            <h:panelGrid columns="4" styleClass="yvs_table" style="background: #EEE; width: 100%; font-size: 0.8em"
+                                         id="middle_form_article" cellpadding="0" cellspacing="0">
+                                <f:facet name="header">
+                                    <h:panelGroup>
+                                        <h:inputText value="#{managedCondArticles.conditionnement.article.refArt}" style="width: 10%; font-weight: bold; text-align: center">
+                                            <p:ajax event="valueChange" listener="#{Marticle.findArticle()}"
+                                                    process="@form" update="fiche_articles_cond"/>
+                                        </h:inputText>
+                                        <h:inputText value="#{managedCondArticles.conditionnement.article.designation}" style="width: 75%" title="#{lab.LDB_PCB_designation}" readonly="true"/>
+                                        <h:inputText value="#{managedCondArticles.conditionnement.unite.libelle}" style="width: 14%" title="#{lab.LDB_PCB_designation}" readonly="true"/>
+                                    </h:panelGroup>
+                                </f:facet>   
+                                <span>#{lab.LDB_PCB_famille}</span>
+                                <h:inputText value="#{managedCondArticles.conditionnement.article.famille.designation}"   readonly="true" style="width: 100%"/>                                 
+                                <span>#{lab.LDB_PCB_categorie}</span>
+                                <h:inputText value="#{managedCondArticles.conditionnement.article.categorie}"   readonly="true" style="width: 100%"/>  
+                                <span>#{lab.LDB_PCB_pua} </span>
+                                <h:panelGroup>
+                                    <pe:inputNumber value="#{managedCondArticles.conditionnement.article.pua}" style="text-align: right; width: 100px" styleClass="number" disabled="true"/>
+                                </h:panelGroup>
+                                <span>#{lab.LDB_PCB_puv}</span>
+                                <h:panelGroup>
+                                    <pe:inputNumber value="#{managedCondArticles.conditionnement.article.puv}" style="text-align: right; width: 100px" styleClass="number" disabled="true"/>
+                                </h:panelGroup>
+                                <span>#{lab.LDB_PCB_remise} </span>
+                                <pe:inputNumber value="#{managedCondArticles.conditionnement.article.remise}" style="text-align: right; width: 100px" styleClass="number"/>                                                            
+                                <span>#{lab.LDB_PCB_suivi_stock}</span>
+                                <h:selectBooleanCheckbox value="#{managedCondArticles.conditionnement.article.suiviEnStock}" />
+                                <span>#{lab.LDB_PCB_classe_n1}</span>
+                                <h:selectOneMenu value="#{managedCondArticles.conditionnement.article.classe1.id}" title="#{lab.LDB_PA_select_one}" styleClass="select" style="min-width: 120px">
+                                    <f:selectItem itemLabel="----" itemValue="0" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedClasseStat.classesStat}" var="cls1" itemLabel="#{cls1.designation}" itemValue="#{cls1.id}"/>
+                                </h:selectOneMenu> 
+                                <span>#{lab.LDB_PCB_classe_n2}</span>
+                                <h:selectOneMenu value="#{managedCondArticles.conditionnement.article.classe2.id}" title="#{lab.LDB_PA_select_one}" styleClass="select" style="min-width: 120px">
+                                    <f:selectItem itemLabel="----" itemValue="0" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedClasseStat.classesStat}" var="cls2" itemLabel="#{cls2.designation}" itemValue="#{cls2.id}"/>
+                                </h:selectOneMenu>                                                                                                                       
+                                <span>#{lab.LDB_PCB_masse}</span>
+                                <h:panelGroup >
+                                    <pe:inputNumber value="#{managedCondArticles.conditionnement.article.masseNet}" styleClass="number" style="text-align: right; width: 80px" />
+                                    <h:panelGroup id="txt_unite_masse_article">
+                                        <p:inputText value="#{managedCondArticles.conditionnement.article.unite.reference}" style="color: #{managedCondArticles.conditionnement.article.unite.error?'red':''};width: 20%">
+                                            <p:ajax event="blur" global="false" listener="#{Marticle.searchUniteMesure(constantes.UNITE_QUANTITE, false, false)}" update="txt_unite_masse_article"/>
+                                        </p:inputText>    
+                                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="Liste Unites" global="false"
+                                                         actionListener="#{Marticle.initUnites(constantes.UNITE_QUANTITE, false, false)}" oncomplete="dlgListUnite.show()" />
+                                        <h:outputText value="#{managedCondArticles.conditionnement.article.unite.libelle}" style="color: #003399"/>
+                                    </h:panelGroup> 
+                                </h:panelGroup>
+                                <span>#{lab.LDB_PCB_volume}</span>
+                                <h:panelGroup >
+                                    <pe:inputNumber value="#{managedCondArticles.conditionnement.article.volume}" styleClass="number" style="text-align: right;width: 80px" />
+                                    <h:panelGroup id="txt_unite_volume_article">
+                                        <p:inputText value="#{managedCondArticles.conditionnement.article.uniteVolume.reference}" style="color: #{managedCondArticles.conditionnement.article.uniteVolume.error?'red':''};width: 20%">
+                                            <p:ajax event="blur" global="false" listener="#{Marticle.searchUniteMesure(constantes.UNITE_QUANTITE, false, false)}" update="txt_unite_volume_article"/>
+                                        </p:inputText>    
+                                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="Liste Unites" global="false"
+                                                         actionListener="#{Marticle.initUnites(constantes.UNITE_QUANTITE, false, false)}" oncomplete="dlgListUnite.show()" />
+                                        <h:outputText value="#{managedCondArticles.conditionnement.article.uniteVolume.libelle}" style="color: #003399"/>
+                                    </h:panelGroup> 
+                                </h:panelGroup>
+
+                            </h:panelGrid>  
+                        </div>
+                        <p:outputPanel id="main_grid_article" style="height: 200px; background: #FFF" layout="block">
+                            <h:panelGrid columns="3" styleClass="yvs_table" style="width: 35%; font-size: 0.8em; float: left; margin-top: 15px" cellpadding="0" cellspacing="0">      
+                                <span>#{lab.LDB_PCB_code_barre}</span>
+                                <h:inputText value="#{managedCondArticles.conditionnement.codeBarre}" style="width: 100%"/>
+                                <p:commandButton id="save_codes_barres" icon="ui-icon-circle-plus" value="#{lab.L_enregistrer}" 
+                                                 update="main_grid_article" actionListener="#{managedCondArticles.saveNewCode()}"/>
+                            </h:panelGrid> 
+                            <p:dataTable  value="#{managedCondArticles.conditionnement.codesBarres}" var="codeB" rowIndexVar="line_" rowKey="#{codeB.id}"
+                                          style="margin-left: 35%" id="table_codes_barres">
+                                <p:column width="15" headerText="N°">
+                                    #{line_+1}
+                                </p:column>
+                                <p:column headerText="#{lab.LDB_PCB_code_barre}">
+                                    #{codeB.codeBarre}
+                                </p:column>
+                                <p:column width="10" headerText="" style="text-align: center">
+                                    <p:commandButton icon="ui-icon-circle-close" actionListener="#{managedCondArticles.deleteCodeBarre(codeB)}" process="@this" update="table_codes_barres" style="width: 22px; height: 22px"/>
+                                </p:column>
+                            </p:dataTable>
+                        </p:outputPanel>
+                    </h:panelGroup> 
+                </div>
+                <!-->
+                ******************************
+                dataTable
+                **********************************
+                <-->
+                <div class="yvs_list_article" style="height: 95%;"> 
+                    <div  class="part_list">
+                        <p:dataTable id="tab_article_cond" value="#{managedCondArticles.conditionnements}" var="art" rowIndexVar="artLine"
+                                     rowKey="#{art.id}" selectionMode="single">
+                            <p:ajax event="rowSelect"  listener="#{managedCondArticles.loadOnView}" update=":formulaire_mainArticle_cond:middle_form_article"  
+                                    process="@this" partialSubmit="true" oncomplete="collapseForm('article');collapseForm('nav_article');collapseForm('conditionnement')"  />
+                            <p:column headerText="N°" width="20" style="text-align: center">
+                                #{artLine+1}
+                                <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{art.id eq managedCondArticles.conditionnement.id}"/>
+                            </p:column>                                                        
+                            <p:column headerText="#{lab.LDB_PCB_reference}" width="100">
+                                <span style="font-weight: bold">#{art.article.refArt}</span>
+                            </p:column>
+                            <p:column  headerText="#{lab.LDB_PCB_designations}" width="150"> 
+                                #{art.article.designation}
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PCB_unites}" width="100">
+                                #{art.unite.libelle}                                
+                                <span style="font-weight: bold">[#{art.unite.reference}]</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PCB_categorie}" width="100" style="text-align: center">
+                                #{art.article.categorie}
+                            </p:column>
+                            <p:column  headerText="Prix de vente" width="80"  style="text-align: right">                                                            
+                                <h:outputText value="#{art.prix}"  converter="DN" />                                                            
+                            </p:column>
+                            <p:column  headerText="Prix d'achat" width="80"  style="text-align: right">                                                            
+                                <h:outputText value="#{art.prixAchat}"  converter="DN" />                                                            
+                            </p:column>
+                            <p:column headerText="" width="20" style="text-align: center">
+                                <p:contextMenu styleClass="context_menu" for="article_option_G" event="left click">
+                                    <p:menuitem value="#{lab.LDB_PCB_creer_template}" icon="ui-icon-copy" actionListener="#{Marticle.setSelectArticle(art)}" oncomplete="dlgCreerTemplate.show()"/>                               
+                                    <p:menuitem value="#{Marticle.displayId?'Afficher l\'Id':'Afficher le numéro'}" icon="ui-icon-show" actionListener="#{Marticle.setDisplayId(!Marticle.displayId)}" update="tab_article_cond"/>                               
+                                    <p:separator />
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{Marticle.openVieArtToUp(art)}" update=":formulaire_mainArticle_cond:fiche_articles_cond" oncomplete="collapseForm('plan_compte')"/>
+                                </p:contextMenu>
+                                <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="article_option_G"/>
+                            </p:column>
+                            <p:column  width="15" style="text-align: center">
+                                <f:facet name="header">
+                                    <h:selectBooleanCheckbox styleClass="chek_all_line_article" value="false" onclick="selectionAllLineTab(#{Marticle.listArticle.size()}, 'article')" />
+                                </f:facet>
+                                <h:selectBooleanCheckbox styleClass="chek_line_article" value="false"  onclick="selectionLineTab(#{artLine}, 'article')"/>
+                            </p:column>
+                        </p:dataTable>                                                    
+                        <span style="margin-left: 35%; font-size: .8em; font-style: italic; color: #828c95" class="nbSelectArticle"></span>
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                            <p:commandButton actionListener="#{managedCondArticles.loadAllArticle(false,false)}" global="false" update="tab_article_cond  " icon="ui-icon-circle-triangle-w" disabled="#{managedCondArticles.paginator.disPrev}" oncomplete=" collapseList('nav_article');"/>
+                            <p:outputPanel >
+                                <p:inplace label="#{managedCondArticles.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                    <pe:inputNumber value="#{managedCondArticles.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                        <p:ajax event="blur" listener="#{managedCondArticles.gotoPagePaginator()}" update="tab_article_cond  "/>
+                                    </pe:inputNumber>
+                                </p:inplace><p:outputLabel value="/#{managedCondArticles.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                            </p:outputPanel>
+                            <p:commandButton actionListener="#{managedCondArticles.loadAllArticle(true,false)}" global="false" update="tab_article_cond  " icon="ui-icon-circle-triangle-e" disabled="#{managedCondArticles.paginator.disNext}" oncomplete=" collapseList('nav_article');"/>
+                            <p:selectOneMenu value="#{managedCondArticles.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCondArticles.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                                <f:selectItems value="#{managedCondArticles.paginations}"/>
+                                <p:ajax event="valueChange" update="tab_article_cond  " oncomplete=" collapseList('nav_article');"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel>   
+                    </div>
+                </div>
+            </div>  
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">                                
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em">
+                    <h:panelGrid columns="7" style="float: left; font-size: 1.0em">
+                        <h:outputText value="#{lab.LDB_PCB_categorie}" />
+                        <h:outputText value="#{lab.LDB_PCB_famille}" />
+                        <h:outputText value="#{lab.LDB_PCB_groupe}" />
+                        <h:outputText value="#{lab.L_actif}" />
+                        <h:outputText value="#{lab.LDB_PCB_designations}" />
+                        <h:outputText value="#{lab.LDB_PCB_code_barre}" />
+                        <h:outputText value="" />
+                        <h:selectOneMenu value="#{managedCondArticles.categorieSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="" noSelectionOption="true"/>
+                            <f:selectItems value="#{constantes.CATEGORIES}" var="cat" itemValue="#{cat.valeur}" itemLabel="#{cat.libelle}" />
+                            <p:ajax event="valueChange" listener="#{managedCondArticles.addParamCategorie()}"
+                                    process="@form" update=":formulaire_mainArticle_cond:tab_article_cond "/>                              
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedCondArticles.familleSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedFamilleArticle.familles}" var="fam" 
+                                           itemLabel="#{fam.designation}" itemValue="#{fam.id}" />
+                            <p:ajax event="valueChange" listener="#{managedCondArticles.addParamFamille()}"
+                                    process="@form" update=":formulaire_mainArticle_cond:tab_article_cond "/>                              
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{managedCondArticles.groupeSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedGroupeArticle.groupes}" var="grp" 
+                                           itemLabel="#{grp.designation}" itemValue="#{grp.id}" />
+                            <p:ajax event="valueChange" listener="#{managedCondArticles.addParamGroupe()}"
+                                    process="@form" update=":formulaire_mainArticle_cond:tab_article_cond "/>                              
+                        </h:selectOneMenu>                         
+                        <h:selectOneMenu value="#{managedCondArticles.actifSearch}" style="width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>                            
+                            <f:selectItem itemLabel="#{lab.L_actif}" itemValue="#{true}"/>                            
+                            <f:selectItem itemLabel="#{lab.L_inactif}" itemValue="#{false}"/>                            
+                            <p:ajax event="valueChange" listener="#{managedCondArticles.addParamActif()}"
+                                    process="@form" update=":formulaire_mainArticle_cond:tab_article_cond "/>
+                        </h:selectOneMenu> 
+                        <p:inputText value="#{managedCondArticles.searchArticle}" id="txt_find_article">
+                            <p:ajax event="valueChange" listener="#{managedCondArticles.findArticle_()}"
+                                    process="@form" update=":formulaire_mainArticle_cond:tab_article_cond "/>
+                        </p:inputText>   
+                        <p:inputText value="#{managedCondArticles.codeBarreSearch}">
+                            <p:ajax event="valueChange" listener="#{managedCondArticles.addParamCodeBarre()}"
+                                    process="@form" update=":formulaire_mainArticle_cond:tab_article_cond "/>
+                        </p:inputText>   
+                        <p:commandLink style="border: 2px solid black; border-radius: 5px;padding: 2px;font-size: 0.8em" 
+                                       onclick="dlgPlusOption.show()" global="false" value="#{lab.LDB_PCB_avancees}"/>   
+                    </h:panelGrid>                    
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

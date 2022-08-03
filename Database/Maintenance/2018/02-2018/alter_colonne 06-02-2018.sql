@@ -1,0 +1,2 @@
+update yvs_com_contenu_doc_achat set pua_recu = pua_attendu WHERE pua_attendu IS NOT NULL AND pua_recu <=0;
+update yvs_com_contenu_doc_achat set prix_total = (COALESCE(quantite_attendu, 0) * COALESCE(pua_recu, 0)) - COALESCE(remise_recu, 0) + COALESCE(taxe, 0) WHERE COALESCE(prix_total, 0) <=0;

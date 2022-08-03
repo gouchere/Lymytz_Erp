@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide" style="display: #{accesPage.stat_listing_vente_article?'none':'inline'}">
+        <span class="block_slide_title">
+            <span class="slide_title" group="LISTING">#{lab.LC_PTBV_listing_groupe}</span>
+                <h:panelGroup style="float: right">   
+                    <p:selectBooleanCheckbox value="#{managedBordStatistique.caAchatPeriode.displayName}" label="#{lab.LC_PTBV_afficher_nom_vendeurs}" itemLabel="#{lab.LC_PTBV_afficher_libelle}">
+                        <p:ajax event="valueChange" global="false" update="data_listing_groupe"/>
+                    </p:selectBooleanCheckbox> 
+                </h:panelGroup>
+        </span> 
+        <div class="zone_slide">
+            <p:dataTable id="data_listing_groupe" value="#{managedBordStatistique.caAchatPeriode.lignes}" var="row" rowIndexVar="iRow" 
+                         style="width: 100%;overflow-x: auto; overflow-y: auto">
+                <p:columnGroup type="header">
+                    <p:row>
+                        <p:column headerText="#{lab.LC_PTBV_element}" style="width: 15%"/>
+                        <c:forEach items="#{managedBordStatistique.caAchatPeriode.colonnes}" var="head" varStatus="_head">
+                            <p:column headerText="#{head.valeur}" style="width: 15%"/>
+                        </c:forEach>
+                        <p:column headerText="#{lab.LC_PTBV_totals}" style="width: 15%"/>
+                    </p:row>
+                </p:columnGroup>
+                <p:column styleClass="ui-widget-header" style="width: 15%">
+                    <h:outputText value="#{row.libelle}" title="#{row.titre}" style="cursor: pointer" rendered="#{managedBordStatistique.caAchatPeriode.displayName}"/>
+                    <h:outputText value="#{row.titre}" title="#{row.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.caAchatPeriode.displayName}"/>
+                </p:column>
+                <c:forEach items="#{managedBordStatistique.caAchatPeriode.colonnes}" var="col" varStatus="iHead">
+                    <p:column style="width: 15%;">
+                        <h:outputText value="#{managedBordStatistique.caAchatPeriode.valeur(iRow, iHead.index)}" converter="DNA"  style="display: inline-block; float: right;"/> 
+                    </p:column>
+                </c:forEach>
+                <p:column styleClass="ui-widget-header" style="text-align: right;font-weight: bold">
+                    <h:outputText value="#{managedBordStatistique.caAchatPeriode.totalRow(iRow, managedBordStatistique.caAchatPeriode.type)}" converter="#{managedBordStatistique.converter}"/>
+                </p:column>
+                <p:columnGroup type="footer">
+                    <p:row>
+                        <p:column footerText="#{lab.LC_PTBV_totaux}"/>     
+                        <c:forEach items="#{managedBordStatistique.caAchatPeriode.colonnes}" var="head" varStatus="_head">
+                            <p:column style="text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.caAchatPeriode.totalColonne(_head.index, managedBordStatistique.caAchatPeriode.type)}" converter="DN"/> 
+                                </f:facet>
+                            </p:column> 
+                        </c:forEach>
+                        <p:column style="text-align: right">
+                            <f:facet name="footer">
+                                <h:outputText value="#{managedBordStatistique.caAchatPeriode.total(managedBordStatistique.caAchatPeriode.type)}" converter="#{managedBordStatistique.converter}"/>
+                            </f:facet>
+                        </p:column>
+                    </p:row>
+                </p:columnGroup>
+            </p:dataTable>  
+        </div> 
+        <div class="zone_bottom">
+            <h:panelGroup style="float: left;margin-right: 5px">
+                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px;float: left;margin-right: 5px" id="btn_option_listing_groupe" type="button"/>
+                <p:contextMenu for="btn_option_listing_groupe" event="left click" styleClass="context_menu" style="width: 210px">
+                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadCaAchatPeriodes()}" update="data_listing_groupe"/>
+                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" ajax="false" rendered="false"/>                                 
+                </p:contextMenu>
+            </h:panelGroup>
+            <h:panelGrid columns="2" cellpadding="0" cellspacing="0" style="float: right">
+                <h:outputText value="#{lab.L_trier_par}"/> 
+                <h:panelGroup>
+                    <h:selectOneMenu value="#{managedBordStatistique.caAchatPeriode.ordres}">
+                        <f:selectItem itemValue="ligne" itemLabel="--"/>
+                        <f:selectItem itemValue="#{journalVendeur.TYPE_VALEUR}" itemLabel="#{lab.LC_PTBV_valeurs}"/>
+                        <p:ajax event="valueChange" listener="#{managedBordStatistique.caAchatPeriode.sort()}" update="data_listing_groupe"/>
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedBordStatistique.caAchatPeriode.descOrdre}">
+                        <f:selectItem itemValue="asc" itemLabel="ASC"/>
+                        <f:selectItem itemValue="desc" itemLabel="DESC"/>
+                        <p:ajax event="valueChange" listener="#{managedBordStatistique.caAchatPeriode.sort()}" update="data_listing_groupe"/>
+                    </h:selectOneMenu>
+                </h:panelGroup>
+            </h:panelGrid>  
+        </div>
+    </div>
+</ui:composition>
+

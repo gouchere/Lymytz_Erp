@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide">
+        <span class="block_slide_title">
+            <span class="slide_title" group="LISTING">#{lab.LC_PTBV_listing_vente}</span>  
+        </span> 
+        <div class="zone_slide">
+            <p:outputPanel id="data_listing_article">
+                <h:panelGroup rendered="#{!managedBordStatistique.cumule}">
+                    <p:dataTable value="#{managedBordStatistique.listings}" var="doc" rowKey="#{doc.id}" rowIndexVar="artfIdx" id="table_listing_vente"
+                                 style="width: 100%;overflow-x: auto; overflow-y: auto">
+                        <p:columnGroup type="header">
+                            <p:row>
+                                <p:column headerText="#{lab.L_article}" />
+                                <p:column headerText="#{lab.LC_PTBV_qte}" style="width: 8%"/>
+                                <p:column headerText="#{lab.LC_PTBV_prx}" style="width: 10%"/>
+                                <p:column headerText="#{lab.LC_PTBV_prx_min}" style="width: 10%"/>
+                                <p:column headerText="#{lab.LC_PTBV_pr}" style="width: 10%"/>
+                                <p:column headerText="#{lab.LC_PTBV_total}" style="width: 10%"/>
+                            </p:row>
+                        </p:columnGroup>
+                        <p:subTable value="#{doc.contenus}" var="artf" >
+                            <f:facet name="header">
+                                <div align="left" class="facet-no-style">
+                                    <h:outputText value="#{doc.numDoc}" /> [<h:outputText value="#{doc.nom_client}" />]
+                                    <div style="float:right">
+                                        <h:outputText value="#{doc.enteteDoc.creneau.creneauPoint.point.libelle}" />  [<h:outputText value="#{doc.enteteDoc.creneau.users.nomUsers}" />]                                        
+                                    </div>
+                                </div>
+                            </f:facet>
+                            <p:column headerText="#{lab.L_article}" style="color: #{artf.etat()=='R'?'orange':(artf.etat()=='P'?'red':'')};font-style: #{artf.etat()!='E'?'italic':''}">
+                                [<span style="font-weight: bold" title="#{lab.LC_PTBV_numero_serie}  : #{artf.numSerie}">#{artf.article.refArt}</span>]
+                                <span title="#{lab.LC_PTBV_numero_serie}  : #{artf.numSerie}">#{artf.article.designation}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBV_qte}" style="width: 8%;text-align: center;color: #{artf.etat()=='R'?'orange':(artf.etat()=='P'?'red':'')};font-style: #{artf.etat()!='E'?'italic':''}">
+                                <h:outputText value="#{artf.quantite}" converter="#{managedFactureVente.converterStock}" title="Plus #{artf.quantiteBonus} Bonus"/>
+                                <span title="#{artf.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{artf.conditionnement.unite.reference}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBV_prx}" style="width: 10%;text-align: right;color: #{artf.etat()=='R'?'orange':(artf.etat()=='P'?'red':'')};font-style: #{artf.etat()!='E'?'italic':''}">
+                                <h:outputText value="#{artf.prix}" converter="#{managedFactureVente.converter}" title="#{artf.etat()=='R'?'Le prix de vente est inferieur au prix minimal':(artf.etat()=='P'?'Le prix de vente est inferieur au prix de revient':'Numéro Serie : '.concat(artf.numSerie))}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBV_prx_min}" style="width: 10%;text-align: right;color: #{artf.etat()=='R'?'orange':(artf.etat()=='P'?'red':'')};font-style: #{artf.etat()!='E'?'italic':''}">
+                                <h:outputText value="#{artf.puvMin}" converter="#{managedFactureVente.converter}" title="#{lab.LC_PTBV_numero_serie}  : #{artf.numSerie}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBV_pr}" style="width: 10%;text-align: right;color: #{artf.etat()=='R'?'orange':(artf.etat()=='P'?'red':'')};font-style: #{artf.etat()!='E'?'italic':''}">
+                                <h:outputText value="#{artf.pr}" converter="#{managedFactureVente.converter}" title="#{lab.LC_PTBV_numero_serie}  : #{artf.numSerie}"/>
+                            </p:column>
+                            <p:column headerText="#{lab.LC_PTBV_total}" style="width: 10%;text-align: right;color: #{artf.etat()=='R'?'orange':(artf.etat()=='P'?'red':'')};font-style: #{artf.etat()!='E'?'italic':''}">
+                                <h:outputText value="#{artf.prixTotal}" converter="#{managedFactureVente.converter}" title="#{lab.LC_PTBV_numero_serie}  : #{artf.numSerie}"/>
+                            </p:column> 
+                            <p:columnGroup type="footer">
+                                <p:row >
+                                    <p:column footerText="TOTAL" styleClass="facet-no-style"/> 
+                                    <p:column footerText="" style="width: 8%" styleClass="facet-no-style"/>
+                                    <p:column footerText="" style="width: 10%" styleClass="facet-no-style"/>
+                                    <p:column footerText="" style="width: 10%" styleClass="facet-no-style"/>
+                                    <p:column footerText="" style="width: 10%" styleClass="facet-no-style"/>
+                                    <p:column footerText="" style="width: 10%; text-align: right" styleClass="facet-no-style">
+                                        <f:facet name="footer">
+                                            <h:outputText value="#{managedFactureVenteV2.getMontantTotal(doc)}" converter="#{managedFactureVente.converter}"/>
+                                        </f:facet>
+                                    </p:column>
+                                </p:row>
+                            </p:columnGroup>
+                        </p:subTable>
+                    </p:dataTable>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedBordStatistique.loadListingVente(false,false)}"   update="table_listing_vente" icon="ui-icon-circle-triangle-w" disabled="#{managedBordStatistique.p_listing.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedBordStatistique.p_listing.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedBordStatistique.p_listing.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedBordStatistique.gotoPagePaginatorListing()}" update="table_listing_vente"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedBordStatistique.p_listing.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedBordStatistique.loadListingVente(true,false)}"   update="table_listing_vente" icon="ui-icon-circle-triangle-e" disabled="#{managedBordStatistique.p_listing.disNext}"/>
+                        <p:selectOneMenu value="#{managedBordStatistique.p_listing.rows}" label="#{lab.L_noùbre_max_resultat}" valueChangeListener="#{managedBordStatistique.choosePaginatorListing}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedBordStatistique.paginations}"/>
+                            <p:ajax event="valueChange"   update="table_listing_vente"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>
+                </h:panelGroup>
+                <p:dataTable value="#{managedBordStatistique.listing.lignes}" var="row_2" rowIndexVar="iRow_2"
+                             style="width: 100%;overflow-x: auto" widgetVar="myTableWidget" rendered="#{managedBordStatistique.cumule}"> 
+                    <p:column headerText="#{lab.L_article}">
+                        [<span style="font-weight: bold">#{row_2.titre}</span>]
+                        <span>#{row_2.libelle}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PTBV_qte}" style="width: 15%;text-align: center">
+                        <h:outputText value="#{managedBordStatistique.listing.valeur(iRow_2, 0, 'qte')}" converter="DNS"/>
+                        <span style="font-size: 0.6em;color: #003399">#{row_2.autres}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PTBV_prx}" style="width: 15%;text-align: right">
+                        <h:outputText value="#{managedBordStatistique.listing.valeur(iRow_2, 0, 'puv')}" converter="#{managedFactureVente.converter}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PTBV_pr}" style="width: 15%;text-align: right">
+                        <h:outputText value="#{managedBordStatistique.listing.valeur(iRow_2, 0, 'pr')}" converter="#{managedFactureVente.converter}"/>
+                    </p:column>
+                    <p:column headerText="#{lab.LC_PTBV_total}" style="width: 15%;text-align: right">
+                        <h:outputText value="#{managedBordStatistique.listing.valeur(iRow_2, 0, 'ca')}" converter="#{managedFactureVente.converter}"/>
+                    </p:column>
+                    <p:columnGroup type="footer">
+                        <p:row>
+                            <p:column footerText="#{lab.LC_PTBV_totaux}"/>        
+                            <p:column/>  
+                            <p:column/> 
+                            <p:column/> 
+                            <p:column style="text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.listing.summaryGroupPeriode('ca')}" converter="#{managedFactureVente.converter}"/> 
+                                </f:facet>
+                            </p:column> 
+                        </p:row>
+                    </p:columnGroup>
+                </p:dataTable>
+            </p:outputPanel>
+        </div>
+        <div class="zone_bottom">
+            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px; float: left;margin-right: 5px" id="btn_option_listing_article" type="button"/>
+            <p:contextMenu for="btn_option_listing_article" event="left click" styleClass="context_menu" style="width: 210px">
+                <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadListingVente()}" update="data_listing_article"/>
+                <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" actionListener="#{managedBordStatistique.printListingVente()}" global="false" ajax="false"/>                                    
+                <p:menuitem value="#{lab.L_exporter}" icon="ui-icon-print" global="false" actionListener="#{managedBordStatistique.printListingVente('xls')}" ajax="false"/>     
+            </p:contextMenu>
+            <h:panelGroup id="select-option_listing_by_client" style="float: right">
+
+            </h:panelGroup>
+        </div>
+    </div>
+</ui:composition>
+

@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Salaire','modMutuelle', 'smenSalaire', true,managedOperationCompte)}
+    </ui:define>   
+    <ui:define name="contents"> 
+        #{managedOperationCompte.loadPeriodes()}
+        #{managedEpargne.doNothing()}
+        #{managedCredit.doNothing()}
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('salaire');
+            });
+        </script>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_salaire">    
+            <div class="part_fix">
+                <span>#{lab.L_periode} : </span>
+                    <h:selectOneMenu value="#{operationCompte.periode.id}" valueChangeListener="#{managedOperationCompte.choosePeriode}">
+                        <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                        <f:selectItems value="#{managedOperationCompte.periodes}" var="pr" itemLabel="#{pr.referencePeriode}" itemValue="#{pr.id}"/>                
+                        <p:ajax event="valueChange"  update="data_salaire_mut" />  
+                    </h:selectOneMenu>
+                    <p:commandButton value="#{lab.L_enregistrer}" style="float: right; margin-right: 50%" actionListener="#{managedOperationCompte.saveSalaire()}"
+                                     update="data_salaire_mut" icon="ui-icon-disk"/>
+                    <div style="float: right">
+                    <h:panelGrid columns="5" rendered="false">
+                        <h:link title="#{lab.L_mode_formulaire}" onclick="collapseForm('salaire');
+                                return false" rendered="false">
+                            <p:graphicImage library="icones" name="newDoc.png" width="25" height="30" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>               
+                        <p:spacer />
+                        <h:link title="#{lab.L_mode_liste}" onclick="collapseList('salaire');
+                                return false" rendered="false">
+                            <p:graphicImage library="icones" name="ico_formulaire.png" width="25" height="30" style="border: 2px solid #666; border-radius: 5px;"/>
+                        </h:link>   
+                    </h:panelGrid>
+                </div>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_salaire">                    
+                    <p:dataTable id="data_salaire_mut" value="#{managedOperationCompte.salaires}" var="sal" rowKey="#{sal.id}"
+                                 rowIndexVar="y" selectionMode="single"  editable="true" editMode="cell" style="overflow-y: auto; clear: right" paginator="true" rows="20">                               
+                        <p:ajax event="cellEdit"   global="false" process="@this" listener="#{managedOperationCompte.onEditCellSalaire}"/>
+                        <p:column width="15" headerText="N°">
+                            #{y+1}
+                        </p:column>
+                        <p:column width="15" headerText="Id">
+                            #{sal.id}
+                        </p:column>
+                        <p:column filterBy="#{sal.compte.mutualiste.employe.matricule}" >                                
+                            #{sal.compte.mutualiste.employe.matricule} 
+                        </p:column>                   
+                        <p:column headerText="#{lab.LM_PE_mutualiste} ">                                
+                            #{sal.compte.mutualiste.employe.nom_prenom} 
+                        </p:column>                   
+                        <p:column headerText="#{lab.L_compte} " id="col_sal_compte"> 
+                            <p:cellEditor>
+                                <f:facet name="output">
+                                    <h:outputText value="#{sal.compte.reference}"/>
+                                </f:facet>
+                                <f:facet name="input">
+                                    <h:selectOneMenu value="#{sal.compte.id}">
+                                        <f:selectItems value="#{sal.compte.mutualiste.comptes}" var="icpt" itemValue="#{icpt.id}" itemLabel="#{icpt.reference}" 
+                                                       itemDisabled="#{icpt.typeCompte.nature eq constantes.MUT_TYPE_COMPTE_EPARGNE}"/>
+                                    </h:selectOneMenu>
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column> 
+                        <p:column headerText="#{lab.LM_PS_retenue_fixe} " style="text-align: right">                                                            
+                            <p:cellEditor>
+                                <f:facet name="output">
+                                    <h:outputText value="#{sal.retenueFixe}" converter="DN" style="color: #{(sal.retenuSave)?'normal':'red'}"/>
+                                </f:facet>
+                                <f:facet name="input">
+                                    <h:inputText value="#{sal.retenueFixe}"  />
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="#{lab.LM_PM_epargne} " style="text-align: right">                                                            
+                            <p:cellEditor>
+                                <f:facet name="output">
+                                    <h:outputText value="#{sal.montantEpargne}" converter="DN"  style="color: #{(sal.epargneSave)?'normal':'red'}"/>
+                                </f:facet>
+                                <f:facet name="input">
+                                    <h:inputText value="#{sal.montantEpargne}"  />
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="#{lab.LM_PS_retenue_mois}" style="text-align: right">                                
+                            <p:cellEditor>
+                                <f:facet name="output">
+                                    <h:outputText value="#{sal.compte.mutualiste.montantCredit}" converter="DN"  style="color: #{(sal.mensualiteSave)?'normal':'red'}"/>
+                                </f:facet>
+                                <f:facet name="input">
+                                    <h:inputText value="#{sal.compte.mutualiste.montantCredit}"  />
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column  id="col_sal_montant" headerText="#{lab.LM_PPG_salaire}" style="text-align: right;width: 20%" styleClass="#{(sal.id gt 0)?'line_actiftrue':'-'}" >
+                            <p:cellEditor>
+                                <f:facet name="output">
+                                    <h:outputText value="#{sal.montant}" style=" color: #{(sal.montant le 0)?'red':'#000'}" converter="DN"/>
+                                </f:facet>
+                                <f:facet name="input">
+                                    <h:inputText value="#{sal.montant}" style="width: 100%"/>
+                                </f:facet>
+                            </p:cellEditor>                                
+                        </p:column>
+                        <p:column style="text-align: center" width="10">                               
+                            <p:contextMenu for="btn_opt_pos_sal" event="left click" >
+                                <p:menuitem value="#{lab.LM_PPG_retenir_epargne}" icon="ui-icon-arrowthickstop-1-s" rendered="#{sal.id gt 0 and !sal.epargneSave}" actionListener="#{managedOperationCompte.saveOnlyEpargne(sal)}"/>
+                                <p:menuitem value="#{lab.LM_PS_retenir_mens}" title="#{lab.LM_PS_retenir_mensualite} " icon="ui-icon-arrowthickstop-1-s" rendered="#{sal.id gt 0 and !sal.mensualiteSave}" actionListener="#{managedOperationCompte.saveOnlyMensualite(sal)}"/>
+                                <p:menuitem value="#{lab.LM_PS_retenir_val_fixe}" icon="ui-icon-arrowthickstop-1-s" rendered="#{sal.id gt 0 and !sal.retenuSave}" actionListener="#{managedOperationCompte.saveOnlyRetenu(sal)}"/>
+                                <p:separator rendered="#{sal.id gt 0}"/>
+                                <p:menuitem value="#{lab.L_annuler}" icon="ui-icon-circle-close" title="#{lab.LM_PS_title_annuler_action}" rendered="#{sal.id gt 0}" actionListener="#{managedOperationCompte.cancelPaiementSalaire(sal)}"/>
+                            </p:contextMenu>
+                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btn_opt_pos_sal"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PU_net_a_payer} " style="text-align: right">
+                            <h:outputText id="cellNet" value="#{(sal.montant-sal.montantEpargne-sal.compte.mutualiste.montantCredit-sal.retenueFixe)}" converter="DN" style="color: #{(sal.montant-sal.compte.mutualiste.montantEpargne-sal.compte.mutualiste.montantCredit)gt 0?'inherit':'red'}" />
+                        </p:column>
+
+                    </p:dataTable> 
+                </div>
+                <div class="yvs_list_salaire">
+
+                </div> 
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                                
+        </h:form>
+    </ui:define>
+</ui:composition>
+

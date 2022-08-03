@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div class="block_slide">
+        <span class="block_slide_title">
+            <span class="slide_title" group="PRODUCTION">#{lab.LS_PJP_journal_production_tranche}</span>  
+            <h:panelGrid columns="2" style="float: right" cellpadding="0" cellspacing="0">
+
+            </h:panelGrid>   
+        </span> 
+        <div class="zone_slide">
+            <p:dataTable id="data_journal_production_psft" value="#{managedBordStatistique.journalProdByTranche.valeurs}" var="trh" rowIndexVar="i_trh"
+                         style="width: 100%;overflow-x: auto">
+                <p:columnGroup type="header">
+                    <p:row>
+                        <p:column headerText="#{lab.LP_PTB_matieres}" rowspan="2" style="width: 15%"/>
+                        <p:column headerText="#{lab.L_prix.toUpperCase()}" rowspan="2" style="width: 15%"/>
+                        <c:forEach items="#{managedBordStatistique.journalProdByTranche.colonnes}" var="psft">
+                            <p:column colspan="2">
+                                <f:facet name="header">
+                                    <h:outputText value="#{psft.code}" title="#{psft.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.journalProdByTranche.displayName}"/>
+                                    <h:outputText value="#{psft.libelle}" title="#{psft.code}" style="cursor: pointer" rendered="#{managedBordStatistique.journalProdByTranche.displayName}"/>  
+                                    <h:panelGroup rendered="#{managedBordStatistique.nature ne 'C'}">
+                                        (<h:outputText value="#{psft.quantite}" converter="#{managedBordStatistique.converter}"/>
+                                        <h:outputText value="#{psft.titre}" style="font-style: italic"/>) 
+                                    </h:panelGroup>
+                                </f:facet>
+                            </p:column>
+                        </c:forEach>
+                        <p:column headerText="#{lab.LP_PTB_totaux}" colspan="2" style="width: 15%"/>
+                    </p:row>
+                    <p:row>
+                        <c:forEach items="#{managedBordStatistique.journalProdByTranche.colonnes}" var="psft">
+                            <p:column headerText="#{lab.LC_PTB_quantite}" style="text-align: center"/>
+                            <p:column headerText="#{lab.LC_PTB_valeur}" style="text-align: center"/>
+                        </c:forEach>
+                        <p:column headerText="#{lab.LC_PTB_quantite}" style="text-align: center"/>
+                        <p:column headerText="#{lab.LC_PTB_valeur}" style="text-align: center"/>
+                    </p:row>
+                </p:columnGroup>
+                <p:subTable value="#{trh.lignes}" var="mp">
+                    <f:facet name="header">
+                        <h:outputText value="[#{trh.periode}] #{trh.secondaire}"/>
+                    </f:facet>
+                    <p:column styleClass="ui-widget-header" style="width: 15%">
+                        <h:outputText value="#{mp.titre}" title="#{mp.libelle}" style="cursor: pointer" rendered="#{!managedBordStatistique.journalProdByTranche.displayAnotherName}"/>
+                        <h:outputText value="#{mp.libelle}" title="#{mp.titre}" style="cursor: pointer" rendered="#{managedBordStatistique.journalProdByTranche.displayAnotherName}"/> 
+                    </p:column>         
+                    <p:column styleClass="ui-widget-header" style="width: 15%;text-align: right">
+                        <h:outputText value="#{mp.prix}" style="cursor: pointer" converter="#{managedBordStatistique.converter}"/>
+                    </p:column>   
+                    <c:forEach items="#{managedBordStatistique.journalProdByTranche.colonnes}" var="psft" varStatus="i_psft">
+                        <p:column style="width: 15%;text-align: right">
+                            <h:outputText value="#{managedBordStatistique.journalProdByTranche.sValeur(trh, mp.primaire, i_psft.index, 'qte')}" converter="#{managedBordStatistique.converterStock}"/>
+                        </p:column> 
+                        <p:column style="width: 15%;text-align: right">
+                            <h:outputText value="#{managedBordStatistique.journalProdByTranche.sValeur(trh, mp.primaire, i_psft.index, 'valeur')}" converter="#{managedBordStatistique.converter}"/>
+                        </p:column> 
+                    </c:forEach> 
+                    <p:column styleClass="ui-widget-header" style="width: 15%;text-align: right">
+                        <h:outputText value="#{managedBordStatistique.journalProdByTranche.sSumRow(trh, mp.primaire, 'qte')}" converter="#{managedBordStatistique.converterStock}"/>
+                    </p:column> 
+                    <p:column styleClass="ui-widget-header" style="width: 15%;text-align: right">
+                        <h:outputText value="#{managedBordStatistique.journalProdByTranche.sSumRow(trh, mp.primaire, 'valeur')}" converter="#{managedBordStatistique.converter}"/>
+                    </p:column> 
+                    <p:columnGroup type="footer">
+                        <p:row>
+                            <p:column footerText="#{lab.LP_PTB_totaux}" colspan="2"/>
+                            <c:forEach items="#{managedBordStatistique.journalProdByTranche.colonnes}" var="pf" varStatus="head">
+                                <p:column style="width: 15%;text-align: right"/>
+                                <p:column style="width: 15%;text-align: right">
+                                    <f:facet name="footer">
+                                        <h:outputText value="#{managedBordStatistique.journalProdByTranche.sSumColonne(trh, head.index, 'valeur')}" converter="#{managedBordStatistique.converter}"/>  
+                                    </f:facet>
+                                </p:column>
+                            </c:forEach>
+                            <p:column style="width: 15%;text-align: right"/>
+                            <p:column style="width: 15%;text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.journalProdByTranche.sSum(trh, 'valeur')}" converter="#{managedBordStatistique.converter}"/>  
+                                </f:facet>
+                            </p:column>
+                        </p:row>
+                    </p:columnGroup>
+                </p:subTable> 
+                <p:columnGroup type="footer" rendered="#{managedBordStatistique.journalProdByTranche.type eq 'valeur'}">
+                    <p:row>
+                        <p:column footerText="#{lab.LP_PTB_totaux}" colspan="2"/>
+                        <c:forEach items="#{managedBordStatistique.journalProdByTranche.colonnes}" var="pf" varStatus="head">
+                            <p:column style="width: 15%;text-align: right"/>
+                            <p:column style="width: 15%;text-align: right">
+                                <f:facet name="footer">
+                                    <h:outputText value="#{managedBordStatistique.journalProdByTranche.sSumColonne(head.index, 'valeur')}" converter="#{managedBordStatistique.converter}"/>  
+                                </f:facet>
+                            </p:column>
+                        </c:forEach>
+                        <p:column style="width: 15%;text-align: right">
+                            <p:column style="width: 15%;text-align: right"/>
+                            <f:facet name="footer">
+                                <h:outputText value="#{managedBordStatistique.journalProdByTranche.sSum('valeur')}" converter="#{managedBordStatistique.converter}"/>  
+                            </f:facet>
+                        </p:column>
+                    </p:row>
+                </p:columnGroup>
+            </p:dataTable>
+        </div>
+        <div class="zone_bottom">
+            <h:panelGroup style="float: left;margin-right: 5px">
+                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_journal_production_psft" type="button"/>
+                <p:contextMenu for="btn_option_journal_production_psft" event="left click" styleClass="context_menu" style="width: 210px">
+                    <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedBordStatistique.loadJournalProduction(managedBordStatistique.journalProdByTranche)}" update="data_journal_production_psft"/>
+                    <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" actionListener="#{managedBordStatistique.downloadJournalProduction(managedBordStatistique.journalProdByTranche)}" global="false" ajax="false"/>       
+                </p:contextMenu>
+                <h:inputText value="#{managedBordStatistique.journalProdByTranche.varSearch}" id="txt_search_journal_production_psft">
+                    <p:ajax event="valueChange" listener="#{managedBordStatistique.journalProdByTranche.filter(true)}" update="data_journal_production_psft"/>
+                </h:inputText>  
+                <p:watermark for="txt_search_journal_production_psft" value="#{lab.L_rechercher}" />
+            </h:panelGroup>
+            <h:panelGroup style="float: right;margin-top: 5px">
+                <p:selectBooleanCheckbox value="#{managedBordStatistique.journalProdByTranche.displayName}" label="#{lab.LS_PJP_afficher_noms_produits_semi_fini}" itemLabel="#{lab.LS_PJP_afficher_noms_}">
+                    <p:ajax event="valueChange" global="false" update="data_journal_production_psft"/>
+                </p:selectBooleanCheckbox>  
+                <p:selectBooleanCheckbox value="#{managedBordStatistique.journalProdByTranche.displayAnotherName}" label="#{lab.LS_PJP_afficher_noms_produits_matieres_premieres}" itemLabel="#{lab.LS_PJP_afficher_noms_mp}">
+                    <p:ajax event="valueChange" global="false" update="data_journal_production_psft"/>
+                </p:selectBooleanCheckbox>  
+            </h:panelGroup>
+        </div>
+    </div>
+</ui:composition>
+

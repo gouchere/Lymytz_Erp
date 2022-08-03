@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"      
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"      
+                xmlns:ui="http://java.sun.com/jsf/facelets"> 
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Type de dépense','modRh', 'smenParamNote', true,managedNoteDeFrais)}
+    </ui:define>       
+    <ui:define name="content" >
+        #{managedNoteDeFrais.onPageNote(false)} 
+        #{managedNoteDeFrais.loadAllTypeDepense()}
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        <h:form prependId="false" id="entete-parma-note-00">
+            <h:panelGrid columns="2"  rendered="#{!managedNoteDeFrais.vueListe}" style="float: left">
+                <p:commandButton value="Enregistrer" actionListener="#{managedNoteDeFrais.saveNew()}"/>
+                <p:commandButton value="Annuler" actionListener="#{managedNoteDeFrais.resetFiche()}"/>
+            </h:panelGrid>
+            <h:panelGrid columns="2" rendered="#{managedNoteDeFrais.viewSelect}"  style="float: left">
+                <p:commandButton value="Modifier" rendered="#{managedNoteDeFrais.optionUpdate}"  actionListener="#{managedNoteDeFrais.chechUpdateAll()}"/>
+                <p:splitButton value="Autres options">
+                    <p:menuitem value="Supprimer" onclick="dlgConfirmDeleteTD.show()"/>
+                </p:splitButton>
+            </h:panelGrid>
+            <h:panelGrid columns="1"  style="float: right">
+                <p:commandButton value="#{managedNoteDeFrais.nameVuePage}" actionListener="#{managedNoteDeFrais.changeVuePage()}"/>
+            </h:panelGrid>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteTD" closeOnEscape="true"
+                             message="Êtes-vous sûr de vouloir supprimer?">
+                <p:commandButton value="Oui" actionListener="#{managedNoteDeFrais.deleteBean()}" oncomplete="dlgConfirmDeleteTD.hide()"/>
+                <p:commandButton value="Non" onclick="dlgConfirmDeleteTD.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <p:separator style="width: 100%"/>        
+        <h:form prependId="false" id="blog-parma-note-00">            
+            <p:outputPanel id="form-parma-not-00" rendered="#{managedNoteDeFrais.vueListe}">
+                <p:dataTable value="#{managedNoteDeFrais.listTypeDepense}" var="typ"
+                             widgetVar="tableauRegle" rowKey="#{typ.id}" selectionMode="single" > 
+                    <p:ajax event="rowSelect" listener="#{managedNoteDeFrais.loadOnViewTypeDepense}"/>
+                    <p:ajax event="rowUnselect" listener="#{managedNoteDeFrais.unLoadOnViewTypeDepense}"/>
+                    <f:facet name="header">
+                        Types de depenses
+                    </f:facet>
+                    <p:column width="10%">
+                        <h:graphicImage library="img"  name="#{(typ.selectActif)?'connecte.png':'deconnecte.png'}" width="15" height="15"/>
+                    </p:column>
+                    <p:column headerText="Type depense" filterMatchMode="contains"> 
+                        <h:outputText value="#{typ.typeDepense}"/>
+                    </p:column>
+                    <p:column headerText="Montant" filterMatchMode="contains">
+                        <h:outputText value="#{typ.montant}" converter="DN"/>
+                    </p:column>
+                    <p:column headerText="Marge">
+                        <h:outputText value="#{typ.marge}" converter="DN"/>
+                    </p:column>
+                </p:dataTable>
+            </p:outputPanel>
+            <p:outputPanel id="form-parma-not-01" rendered="#{!managedNoteDeFrais.vueListe}">
+                <p:panelGrid columns="2" style="width: 100%">
+                    <p:outputLabel value="Type depense : "/>
+                    <p:inputText value="#{managedNoteDeFrais.typeDepense.typeDepense}">
+                        <p:ajax event="blur"/>
+                    </p:inputText>
+                    <p:outputLabel value="Montant : "/>
+                    <pe:inputNumber value="#{managedNoteDeFrais.typeDepense.montant}">
+                        <p:ajax event="blur"/>
+                    </pe:inputNumber>
+                    <p:outputLabel value="Marge : "/>
+                    <pe:inputNumber value="#{managedNoteDeFrais.typeDepense.marge}">
+                        <p:ajax event="blur"/>
+                    </pe:inputNumber>
+                </p:panelGrid>
+            </p:outputPanel>
+        </h:form>
+    </ui:define>
+</ui:composition>

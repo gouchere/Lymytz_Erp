@@ -1,0 +1,1255 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets"> 
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Poste de tavail','modRh', 'smenposteDeTravail', true,managedPosteDeTravail)}
+    </ui:define>    
+    <ui:define name="contents">
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('posteTravail');
+                collapseForm('model_prime_poste');
+                collapseList('unite_model_poste');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        #{managedPosteDeTravail.loadSpecialite()}   
+        #{managedPosteDeTravail.loadAll()}   
+        #{managedPosteDeTravail.loadLibelleCout()}
+        #{managedPosteDeTravail.setDisplayDelGrille(false)}  
+        #{managedPosteDeTravail.loadListGrille(1000)}
+        #{managedPosteDeTravail.loadTypePrime()}         
+        #{managedDepartement.loadAllActif()}         
+        #{managedPosteDeTravail.loadModeleContrat()} 
+        <h:form prependId="false" id="main_model_prime_poste">
+            <p:dialog header="Model de prime" widgetVar="dlgAddModelPrime" width="70%" closeOnEscape="true" dynamic="true">
+                <p:outputPanel id="blog_model_prime_poste" autoUpdate="true">
+                    <script type="text/javascript">
+                        $(function() {
+                            collapseForm('model_prime_poste');
+                        });
+                    </script>
+                    <div>
+                        <h:panelGrid columns="2" style="width: 100%;margin-top: -5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                            <h:panelGroup>
+                                <p:commandButton value="#{lab.L_enregistrer}" id="save_model_prime_poste" actionListener="#{managedPosteDeTravail.saveModelPrime()}" update="blog_model_prime_poste" style="font-size: 0.8em;"/>
+                                <p:commandButton value="#{lab.L_nouveau}"  id="cancel_model_prime_poste" process="@this" actionListener="#{managedPosteDeTravail.resetModelPrime()}" global="false" update="form_model_prime_poste"/>                 
+                            </h:panelGroup>
+                            <h:panelGroup style="float: right">
+                                <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('model_prime_poste');
+                                        return false">
+                                    <h:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                </h:link>               
+                                <h:link onclick="collapseList('model_prime_poste');
+                                        return false" title="#{lab.L_code_liste}" >
+                                    <h:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                </h:link>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </div>
+                    <div>
+                        <div class="yvs_form_model_prime_poste" >
+                            <h:panelGrid id="form_model_prime_poste" style="width: 95%; margin: auto" columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                <span>#{lab.LRH_PPT_primes}</span>
+                                <h:selectOneMenu value="#{managedPosteDeTravail.modelPrime.typeElt.id}"
+                                                 onchange="openDialog(dlgAddTypePrime, $(this));
+                                                         collapseForm('PosteTypePrime')" id="input_select_type_prime_model">
+                                    <f:selectItem itemValue="#{0}" itemLabel="" noSelectionOption="true"/>                        
+                                    <f:selectItems value="#{managedPosteDeTravail.listTypePrime}" var="typp" itemValue="#{typp.id}" itemLabel="#{typp.libelle}" />
+                                    <f:selectItem itemValue="#{0}" itemLabel="" noSelectionOption="true"/>
+                                    <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/> 
+                                </h:selectOneMenu>
+                                <span>#{lab.LRH_PPT_permanente} ?</span>
+                                <h:selectBooleanCheckbox value="#{managedPosteDeTravail.modelPrime.permanent}">
+                                    <p:ajax event="valueChange"  global="false" process="@this" update="poste-int-prim_model"/>
+                                </h:selectBooleanCheckbox>
+                                <span>#{lab.L_montant}</span>
+                                <pe:inputNumber value="#{managedPosteDeTravail.modelPrime.montant}" />
+                                <span>#{lab.L_description}</span>
+                                <h:inputTextarea value="#{managedPosteDeTravail.modelPrime.description}"  style="width: 90%"/> 
+                                <h:outputText value="#{lab.LDB_PC_periode}"/>
+                                <h:panelGroup id="poste-int-prim_model">
+                                    <p:calendar value="#{managedPosteDeTravail.modelPrime.debut}" pattern="dd-MM-yyyy" size="8" disabled="#{managedPosteDeTravail.modelPrime.permanent}"/>
+                                    <span>---</span>
+                                    <p:calendar value="#{managedPosteDeTravail.modelPrime.fin}" pattern="dd-MM-yyyy" size="8" disabled="#{managedPosteDeTravail.modelPrime.permanent}"/>
+                                </h:panelGroup>
+                            </h:panelGrid>
+                        </div>
+                        <div class="yvs_list_model_prime_poste" >
+                            <p:dataTable  value="#{managedPosteDeTravail.model.primes}" var="prime" selectionMode="single"
+                                          rowKey="#{prime.id}" id="data_model_prime_poste">
+                                <p:ajax event="rowSelect" listener="#{managedPosteDeTravail.loadOnViewPrimeModel}" oncomplete="collapseForm('model_prime_poste')"/>
+                                <p:ajax event="rowUnselect" listener="#{managedPosteDeTravail.unLoadOnViewPrimeModel}" oncomplete="collapseList('model_prime_poste')"/>
+                                <p:column headerText="Libellé" width="200" styleClass="prime_perm_#{prime.permanent}">
+                                    <h:outputText value="#{prime.typeElement.libelle}"/>
+                                </p:column>                                               
+                                <p:column headerText="#{lab.L_montant}" width="90" style="text-align: right" styleClass="prime_perm_#{prime.permanent}">
+                                    <h:outputText value="#{prime.montantElement}" converter="DN"/>                                            
+                                </p:column> 
+                                <p:column headerText="#{lab.L_debut}" width="90" style="text-align: center" styleClass="prime_perm_#{prime.permanent}" >
+                                    <h:outputText value="#{prime.dateDebut}" converter="DATE" rendered="#{!prime.permanent}"/>                                            
+                                    <h:outputText value="-¨#{lab.LDB_PC_permanent.toUpperCas()}--" rendered="#{prime.permanent}"/>                                            
+                                </p:column>
+                                <p:column headerText="Fin"  width="90" style="text-align: center" styleClass="prime_perm_#{prime.permanent}">
+                                    <h:outputText value="#{prime.dateFin}" converter="DATE" rendered="#{!prime.permanent}"/>                                             
+                                    <h:outputText value="-¨#{lab.LDB_PC_permanent.toUpperCas()}--" rendered="#{prime.permanent}"/>                                            
+                                </p:column>                                        
+                                <p:column headerText="" width="20" style="text-align: center">
+                                    <p:contextMenu for="btn_option_model_prime_poste" event="left click" style="font-size: 0.8em">
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedPosteDeTravail.deleteModelPrime(prime)}"
+                                                    update="data_model_prime_poste" oncomplete="collapseList('model_prime_poste')"/>
+                                    </p:contextMenu>                           
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_model_prime_poste" type="button"/>                                         
+                                </p:column> 
+                            </p:dataTable>
+                        </div>
+                    </div>
+                </p:outputPanel>          
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:confirmDialog widgetVar="dlgDeletePoste" message="#{lab.LRH_PPT_supprimer_poste}" closeOnEscape="true">
+
+                <div align="center">
+                    <p:commandButton value="#{lab.L_oui.toUpperCase()}" icon="ui-icon-check" actionListener="#{managedPosteDeTravail.deleteOnePoste()}"  
+                                     oncomplete="dlgDeletePoste.hide();"/> 
+                    <p:commandButton value="#{lab.L_non.toUpperCase()}"   icon="ui-icon-close"
+                                     oncomplete="dlgDeletePoste.hide();"/> 
+                </div>
+
+            </p:confirmDialog>
+        </h:form> 
+
+        <!-->
+        *****************************************************************************
+        Boite de dialogue des unites de mesure
+        *****************************************************************************
+        <-->  
+        <h:form prependId="false" id="main_unite_model_poste">
+            <p:dialog header="#{lab.LRH_PPT_unites_mesure}" widgetVar="dlgListUnite" modal="true" width="70%" closeOnEscape="true"> 
+                <div> 
+                    <h:panelGrid columns="2" style="width: 100%;margin-top: -5px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                        <h:panelGroup>
+                            <p:commandButton value="#{lab.L_enregistrer}" id="save_unite_model_poste" actionListener="#{managedUniteMesure.saveNew()}" style="font-size: 0.8em;"
+                                             update="form_unite_model_poste data_unite_model_poste :form-poste-000:tbView_elt_sal_poste:select_unite_preavis_contrat"/>
+                            <p:commandButton value="#{lab.L_nouveau}"  id="cancel_unite_model_poste" process="@this" actionListener="#{managedUniteMesure.resetFiche()}" global="false" update="form_unite_model_poste"/>                 
+                            <p:outputPanel id="search_unite_model_poste">
+                                <p:watermark for="txt_search_unite_model_poste" value="#{lab.LDB_PA_reference_unite}" />
+                                <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                    <h:inputText id="txt_search_unite_model_poste" value="#{managedUniteMesure.numSearch}" style="text-align: center">
+                                        <p:ajax event="keyup" global="false" listener="#{managedUniteMesure.addParamReference()}" update="data_unite_model_poste"/>
+                                    </h:inputText> 
+                                    <p:outputPanel autoUpdate="true" layout="block">
+                                        <p:commandButton actionListener="#{managedUniteMesure.loadAll(false, false)}" global="false" update="data_unite_model_poste" icon="ui-icon-circle-triangle-w" disabled="#{managedUniteMesure.paginator.disPrev}"/>
+                                        <p:outputPanel ><p:outputLabel value="#{managedUniteMesure.paginator.currentPage}/#{managedUniteMesure.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                        <p:commandButton actionListener="#{managedUniteMesure.loadAll(true, false)}" global="false" update="data_unite_model_poste" icon="ui-icon-circle-triangle-e" disabled="#{managedUniteMesure.paginator.disNext}"/>
+                                        <p:selectOneMenu value="#{managedUniteMesure.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedUniteMesure.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                                            <f:selectItems value="#{managedUniteMesure.paginations}"/>
+                                            <p:ajax event="valueChange" global="false" update="data_unite_model_poste"/>
+                                        </p:selectOneMenu>
+                                    </p:outputPanel>
+                                </h:panelGrid>                        
+                            </p:outputPanel>
+                        </h:panelGroup>
+                        <h:panelGroup style="float: right">
+                            <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('unite_model_poste');
+                                    return false">
+                                <h:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>               
+                            <h:link onclick="collapseList('unite_model_poste');
+                                    return false" title="#{lab.L_mode_liste}" >
+                                <h:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                            </h:link>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                </div>
+                <div>
+                    <div class="yvs_form_unite_model_poste" >
+                        <h:panelGrid id="form_unite_model_poste" columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                            <span>#{lab.L_reference}</span>
+                            <h:inputText value="#{uniteMesure.reference}" style="width: 98%"/>
+                            <span>#{lab.L_libelle}</span>
+                            <h:inputText value="#{uniteMesure.libelle}" style="width: 98%"/>
+                            <span>#{lab.L_type}</span>
+                            <h:selectOneMenu value="#{uniteMesure.type}" style="width: 98%">
+                                <f:selectItems value="#{constantes.UNITES_MESURE}"/>
+                            </h:selectOneMenu>
+                            <f:facet name="footer">
+                                <span>#{lab.L_description}</span>
+                                <h:inputTextarea value="#{uniteMesure.description}" rows="5" style="width: 98%"/>
+                            </f:facet>
+                        </h:panelGrid>  
+                    </div>
+                    <div class="yvs_list_unite_model_poste" >
+                        <p:dataTable value="#{managedUniteMesure.unites}" var="unite" rowKey="#{unite.id}" rowIndexVar="yIdx"
+                                     selectionMode="single" style="max-height: 400px;overflow-y: auto" id="data_unite_model_poste">
+                            <p:ajax event="rowSelect" global="false" listener="#{managedUniteMesure.loadOnView}" oncomplete="collapseForm('unite_model_poste')"
+                                    update=":main_unite_model_poste:form_unite_model_poste"/>
+                            <p:column headerText="N°" width="20">
+                                <span>#{yIdx+1}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" width="50">
+                                <span>#{unite.reference}</span>                 
+                            </p:column>                                
+                            <p:column headerText="#{lab.L_designation}" width="100">
+                                <span>#{unite.libelle}</span>
+                            </p:column>
+                            <p:column headerText="#{lab.L_type}" width="80">
+                                <span>#{managedUniteMesure.giveNameUnite(unite.type)}</span>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>                
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LRH_PPT_suspendre_prime}" widgetVar="dlgSuspension" width="50%"
+                      closeOnEscape="true" modal="true" dynamic="true">
+                <p:outputPanel id="pan_sus_prim_poste">
+                    <p:panelGrid columns="4" style="width: 95%; margin: auto">
+                        <p:outputLabel value="#{lab.L_debut}" />
+                        <p:calendar value="#{managedContratEmploye.prime.debut}" pattern="dd-MM-yyyy"/>
+                        <p:outputLabel value="#{lab.L_fin}" />
+                        <p:calendar value="#{managedContratEmploye.prime.fin}" pattern="dd-MM-yyyy" />
+                        <f:facet name="footer">
+                            <p:commandButton value="#{lab.L_valider}" actionListener="#{managedContratEmploye.valideSuspension()}"/>
+                        </f:facet>
+                    </p:panelGrid>
+                    <p:dataTable value="#{managedContratEmploye.selectedElt.listPrelevement}" var="sus" rowKey="#{sus.id}"
+                                 selectionMode="single" selection="#{managedContratEmploye.selectPrelev}">
+                        <p:column headerText="#{lab.L_date}" >
+                            <h:outputText value="#{sus.datePrelevement}"  >
+                                <f:convertDateTime pattern="dd-MM-yyyy" />
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="#{lab._montant}" >
+                            <h:outputText value="#{sus.montantPrelevement}" converter="DN"/>
+                        </p:column>
+                        <p:column headerText="" width="20">
+                            <p:commandLink title="#{(!sus.suspendu)?lab.LRH_PPT_suspension_en_cours:lab.LRH_PPT_suspension_annule}" actionListener="#{managedContratEmploye.confirmCancelSuspension(sus)}">
+                                <f:setPropertyActionListener target="#{managedContratEmploye.selectPrelev}" value="#{sus}" />
+                                <p:graphicImage library="img" name="#{(!sus.suspendu)?'yes.png':'no.png'}" />
+                            </p:commandLink>
+                        </p:column>
+                    </p:dataTable>
+                </p:outputPanel>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="postes_body_typeP01" >
+            <p:dialog header="#{lab.LRH_PPT_modele_primes_avantages}" widgetVar="dlgModelPrime" width="50%" resizable="false"
+                      closeOnEscape="true" >  
+                <p:dataTable  value="#{managedContratEmploye.modelePrimes}" var="Mprime" selectionMode="single"
+                              rowKey="#{Mprime.typeElement.id}" id="tabPrime_modele_poste" selection="#{managedContratEmploye.selectedElt}">                        
+                    <p:column headerText="#{lab.L_libelle}" width="200" styleClass="prime_perm_#{Mprime.permanent} prime_sus_#{(Mprime.suspendu)}">
+                        <h:outputText value="#{Mprime.typeElement.libelle}" style="width: 100%;" styleClass="prime_perm_#{Mprime.permanent}" 
+                                      title="#{((Mprime.suspendu)?lab.LRH_PPT_prime_suspendu:(Mprime.permanent)?lab.LRH_PPT_prime_periodique:'')}"/>
+                    </p:column>                                               
+                    <p:column headerText="#{lab.L_montant}" width="90"
+                              styleClass="prime_perm_#{Mprime.permanent} prime_sus_#{(Mprime.suspendu)}">
+                        <h:outputText value="#{Mprime.montantElement}" converter="DN" style="width: 100%;" 
+                                      styleClass="prime_perm_#{Mprime.permanent}"
+                                      title="#{((Mprime.suspendu)?lab.LRH_PPT_prime_suspendu:(Mprime.permanent)?lab.LRH_PPT_prime_periodique:'')}"/>                                            
+                    </p:column> 
+                    <p:column headerText="#{lab.L_debut}" width="90" styleClass="prime_perm_#{Mprime.permanent} prime_sus_#{(Mprime.suspendu)}" >
+                        <h:outputText value="#{Mprime.dateDebut}" converter="DATE" style="width: 100%;" styleClass="prime_perm_#{Mprime.permanent}" 
+                                      title="#{((Mprime.suspendu)?lab.LRH_PPT_prime_suspendu:(Mprime.permanent)?lab.LRH_PPT_prime_periodique:'')}"/>                                            
+                    </p:column>
+                    <p:column headerText="#{lab.L_fin}"  width="90" styleClass="prime_perm_#{Mprime.permanent} prime_sus_#{(Mprime.suspendu)}">
+                        <h:outputText value="#{Mprime.dateFin}" converter="DATE" style="width: 100%;"  
+                                      title="#{((Mprime.suspendu)?lab.LRH_PPT_prime_suspendu:(Mprime.permanent)?lab.LRH_PPT_prime_periodique:'')}"/>                                            
+                    </p:column>                                                                
+                </p:dataTable>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_regle_eltImport_post">
+            <p:dialog header="#{lab.LRH_PPT_liste_societes}" width="40%"  widgetVar="dlgScte" closeOnEscape="true">
+                <p:dataTable value="#{managedPosteDeTravail.listSociete}" var="scte" 
+                             selectionMode="single" rowKey="#{scte.id}" id="table_poste_societe">
+                    <p:ajax event="rowSelect" listener="#{managedPosteDeTravail.selectionSocieteToImport}"  global="false" 
+                            update=":form_regle_eltImport_post:table_reg_to_import_post" process="@this" oncomplete="dlgScte.hide()" />
+                    <p:column headerText="Raison sociale" >
+                        <h:outputText value="#{scte.raisonSocial}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" >
+                        <h:outputText value="#{scte.codeAbreviation}" />
+                    </p:column>
+                </p:dataTable>  
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+            <p:dialog header="#{lab.LRH_PPT_elements_importer}" width="40%"  widgetVar="dlgEltToImport" closeOnEscape="true">
+                <p:dataTable value="#{managedContratEmploye.listTypePrimeToImport}" var="itemImp" 
+                             selectionMode="single" rowKey="#{itemImp.id}" id="table_reg_to_import_post">                        
+                    <p:column headerText="#{lab.LRH_PPT_elements} " >
+                        <h:outputText value="#{itemImp.libelle}" />
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" >
+                        <h:outputText value="#{itemImp.code}" />
+                    </p:column>
+                    <p:column width="20">
+                        <p:commandButton icon="ui-icon-circle-minus" style="width: 20px; height: 20px"  update="table_reg_to_import_post"
+                                         actionListener="#{managedContratEmploye.removeTypeEltAdd(itemImp)}"/>
+                    </p:column>
+                </p:dataTable>  
+                <p:commandButton value="#{lab.L_importer}" icon="ui-icon-circle-arrow-s" actionListener="#{managedContratEmploye.valideTypeEltImporte()}"
+                                 />
+                <f:facet name="footer">                        
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="poste_body_typeP0"> 
+            <p:dialog header="#{lab.LRH_PPT_gestion_primes_avantages}" width="60%" resizable="false" footer="#{lab.L_copy}"
+                      height="500"  closeOnEscape="true" widgetVar="dlgAddTypePrime" modal="true">
+                <div style="float: left">                                               
+                    <span><p:commandButton icon="ui-icon-circle-arrow-s" title="#{lab.LRH_PPT_importer_societe}" type="button" onclick="dlgScte.show()" style="margin-left: 20%"/></span>
+                </div>
+                <div style="clear: both"></div>
+                <div class="yvs_form_PosteTypePrime">
+                    <p:tooltip  for="code_prim_poste" value="#{lab.LRH_PPT_text}"
+                                showEffect="clip" hideEffect="explode" />
+                    <h:panelGrid columns="4" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                        <h:panelGrid columns="2" style="width: 99%; margin: auto" styleClass="yvs_table" id="form_createTypePrimePost" cellpadding="0" cellspacing="0">                    
+                            <p:outputLabel value="#{lab.LRH_PP_code_referencce} : "/>
+                            <h:inputText value="#{managedPosteDeTravail.newType.code}" style="width: 99%" id="code_prim_poste"/>
+                            <p:outputLabel value="#{lab.L_libelle} : "/>
+                            <h:inputText value="#{managedPosteDeTravail.newType.libelle}" style="width: 99%"/>                                
+                        </h:panelGrid>
+                        <p:outputLabel value="#{lab.L_actif} : "/>
+                        <h:selectBooleanCheckbox value="#{managedPosteDeTravail.newType.actif}" />
+                        <p:commandButton value="#{lab.L_ajouter}" actionListener="#{managedPosteDeTravail.addTypePrime()}"
+                                         style="float: left; margin-left: 5%" id="save_PosteTypePrime"
+                                         update="table_poste_prime"/>
+                    </h:panelGrid>
+                    <p:defaultCommand target="save_PosteTypePrime"/>                    
+                    <p:dataTable value="#{managedPosteDeTravail.listTypePrime}" var="typP"
+                                 rowIndexVar="lineTypeP"
+                                 selection="#{managedPosteDeTravail.selectionTypePrime}" rowKey="#{typP.id}" id="table_poste_prime">                           
+                        <p:ajax event="rowSelect" listener="#{managedPosteDeTravail.selectTypePrime}" 
+                                update=":poste_body_typeP:input_selectPoste_type_prime" oncomplete="dlgAddTypePrime.hide()"/>
+                        <p:ajax event="rowSelectCheckbox" global="false" update="deletePosteTypePrime"/>
+                        <p:ajax event="rowUnselectCheckbox" global="false" update="deletePosteTypePrime"/>
+                        <p:column headerText="N°" width="25">
+                            #{lineTypeP+1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_code}">
+                            <h:outputText value="#{typP.code}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_designation}">
+                            #{typP.libelle}
+                        </p:column>
+                        <p:column headerText="" width="20">
+                            <h:graphicImage library="img" name="#{typP.actif?'vu.png':'vu_non.png'}" width="18" height="18" />
+                        </p:column>
+                        <p:column  width="25" selectionMode="multiple" style="text-align: center"/>
+                        <f:facet name="footer">
+                            <p:outputPanel id="deletePosteTypePrime" style="font-size: 0.8em">
+                                <p:commandButton value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedPosteDeTravail.deleteTypePrime()}" 
+                                                 update="table_poste_prime "  process="@this" global="false" rendered="#{managedPosteDeTravail.selectionTypePrime.size()!=0}">
+                                    <!--<p:confirm header="Attention!"  message="Voulez-vous supprimer les primes selectionnée? " icon="ui-icon-alert"/>-->
+                                </p:commandButton>
+                                <p:commandButton value="#{lab.L_desactiver}" icon="ui-icon-close" update="table_poste_prime" rendered="#{managedPosteDeTravail.selectionTypePrime.size()!=0}"
+                                                 actionListener="#{managedPosteDeTravail.desactiverTypePrime()}" 
+                                                 process="@this  " global="false">
+                                    <!--<p:confirm header="Attention!"   message="Voulez-vous désactiver les primes selectionnée? " icon="ui-icon-alert"/>-->
+                                </p:commandButton>
+                            </p:outputPanel>
+                        </f:facet>
+                    </p:dataTable>
+                </div>    
+            </p:dialog>            
+        </h:form>
+        <h:form prependId="false" id="poste_body_typeP">
+            <p:dialog header="#{lab.LRH_PPT_primes_avantages}" widgetVar="prime" width="50%" resizable="false"
+                      closeOnEscape="true" footer="#{lab.L_copy}">  
+                <p:commandButton icon="ui-icon-newwin" title="#{lab.LRH_PPT_afficher_modele}" style="float: right; width: 20px; height: 20px" 
+                                 onclick="dlgModelPrime.show()"/>
+                <p:commandButton icon="ui-icon-circle-arrow-s" title="#{lab.LRH_PPT_ajouter_modele}" style="float: right; width: 20px; height: 20px" 
+                                 actionListener="#{managedPosteDeTravail.createModelePrime()}" 
+                                 />
+                <h:panelGrid id="form-add-prime_poste"  style="width: 95%; margin: auto" columns="2" 
+                             styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                    <span>Primes</span>
+                    <h:selectOneMenu value="#{managedPosteDeTravail.prime.typeElt.id}"
+                                     onchange="openDialog(dlgAddTypePrime, $(this));
+                                             collapseForm('PosteTypePrime')" id="input_selectPoste_type_prime">
+                        <f:selectItem itemValue="#{0}" itemLabel="" noSelectionOption="true"/>                        
+                        <f:selectItems value="#{managedPosteDeTravail.listTypePrime}" var="typp" itemValue="#{typp.id}" itemLabel="#{typp.libelle}" />
+                        <f:selectItem itemValue="#{0}" itemLabel="" noSelectionOption="true"/>
+                        <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/> 
+                    </h:selectOneMenu>
+                    <span>#{lab.LRH_PPT_prime_permanente} ?</span>
+                    <h:selectBooleanCheckbox value="#{managedPosteDeTravail.prime.permanent}">
+                        <p:ajax event="valueChange"  global="false" process="@this" update="poste-int-prim"/>
+                    </h:selectBooleanCheckbox>
+                    <span>#{lab.L_montant}</span>
+                    <pe:inputNumber value="#{managedPosteDeTravail.prime.montant}" />
+                    <span>#{lab.L_description}</span>
+                    <h:inputTextarea value="#{managedPosteDeTravail.prime.description}"  /> 
+                    <h:panelGroup id="poste-int-prim_label">
+                        <h:outputText value="#{lab.LDB_PC_periode}" rendered="#{!managedPosteDeTravail.prime.permanent}" />
+                    </h:panelGroup>
+                    <h:panelGroup id="poste-int-prim" style="display: #{(!managedPosteDeTravail.prime.permanent)?'block':'none'}">
+                        <p:calendar value="#{managedPosteDeTravail.prime.debut}" pattern="dd-MM-yyyy" size="8"/>
+                        <span>---</span>
+                        <p:calendar value="#{managedPosteDeTravail.prime.fin}" pattern="dd-MM-yyyy" size="8"/>
+                    </h:panelGroup>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-circle-plus" actionListener="#{managedPosteDeTravail.addPrime()}" 
+                                 style="float: right; margin-right: 2.5%"/> 
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgSpecialite" width="40%" modal="true" closeOnEscape="true" header="#{lab.LRH_PPT_specialite_diplomes}"
+                      resizable="false" footer="&copy;Lymytz 2014">                    
+                <div class="yvs_form_diplomePoste">
+                    <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                        <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle">
+                            <span>#{lab.LRH_PPT_specialite}</span>                            
+                            <h:inputText value="#{managedPosteDeTravail.specialite.designation}" />
+                            <span>#{lab.LRH_PPT_code_interne}</span>
+                            <h:inputText value="#{managedPosteDeTravail.specialite.codeInterne}" /> 
+                        </h:panelGrid>
+                        <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedPosteDeTravail.createNewSpecialite()}"
+                                         style="float: right" update=":form_Post_Dip:chp_poste_spD  :form_Post_Dip:tab-diplome-poste"
+                                         oncomplete="dlgSpecialite.hide()"/>
+                    </h:panelGrid>
+                </div>                    
+            </p:dialog>
+        </h:form>
+        <!-->****************************Gérer les qualifications**********************<-->
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddDomaineQual" width="30%" modal="true" footer="#{lab.L_copy}"
+                      closeOnEscape="true" header="#{lab.LRH_PPT_nouveau_domaine_qualification}">
+                <h:panelGrid columns="3" styleClass="yvs_table" style="width: 100%; margin: auto"
+                             cellpadding="0" cellspacing="0">
+                    <span>#{lab.LDB_PD_titre} </span>                        
+                    <h:inputText value="#{managedPosteDeTravail.domaine.titreDomaine}" style="width: 99%"/>                        
+                    <p:commandButton style="margin: auto" icon="ui-icon-circle-plus"
+                                     actionListener="#{managedPosteDeTravail.addNewDomaine()}"
+                                     update=":form_PQ:domaine_PQ :formQualif:tab-qualif-poste" oncomplete="dlgAddDomaineQual.hide()"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form_PQ">
+            <p:dialog widgetVar="dlgAddQualification" width="40%" modal="true" footer="#{lab.L_copy}"
+                      closeOnEscape="true" header="#{lab.LRH_PPT_creer_qualification}">
+                <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%; margin: auto"
+                             cellpadding="0" cellspacing="0">
+                    <span>#{lab.LRH_PPT_domaine}</span>
+                    <h:panelGroup>
+                        <h:selectOneMenu value="#{managedPosteDeTravail.newQualif.domaine.id}" id="domaine_PQ">
+                            <f:selectItem itemLabel="" itemValue="" />
+                            <f:selectItems value="#{managedPosteDeTravail.domaines}" var="domai_" itemLabel="#{domai_.titreDomaine}" itemValue="#{domai_.id}" />                            
+                        </h:selectOneMenu> 
+                        <p:commandButton style="margin: auto; width: 20px; height: 20px" icon="ui-icon-circle-plus" title="#{lab.LRH_PPT_ajouter_domaine}"
+                                         type="button" onclick="dlgAddDomaineQual.show()"/>
+                        <p:commandButton style="margin: auto; width: 20px; height: 20px" icon="ui-icon-circle-minus"
+                                         actionListener="#{managedPosteDeTravail.RemoveOneDomaine()}" global="false" update="domaine_PQ"/>
+                    </h:panelGroup>                                               
+                    <span>#{lab.LRH_PPT_code_interne}</span>
+                    <h:inputText value="#{managedPosteDeTravail.newQualif.codeInterne}" style="width: 99%"/>
+                    <span>#{lab.L_intitule}</span>
+                    <h:inputText value="#{managedPosteDeTravail.newQualif.intitule}" style="width: 99%"/>    
+                    <span>&nbsp;</span>
+                    <p:commandButton style="float: right" icon="ui-icon-circle-plus" update=":formQualif:tab-qualif-poste"
+                                     actionListener="#{managedPosteDeTravail.createQualification()}"/>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="formQualif">
+            <p:dialog widgetVar="dlgQualification" modal="true" closeOnEscape="true" width="60%" 
+                      header="#{lab.LRH_PPT_gerer_qualification}" style="max-height: 550px; overflow-y: hidden" footer="&copy;Lymytz 2014">
+                <div align="right">
+                    <p:commandButton icon="ui-icon-circle-plus" onclick="dlgAddQualification.show()"
+                                     type="button" style="width: 22px; height: 22px"
+                                     />
+                    <p:commandLink >
+                        <h:graphicImage library="img/icones" name="update.png" />
+                    </p:commandLink>
+                </div>
+                <p:dataTable value="#{managedPosteDeTravail.domaines}" var="dom"
+                             rowKey="#{dom.id}" selectionMode="single" id="tab-qualif-poste"
+                             rowIndexVar="line_q" style="max-height: 450px; overflow-y: auto; width: 98%">                        
+                    <p:columnGroup type="header">
+                        <p:row>
+                            <p:column headerText="N°" width="20"/>
+                            <p:column headerText="#{lab.LRH_PPT_titre_qualification}" />
+                            <p:column headerText="#{lab.LRH_PPT_code_interne} " />
+                            <p:column headerText=" "  width="30"/>
+                        </p:row>            
+                    </p:columnGroup>
+                    <p:subTable value="#{dom.qualifications}" var="qal" >
+                        <f:facet name="header">
+                            <h:outputText value="#{dom.titreDomaine}" />
+                        </f:facet>
+                        <p:column headerText="N°" styleClass="bind_#{qal.id gt 0}" style="width: 5% !important">
+                            #{line_q +1}
+                        </p:column>
+                        <p:column  styleClass="bind_#{qal.id gt 0}" filterBy="#{qal.designation}">
+                            <h:outputText value=" #{qal.designation}"  style="text-align: center;"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PPT_code_interne} " styleClass="bind_#{qal.id gt 0}">
+                            <h:outputText value=" #{qal.codeInterne}"  style="text-align: center;"/>
+                        </p:column>
+                        <p:column headerText=" " width="20" style="text-align: center">
+                            <p:commandButton title="#{lab.LRH_PPT_text1} #{posteDeTravail.intitule}"
+                                             actionListener="#{managedPosteDeTravail.addQualificationRequise(dom,qal)}" style="width: 22px; height: 22px"
+                                             update=":form-poste-000:tbView_elt_sal_poste:tab-qualif_actif_poste" icon="ui-icon-circle-arrow-s">                                    
+                            </p:commandButton>
+                        </p:column>
+                    </p:subTable>                        
+                </p:dataTable>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <!-->***************************GERER LES EXPERIENCES*********************<-->
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PPT_experience_poste}" closeOnEscape="true" widgetVar="dlgExperience" footer="#{lab.L_copy}"
+                      width="60%" style="max-height: 550px">
+                <h:panelGrid columns="1"  styleClass="yvs_nostyle" style="width: 100%">
+                    <h:panelGrid columns="5" id="tab-profil-poste"  
+                                 styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                        <p:outputLabel value="#{lab.LRH_PPT_poste} "/>
+                        <h:selectOneMenu value="#{managedPosteDeTravail.posteDetravail}" 
+                                         onchange="openDialog(dlgAddPoste, $(this))" id="txt_poste_experience">
+                            <f:selectItem itemLabel="" itemValue=""/>
+                            <f:selectItems value="#{managedPosteDeTravail.listPostes}" var="post" itemLabel="#{post.intitule}" itemValue="#{post.intitule}"/>
+                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                            <f:selectItem itemValue="-1" itemLabel="#{lab.LRH_PPT_creer_plus_choix}"/>
+                        </h:selectOneMenu>                        
+                        <p:outputLabel value="#{lab.LRH_PPT_duree_mois}"/>
+                        <pe:inputNumber  value="#{managedPosteDeTravail.duree}"/>
+                        <p:commandButton icon="ui-icon-circle-plus" actionListener="#{managedPosteDeTravail.addExperiencePoste()}"
+                                         update="tab-experience-poste tab-profil-poste"/>
+                        <f:facet name="footer">                                    
+                            <p:commandButton value="#{lab.L_supprimer}(#{managedPosteDeTravail.selectedExperience.size()})"
+                                             actionListener="#{managedPosteDeTravail.deleteExpPoste()}" id="b-Add-EXP"
+                                             update="tab-experience-poste tabview-poste0:tab-profil-poste" 
+                                             rendered="#{managedPosteDeTravail.displayExperience}"
+                                             style="float: right"/>
+                        </f:facet>
+                    </h:panelGrid>
+                    <f:facet name="header">
+                        <p:dataTable value="#{managedPosteDeTravail.experiences}" var="exp" 
+                                     id="tab-experience-poste" selection="#{managedPosteDeTravail.selectedExperience}"
+                                     selectionMode="multiple" rowKey="#{exp.id}">
+                            <p:ajax event="rowSelect" listener="#{managedPosteDeTravail.choixExpfPoste()}" />
+                            <p:ajax event="rowUnselect" listener="#{managedPosteDeTravail.choixExpfPoste()}" />
+                            <p:column headerText="Poste detravail" style="text-align: left">
+                                #{exp.poste.intitule}
+                            </p:column>
+                            <p:column headerText="#{lab.LRH_PPT_duree}" width="150">
+                                #{exp.duree}
+                            </p:column>
+                        </p:dataTable>
+                    </f:facet>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <!-->***************************GERER LES ACTIVITES*********************<-->
+        <h:form prependId="false" id="form_activite_poste">
+            <p:dialog header="#{lab.LRH_PPT_activitees_postes}" widgetVar="dlgActivites" closeOnEscape="true"
+                      footer="#{lab.L_copy}"
+                      width="60%" style="max-height: 550px">
+                <h:panelGrid columns="1" id="grid-post-activite" >
+                    <f:facet name="header">
+                        <h:panelGroup   styleClass="yvs_nostyle" style="width: 80%; margin: auto">
+                            <span>#{lab.LRH_PPT_activite}</span>
+                            <h:inputText value="#{managedPosteDeTravail.activite.libelle}" />
+                            <p:commandButton icon="ui-icon-circle-plus" update="grid-post-activite"
+                                             actionListener="#{managedPosteDeTravail.addActivites()}"/>
+                            <p:commandButton value="#{lab.L_supprimer}" actionListener="#{managedPosteDeTravail.deleteActivite()}" rendered="#{managedPosteDeTravail.displayBtnDelActivite}"/>
+                        </h:panelGroup>
+                    </f:facet>
+                    <f:facet name="footer">
+                        <p:dataTable value="#{posteDeTravail.activites}" rowIndexVar="line_A" 
+                                     var="act" rowKey="#{act.id}" id="tab-poste-activite"
+                                     selectionMode="multiple" selection="#{managedPosteDeTravail.selectionActivites}">                                
+                            <p:column width="10">#{line_A+1}</p:column>
+                            <p:column headerText="" style="text-align: left">
+                                #{act.libelle}
+                            </p:column>
+                            <p:column headerText="" width="25">
+                                <p:commandLink title="#{lab.L_supprimer}" actionListener="#{managedPosteDeTravail.deleteActivite(act)}" update="tab-poste-activite">
+                                    <h:graphicImage library="icones" name="delete.png" />
+                                </p:commandLink>
+                            </p:column>
+                        </p:dataTable>  
+                    </f:facet>
+                </h:panelGrid> 
+            </p:dialog>
+        </h:form>             
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgNewlibelle" closeOnEscape="true" width="30%"
+                      resizable="false" footer="#{lab.L_copy}" header="#{lab.LRH_PPT_libelle_fras_mission}">
+                <h:panelGrid columns="3" style="width: 100%" >
+                    <span>#{lab.L_libelle}</span>
+                    <p:inputText value="#{managedPosteDeTravail.newLibelleCout}" />
+                    <p:commandButton icon="ui-icon-circle-plus" style="float: right" 
+                                     actionListener="#{managedPosteDeTravail.saveNewLibelle()}" id="btn-post-add-li"/>                        
+                </h:panelGrid>                    
+                <p:dataTable value="#{managedPosteDeTravail.listLibelle}" var="lib_c" selectionMode="single"
+                             rowKey="#{lib_c.id}" id="table_libC">
+                    <p:column headerText="#{lab.LCF_PGG_module} ">#{lib_c.moduleCout}</p:column>
+                    <p:column headerText="#{lab.L_libelle}">#{lib_c.libelle}</p:column>
+                    <p:column width="20" style="text-align: center">
+                        <p:commandButton icon="ui-icon-trash" style="width: 22px; height: 22px" actionListener="#{managedPosteDeTravail.deleteLibelleFrais(lib_c)}" 
+                                         />
+                    </p:column>
+                </p:dataTable>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+            <p:defaultCommand target="btn-post-add-li" />
+        </h:form>  
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgPosteEquivalent" closeOnEscape="true" width="40%"
+                      resizable="false">
+                <p:dataTable value="#{managedPosteDeTravail.listPostes}" var="p" rowKey="#{p.id}" selectionMode="single">
+                    <p:ajax event="rowSelect" listener="#{managedPosteDeTravail.choosePosteEquivalent}"
+                            oncomplete="dlgPosteEquivalent.hide()"/>               
+                    <p:column headerText="#{lab.LRH_PD_poste} " >
+                        <h:outputText value="#{p.intitule}" />
+                    </p:column>                           
+                    <p:column headerText="#{lab.LRH_PPT_departements} ">
+                        <h:outputText value="#{p.departement.intitule}" />
+                    </p:column>
+                    <p:column headerText="#{lab.LRH_PPT_grade} " width="30">
+                        <h:outputText value="#{p.grade}" />
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddGrille" closeOnEscape="true" width="60%" footer="&copy;Lymytz 2014"
+                      resizable="false" height="550" header="#{lab.LRH_PPT_grille_fras_mission}" >               
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('poste_mission');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('poste_mission');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div class="yvs_form_poste_mission">                        
+                    <p:outputPanel id="view-poste-frais-mission" >                            
+                        <p:defaultCommand target="btn-post-addN" /> 
+                        <h:panelGrid columns="3">
+                            <p:commandButton icon="ui-icon-document" value="Nouveau" actionListener="#{managedPosteDeTravail.resetFormFraisM}" process="@this"
+                                             global="false" update="view-poste-frais-mission" style="font-size: 0.8em"/>
+                            <span>#{lab.L_reference}</span>
+                            <h:inputText value="#{managedPosteDeTravail.grilleFrais.categorie}" />
+                        </h:panelGrid><br />
+                        <h:panelGrid columns="5" id="post-add-grille-grid" style="width: 100%; background: #666; color: white; font-weight: bold" styleClass="yvs_table"
+                                     cellpadding="0" cellspacing="0"> 
+                            <span>#{lab.L_libelle}</span>
+                            <h:selectOneMenu value="#{managedPosteDeTravail.detailFrais.typeCout.id}" onchange="openDialog(dlgNewlibelle, $(this))">
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true" />
+                                <f:selectItems value="#{managedPosteDeTravail.listLibelle}" var="lib" itemValue="#{lib.id}"
+                                               itemLabel="#{lib.libelle}" />
+                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" />
+                            </h:selectOneMenu>
+                            <p:outputLabel value="#{lab.L_montant}"/>
+                            <pe:inputNumber value="#{managedPosteDeTravail.detailFrais.montant}" />
+                            <p:commandButton icon="ui-icon-circle-plus" style="width: 20px; height: 20px" 
+                                             actionListener="#{managedPosteDeTravail.addDetailGrille()}" id="btn-post-addN" />                                
+                        </h:panelGrid>
+                        <p:dataTable value="#{managedPosteDeTravail.grilleFrais.detailsFrais}" var="gr"
+                                     id="tab-grille-poste" selectionMode="multiple" rowKey="#{gr.typeCout.id}"
+                                     selection="#{managedPosteDeTravail.selectTionDetailFraisMission}" style="min-height: 450px; max-height: 550px; overflow-y: auto">
+                            <p:ajax event="rowSelect" listener="#{managedPosteDeTravail.selectDetailGrille}" />
+                            <p:column headerText="#{lab.L_libelle}" width="200">
+                                <h:outputText value="#{gr.typeCout.libelle}" />
+                            </p:column>
+                            <p:column headerText="#{lab.L_montant}" width="100">
+                                <h:outputText value="#{gr.montantPrevu}" converter="DN" style="float: right"/>
+                            </p:column>
+                        </p:dataTable>
+                        <h:panelGroup style="float: right">
+                            <p:commandButton value="#{lab.L_enregistrer}" 
+                                             actionListener="#{managedPosteDeTravail.saveGrille()}"/>
+                            ou
+                            <p:commandButton value="#{lab.LRH_PPT_enregistrer_fermer}" id="btn-post-addN1"
+                                             actionListener="#{managedPosteDeTravail.saveGrilleAndClose()}" 
+                                             oncomplete="dlgAddGrille.hide()"/>
+
+                            <p:commandButton value="#{lab.L_supprimer}(#{managedPosteDeTravail.selectTionDetailFraisMission.size()})" 
+                                             style="float: right" rendered="#{managedPosteDeTravail.displayDelDetailG}" actionListener="#{managedPosteDeTravail.deleteDetailGrille()}" />
+                        </h:panelGroup>
+                    </p:outputPanel>
+                </div>
+                <div class="yvs_list_poste_mission">
+                    <p:commandButton icon="ui-icon-trash" value="#{lab.L_supprimer}" actionListener="#{managedPosteDeTravail.deleteGrille()}" rendered="#{managedPosteDeTravail.displayDelGrille}" />
+                    <p:commandButton value="#{lab.L_modifier}" actionListener="#{managedPosteDeTravail.openFormGrille()}" 
+                                     rendered="#{managedPosteDeTravail.displayDelGrille}" update="view-poste-frais-mission"/>
+                    <p:dataTable value="#{managedPosteDeTravail.listeGrilleFrais}" var="grm" 
+                                 selectionMode="single" rowKey="#{grm.id}" style="max-height: 500px">
+                        <p:ajax event="rowSelect" listener="#{managedPosteDeTravail.selectGrille}" oncomplete="collapseForm('poste_mission')"/>
+                        <p:column headerText="#{lab.L_reference}">
+                            #{grm.categorie}
+                        </p:column>
+                        <p:column headerText="" width="20">
+                            <h:graphicImage  library="img" name="#{(grm.actif)?'vu.png':'erase_128.png'}"  style="width: 10px; height: 10px" />
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>                
+        </h:form>
+<!--        <h:form prependId="false">
+            <p:confirmDialog message="Voulez-vos vraiment supprimer les postes sélectionnés ?"
+                             widgetVar="dlgDelete" width="300" closeOnEscape="true">
+                <h:panelGrid columns="2" style="width: 50%; margin: auto">
+                    <p:commandButton value="Oui" actionListener="#{managedPosteDeTravail.deletePoste()}" oncomplete="dlgDelete.hide()"/>
+                    <p:commandButton value="Non" onclick="dlgDelete.hide()"/>
+                </h:panelGrid>
+            </p:confirmDialog>
+        </h:form>   -->
+        
+         <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PPT_text2}"
+                             widgetVar="dlgDelete" width="40%" header="#{lab.LRH_PPT_supprimer_les_poste}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedPosteDeTravail.deletePoste()}" 
+                                 oncomplete="dlgDelete.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgDelete.hide()" />
+            </p:confirmDialog>
+        </h:form>
+
+
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgAddDepartement" modal="true" width="40%" closeOnEscape="true" header="#{lab.LRH_PPT_creer_departement}">
+                <p:panelGrid columns="2" style="width: 90%; margin: auto">
+                    <p:outputLabel value="#{lab.L_code}" />
+                    <p:inputText value="#{managedPosteDeTravail.newDep.codeDepartement}" style="width: 99%"/>
+                    <p:outputLabel value="#{lab.L_intitule}" />
+                    <p:inputText value="#{managedPosteDeTravail.newDep.intitule}" style="width: 99%"/>
+                    <p:outputLabel value="#{lab.L_parent}" />
+                    <p:selectOneMenu value="#{managedPosteDeTravail.newDep.idParent}"
+                                     >
+                        <f:selectItem itemValue="0" itemLabel=""/>
+                        <f:selectItems value="#{managedDepartement.listValue}" var="item"  
+                                       itemLabel="#{(item.cheminParent==null)?item.intitule:item.cheminParent.concat('/').concat(item.intitule)}"
+                                       itemValue="#{item.id}" />                   
+                    </p:selectOneMenu>                
+                </p:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedPosteDeTravail.createNewDep()}"/>
+                <f:facet name="footer">                       
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>   
+        <h:form prependId="false" id="form_Post_Dip">
+            <p:dialog widgetVar="dlgDiplomes" width="75%" closeOnEscape="true" header="#{lab.LRH_PPT_liste_diplomes}"
+                      resizable="false" footer="&copy;Lymytz 2014">
+                <div style="float: right">
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('diplomePoste');
+                            return false">
+                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('diplomePoste');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>
+                <div class="yvs_form_diplomePoste">
+                    <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0"
+                                 id="form_NewposteDip">
+                        <span>#{lab.LRH_PPT_specialite}</span>
+                        <h:selectOneMenu value="#{managedPosteDeTravail.diplome.specialite.id}" 
+                                         id="chp_poste_spD" onchange="openDialog(dlgSpecialite, $(this))">
+                            <f:selectItem itemValue="0" itemLabel=" " noSelectionOption="true"/>
+                            <f:selectItems value="#{managedPosteDeTravail.specialites}" var="sp" itemValue="#{sp.id}" itemLabel="#{sp.titreSpecialite}" />
+                            <f:selectItem itemValue="0" itemLabel=" " noSelectionOption="true"/>
+                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}" />
+                        </h:selectOneMenu>
+                        <span>#{lab.LRH_PPT_diplome}</span>
+                        <h:inputText value="#{managedPosteDeTravail.diplome.designation}" />
+                        <span>#{lab.LRH_PPT_code_interne}</span>
+                        <h:inputText value="#{managedPosteDeTravail.diplome.codeInterne}" />
+                        <span>#{lab.LRH_PPT_serie}</span>
+                        <h:inputText value="#{managedPosteDeTravail.diplome.serie}" />
+                        <span>#{lab.LRH_PPT_cycle}</span>
+                        <p:selectOneRadio value="#{managedPosteDeTravail.diplome.cycle}" layout="grid">
+                            <f:selectItem itemValue="Primaire" itemLabel="#{lab.LRH_PPT_primaire}" />
+                            <f:selectItem itemValue="Secondaire I" itemLabel="#{lab.LRH_PPT_secondaire}" />
+                            <f:selectItem itemValue="Secondaire II" itemLabel="#{lab.LRH_PPT_secondaire_2}" />
+                            <f:selectItem itemValue="Supérieure I" itemLabel="#{lab.LRH_PPT_superieur}" />
+                            <f:selectItem itemValue="Supérieure II" itemLabel="#{lab.LRH_PPT_superieur_2} " />
+                            <f:selectItem itemValue="Supérieure III" itemLabel="#{lab.LRH_PPT_superieur_3} " />                        
+                        </p:selectOneRadio>
+                    </h:panelGrid>
+                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedPosteDeTravail.createNewDiplome()}"
+                                     style="float: right" update="tab-diplome-poste form_NewposteDip"/>
+                </div>
+                <div class="yvs_list_diplomePoste">
+                    <p:dataTable value="#{managedPosteDeTravail.specialites}" var="itemSp"
+                                 rowKey="#{dom.id}" selectionMode="single" id="tab-diplome-poste"
+                                 rowIndexVar="line_sp" style="max-height: 450px; overflow-y: auto; width: 100%"
+                                 >                        
+                        <p:columnGroup type="header">
+                            <p:row>
+                                <p:column headerText="#{la.LRH_PPT_code_inte}"  width="100"/>
+                                <p:column headerText="#{lab.LRH_PPT_diplomes}" width="100"/>
+                                <p:column headerText="#{lab.LRH_PPT_serie} "  width="100"/>
+                                <p:column headerText="#{lab.LRH_PPT_cycle}" width="100"/>
+                                <p:column headerText=""  width="20"/>
+                                <p:column headerText=""  width="15"/>
+                            </p:row>            
+                        </p:columnGroup>
+                        <p:subTable value="#{itemSp.diplomes}" var="dip_" >
+                            <f:facet name="header">
+                                <div style="width: 100%" align="left">
+                                    <h:outputText value="#{itemSp.titreSpecialite}" /> 
+                                    <p:commandButton icon="ui-icon-trash" style="width: 22px; height: 22px; float: right" actionListener="#{managedPosteDeTravail.choixDiplomes(dip_)}" title="Supprimer le diplome"
+                                                     update=":form-poste-000:nivo-requis" oncomplete="dlgDiplomes.hide()" rendered="false"/>
+                                </div>
+                            </f:facet>                                            
+                            <p:column  selectionMode="single">
+                                <h:outputText value="#{dip_.codeInterne}"  style="text-align: center;"/>
+                            </p:column>
+                            <p:column >
+                                <h:outputText value="#{dip_.nom}"  style="text-align: center;"/>
+                            </p:column>
+                            <p:column style="text-align: center">
+                                <h:outputText value="#{dip_.serie}"  style="text-align: center;"/>
+                            </p:column>
+                            <p:column >
+                                <h:outputText value="#{dip_.cycleDipome}"  style="text-align: center;"/>
+                            </p:column>
+                            <p:column style="text-align: center">
+                                <p:commandButton icon="ui-icon-circle-arrow-s" style="width: 22px; height: 22px" title="#{lab.LRH_PPT_effectuer_choix_diplome}" actionListener="#{managedPosteDeTravail.choixDiplomes(dip_)}"
+                                                 update=":form-poste-000:nivo-requis" oncomplete="dlgDiplomes.hide()" />
+                            </p:column>
+                            <p:column style="text-align: center">
+                                <p:commandButton actionListener="#{managedPosteDeTravail.removeDiplome(dip_)}" title="#{lab.LRH_PPT_supprimer_diplome}"
+                                                 update=":form_Post_Dip:tab-diplome-poste" icon="ui-icon-trash" style="width: 22px; height: 22px">
+                                    <!--<p:confirm header="Supprimer !" message="Voulez-vous vraiment supprimer ce diplôme" />-->
+                                </p:commandButton>
+                            </p:column>
+                        </p:subTable>                        
+                    </p:dataTable>                        
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgDepartement" width="55%" modal="true" closeOnEscape="true" header="#{lab.LRH_PPT_liste_departements}">
+
+                <p:dataTable value="#{managedDepartement.listValue}" var="dep"
+                             rowKey="#{dep.id}" selectionMode="single" scrollHeight="400" scrollable="true">
+                    <p:ajax event="rowSelect" listener="#{managedPosteDeTravail.selectDepartement}" />
+                    <p:column headerText="Code " >
+                        #{dep.codeDepartement}
+                    </p:column>
+                    <p:column headerText="#{lab.L_designation}">  
+                        #{dep.intitule}
+                    </p:column>
+                    <p:column headerText="#{lab.L_parent}">
+                        #{dep.cheminParent}
+                    </p:column>                
+                </p:dataTable>
+                <p:commandButton value="#{lab.LRH_PPT_creer}"  onclick="dlgAddDepartement.show()"/>
+                <f:facet name="footer">
+                    #{lab.L_copy}
+                </f:facet>
+            </p:dialog>
+        </h:form>    
+        <h:form prependId="false" id="form-poste-000">
+            <div class="part_fix">
+                <div style="float: left">
+                    <p:splitButton value="#{lab.L_enregistrer}" id="save_posteTravail" actionListener="#{managedPosteDeTravail.saveNew()}" 
+                                   update=":form-poste-000:poste-poste" icon="ui-icon-disk" >                        
+                        <p:menuitem value="#{lab.L_nouveau}" icon="ui-icon-document" actionListener="#{managedPosteDeTravail.resetFiche()}"
+                                    id="cancel_posteTravail" global="false" process="@this" styleClass="CancelButton"
+                                    update=":form-poste-000:tabview-poste" />
+                        <p:menuitem value="#{lab.L_supprimer}" global="false"  onclick="dlgDelete.show()"/>
+
+                    </p:splitButton>
+                    <p:splitButton value="#{lab.L_autres_option}" icon="ui-icon-star" id="delete_posteTravail">                           
+                        <p:menuitem value="#{lab.LP_PPC_poste_equivalent}" onclick="dlgPosteEquivalent.show()"/>
+                        <p:menuitem value="#{(managedPosteDeTravail.displayFichePoste)?lab.LRH_PPT_revenir_formulaire:lab.LRH_PPT_afficher_fiche_poste}"
+                                    actionListener="#{managedPosteDeTravail.openFichePoste()}"/>
+                        <p:menuitem value="#{lab.L_supprimer} (#{managedPosteDeTravail.listSelection.size()})" global="false" onclick="dlgDelete.show()"/>
+                    </p:splitButton>
+                </div>
+                <h:panelGroup style="margin-left: 25%">
+                    <p:commandButton actionListener="#{managedPosteDeTravail.parcoursInAllResult(false)}" update="txt_parc_linear_posteTravail" global="false"  icon="ui-icon-circle-triangle-w" oncomplete="collapseForm('posteTravail')"/>
+                    <h:inputText value="#{managedPosteDeTravail.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_posteTravail"/>
+                    <p:outputPanel autoUpdate="true">                        
+                        <p:outputLabel value="/#{managedPosteDeTravail.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                    <p:commandButton actionListener="#{managedPosteDeTravail.parcoursInAllResult(true)}" update="txt_parc_linear_posteTravail" global="false" icon="ui-icon-circle-triangle-e" oncomplete="collapseForm('posteTravail')"/>
+                </h:panelGroup>                
+                <div style="float: right">                        
+                    <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('posteTravail');
+                            return false">
+                        <h:graphicImage  library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>               
+                    <h:link onclick="collapseList('posteTravail');
+                            return false" title="#{lab.L_mode_liste}" >
+                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                    </h:link>
+                </div>                      
+                <div style="clear: both"/>
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_posteTravail">
+                    <h:panelGroup id="global_form_poste">
+                        <h:panelGrid columns="1" style="width: 100%" 
+                                     id="tabview-poste" cellpadding="0" cellspacing="0">                                                             
+                            <h:panelGrid columns="4" id="form_poste" styleClass="yvs_table" 
+                                         cellpadding="0" cellspacing="0" style="width: 98%; margin: auto">  
+                                <f:facet name="header">
+                                    <p:selectOneRadio value="#{posteDeTravail.grade}" style="float: left">
+                                        <f:selectItem itemLabel="#{lab.LRH_PPT_cadre_sup}" itemValue="Cadre Sup." />
+                                        <f:selectItem itemLabel="#{lab.LRH_PPT_cadre_moy}" itemValue="Cadre Moy." />
+                                        <f:selectItem itemLabel="#{lab.LRH_PPT_agent_maitrise}" itemValue="Agent de maitrise" />
+                                        <f:selectItem itemLabel="#{lab.LRH_PPT_ouvrier}" itemValue="Ouvrier" />                                
+                                    </p:selectOneRadio>
+                                </f:facet>
+                                <span>#{lab.LRH_PPT_intitule_poste}</span>
+                                <h:inputText value="#{posteDeTravail.intitule}" style="width: 90%" />                                
+                                <span>#{lab.LRH_PPT_niveau_requis}</span>
+                                <h:selectOneMenu value="#{posteDeTravail.niveauRequis.id}" 
+                                                 onchange="openDialog(dlgDiplomes, $(this));
+                                                         collapseForm('diplomePoste')"
+                                                 id="nivo-requis">
+                                    <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedPosteDeTravail.diplomes}" var='dip' 
+                                                   itemValue="#{dip.id}" itemLabel="#{dip.nom} [#{dip.specialite.codeInterne}]"/>
+                                    <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                    <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/>
+                                </h:selectOneMenu>
+                                <span>#{lab.LRH_PPT_grille_frais_mission}</span>
+                                <h:selectOneMenu value="#{managedPosteDeTravail.poste.fraisMission.id}" id="select-grille-mission-poste"
+                                                 onchange="openDialog(dlgAddGrille, $(this));
+                                                         collapseList('poste_mission');">
+                                    <f:selectItem itemValue="#{0}" itemLabel=""  noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedPosteDeTravail.listeGrilleFrais}" var="gri" itemValue="#{gri.id}" itemLabel="#{gri.categorie}" />
+                                    <f:selectItem itemValue="#{0}" itemLabel=""  noSelectionOption="true"/>
+                                    <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}" />                                    
+                                </h:selectOneMenu>
+                                <span>#{lab.LRH_PPT_places_disponobles}</span>
+                                <pe:inputNumber value="#{posteDeTravail.nombrePlace}" style="width: 100px"/>                                                         
+                                <span>#{lab.LRH_PPT_departements}</span>
+                                <h:selectOneMenu  title="#{lab.LRH_PPT_departement}" value="#{posteDeTravail.departement.id}"  id="depart-poste"
+                                                  onclick="choixDepartementPoste($(this))" style="width: 300px">
+                                    <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedDepartement.listValue}" var="depart" 
+                                                   itemValue="#{depart.id}" 
+                                                   itemLabel="#{(depart.cheminParent==null)?depart.codeDepartement:depart.cheminParent.concat('/').concat(depart.codeDepartement)}"/>                                
+                                    <f:selectItem itemValue="0" itemLabel=""  noSelectionOption="true"/>
+                                    <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"/>
+                                </h:selectOneMenu> 
+                                <span>Poste Supérieure </span>
+                                <h:selectOneMenu  title="#{lab.LRH_PPT_poste_superieure}" value="#{posteDeTravail.idPosteSup}"
+                                                  onclick="choixDepartementPoste($(this))" >
+                                    <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                    <f:selectItems value="#{managedPosteDeTravail.postesSuperieurs}" var="postS" 
+                                                   itemValue="#{postS.id}" 
+                                                   itemLabel="#{postS.intitule}"/>                                
+                                    <f:selectItem itemValue="0" itemLabel=""  noSelectionOption="true"/>
+                                </h:selectOneMenu>  
+                                <f:facet name="footer">
+                                    <span style="color: cadetblue; display: block; width: 100%">
+                                        #{lab.L_description}
+                                        <p:selectBooleanCheckbox value="#{posteDeTravail.actif}" itemLabel="#{lab.L_actif}" style="float: right"/> 
+                                    </span>
+                                    <h:inputTextarea   rows="3" value="#{posteDeTravail.description}" 
+                                                       style="width: 100%"/>
+                                </f:facet>
+                            </h:panelGrid>
+                            <h:panelGroup style="width: 99%; background: #EEE!important">
+                                <div style="padding: 5px; background: #EEE; width: 100%">
+                                    <span style="float: right">Places occupées
+                                        <h:outputText value="#{posteDeTravail.numero}" style="color: #006666; " /> 
+                                    </span>
+                                </div>
+                            </h:panelGroup>
+                        </h:panelGrid>  
+                        <p:tabView id="tbView_elt_sal_poste">
+                            <p:tab title="#{lab.LRH_PPT_contrat}">
+                                <p:outputPanel autoUpdate="true">    
+                                    <h:panelGrid id="tab_general_poste_00" columns="4" styleClass="yvs_table" style="width: 100%;font-size: 0.8em">
+                                        <f:facet name="header">  
+                                            <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                                <h:panelGroup style="float: left">
+                                                    <span>#{lab.LRH_PPT_model} : </span>
+                                                    <h:panelGroup>
+                                                        <h:selectOneMenu id="select_model_contrat" value="#{managedPosteDeTravail.model.id}" style="min-width: 140px">
+                                                            <f:selectItem itemValue="0" itemLabel=""/>
+                                                            <f:selectItems value="#{managedPosteDeTravail.models}" var="mods" itemLabel="#{mods.intitule}"
+                                                                           itemValue="#{mods.id}" />
+                                                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_nouveau}..."/>
+                                                            <p:ajax event="valueChange" listener="#{managedPosteDeTravail.chooseModelContrat()}"/>
+                                                        </h:selectOneMenu>  
+                                                        <p:inputText value="#{managedPosteDeTravail.model.intitule}" readonly="#{!managedPosteDeTravail.viewBtnModel}"/>
+                                                    </h:panelGroup>
+                                                </h:panelGroup>
+                                                <h:panelGroup style="float: right">
+                                                    <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedPosteDeTravail.saveModelContrat()}"
+                                                                     update="select_model_contrat" rendered="#{managedPosteDeTravail.viewBtnModel}"/>
+                                                    <p:contextMenu styleClass="context_menu" for="option_model_contrat" event="left click" style="margin-left: 5px">
+                                                        <p:menuitem icon="ui-icon-circle-plus" value="#{lab.LRH_PPT_primes}" onclick="dlgAddModelPrime.show()" 
+                                                                    global="false" oncomplete="collapseForm('model_prime_poste')"/>
+                                                        <p:menuitem icon="ui-icon-trash" value="#{lab.L_supprimer}" actionListener="#{managedPosteDeTravail.deleteModelContrat()}" 
+                                                                    global="false" update="select_model_contrat"/>
+                                                    </p:contextMenu>
+                                                    <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="option_model_contrat"
+                                                                     rendered="#{managedPosteDeTravail.model.id gt 0}"/>
+                                                </h:panelGroup>
+                                            </h:panelGrid>
+                                        </f:facet>
+                                        <span>#{lab.LRH_PPT_salaire_heure}</span>
+                                        <pe:inputNumber value="#{managedPosteDeTravail.model.salaireBaseHoraire}" required="true" label="#{lab.LRH_PPT_salaire_par_heure}" />
+                                        <span>#{lab.LRH_PPT_salaire_mois}</span>
+                                        <pe:inputNumber id="SalaireMensuel_poste" value="#{managedPosteDeTravail.model.salaireBaseMensuel}" required="true" label="#{lab.LRH_PPT_salaire_par_mois}"/> 
+                                        <span>#{lab.LRH_PPT_conge_acquis_mois}</span>
+                                        <h:panelGroup >
+                                            <pe:inputNumber value="#{managedPosteDeTravail.model.congeAcquis}" style="width: 100px"/>
+                                            <span>#{lab.LRH_PPT_majoration}: </span>
+                                            <pe:inputNumber value="#{managedPosteDeTravail.model.majorationConge}" style="width: 100px"/>
+                                        </h:panelGroup>
+                                        <span>#{lab.LRH_PPT_duree_preavis}</span>
+                                        <h:panelGroup>
+                                            <pe:inputNumber value="#{managedPosteDeTravail.model.preavis.duree}" />&nbsp;
+                                            <h:selectOneMenu value="#{managedPosteDeTravail.model.preavis.unite.id}" id="select_unite_preavis_contrat"
+                                                             onchange="openDialog(dlgListUnite, $(this));
+                                                                     collapseList('unite_model_poste');">
+                                                <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                                                <f:selectItems value="#{managedUniteMesure.unites}" var="unite" 
+                                                               itemValue="#{unite.id}" itemLabel="#{unite.reference}"/>                               
+                                                <f:selectItem itemValue="0" itemLabel=""  noSelectionOption="true"/>
+                                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_plus_de_choix}"/>
+                                            </h:selectOneMenu> 
+                                        </h:panelGroup>
+                                    </h:panelGrid>
+                                </p:outputPanel>
+                            </p:tab>
+                            <p:tab title="#{lab.LRH_PPT_qualifications}" >
+                                <p:commandButton icon="ui-icon-circle-plus" actionListener="#{managedPosteDeTravail.loadDomaines()}" oncomplete="dlgQualification.show()"
+                                                 style="width: 20px; height: 20px; margin-left: 50%" update=":formQualif:tab-qualif-poste" />
+                                <p:dataTable value="#{posteDeTravail.qualifications}" var="qalP"
+                                             rowKey="#{domP.id}" selectionMode="single" id="tab-qualif_actif_poste"
+                                             rowIndexVar="line_q" style="max-height: 450px; overflow-y: auto; width: 98%"> 
+                                    <p:column headerText="N°" style="width: 5% !important">
+                                        #{line_q +1}
+                                    </p:column>
+                                    <p:column  headerText="#{lab.LRH_PPT_qualification}" width="100">
+                                        <h:outputText value=" #{qalP.qualification.intitule}"  style="text-align: center;"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LRH_PPT_code_interne} " width="100">
+                                        <h:outputText value=" #{qalP.qualification.codeInterne}"  style="text-align: center;"/>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LRH_PPT_domaine} " width="100">
+                                        <h:outputText value=" #{qalP.qualification.domaine.titreDomaine}"  style="text-align: center;"/>
+                                    </p:column>
+                                    <p:column headerText=" " style="text-align: center" width="10">
+                                        <p:contextMenu for="btn_opt_qual_poste" event="left click">
+                                            <p:menuitem icon="ui-icon-trash"  actionListener="#{managedPosteDeTravail.removeQualificationPoste(qalP)}" update=":form-poste-000:tbView_elt_sal_poste:tab-qualif_actif_poste" />
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" type="button" id="btn_opy_qual_post" style="width: 22px; height: 22px" />                                        
+                                    </p:column>
+                                </p:dataTable>
+                            </p:tab>
+                        </p:tabView>
+                    </h:panelGroup>
+                    <div class="bar_toools" align="right">
+                        <h:panelGrid columns="3">
+                            <p:commandLink title="#{lab.LRH_PPT_activitees_a_mener}" onclick="dlgActivites.show()" update=":form_activite_poste:grid-post-activite">
+                                <h:graphicImage library="icones" name="activite.png" width="50px" height="40px" />
+                            </p:commandLink>
+                            <p:commandLink title="#{lab.LRH_PPT_experience_requise} " onclick="dlgExperience.show()">
+                                <h:graphicImage library="icones" name="experience.png" width="50px" height="40px"  />
+                            </p:commandLink>
+                        </h:panelGrid>
+                    </div>                                                   
+                </div>
+                <div class="yvs_list_posteTravail">   
+                    <p:dataTable value="#{managedPosteDeTravail.listPostes}" var="iPoste_" rowKey="#{iPoste_.id}"
+                                 id="poste-poste" rowIndexVar="linePoste" 
+                                 selection="#{managedPosteDeTravail.listSelection}">
+                        <p:ajax event="rowSelect" listener="#{managedPosteDeTravail.selectedLine}" 
+                                update=":form-poste-000:tabview-poste :form-poste-000:tbView_elt_sal_poste :form-poste-000:delete_posteTravail"
+                                oncomplete="collapseForm('posteTravail')"
+                                />
+
+                        <p:ajax event="rowSelectCheckbox" listener="#{managedPosteDeTravail.selectedLine}" process="@this" update=":form-poste-000:delete_posteTravail" />
+                        <p:column headerText="N° " width="25">
+                            <h:graphicImage library="img" name="pointe.png" width="17" height="15" rendered="#{iPoste_.id eq poste.id}"/>
+                            <h:outputText value="#{linePoste+1}" />
+                            <h:graphicImage library="img/icones" name="cattc.png" title="#{lab.LRH_PPT_model_contrat}: #{iPoste_.modelContrat.intitule}" width="18" height="18" rendered="#{iPoste_.modelContrat.id gt 0}" />
+                        </p:column>               
+                        <p:column headerText="#{lab.LRH_PPT_intitule_poste} " width="200">
+                            <h:outputText value="#{iPoste_.intitule}" />
+                        </p:column>                           
+                        <p:column headerText="#{lab.LRH_PPT_grade} " width="70">
+                            <h:outputText value="#{iPoste_.grade}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PPT_niveau_requis}" width="80"> 
+                            <h:outputText value="#{iPoste_.niveau.codeInterne}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PPT_departements} " width="200">
+                            <h:outputText value="#{iPoste_.departement.intitule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PPT_fras_mission} " rendered="#{parametrageGRH.positionBaseSalaire==2}">
+                            <h:outputText value="#{iPoste_.fraisMission.reference}" />
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PPT_superieure}" width="200">
+                            <h:outputText value="#{iPoste_.posteSuperieur.intitule}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_actif}" style="text-align: center" width="20">
+                            <h:graphicImage  library="img" name="#{(iPoste_.actif)?'vu.png':'erase_128.png'}"  width="15" height="15"/>
+                        </p:column>
+
+                        <p:column headerText=" " width="30" style="text-align: center">
+
+                            <p:contextMenu for="btn_option_employe" event="left click">
+                                <p:menuitem value="#{iPoste_.actif ? lab.L_desactiver : lab.L_activer}" icon="ui-icon-locked"  actionListener="#{managedPosteDeTravail.uipdatePoste(iPoste_)}"/>
+                                <p:separator />
+                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedPosteDeTravail.getSelectPoste(iPoste_)}" oncomplete="dlgDeletePoste.show()"/>
+
+                            </p:contextMenu>
+                            <p:commandButton type="button" icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_employe"/>
+                        </p:column>
+
+                        <p:column width="25" selectionMode="multiple" style="text-align: center"  />
+                 
+                    </p:dataTable>                                                 
+                    <span style="margin-left: 35%; font-size: .8em; font-style: italic; color: #828c95" class="nbSelectArticle"></span>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedPosteDeTravail.paginer(false)}" global="false" update="poste-poste" icon="ui-icon-circle-triangle-w" disabled="#{managedPosteDeTravail.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedPosteDeTravail.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedPosteDeTravail.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedPosteDeTravail.gotoPagePaginator()}" update="poste-poste"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedPosteDeTravail.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedPosteDeTravail.paginer(true)}" global="false" update="poste-poste" icon="ui-icon-circle-triangle-e" disabled="#{managedPosteDeTravail.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedPosteDeTravail.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedPosteDeTravail.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                            <f:selectItems value="#{managedPosteDeTravail.paginations}"/>
+                            <p:ajax event="valueChange" global="false" update="poste-poste"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>   
+                    <p:outputPanel rendered="#{managedPosteDeTravail.displayFichePoste}">
+                        <p:panelGrid columns="1" style="width: 90%; margin: auto">
+                            <h:panelGrid columns="2" width="80%" style="margin: auto" cellspacing="20">
+                                <h:outputText value="#{lab.LRH_PPT_intitule_poste} :" />
+                                <h:outputText value="#{posteDeTravail.intitule}" style="font-weight: bold"/>
+                                <h:panelGrid columns="4" width="100%" cellspacing="20">
+                                    <h:outputText value="#{lab.LRH_PPT_departement} :" />
+                                    <h:outputText value="#{posteDeTravail.departement.intitule}" style="font-weight: bold"/>
+                                    <h:outputText value="#{lab.LP_PEP_chef} :" />
+                                    <h:outputText value="#{(posteDeTravail.departement.nomResponsable==null)?'/':posteDeTravail.departement.nomResponsable}" style="font-weight: bold"/>                                        
+                                    <h:outputText value="#{lab.LRH_PPT_grille_fras_mission} :" />
+                                    <h:outputText value="#{(posteDeTravail.fraisMission.categorie==null)?'/':posteDeTravail.fraisMission.categorie}" style="font-weight: bold"/>
+                                </h:panelGrid>
+                            </h:panelGrid>
+                            <p:dataTable value="#{posteDeTravail.qualifications}" var="qa" 
+                                         style="width: 50%; margin: auto" >            
+                                <f:facet name="header">#{lab.LRH_PPT_qualification_requises}</f:facet>
+                                <p:column >
+                                    #{qa.qualification.intitule}
+                                </p:column>
+                            </p:dataTable>                                
+                            <p:dataTable value="#{managedPosteDeTravail.experiences}" var="exp" 
+                                         style="width: 50%; margin: auto" >
+                                <f:facet name="header">#{lab.LRH_PPT_experience_requise}</f:facet>
+                                <p:column >
+                                    #{exp.poste.intitule}
+                                </p:column>
+                                <p:column headerText="#{lab.LRH_PPT_duree}" width="150">
+                                    #{exp.duree}
+                                </p:column>
+                            </p:dataTable>
+                            <p:dataTable value="#{posteDeTravail.missions}" var="missi" 
+                                         style="width: 50%; margin: auto">
+                                <p:column headerText="#{lab.LRH_PPT_missions_conduire}">
+                                    #{missi.libelle}
+                                </p:column>
+                            </p:dataTable>
+                            <p:dataTable value="#{posteDeTravail.activites}" 
+                                         var="act" style="width: 50%; margin: auto" >
+                                <p:column headerText="#{lab.LRH_PPT_activitees_a_mener}">
+                                    #{act.libelle}
+                                </p:column>
+                            </p:dataTable>
+                        </p:panelGrid>
+                    </p:outputPanel>
+                </div>
+            </div>
+        </h:form>  
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find" >
+                <div class="yvs_form_posteTravail display_auteur" align="right" style="font-style: italic;">
+                    <p:outputPanel autoUpdate="true">
+                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedPosteDeTravail.selectPoste.dateSave}"  styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span>#{lab.L_modifier_le} <h:outputText value="#{managedPosteDeTravail.selectPoste.dateUpdate}"  styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
+                        <span>#{lab.L_par} <h:outputText value="#{managedPosteDeTravail.selectPoste.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
+                    </p:outputPanel>
+                </div> 
+                <h:panelGrid columns="2" style="width: 100%; font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="3" style="float: left; font-size: 1.0em" cellpadding="0" cellspacing="0">
+                        <span>Intitulé</span>                    
+                        <h:outputText value="#{lab.LRH_PPT_departement}" />
+                        <h:outputText value="#{lab.L_agence}" />
+                        <h:inputText  value="#{managedPosteDeTravail.codeSearch}">
+                            <p:ajax event="keyup" listener="#{managedPosteDeTravail.searchPoste()}" global="false" oncomplete="collapseList('posteTravail')"/>
+                        </h:inputText>
+                        <h:selectOneMenu title="#{lab.LRH_PPT_departement}" value="#{managedPosteDeTravail.depSearch}" style="min-width: 140px">
+                            <f:selectItem itemValue="0" itemLabel="" noSelectionOption="true"/>
+                            <f:selectItems value="#{managedDepartement.listValue}" var="depart" 
+                                           itemValue="#{depart.id}" 
+                                           itemLabel="#{(depart.cheminParent==null)?depart.codeDepartement:depart.cheminParent.concat('/').concat(depart.codeDepartement)}"/> 
+                            <p:ajax event="valueChange" listener="#{managedPosteDeTravail.addParamDepartement()}" global="false" oncomplete="collapseList('posteTravail')"/> 
+                        </h:selectOneMenu> 
+                        <h:selectOneMenu value="#{MEmps.idAgenceSearch}" valueChangeListener="#{MEmps.addParamAgence}">
+                            <f:selectItem itemValue="0" itemLabel="--.--" />
+                            <f:selectItems value="#{loggin.listAgences}" var="ag" 
+                                           itemValue="#{ag.id}" itemLabel="#{ag.designation}"/>
+                            <f:selectItem itemValue="0" itemLabel="--.--" />
+                            <f:selectItem itemValue="-2" itemLabel="#{lab.LRH_PPT_toutes_agences}" />
+                            <p:ajax event="valueChange" global="false" 
+                                    process="@this" oncomplete="collapseList('posteTravail')" />
+                        </h:selectOneMenu>
+                    </h:panelGrid>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

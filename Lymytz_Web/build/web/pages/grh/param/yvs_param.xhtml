@@ -1,0 +1,1318 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui" 
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:pe="http://primefaces.org/ui/extensions">   
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Paramétrage général','modRh', 'smenParamGeneral', true,managedParametrageGRH)}
+    </ui:define>    
+    <ui:define name="contents">   
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseList('pgCalendar');
+                collapseList('fraisMM');
+                collapseList('objetsMM');
+                slideZoneUp();
+            });
+            function slideZoneUp() {
+                $('.zone_editPC').slideUp();
+            }
+            function slideZoneDown() {
+                $('.zone_editPC').slideDown();
+            }
+            function slideZone() {
+                $('.zone_editPC').slideToggle("fast", function() {
+                    //legend.children("span").html(value);
+                });
+            }
+        </script>    
+        #{managedParametrageGRH.loadAll()}
+        #{managedRetenue.loadAllPrelevement(true, true)}
+        #{managedRetenue.loadAllTypeElementAdd()}    
+        #{managedPresences.loadAllTypeValidation()}
+        #{managedCalendrier.loadByModule(constantes.MOD_GRH)}
+        #{managedTypeCout.loadAll(constantes.MOD_GRH)}
+        #{managedCentreAnalytique.loadAllByNamedQuery()}
+        #{managedParamsChomage.loadAll()}
+        #{managedFraisMission.loadAll(true)}
+        #{managedObjetMission.loadAll()}
+        #{managedContratEmploye.loadTypePrime()}
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.L_supprimer} !" message="#{lab.LRH_PP_text9}" closeOnEscape="true" widgetVar="dlgDelTypePrime"
+                             >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-check" 
+                                 actionListener="#{managedContratEmploye.deleteOneTypePrime()}" 
+                                 oncomplete="dlgDelTypePrime.hide()" update=":form-param:bloc-param-01:table_contrat_prime_grh"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-close"  onclick="dlgDelTypePrime.hide()"/>
+            </p:confirmDialog>
+        </h:form>      
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LDB_PTA_liste_compte}" widgetVar="dlgListComptesRetenue" modal="true" width="50%" closeOnEscape="true">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PTT_saisir_compte_g}" for="txt_cmpte_comptes_type_retenu"/>
+                    <p:watermark value="#{lab.LDB_PTT_saisir_nature_compte}" for="txt_nature_comptes_type_retenu"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_comptes_type_retenu">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_type_retenu" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_comptes_type_retenu">
+                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_type_retenu" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_type_retenu" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_type_retenu" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_type_retenu"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_type_retenu" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cptIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedRetenue.loadOnViewCompte}"  oncomplete="dlgListComptesRetenue.hide()"
+                                update=":form-param:bloc-param-01:txt_compte_type_retenu"/>
+                        <p:column width="15">
+                            <span>#{cptIdx+1}</span>
+                        </p:column>
+                        <p:column  headerText="#{lab.L_numero}" width="30">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>  
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LRH_PP_liste_compte}" widgetVar="dlgListComptes" modal="true" width="50%" closeOnEscape="true" style="min-height: 250px">
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PP_saisir_compte_g}" for="txt_cmpte_find_typeCoutGrh"/>
+                    <p:watermark value="#{lab.LDB_PP_saisir_nature_compte}" for="txt_nature_find_typeCoutGrh"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_typeCoutGrh">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="data_comptes_type_grh" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_typeCoutGrh">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="data_comptes_type_grh" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="data_comptes_type_grh" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="data_comptes_type_grh" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="data_comptes_type_grh"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable id="data_comptes_type_grh" value="#{managedCompte.listComptes}" var="cpt" rowKey="#{cpt.id}" 
+                                 rowIndexVar="cltIdx" selectionMode="single" paginator="true" rows="20" paginatorAlwaysVisible="false">
+                        <p:ajax event="rowSelect" global="false" listener="#{managedTypeCout.loadOnViewCompte}"  oncomplete="dlgListComptes.hide()"
+                                update=":form-param:bloc-param-01:txt_compte_type_cout_grh"/>
+                        <p:column width="15">
+                            <span>#{cltIdx+1}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LDB_PP_numero_g}">
+                            <span>#{cpt.numCompte}</span>
+                        </p:column>
+                        <p:column width="50" headerText="#{lab.LDB_PP_compte_general}">
+                            <span>#{cpt.compteGeneral.numCompte}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PP_intitule}" width="80">
+                            <span>#{cpt.intitule}</span>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LDB_PTT_liste_comptes}" widgetVar="dlgCmpteG" width="60%" height="600" closeOnEscape="true"
+                      footer="&copy; Lymytz" >
+                <div class="dlg_part_fixe">
+                    <p:watermark value="#{lab.LDB_PTT_saisir_compte_g}" for="txt_cmpte_find_param_GRH"/>
+                    <p:watermark value="#{lab.LDB_PTT_saisir_nature_compte}" for="txt_nature_find_param_GRH"/>
+                    <h:panelGrid columns="2" style="font-size: 0.7em; float: left">        
+                        <h:inputText value="#{managedCompte.numCompteF}" id="txt_cmpte_find_param_GRH">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="table_cptG_paramGRH" />
+                        </h:inputText>
+                        <h:inputText value="#{managedCompte.natureCompteF}" id="txt_nature_find_param_GRH">
+                            <p:ajax event="keyup" listener="#{managedCompte.addParamNatureCompte(managedCompte.natureCompteF)}" update="table_cptG_paramGRH" />
+                        </h:inputText>
+                    </h:panelGrid>
+                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="table_cptG_paramGRH" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedCompte.paginator.currentPage}/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="table_cptG_paramGRH" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCompte.paginations}"/>
+                            <p:ajax event="valueChange" update="table_cptG_paramGRH"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel><div  style="clear: both" />
+                </div>
+                <div class="dlg_part_scroll">
+                    <p:dataTable value="#{managedCompte.listComptes}" var="cptG" emptyMessage="#{lab.LDB_PTT_aucun_compte}"
+                                 rowIndexVar="line_cg" rowKey="#{cptG.id}" selectionMode="single" id="table_cptG_paramGRH">
+                        <p:ajax event="rowSelect" listener="#{managedObjetMission.choisirCompte}" 
+                                oncomplete="dlgCmpteG.hide()"/>
+                        <p:column headerText="N°" width="20" style="text-align: center">
+                            #{line_cg+1}
+                        </p:column>
+                        <p:column headerText="#{lab.L_numero}" width="100" >
+                            #{cptG.numCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="200" >
+                            #{cptG.intitule}
+                        </p:column>
+                        <p:column headerText="#{lab.L_type}" width="100" >
+                            #{cptG.typeCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PTT_repport}" width="100" >
+                            #{cptG.typeReport}
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PTT_compte_g}" width="100" >
+                            #{cptG.compteGeneral.numCompte}
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </p:dialog>
+        </h:form>
+
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PP_text10}" closeOnEscape="true" widgetVar="dlgConfirmDelParamCt"
+                             header="#{lab.LRH_PP_supprimer_calendrier}" >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedParamsChomage.deleteBean()}"
+                                 update=":form-param:bloc-param-01:bloc-param-02:view_form_p_conge:table_param_ct" 
+                                 oncomplete="dlgConfirmDelParamCt.hide()"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" type="button" onclick="dlgConfirmDelParamCt.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog message="#{lab.LRH_PP_text11}" closeOnEscape="true" widgetVar="_dlgDelCal"
+                             header="#{lab.LRH_PP_supprimer_calendrier}" >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedCalendrier.deleteBean()}" update=":form-param:bloc-param-01:tab_travail" 
+                                 oncomplete="_dlgDelCal.hide(); "/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" type="button" onclick="_dlgDelCal.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false" id="bloc-en-tete-param"> 
+            <h:panelGrid columns="2" style="float: left">                
+                <p:commandButton value="#{lab.L_annuler}" actionListener="#{managedParametrageGRH.annuler()}"/>
+            </h:panelGrid>
+            <h:panelGrid columns="1" style="float: right">
+                <p:commandButton value="#{lab.L8supprimer}" actionListener="#{managedParametrageGRH.confirm()}" rendered="#{managedParametrageGRH.activBtnSave}"/>
+            </h:panelGrid>
+            <div style="clear: right"/>
+        </h:form>       
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgIntervalMajoration" closeOnEscape="true" modal="true" dynamic="true" width="30%"
+                      header="#{lab.LRH_PP_intervalle_majoration_conges}" footer="#{lab.L_copy}">
+                <h:panelGrid columns="4" styleClass="yvs_table" style="width: 99%;margin: auto" id="dlg_interval_majoration"
+                             cellpadding="0" cellspacing="0">                            
+                    <span>#{lab.LRH_PP_minimal}</span>
+                    <pe:inputNumber value="#{managedParametrageGRH.intervalMajoration.valeurMinimal}" symbol=" #{managedParametrageGRH.majorationConge.uniteIntervalle}" symbolPosition="suffix" 
+                                    style="width: 100px"/> 
+                    <span>#{lab.LRH_PP_maximale}</span>
+                    <pe:inputNumber value="#{managedParametrageGRH.intervalMajoration.valeurMaximal}" symbol=" #{managedParametrageGRH.majorationConge.uniteIntervalle}" symbolPosition="suffix" 
+                                    style="width: 100px" />  
+                    <f:facet name="footer">
+                        <span>#{lab.LRH_PP_nombre_jour_acquis}</span>
+                        <pe:inputNumber value="#{managedParametrageGRH.intervalMajoration.nbreJour}" symbol=" #{lab.L_jour}(s)" symbolPosition="suffix" style="width: 100px"/>                        
+                    </f:facet>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" style="float: right" actionListener="#{managedParametrageGRH.saveNewIntervalMajoration()}"
+                                 oncomplete="dlgIntervalMajoration.hide()" />
+            </p:dialog>
+        </h:form>         
+        <h:form prependId="false" id="form-param-02">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgDeleteParam" closeOnEscape="true"
+                             message="#{lab.LRH_PP_text12}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedParametrageGRH.deleteParam()}" oncomplete="dlgDeleteParam.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgDeleteParam.hide()"/>
+            </p:confirmDialog>
+        </h:form>        
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgDeleteMajoration" closeOnEscape="true"
+                             message="#{lab.LRH_PP_text13}">
+                <p:commandButton value="#{lab.L_oui}"  oncomplete="dlgDeleteMajoration.hide()"/>
+                <p:commandButton value="#{lab.L_non}" onclick="dlgDeleteMajoration.hide()"/>
+            </p:confirmDialog>
+        </h:form> 
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDeleteAnalytique" closeOnEscape="true"
+                             message="#{lab.LRH_PP_text14}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedObjetMission.deleteAnalytique(managedObjetMission.selectAnalytique, true)}"  oncomplete="dlgConfirmDeleteAnalytique.hide()"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDeleteAnalytique.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LRH_PP_nouveau_calendrier}" width="30%" closeOnEscape="true" footer="&copy;2014" widgetVar="dlgNewCal"
+                      >
+                <p:commandButton value="#{lab.L_nouveau}" styleClass="left" icon="ui-icon-document" actionListener="#{managedCalendrier.resetForm()}" update=":form-param:bloc-param-01:tab_travail"
+                                 oncomplete="collapseForm('pgCalendar')"/>
+                <h:panelGrid  id="form_cal_paramG" columns="2" styleClass="yvs_table w_100" cellpadding="0" cellspacing="0" 
+                              >                                       
+                    <span>#{lab.L_reference}</span>
+                    <h:inputText value="#{managedCalendrier.calendrier.reference}" />
+                    <span>#{lab.LP_PPG_marge_autorisee}</span>
+                    <pe:timePicker value="#{managedCalendrier.calendrier.marge}" style="width: 60px" />                             
+                    <p:outputPanel autoUpdate="true">
+                        <span>#{lab.LP_PPG_duree} </span>
+                        <h:inputText disabled="true" value="#{managedCalendrier.calendrier.totalHeureHebdo}"  id="detail_jour_travail_fp" style="width: 50px"/>
+                    </p:outputPanel>
+                    <p:selectBooleanCheckbox value="#{managedCalendrier.calendrier.actif}" itemLabel="Actif"/>
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_enregistrer}" style="float: right" icon="ui-icon-circle-check" actionListener="#{managedCalendrier.saveNew(true)}" update=":form-param:bloc-param-01:tab_travail"
+                                 oncomplete="collapseForm('pgCalendar')" styleClass="rigth"/>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="form-param">
+            <div class="part_scroll">
+                <p:tabView id="bloc-param-01"  cache="true" >
+                    <p:tab title="#{lab.LRH_PP_presence}">
+                        <div style="clear: both"/>
+                        <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">                                    
+                            <span>#{lab.LRH_PP_limite_quotidienne_heure_supplementaire}</span>
+                            <pe:inputNumber value="#{parametrageGRH.limitHeureSup}" symbol=" h" symbolPosition="suffix" decimalPlaces="0" style="width: 90px; text-align: center">
+                                <p:ajax event="blur" global="false" process="@this"/>
+                            </pe:inputNumber>  
+                            <span>#{lab.LRH_PP_marge_pointage_autoriser} : <sup>*1</sup></span>
+                            <h:panelGroup>
+                                <span>En avance</span>
+                                <pe:timePicker value="#{parametrageGRH.timeMargeAvance}" style="width: 90px; text-align: center">
+                                    <p:ajax event="timeSelect" global="false" process="@this"/>
+                                </pe:timePicker> 
+                                <span>#{lab.LRH_PP_en_retard}</span>
+                                <pe:timePicker value="#{parametrageGRH.dureeRetardAutorise}" style="width: 90px; text-align: center">
+                                    <p:ajax event="timeSelect" global="false" process="@this"/>
+                                </pe:timePicker> 
+                            </h:panelGroup>                        
+                            <span>#{lab.LRH_PP_duree_minimale_presence}</span>
+                            <pe:inputNumber value="#{parametrageGRH.heureMinimaleRequise}" symbol=" h" symbolPosition="suffix" decimalPlaces="0" style="width: 90px; text-align: center">
+                                <p:ajax event="blur" global="false" process="@this"/>
+                            </pe:inputNumber>
+                            <span>#{lab.LRH_PP_valider_fiche_avec_ecart_maximale} <sup>*2</sup></span>
+                            <pe:inputNumber value="#{parametrageGRH.ecartValideFiche}" symbol=" jour(s)" symbolPosition="suffix" decimalPlaces="0" style="width: 100px; text-align: center">
+                                <p:ajax event="blur" global="false" process="@this"/>
+                            </pe:inputNumber>
+                            <span>#{lab.LRH_PP_saisir_pointage_avec_ecart_maximale} <sup>*2</sup></span>
+                            <pe:inputNumber value="#{parametrageGRH.ecartSaisiPointage}" symbol=" #{lab.L_jour}(s)" symbolPosition="suffix" decimalPlaces="0" style="width: 100px; text-align: center">
+                                <p:ajax event="blur" global="false" process="@this"/>
+                            </pe:inputNumber>
+                            <span>Nombre de mois maximal pour avancer la retenue</span>
+                            <pe:inputNumber value="#{parametrageGRH.nombreMoisAvanceMaxRetenue}" symbol=" #{lab.L_mois}" symbolPosition="suffix" decimalPlaces="0" style="width: 100px; text-align: center">
+                                <p:ajax event="blur" global="false" process="@this"/>
+                            </pe:inputNumber>
+
+                            <p:outputLabel value="#{lab.LRH_PP_heure_travail}" />
+                            <h:panelGroup>
+                                <span>#{lab.LDB_PP_debut}</span>
+                                <pe:timePicker value="#{parametrageGRH.heureDebutTravail}" style="width: 90px; text-align: center">
+                                    <p:ajax event="timeSelect" listener="#{managedCalendrier.eventCalculDureeTravail()}"  global="false"/>
+                                </pe:timePicker>
+                                <span>#{lab.LDB_PP_fin}</span>
+                                <pe:timePicker value="#{parametrageGRH.heureFinTravail}" style="width: 90px; text-align: center">
+                                    <p:ajax event="timeSelect" listener="#{managedCalendrier.eventCalculDureeTravail()}" global="false"/>
+                                </pe:timePicker>                                
+                            </h:panelGroup>
+                            <p:outputLabel value="#{lab.LRH_PP_heure_pause} " />
+                            <h:panelGroup>
+                                <span>#{lab.LDB_PP_debut}</span>
+                                <pe:timePicker value="#{parametrageGRH.heureDebutPause}"  style="width: 90px; text-align: center"/>
+                                <span>#{lab.LDB_PP_fin}</span>
+                                <pe:timePicker value="#{parametrageGRH.heureFinPause}" style="width: 90px; text-align: center" />                              
+                            </h:panelGroup>
+                        </h:panelGrid>
+                        <p:tabView id="bloc-param-021">
+                            <p:tab title="#{lab.LRH_PP_type_validation}">
+                                <p:outputPanel id="blog_form_type_validation_grh">
+                                    <div style="float: left;width: 40%">
+                                        <h:panelGrid columns="2" style="width: 95%; margin: auto" styleClass="yvs_table" 
+                                                     cellpadding="0" cellspacing="0" id="form_editTV_grh">
+                                            <span title="#{lab.LRH_PP_text15} " >#{lab.L_code}</span>
+                                            <h:inputText value="#{managedPresences.newTypeV.code}" id="txt_code_validP_grh" 
+                                                         title="#{lab.LRH_PP_text15} " style="width: 90px"/>
+                                            <pan>#{lab.L_libelle}</pan>
+                                            <h:inputText value="#{managedPresences.newTypeV.libelle}" />
+                                            <span>#{lab.LRH_PP_taux_validation} (%)</span>
+                                            <pe:inputNumber value="#{managedPresences.newTypeV.taux}" maxValue="900" minValue="0"
+                                                            symbol="%"  symbolPosition="suffix" style="width: 90px"/>
+                                            <span>#{lab.LRH_PP_temps_minimal_autoriser}</span>
+                                            <pe:inputNumber value="#{managedPresences.newTypeV.tempsMinimal}" maxValue="900" minValue="0"
+                                                            symbol="h"  symbolPosition="suffix" style="width: 90px"/>
+                                        </h:panelGrid>
+                                        <div>
+                                            <p:commandButton value="#{lab.L_enregistrer}" style="float: right" update="table_typeVal_grh form_editTV_grh"
+                                                             actionListener="#{managedPresences.addNewTypeV()}" id="df-bt-add-tv" icon="ui-icon-disk"/>
+                                        </div>
+                                    </div>
+                                    <div style="margin-left:40%">
+                                        <p:dataTable value="#{managedPresences.typesValidation}" var="itv" selectionMode="single"
+                                                     rowKey="#{itv.id}" rowIndexVar="line_tv" id="table_typeVal_grh">
+                                            <p:ajax event="rowSelect" update=":form-param:bloc-param-01:bloc-param-021:blog_form_type_validation_grh"
+                                                    oncomplete="collapseForm('presModV')" listener="#{managedPresences.selectionTypeV}" />
+                                            <p:column headerText="N°" width="20" style="text-align: center">#{line_tv+1}</p:column>
+                                            <p:column headerText="#{lab.L_code}" width="80">#{itv.code}</p:column>
+                                            <p:column headerText="#{lab.L_designation}" width="120" >#{itv.libelle}</p:column>
+                                            <p:column headerText="#{lab.L_taux}" width="50" style="text-align: right;">
+                                                #{itv.tauxJournee} %
+                                            </p:column>
+                                            <p:column headerText="#{lab.LRH_PP_temps_min}" width="50" style="text-align: right">#{itv.tempsMinimal}</p:column>
+                                            <p:column headerText="#{lab.L_actif}" width="20" style="text-align: center">
+                                                <h:graphicImage library="img" name="#{(itv.actif)?'yes.png':'no.png'}" />
+                                            </p:column>
+                                            <p:column headerText="" width="20" style="text-align: center">
+                                                <p:commandButton icon="ui-icon-trash" style="width: 20px; height: 20px" actionListener="#{managedPresences.deleteTypeV(itv)}"
+                                                                 update="table_typeVal_grh">
+                                                    <!--<p:confirm header="Supprimer !" message="Confirmez-vous la suppression de cet élément?" />-->
+                                                </p:commandButton>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </div>
+                                </p:outputPanel>
+                                <div style="clear: both"/>
+                            </p:tab> 
+                        </p:tabView>
+                        <div style="margin-top: 10px">
+                            <ol style="font-size: 0.8em">
+                                <li>
+                                    #{lab.LRH_PP_text} <br />#{lab.LRH_PP_text1}
+                                    <br /> -#{lab.LRH_PP_text2}
+                                    <br /> -#{lab.LRH_PP_text3}
+                                </li>
+                                <li>
+                                    #{lab.LRH_PP_text4}
+                                </li>
+                            </ol>
+                        </div>
+                    </p:tab>
+                    <p:tab title="#{lab.LRH_PP_calendriers}" id="travail" >
+                        <p:outputPanel id="tab_travail">                             
+                            <div class="block_slide_title">
+                                <p:commandButton icon="ui-icon-plus" title="#{lab.LRH_PP_creer_nouveau_calendrier}" oncomplete="dlgNewCal.show()" 
+                                                 actionListener="#{managedCalendrier.resetForm()}" update=":form-param:bloc-param-01:tab_travail" />
+                                <div class="right" >                                        
+                                    <h:link onclick="collapseForm('pgCalendar');
+                                            return false" title="#{lab.L_mode_liste}" >
+                                        <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                    </h:link>
+                                    <h:link  onclick="collapseList('pgCalendar');
+                                            return false" title="#{lab.L_mode_hierrachique}">
+                                        <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                    </h:link>                                                               
+                                </div>
+                            </div>
+                            <p:outputPanel id="bloc_jour_travail">
+                                <div class="yvs_form_pgCalendar">                                
+                                    <h:panelGrid columns="8" style="width: 100%" id="detail_jour_travail">      
+                                        <h:outputText value="#{managedCalendrier.jourOuv.id}" style="float: left; font-size: 0.8em; font-weight: bold; padding: 2px; background: #333; color: #FFF; border: 1px solid #333" />
+                                        <h:panelGroup >
+                                            <span>#{lab.L_jour} </span>
+                                            <h:selectOneMenu value="#{managedCalendrier.jourOuv.jour}"  >
+                                                <f:selectItem itemLabel="" itemValue="#{null}"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_lundi}" itemValue="Lundi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_mardi}" itemValue="Mardi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_mercredi}" itemValue="Mercredi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_jeudi}" itemValue="Jeudi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_vendredi}" itemValue="Vendredi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_samedi}" itemValue="Samedi"/>
+                                                <f:selectItem itemLabel="#{lab.LP_PPG_dimanche}" itemValue="Dimanche"/>
+                                                <p:ajax event="valueChange" listener="#{managedParametrageGRH.searchJoursOuvreeByJour()}" global="false"/>
+                                            </h:selectOneMenu>                                            
+                                        </h:panelGroup>
+                                        <p:selectBooleanCheckbox value="#{managedCalendrier.jourOuv.ouvrable}" itemLabel="#{lab.LRH_PP_jour_ouvree}"/>
+                                        <p:selectBooleanCheckbox value="#{managedCalendrier.jourOuv.jourDerepos}" itemLabel="#{lab.LRH_PP_jour_repos} "/>
+                                        <h:panelGrid columns="4" style="width: 100%" >                                      
+                                            <p:outputLabel value="#{lab.LP_PPG_debut_travail}" style="color: #006666"/>
+                                            <pe:timePicker value="#{managedCalendrier.jourOuv.heureDebutTravail}">
+                                                <p:ajax event="timeSelect" listener="#{managedCalendrier.eventCalculDureeTravail()}" global="false"/>
+                                            </pe:timePicker>
+                                            <p:outputLabel value="#{lab.LP_PPG_fin_travail}" style="color: #006666"/>
+                                            <pe:timePicker value="#{managedCalendrier.jourOuv.heureFinTravail}">
+                                                <p:ajax event="timeSelect" listener="#{managedCalendrier.eventCalculDureeTravail()}" global="false"/>
+                                            </pe:timePicker>
+                                            <p:outputLabel value="#{lab.LP_PPG_debut_pause} " style="color: #f6a828"/>
+                                            <pe:timePicker value="#{managedCalendrier.jourOuv.heureDebutPause}" />
+                                            <p:outputLabel value="#{lab.LP_PPG_fin_pause}" style="color: #f6a828"/>
+                                            <pe:timePicker value="#{managedCalendrier.jourOuv.heureFinPause}" />                                           
+                                        </h:panelGrid>
+                                        <p:commandButton value="#{(managedCalendrier.jourOuv.id gt 0)?lab.L_modifier:lab.L_ajouter}" oncomplete="collapseForm('pgCalendar')"
+                                                         actionListener="#{managedCalendrier.addDayInCalndrier()}" update=":form-param:bloc-param-01:tab_travail"/>
+                                    </h:panelGrid>
+                                    <p:dataTable id="tab_jours_ouvree" value="#{managedCalendrier.calendrier.listJoursOuvres}" var="jour"
+                                                 rowKey="#{jour.id}" selectionMode="single" widgetVar="tabJoursOuvrees">
+                                        <p:ajax event="rowSelect" listener="#{managedCalendrier.loadJourOnView}" update=":form-param:bloc-param-01:detail_jour_travail"/>
+                                        <p:ajax event="rowUnselect" listener="#{managedCalendrier.unLoadOnView}" update=":form-param:bloc-param-01:detail_jour_travail"/>
+                                        <p:column headerText="#{lab.L_jour}" styleClass="ouvrable_#{jour.ouvrable}">
+                                            <h:outputText value="#{jour.jour}"/>
+                                            <span style="float: right; font-weight: bold; font-size: 1.1em">#{jour.jourDeRepos?'R':''}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_heure_debut_travail}" styleClass="ouvrable_#{jour.ouvrable}" style="text-align: center">
+                                            <h:outputText value="#{jour.heureDebutTravail}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_heure_fin_travail}" styleClass="ouvrable_#{jour.ouvrable}" style="text-align: center">
+                                            <h:outputText value="#{jour.heureFinTravail}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_heure_debut_pause}" styleClass="ouvrable_#{jour.ouvrable}" style="text-align: center">
+                                            <h:outputText value="#{jour.heureDebutPause}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_heure_fin_pause}" styleClass="ouvrable_#{jour.ouvrable}" style="text-align: center">
+                                            <h:outputText value="#{jour.heureFinPause}" converter="TIME"/>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LP_PPG_duree_pause}" style="text-align: center" styleClass="ouvrable_#{jour.ouvrable}" >
+                                            <h:outputText value="#{jour.dureePause}" converter="TIME" />
+                                        </p:column>
+                                        <p:column headerText="" style="text-align: center" width="20">
+                                            <p:contextMenu for="btn_option_tbJO" event="left click" style="width: 220px">
+                                                <p:menuitem value="#{jour.ouvrable?lab.L_desactiver:lab.L_activer} #{lab.LRH_PP_jour_ouvree}" icon="#{jour.ouvrable?'ui-icon-close':'ui-icon-check'}" 
+                                                            actionListener="#{managedCalendrier.toogleActiveJourOuvrable(jour)}" 
+                                                            update=":form-param:bloc-param-01:tab_jours_ouvree"/>
+                                                <p:menuitem value="#{jour.jourDeRepos?lab.L_desactiver:lab.L_activer} #{lab.LRH_PP_jour_repos}" icon="#{jour.ouvrable?'ui-icon-close':'ui-icon-check'}" 
+                                                            actionListener="#{managedCalendrier.toogleActiveJourRepos(jour)}"
+                                                            update=":form-param:bloc-param-01:tab_jours_ouvree"/>                                               
+                                                <p:separator />
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedCalendrier.deleteJour(jour)}"/>
+                                            </p:contextMenu>
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btn_option_tbJO" />
+                                        </p:column>
+                                    </p:dataTable>
+                                </div>
+                                <div class="yvs_list_pgCalendar">
+                                    <p:dataTable value="#{managedCalendrier.calendriers}" var="iCal" id="table_paramG_calendar"
+                                                 rowIndexVar="line_cal" rowKey="#{iCal.id}" selectionMode="single">
+                                        <p:ajax event="rowSelect" listener="#{managedCalendrier.loadOnView}" update=":form-param:bloc-param-01:tab_travail" oncomplete="collapseForm('pgCalendar')"/>
+                                        <p:column headerText="N°" width="10" style="text-align: center">
+                                            #{line_cal+1}
+                                        </p:column>
+                                        <p:column headerText="Id" width="10" style="text-align: center">
+                                            #{iCal.id}
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_reference}" width="300" >
+                                            #{iCal.reference}
+                                        </p:column>
+                                        <p:column headerText="#{lab.LRH_PP_marge_accepter}" width="50" style="text-align: right">
+                                            <h:outputText value="#{iCal.tempsMarge}" converter="TIME" />
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_actif}" width="15" style="text-align: center">
+                                            <h:graphicImage library="img" name="#{iCal.actif?'yes.png':'no.png'}" width="15" height="15" />
+                                        </p:column>
+                                        <p:column headerText="" style="text-align: center" width="20">
+                                            <p:contextMenu for="btn_option_tbJO" event="left click">
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedCalendrier.openDlgDelCal(iCal)}" 
+                                                            oncomplete="_dlgDelCal.show()"/>
+                                            </p:contextMenu>
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btn_option_tbJO" />
+                                        </p:column>                                    
+                                    </p:dataTable>
+                                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                                        <p:commandButton actionListener="#{managedCalendrier.pagineData(false)}" update="table_paramG_calendar" icon="ui-icon-circle-triangle-w" disabled="#{managedCalendrier.paginator.disPrev}"/>
+                                        <p:outputPanel ><p:outputLabel value="#{managedCalendrier.paginator.currentPage}/#{managedCalendrier.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                        <p:commandButton actionListener="#{managedCalendrier.pagineData(true)}" update="table_paramG_calendar" icon="ui-icon-circle-triangle-e" disabled="#{managedCalendrier.paginator.disNext}"/>
+                                        <p:selectOneMenu value="#{managedCalendrier.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCalendrier.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                            <f:selectItems value="#{managedCalendrier.paginations}"/>
+                                            <p:ajax event="valueChange" update="table_paramG_calendar"/>
+                                        </p:selectOneMenu>
+                                    </p:outputPanel>
+                                    <div style="clear: right"/>
+                                </div>                              
+                            </p:outputPanel>
+                        </p:outputPanel> 
+                    </p:tab>                    
+                    <p:tab id="societe" title="#{lab.LRH_PP_regles_generales}">
+                        <p:tabView id="bloc-param-02" onTabShow="choixModeAvancement_()">
+                            <p:tab title="#{lab.LRH_PP_conges}">
+                                <h:panelGrid columns="1" style="width: 100%">
+                                    <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                        <span>#{lab.LRH_PP_nombre_total_jours_conges_permis}<sup>*</sup></span>
+                                        <pe:inputNumber value="#{parametrageGRH.totaCongePermis}" decimalPlaces="0" style="width: 100px; text-align: center">
+                                            <p:ajax event="blur" global="false"/>
+                                        </pe:inputNumber>
+                                        <span>#{lab.LRH_PP_duree_periode_cumul_conges_annee}<sup>**</sup></span>
+                                        <pe:inputNumber value="#{parametrageGRH.dureeCumulConge}" decimalPlaces="0" style="width: 100px; text-align: center">
+                                            <p:ajax event="blur" global="false"/>
+                                        </pe:inputNumber>
+                                        <span>#{lab.LRH_PP_nombre_minimal_journee_travail_acceptable}<sup>***</sup></span>  
+                                        <pe:inputNumber value="#{parametrageGRH.nbreJourMinPerMonth}" decimalPlaces="0" style="width: 100px; text-align: center">
+                                            <p:ajax event="blur" global="false"/>
+                                        </pe:inputNumber>
+                                        <span>#{lab.LRH_PP_nombre_jour_travail_reference}<sup>****</sup></span>       
+                                        <pe:inputNumber value="#{parametrageGRH.nbreJourMoisRef}" decimalPlaces="0" style="width: 100px; text-align: center">
+                                            <p:ajax event="blur" global="false"/>
+                                        </pe:inputNumber>
+                                    </h:panelGrid>
+                                    <p:outputPanel id="panel_param_majoration">
+                                        <fieldset>
+                                            <legend style="color: #790000">#{lab.LRH_PP_majoraion_conges_technique}</legend>
+                                            <p:tabView id="view_form_p_conge">
+                                                <p:tab title="#{lab.LRH_PP_majoraion}">
+                                                    <div >    
+                                                        <span>#{lab.LRH_PP_critere}</span>
+                                                        <h:selectOneMenu value="#{managedParametrageGRH.majorationConge.id}" id="txt_majorationC"
+                                                                         valueChangeListener="#{managedParametrageGRH.selectMajoration}">
+                                                            <f:selectItem itemValue="" itemLabel=""/> 
+                                                            <f:selectItems value="#{managedParametrageGRH.listMajorationConge}"  var="majo" itemLabel="#{majo.nature}" itemValue="#{majo.id}"/>
+                                                            <f:selectItem itemValue="" itemLabel=""/> 
+                                                            <f:selectItem itemValue="-1" itemLabel="#{lab.L_ajouter}..."/> 
+                                                            <p:ajax event="valueChange" update="tab_interval_majoration @this"/>
+                                                        </h:selectOneMenu>                                                
+                                                    </div>
+                                                    <div >
+                                                        <p:commandButton  icon="ui-icon-circle-plus"  type="button"
+                                                                          onclick="dlgIntervalMajoration.show()" style="float: right; width: 22px; height: 22px"/>  
+                                                        <p:dataTable value="#{managedParametrageGRH.majorationConge.listIntervalle}" 
+                                                                     var="inter" rowKey="#{inter.id}" id="tab_interval_majoration"
+                                                                     selectionMode="single" style="width: 100%">
+                                                            <p:ajax event="rowSelect" listener="#{managedParametrageGRH.loadOnViewInterval}"/>
+                                                            <p:ajax event="rowUnselect" listener="#{managedParametrageGRH.unLoadOnViewInterval}"/>
+                                                            <p:column headerText="#{managedParametrageGRH.labelMajoration} #{lab.LRH_PP_minimal}" width="80" style="text-align: center">
+                                                                <h:outputText value="#{inter.valeurMinimal}" />
+                                                            </p:column>
+                                                            <p:column headerText="#{managedParametrageGRH.labelMajoration} #{lab.LRH_PP_maximale}" width="80" style="text-align: center">
+                                                                <h:outputText value="#{inter.valeurMaximal}"/>
+                                                            </p:column>
+                                                            <p:column headerText="#{lab.LRH_PP_jour_acquis}" width="80" style="text-align: center">
+                                                                <h:outputText value="#{inter.nbJour}"/>
+                                                            </p:column>
+                                                            <p:column headerText="" style="text-align: center" width="10">
+                                                                <p:commandButton icon="ui-icon-trash" style="width: 22px; height: 22px"
+                                                                                 actionListener="#{managedParametrageGRH.deleteBeanIntervalMajoration(inter)}"/>
+                                                            </p:column>
+                                                        </p:dataTable>                                                              
+                                                    </div>  
+                                                </p:tab>
+                                                <p:tab title="#{lab.LRH_PP_conge_technique}">
+                                                    <h:panelGrid columns="8" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%"
+                                                                 id="form_add_param_ct">
+                                                        <span>#{lab.L_numero}</span>
+                                                        <pe:inputNumber style="width: 50px" value="#{managedParamsChomage.paramCT.numero}" />
+                                                        <span>#{lab.L_code}</span>
+                                                        <h:inputText value="#{managedParamsChomage.paramCT.code}"  />
+                                                        <span>#{lab.L_taux}</span>
+                                                        <h:inputText value="#{managedParamsChomage.paramCT.taux}"  />
+                                                        <p:selectBooleanCheckbox value="#{managedParamsChomage.paramCT.actif}" itemLabel="#{lab.L_actif} ?"/>
+                                                        <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-circle-plus"  
+                                                                         actionListener="#{managedParamsChomage.saveNew()}" update="table_param_ct"/>
+                                                        <f:facet name="footer">
+                                                            <span>#{lab.L_description}</span>
+                                                            <h:inputText value="#{managedParamsChomage.paramCT.description}" style="width: 99%" />
+                                                        </f:facet>
+                                                    </h:panelGrid>
+                                                    <p:dataTable value="#{managedParamsChomage.paramsChomages}" var="iparam" rowKey="#{iparam.id}"
+                                                                 selectionMode="single" id="table_param_ct" >
+                                                        <p:ajax event="rowSelect" listener="#{managedParamsChomage.loadOnView}" update=":form-param:bloc-param-01:bloc-param-02:view_form_p_conge:form_add_param_ct" />
+                                                        <p:ajax event="rowUnselect" listener="#{managedParamsChomage.unLoadOnView}" update=":form-param:bloc-param-01:bloc-param-02:view_form_p_conge:form_add_param_ct" />
+                                                        <p:column headerText="#{lab.LRH_PP_numero_mois}" width="15" style="text-align: center">
+                                                            #{iparam.numMois}
+                                                        </p:column>
+                                                        <p:column headerText="#{lab.L_code}" width="100">
+                                                            #{iparam.codeTaux}
+                                                        </p:column>
+                                                        <p:column headerText="#{lab.L_taux}" width="50">
+                                                            #{iparam.taux} %
+                                                        </p:column>
+                                                        <p:column headerText="" width="15" style="text-align: center">
+                                                            <p:contextMenu for="btn_opt_ct" event="left click">
+                                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedParamsChomage.openDlgToDel(iparam)}"/>
+                                                                <p:menuitem value="#{lab.LRH_PP_avancer}" icon="ui-icon-arrowthick-1-s" actionListener="#{managedParamsChomage.avancerNumParam(true,iparam)}"/>
+                                                                <p:menuitem value="#{lab.LRH_PP_reculer}" icon="ui-icon-arrowthick-1-n" actionListener="#{managedParamsChomage.avancerNumParam(false,iparam)}" rendered="false"/>
+                                                            </p:contextMenu>
+                                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_opt_ct"/>
+                                                        </p:column>
+                                                    </p:dataTable>
+                                                </p:tab>
+                                            </p:tabView>                                      
+                                        </fieldset>   
+                                    </p:outputPanel>
+                                </h:panelGrid><br />                                
+                                <div style="font-size: 0.8em; color: #006666; font-style: italic; font-weight: bold">
+                                    <span>* </span><span>#{lab.LRH_PP_text5}</span><br />
+                                    <span>** </span><span>#{lab.LRH_PP_text6}</span><br />
+                                    <span>*** </span><span>#{lab.LRH_PP_text7}</span><br />
+                                    <span>**** </span><span>#{lab.LRH_PP_text8}</span><br />                                
+                                </div>
+                            </p:tab>
+                            <p:tab title="#{lab.LRH_PP_avancement}" >
+                                <div >
+                                    <fieldset>
+                                        <legend>
+                                            #{lab.LRH_PP_classement}
+                                        </legend>
+                                        <h:panelGrid columns="2" styleClass="yvs_table" style="width: 100%">
+                                            <p:outputLabel value="#{lab.LRH_PP_reclassement_automatique}"/>
+                                            <h:selectOneRadio value="#{parametrageGRH.echellonage}" onchange="choixModeAvancement($(this))"
+                                                              id="txt_reclassement">
+                                                <f:selectItem itemLabel="#{lab.L_oui}" itemValue="true" />
+                                                <f:selectItem itemLabel="#{lab.L_non}" itemValue="false" />
+                                                <p:ajax event="valueChange" global="false"/> 
+                                            </h:selectOneRadio>
+                                            <p:outputLabel value="#{lab.LRH_PP_periode_reclassement}" styleClass="reclassement"/>
+                                            <pe:inputNumber value="#{parametrageGRH.periodeDavancement}" styleClass="reclassement"
+                                                            decimalPlaces="0" style="width: 100px; text-align: center">
+                                                <p:ajax event="blur" global="false"/>
+                                            </pe:inputNumber>
+                                            <p:outputLabel value="#{lab.LRH_PP_preclassement_a_partir}" styleClass="reclassement"/>
+                                            <h:panelGroup styleClass="reclassement">
+                                                <pe:inputNumber value="#{parametrageGRH.periodePremierAvancement}" decimalPlaces="0" style="width: 100px; text-align: center">
+                                                    <p:ajax event="blur" global="false"/>
+                                                </pe:inputNumber>
+                                                #{lab.LRH_PP_en_annee}
+                                            </h:panelGroup>                                            
+                                        </h:panelGrid>
+                                    </fieldset>
+                                </div>                                
+                            </p:tab>
+                            <p:tab title="#{lab.LRH_PP_salaires}">
+                                <h:panelGrid columns="2" style="width: 100%">
+                                    <p:outputLabel value="#{lab.LRH_PP_debut_traitement_salaires_tous} "/>
+                                    <p:calendar value="#{parametrageGRH.dateDebutTraitementSalaire}" pattern="dd-yyyy" size="8">
+                                        <p:ajax event="dateSelect" global="false"/>
+                                    </p:calendar>
+                                    <p:outputLabel value="#{lab.LRH_PP_paiement_salaires_a_partir_de} "/>
+                                    <p:calendar value="#{parametrageGRH.datePaiementSalaire}" pattern="dd-yyyy" size="8">
+                                        <p:ajax event="dateSelect" global="false"/>
+                                    </p:calendar>                                   
+                                    <span>#{lab.LRH_PP_element_base_salaires_disponible}:</span>
+                                    <h:selectOneRadio value="#{parametrageGRH.positionBaseSalaire}">
+                                        <f:selectItem itemLabel="#{lab.LRH_PP_dans_contrat}" itemValue="1" />
+                                        <f:selectItem itemLabel="#{lab.LRH_PP_au_poste_travail}" itemValue="2" />
+                                        <p:ajax event="valueChange" global="false"/>
+                                    </h:selectOneRadio>
+                                </h:panelGrid>
+                            </p:tab>
+                        </p:tabView>
+                    </p:tab>
+                    <p:tab title="#{lab.LRH_PP_type_cout}">
+                        <p:outputPanel id="blog_form_type_cout_grh">
+                            <div style="float: left;width: 30%">
+                                <h:panelGrid id="form_type_cout_grh" columns="1" styleClass="yvs_table" style="width: 100%" cellpadding="0" cellspacing="0">
+                                    <span>#{lab.L_libelle} </span>
+                                    <h:inputText value="#{managedTypeCout.typeCout.libelle}" style="width: 100%"/>
+                                    <span>#{lab.L_compte} </span>
+                                    <h:panelGroup id="txt_compte_type_cout_grh">
+                                        <h:inputText value="#{managedTypeCout.typeCout.compte.numCompte}" style="color: #{managedTypeCout.typeCout.compte.error?'red':''};width: 35%">
+                                            <p:ajax event="blur" global="false" listener="#{managedTypeCout.searchCompte()}" update="txt_compte_type_cout_grh"/>
+                                        </h:inputText>  
+                                        <h:outputText value="#{managedTypeCout.typeCout.compte.intitule}"/>                                    
+                                        <p:commandButton icon="ui-icon-note" style="float: right; width: 20px;height: 22px" title="#{lab.LRH_PP_liste_compte}" global="false"
+                                                         actionListener="#{managedTypeCout.initComptes()}" oncomplete="dlgListComptes.show()"/>
+                                    </h:panelGroup>
+                                    <span>#{lab.LRH_PP_point_application} </span>
+                                    <h:selectOneMenu value="#{managedTypeCout.typeCout.module}" style="width: 100%" valueChangeListener="#{managedTypeCout.chooseType}">
+                                        <f:selectItem itemValue="" itemLabel="--"/>
+                                        <f:selectItems value="#{constantes.COUTS(constantes.MOD_GRH)}" var="mol" itemValue="#{mol.value}" itemLabel="#{mol.label}"/>
+                                        <p:ajax event="valueChange" global="false" update="data_type_cout_grh"/>
+                                    </h:selectOneMenu>
+                                    <span>#{lab.LRH_PP_sens} </span>
+                                    <p:commandLink actionListener="#{managedTypeCout.typeCout.setAugmentation(!managedTypeCout.typeCout.augmentation)}" global="false" update="@this"
+                                                   style="margin-top: 3px;border: 2px solid black; border-radius: 5px;padding: 2px;background: #CCC;font-size: 0.8em">
+                                        <h:outputText value="#{managedTypeCout.typeCout.augmentation?lab.LCF_PGG_augmentation:lab.LRH_PP_diminution}"/>
+                                    </p:commandLink>
+                                </h:panelGrid>
+                                <div>
+                                    <p:commandButton value="#{lab.L_nouveau}" update="form_type_cout_grh" global="false" style="float: left"
+                                                     actionListener="#{managedTypeCout.resetFiche()}" oncomplete="collapseForm('type_cout_grh')"/>
+                                    <p:commandButton value="#{lab.L_enregistrer}" update="form_type_cout_grh data_type_cout_grh"
+                                                     actionListener="#{managedTypeCout.saveNew()}" style="float: right"/>
+                                </div>
+                            </div>
+                            <div style="margin-left:31%;width: 69%">
+                                <h:inputHidden id="input_hide_type_cout_grh" value="#{managedTypeCout.tabIds}"/>
+                                <p:dataTable id="data_type_cout_grh" value="#{managedTypeCout.types}" var="typC"
+                                             rowKey="#{typC.id}" rowIndexVar="modeIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" global="false" listener="#{managedTypeCout.loadOnView}" update=":form-param:bloc-param-01:form_type_cout_grh"/>
+                                    <p:ajax event="rowUnselect" global="false" listener="#{managedTypeCout.unLoadOnView}" update=":form-param:bloc-param-01:form_type_cout_grh"/>
+                                    <p:column width="30" headerText="N°">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{typC.new_}"/>
+                                        <span>#{modeIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_valeur}">
+                                        <span>#{typC.libelle}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_compte}">
+                                        <span title="#{typC.compte.intitule}">#{typC.compte.numCompte}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LRH_PP_appli_sur}">
+                                        <span>#{managedTypeCout.giveNameCouts(typC.moduleCout)}</span>
+                                    </p:column>
+                                    <p:column style="width: 7%;text-align: center">
+                                        <h:graphicImage title="#{typC.augmentation?lab.LRH_PP_augmente:lab.LRH_PP_diminu} #{lab.LRH_PP_net_a_payer}" library="img/icones" name="#{typC.augmentation?'plus.png':'moins.png'}" width="15" height="15"/>                                                        
+                                    </p:column>
+                                    <p:column width="20" style="text-align: center">                                          
+                                        <p:contextMenu for="btn_option_type_cout_grh" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedTypeCout.deleteBean_(typC)}" oncomplete="dlgConfirmDeleteTypeCout_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_type_cout_grh" type="button"/>
+                                    </p:column> 
+                                    <p:column width="20" style="text-align: center" rendered="false">
+                                        <f:facet name="header">
+                                            <h:selectBooleanCheckbox styleClass="chek_all_line_type_cout_grh" value="false"
+                                                                     onclick="selectionAllLineTab(#{managedTypeCout.types.size()}, 'type_cout_grh')">
+                                            </h:selectBooleanCheckbox>
+                                        </f:facet>
+                                        <h:selectBooleanCheckbox  value="#{typC.selectActif}" styleClass="chek_line_type_cout_grh" 
+                                                                  onclick="selectionLineTab(#{typC.id}, 'type_cout_grh')">
+                                        </h:selectBooleanCheckbox>
+                                    </p:column>
+                                </p:dataTable>
+                                <p:commandButton value="#{lab.L_supprimer}" id="delete_type_cout_grh" global="false" rendered="false"
+                                                 onclick="dlgConfirmDeleteMode.show()" style="float: right"/>
+                            </div>
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>  
+                    <p:tab title="#{lab.LRH_PP_frais_missions}">
+                        <div class="div_head" style="width: 100%; background: #CCC">
+                            <div style="float: left">
+                                <p:commandButton value="#{lab.L_nouveau}" actionListener="#{managedFraisMission.resetFiche()}" update=":form-param:bloc-param-01:form_edit_grfM"
+                                                 oncomplete="collapseForm('fraisMM');" icon="ui-icon-document"/>
+                                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedFraisMission.saveGrilleFrais()}" update=":form-param:bloc-param-01:form_edit_grfM"
+                                                 icon="ui-icon-disk"/>
+                            </div>
+                            <div style="float: right">
+                                <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('fraisMM');
+                                        return false;">
+                                    <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                </h:link>          
+                                <h:link title="#{lab.L_mode_liste}" onclick="collapseList('fraisMM');
+                                        return false;" >
+                                    <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                </h:link>
+                            </div>
+                            <div style="clear: both"/>
+                        </div>                    
+                        <div class="yvs_form_fraisMM">
+                            <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%"
+                                         id="form_edit_grfM">
+                                <span>#{lab.L_categorie}</span>
+                                <h:inputText value="#{grilleFraisMission.categorie}" />
+                                <span>#{lab.LRH_PP_titre}</span>
+                                <h:inputText value="#{grilleFraisMission.titre}" />
+                                <span>#{lab.L_actif}</span>
+                                <h:selectBooleanCheckbox value="#{grilleFraisMission.actif}" />
+                                <f:facet name="footer">
+                                    <div >
+                                        <h:panelGrid rendered="#{grilleFraisMission.id gt 0}" columns="6" style="width: 100%; background: #CCC" cellpadding="0" cellspacing="0" 
+                                                     styleClass="yvs_table"  id="form_edit_detail_grfM">
+                                            <span>#{lab.L_libelle}</span>
+                                            <h:selectOneMenu value="#{managedFraisMission.cout.typeCout.id}" 
+                                                             onchange="openDialog(dlgAddTypeCout, $(this))">
+                                                <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/> 
+                                                <f:selectItems value="#{managedTypeCout.types}" var="type_" 
+                                                               itemValue="#{type_.id}" itemLabel="#{type_.libelle}"/>
+                                                <f:selectItem itemValue="0" itemLabel="-" noSelectionOption="true"/> 
+                                                <f:selectItem itemValue="-1" itemLabel="#{lab.L_creer}"/> 
+                                            </h:selectOneMenu>
+                                            <span>#{lab.L_montant}</span>
+                                            <pe:inputNumber value="#{managedFraisMission.cout.montant}"/>
+                                            <p:selectBooleanCheckbox value="#{managedFraisMission.cout.proportionelDuree}" itemLabel="#{lab.LRH_PP_montant_fonction_duree}"/>
+                                            <p:commandButton value="#{lab.L_ajouter}" icon="ui-icon-circle-plus" actionListener="#{managedFraisMission.saveElementGrille()}" 
+                                                             update="param_tab_detail_fraisM"/>
+                                        </h:panelGrid>
+                                    </div>
+                                    <p:dataTable value="#{grilleFraisMission.detailsFrais}" var="detF" id="param_tab_detail_fraisM"
+                                                 selectionMode="single" rowKey="#{detF.id}" rowIndexVar="line_d"
+                                                 rendered="#{grilleFraisMission.id gt 0}" style="max-height: 400px; overflow-y: auto">
+                                        <p:ajax event="rowSelect" listener="#{managedFraisMission.loadDetailCout}" process="@this" />
+                                        <p:column headerText="N°" width="15" style="text-align: center; ">
+                                            #{line_d+1}
+                                        </p:column>
+                                        <p:column headerText="#{lab.L_libelle}" width="150" style="font-weight: #{(!detF.proportionelDuree)?'bold':'normal'}">#{detF.typeCout.libelle}</p:column>
+                                        <p:column headerText="#{lab.L_montant}" style="text-align: right;font-weight: #{(!detF.proportionelDuree)?'bold':'normal'}" width="80">
+                                            <h:outputText value="#{detF.montantPrevu}" converter="DN" />
+                                        </p:column>
+                                        <p:column headerText=" " width="15" style="text-align: center">
+                                            <p:contextMenu event="left click" for="btn_opt_detail_frm" style="font-size: 0.9em; width: 110px">
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedFraisMission.deleteLineCout(detF)}" update="param_tab_detail_fraisM"/>
+                                            </p:contextMenu>
+                                            <p:commandButton icon="ui-icon-gear" type="button" style="width: 22px; height: 22px" id="btn_opt_detail_frm"  />
+                                        </p:column>
+                                    </p:dataTable>
+                                </f:facet>
+                            </h:panelGrid>
+                        </div>
+                        <div class="yvs_list_fraisMM">
+                            <p:dataTable value="#{managedFraisMission.grillesMissions}" var="grm" style="max-height: 400px; overflow-y: auto"
+                                         selectionMode="single" rowKey="#{grm.id}" rowIndexVar="line_grm" id="table_param_grfm">
+                                <p:ajax event="rowSelect" listener="#{managedFraisMission.selectionGrille}" process="@this"
+                                        oncomplete="collapseForm('fraisMM')" update=":form-param:bloc-param-01:form_edit_grfM" />
+                                <p:column headerText="N°" width="20" style="text-align: center">#{line_grm+1}</p:column>
+                                <p:column headerText="#{lab.LRH_PP_titre} ">#{grm.titre}</p:column>
+                                <p:column headerText="#{lab.L_categorie} ">#{grm.categorie}</p:column>
+                                <p:column headerText="#{lab.L_actif} " width="20" style="text-align: center">
+                                    <h:graphicImage library="img" name="#{(grm.actif)?'yes.png':'no.png'}" />
+                                </p:column>
+                                <p:column headerText="" width="20">
+                                    <p:contextMenu for="btn_option_frais_miss" event="left click">
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedFraisMission.deleteGrille()}" rendered="false"
+                                                    />
+                                    </p:contextMenu>
+                                    <p:commandButton type="button" icon="ui-icon-gear" title="#{lab.L_gerer}..." style="width: 21px; height: 21px" id="btn_option_frais_miss"/>
+                                </p:column>
+                            </p:dataTable> 
+                        </div>
+                    </p:tab>
+                    <p:tab title="#{lab.LRH_PP_objets_missions}">
+                        <div class="div_head" style="width: 100%; background: #CCC">
+                            <div style="float: left">                                
+                                <p:commandButton value="#{lab.L_nouveau}" actionListener="#{managedObjetMission.resetFiche()}" oncomplete="collapseForm('objetsMM');"
+                                                 update=":form-param:bloc-param-01:form_edit_objectM" icon="ui-icon-document"/>
+                                <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedObjetMission.saveNew()}"  icon="ui-icon-disk"
+                                                 update=":form-param:bloc-param-01:table_param_objetM :form-param:bloc-param-01:form_edit_objectM"/>                               
+                            </div>
+                            <div style="float: right">
+                                <h:link title="#{lab.L_mode_creation}" onclick="collapseForm('objetsMM');
+                                        return false;">
+                                    <p:graphicImage library="icones" name="newDoc.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                </h:link>          
+                                <h:link title="#{lab.L_mode_liste}" onclick="collapseList('objetsMM');
+                                        return false;" >
+                                    <p:graphicImage library="icones" name="ico_formulaire.png" width="18" height="25" style="border: 2px solid #666; border-radius: 5px;"/>
+                                </h:link>
+                            </div>
+                            <div style="clear: both"/>
+                        </div>                    
+                        <div class="yvs_form_objetsMM">
+                            <p:outputPanel id="form_edit_objectM">
+                                <div style="width: 49.5%;float: left">
+                                    <h:panelGrid columns="2" styleClass="yvs_table" cellpadding="0" cellspacing="0" style="width: 100%">
+                                        <span>#{lab.L_description}</span>
+                                        <h:inputTextarea rows="4" style="width: 99%" value="#{objetMission.description}" />
+                                        <span>#{lab.LRH_PP_titre}</span>
+                                        <h:inputText value="#{objetMission.titre}" />                            
+                                        <span>#{lab.LRH_PP_compte_charge}</span>
+                                        <h:panelGroup  id="form_edit_objectM_cg">                               
+                                            <h:inputText value="#{objetMission.compteCharge.numCompte}" >
+                                                <p:ajax event="blur" update="form_edit_objectM_cg" listener="#{managedObjetMission.ecouteSaisieCG()}" />
+                                            </h:inputText>
+                                            <h:outputText value="#{objetMission.compteCharge.intitule}" style="color: green"/>  
+                                        </h:panelGroup>
+                                        <span>#{lab.L_actif}</span>
+                                        <h:selectBooleanCheckbox value="#{objetMission.actif}"/>                            
+                                    </h:panelGrid>
+                                </div>
+                                <div style="width: 49.5%;margin-left: 50.5%">
+                                    <h:panelGrid id="form-objet_mission_analytique" columns="5" cellpadding="0" cellspacing="0" style="float: right;margin-right: 5px;margin-top: 5px!important">
+                                        <h:outputText value="#{lab.LRH_PP_centre} : "/>
+                                        <h:selectOneMenu value="#{managedObjetMission.analytique.centre.id}" style="min-width: 120px">
+                                            <f:selectItem itemLabel="--" itemValue="0"/>
+                                            <f:selectItems value="#{managedCentreAnalytique.centres}" var="iCa" itemLabel="#{iCa.designation}" itemValue="#{iCa.id}"/>
+                                            <p:ajax event="valueChange" global="false" listener="#{managedObjetMission.chooseCentre()}"/>
+                                        </h:selectOneMenu>
+                                        <h:outputText value="#{lab.LRH_PP_coefficient} : " style="margin-left: 5px"/>
+                                        <h:inputText value="#{managedObjetMission.analytique.taux}" style="width: 50px;text-align: center"/>
+                                        <p:commandButton icon="ui-icon-disk" style="width: 22px; height: 22px;margin-left: 10px" actionListener="#{managedObjetMission.saveNewAnalytique()}"/>
+                                    </h:panelGrid>
+                                    <p:dataTable value="#{objetMission.analytiques}" var="iAA" rowIndexVar="iAAx" id="data-objet_mission_analytique" selectionMode="single"
+                                                 rowKey="#{iAA.id}" paginator="true" rows="10" paginatorAlwaysVisible="false">
+                                        <f:facet name="header">
+                                            <div align="left" style="font-size:1.4em;font-weight: bold;margin-left: 5px;padding-top: 2px;padding-bottom: 2px">#{lab.LRH_PP_analytique}</div>
+                                        </f:facet>
+                                        <p:ajax event="rowSelect" listener="#{managedObjetMission.loadOnViewAnalytique}" />
+                                        <p:ajax event="rowUnselect" listener="#{managedObjetMission.unLoadOnViewAnalytique}" />
+                                        <p:column headerText="#{lab.LRH_PP_centre}">
+                                            <span>#{iAA.centre.designation}</span>
+                                        </p:column>
+                                        <p:column headerText="#{lab.LRH_PP_coefficient}" style="text-align: right">
+                                            <h:outputText value="#{iAA.coefficient}" converter="DNA"/>%
+                                        </p:column>
+                                        <p:column style="text-align: center;width: 5%">
+                                            <p:contextMenu for="btn_option-objet_mission_analytique" styleClass="context_menu" event="left click" style="font-size: 0.8em">
+                                                <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedObjetMission.deleteAnalytique(iAA, false)}"/>
+                                            </p:contextMenu>                           
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option-objet_mission_analytique" type="button"/>
+                                        </p:column>  
+                                    </p:dataTable>
+                                </div>
+                            </p:outputPanel>
+                        </div>
+                        <div class="yvs_list_objetsMM">
+                            <p:dataTable value="#{managedObjetMission.objetsMissions}" var="obm_" style="max-height: 400px; overflow-y: auto"
+                                         selectionMode="single" rowKey="#{obm_.id}" rowIndexVar="line_grm" id="table_param_objetM">
+                                <p:ajax event="rowSelect" listener="#{managedObjetMission.loadOnView}" process="@this"
+                                        oncomplete="collapseForm('objetsMM')" update=":form-param:bloc-param-01:form_edit_objectM" />
+                                <p:column headerText="N°" width="20" style="text-align: center">#{line_grm+1}</p:column>
+                                <p:column headerText="#{lab.LRH_PP_titre} ">#{obm_.titre}</p:column>
+                                <p:column headerText="#{lab.L_categorie} ">#{obm_.description}</p:column>
+                                <p:column headerText="#{lab.LRH_PP_compte_charge} ">[<span style="font-weight: bold">#{obm_.compteCharge.numCompte}</span>] #{obm_.compteCharge.intitule}</p:column>
+                                <p:column headerText="#{lab.L_actif} " width="20" style="text-align: center">
+                                    <h:graphicImage library="img" name="#{(obm_.actif)?'yes.png':'no.png'}" />
+                                </p:column>
+                                <p:column headerText="" width="20">
+                                    <p:contextMenu for="btn_option_frais_miss" event="left click">
+                                        <p:menuitem value="#{obm_.actif?lab.L_desactiver:lab.L_actif}" icon="#{obm_.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" actionListener="#{managedObjetMission.toogleActive(obm_)}" 
+                                                    update=":form-param:bloc-param-01:table_param_objetM"/>/>
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" actionListener="#{managedObjetMission.deleteOneObjet(obm_)}" 
+                                                    update=":form-param:bloc-param-01:table_param_objetM"/>
+                                    </p:contextMenu>
+                                    <p:commandButton type="button" icon="ui-icon-gear" title="#{lab.L_gerer}..." style="width: 21px; height: 21px" id="btn_option_frais_miss"/>
+                                </p:column>
+                            </p:dataTable> 
+                        </div>
+                        <div style="clear: both"/>
+                    </p:tab>           
+                    <p:tab title="#{lab.LRH_PP_types_primes}">
+                        <p:outputPanel id="blog_form_type_prime_grh">
+                            <div style="float: left;width: 30%">
+                                <p:tooltip  for="code-prim-contrat" value="#{lab.LRH_PP_text16}"
+                                            />
+                                <h:panelGrid columns="2" style="width: 100%; margin: auto" styleClass="yvs_table" id="form_createTypeP_grh" cellpadding="0" cellspacing="0">                    
+                                    <span>#{lab.LRH_PP_code_referencce}</span>
+                                    <h:inputText value="#{managedContratEmploye.newType.code}" style="width: 99%" id="code-prim-contrat"/>
+                                    <span>#{lab.L_libelle}</span>
+                                    <h:inputText value="#{managedContratEmploye.newType.libelle}" style="width: 99%"/>
+                                    <span>#{lab.L_actif}</span>
+                                    <h:selectBooleanCheckbox value="#{managedContratEmploye.newType.actif}" />                        
+                                </h:panelGrid>
+                                <div>
+                                    <p:commandButton value="#{lab.L_nouveau}" update="form_createTypeP_grh" global="false" style="float: left"
+                                                     actionListener="#{managedContratEmploye.resetFicheTypePrime()}" icon="ui-icon-document"/>
+                                    <p:commandButton value="#{lab.L_enregistrer} " actionListener="#{managedContratEmploye.addTypePrime()}" icon="ui-icon-disk"
+                                                     update="table_contrat_prime_grh form_createTypeP_grh"/>
+                                </div>
+                            </div>
+                            <div style="margin-left:31%;width: 69%">
+                                <p:dataTable value="#{managedContratEmploye.listTypePrime}" var="typP" selectionMode="single" rowIndexVar="lineTypeP"
+                                             rowKey="#{typP.id}" id="table_contrat_prime_grh">
+                                    <p:ajax event="rowSelect" listener="#{managedContratEmploye.selectOneTypePrimeToUpdate}"  update=":form-param:bloc-param-01:form_createTypeP_grh" />
+                                    <p:column headerText="N°" width="25">
+                                        #{lineTypeP+1}
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_code}">
+                                        <h:outputText value="#{typP.codeElement}" />
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_designation}">
+                                        #{typP.libelle}
+                                    </p:column>
+                                    <p:column headerText="#{lab.L_actif}" style="text-align: center" width="25">
+                                        <p:commandLink  style="width: 22px; height: 22px" process="@this"
+                                                        actionListener="#{managedContratEmploye.disableOneTypePrime(typP)}" update="@this table_contrat_prime_grh">
+                                            <h:graphicImage library="img" name="#{(typP.actif)?'vu.png':'vu_non.png'}" width="15" height="15" title="#{typP.actif? lab.LRH_PP_desactiver_type_prime:lab.LRH_PP_activer_type_prime}" />
+                                        </p:commandLink>
+                                    </p:column>
+                                    <p:column headerText="" style="text-align: center" width="25">
+                                        <p:contextMenu for="btn_option_contrat_prim_grh" event="left click" styleClass="context_menu">
+                                            <p:menuitem value="#{typP.actif?lab.L_desactiver:lab.L_activer}" icon="#{typP.actif?'ui-icon-circle-close':'ui-icon-circle-check'}" 
+                                                        actionListener="#{managedContratEmploye.toogleActiveSelectedTypePrime(typP)}" update="table_contrat_prime_grh"/>
+                                            <p:separator />
+                                            <p:menuitem value="#{lab.L_supprimer}"  icon="ui-icon-trash"  actionListener="#{managedContratEmploye.openSelectedTypePrime(typP, true)}" 
+                                                        update=":form-param:bloc-param-01:form_createTypeP_grh"/>
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" type="button" id="btn_option_contrat_prim_grh"
+                                                         />                            
+                                    </p:column>
+                                    <p:column width="25" style="text-align: center">
+                                        <f:facet name="header">
+                                            <h:selectBooleanCheckbox value="false" class="chek_all_line_contratTypePrime" onclick="selectionAllLineTab(#{managedContratEmploye.listTypePrime.size()}, 'contratTypePrime')"/>
+                                        </f:facet>
+                                        <h:selectBooleanCheckbox value="false" class="chek_line_contratTypePrime" onclick="selectionLineTab(#{lineTypeP}, 'contratTypePrime')"/>
+                                    </p:column>
+                                </p:dataTable>
+                            </div>  
+                        </p:outputPanel>
+                        <div style="clear: both"/>
+                    </p:tab>  
+                    <p:tab title="Types retenues">
+                        <div style="width: 30%;float: left">
+                            <p:tooltip for="txt_code_type_retenu" showEffect="slide" hideEffect="scale" />                        
+                            <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0" id="form_new_type_retenue">
+                                <f:facet name="header">                                    
+                                    <div align="left" style="padding: 5px">
+                                        <p:selectBooleanCheckbox value="#{managedRetenue.typeElement.actif}" itemLabel="#{lab.L_actif}"/>
+                                        <p:selectBooleanCheckbox value="#{managedRetenue.typeElement.visibleEnGescom}" itemLabel="#{lab.LRH_PRS_visible_en_gescom}" style="float: right"/>
+                                    </div>
+                                </f:facet>
+                                <span>#{lab.L_code}</span>
+                                <h:inputText value="#{managedRetenue.typeElement.code}" id="txt_code_type_retenu" title="#{lab.LRH_PRS_text5}"/>
+                                <span>#{lab.L_designation}</span>
+                                <h:inputText value="#{managedRetenue.typeElement.libelle}"/>                              
+                                <span>#{lab.L_compte}</span>  
+                                <h:panelGroup>
+                                    <h:panelGroup id="txt_compte_type_retenu">
+                                        <h:inputText value="#{managedRetenue.typeElement.compte.numCompte}" style="color: #{managedRetenue.typeElement.compte.error?'red':''};width: 35%" tabindex="90">
+                                            <p:ajax event="valueChange" global="false" listener="#{managedRetenue.searchCompte('dlgListComptesRetenue')}" update="txt_compte_type_retenu"/>
+                                        </h:inputText>    
+                                        <h:outputText value="#{managedRetenue.typeElement.compte.intitule}" style="color: green"/>
+                                    </h:panelGroup>
+                                    <p:commandButton icon="ui-icon-note" style="float: right; width: 20px;height: 22px" title="#{lab.LDB_PP_liste_compte}" global="false"
+                                                     oncomplete="dlgListComptesRetenue.show()"/>
+                                </h:panelGroup>  
+                                <f:facet name="footer">
+                                    <span>#{lab.L_description}</span>
+                                    <h:inputTextarea value="#{managedRetenue.typeElement.description}" rows="3" style="width: 100%"/>
+                                    <p:selectBooleanCheckbox value="#{managedRetenue.generer}" itemLabel="#{lab.LRH_PRS_text6}" style="padding: 3px" />
+                                </f:facet>
+                            </h:panelGrid>
+                            <p:commandButton value="#{lab.L_enregistrer}" icon="ui-icon-circle-check" actionListener="#{managedRetenue.addTypeElt()}" 
+                                             style="float: right" update="table_type_elt_retenu"   />
+                        </div>
+                        <div style="width: 69%;float: right">
+                            <p:dataTable value="#{managedRetenue.listTypesElts}" rowIndexVar="line_typElt" var="typER"
+                                         id="table_type_elt_retenu" selectionMode="single" rowKey="#{typER.id}">
+                                <p:ajax event="rowSelect" listener="#{managedRetenue.selectOneTyepeR}" process="@this" update=":form-param:bloc-param-01:form_new_type_retenue"   />
+                                <p:column headerText="N°" width="25">                            
+                                    #{line_typElt+1}                            
+                                </p:column>
+                                <p:column headerText="#{lab.L_code}" width="100">
+                                    #{typER.codeElement}
+                                </p:column>
+                                <p:column headerText="#{lab.L_intitule}" width="100">
+                                    #{typER.libelle}
+                                    <span style="display: #{(typER.visibleEnGescom)?'inline':'none'}; font-weight: bold;color: #000; font-size: 1em; float: right">GC</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_compte}" width="150">
+                                    <span title="#{typER.compte.intitule}">#{typER.compte.numCompte}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.L_description}" width="150">
+                                    #{typER.codeElement}
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                        <div style="clear: both"/>
+                    </p:tab>  
+                    <p:tab title="Plans de prevelement">
+                        <div style="width: 30%;float: left">
+                            <h:panelGrid columns="2" id="form_editPlR" style="width: 100%" styleClass="yvs_table" cellpadding="0" cellspacing="0">
+                                <f:facet name="header">
+                                    <div align="left" style="padding: 5px">
+                                        <p:selectBooleanCheckbox value="#{managedRetenue.newPlanRetenu.actif}" itemLabel="Actif"/>
+                                        <p:selectBooleanCheckbox value="#{managedRetenue.newPlanRetenu.visibleEnGescom}" itemLabel="#{lab.LRH_PRS_visible_en_gescom}" style="float: right"/>
+                                    </div>
+                                </f:facet>
+                                <span>#{lab.L_reference} : </span>
+                                <h:inputText value="#{managedRetenue.newPlanRetenu.reference}" style="width: 100%"/>
+                                <span>#{lab.LRH_PRS_decoupage_base_sur} :</span>
+                                <p:selectOneRadio value="#{managedRetenue.newPlanRetenu.basePlan}" layout="pageDirection"
+                                                  styleClass="yvs_nostyle">
+                                    <f:selectItem itemValue="T" itemLabel="#{lab.LRH_PRS_un_taux}" />
+                                    <f:selectItem itemValue="D" itemLabel="#{lab.LRH_PRS_une_duree} " />
+                                    <f:selectItem itemValue="F" itemLabel="#{lab.LRH_PRS_valeur_fixe} " />
+                                    <p:ajax event="valueChange" update="type_base_PR" global="false" process="@this" />
+                                </p:selectOneRadio>
+                                <span>#{lab.L_valeur}</span>
+                                <h:panelGroup id="type_base_PR">
+                                    <pe:inputNumber value="#{managedRetenue.newPlanRetenu.valeur}" rendered="#{(managedRetenue.newPlanRetenu.basePlan=='T')}" symbol=" %" symbolPosition="suffix"
+                                                    style="width: 100px"/>
+                                    <pe:inputNumber value="#{managedRetenue.newPlanRetenu.valeur}" rendered="#{(managedRetenue.newPlanRetenu.basePlan=='F')}" style="width: 100px"/>
+                                    <pe:inputNumber value="#{managedRetenue.newPlanRetenu.valeur}" rendered="#{(managedRetenue.newPlanRetenu.basePlan=='D')}" symbol=" (mois)" symbolPosition="suffix"
+                                                    style="width: 100px"/>
+                                </h:panelGroup>
+                                <span>#{lab.LRH_PRS_plan_par_defaut}</span>
+                                <h:selectBooleanCheckbox value="#{managedRetenue.newPlanRetenu.defaut}" />
+                                <span>#{lab.LRH_PRS_retenu_basee_sur} :</span>
+                                <p:selectOneRadio value="#{managedRetenue.newPlanRetenu.base}" styleClass="yvs_nostyle">
+                                    <f:selectItem itemValue="S" itemLabel="#{lab.LRH_PRS_salaire}" />
+                                    <f:selectItem itemValue="D" itemLabel="#{lab.LRH_PRS_dette} " />
+                                </p:selectOneRadio> 
+                            </h:panelGrid>
+                            <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedRetenue.saveNewPlanRetenue()}" style="float: right" update="tabPlanRet"/>
+                        </div>
+                        <div style="width: 69%;float: right">
+                            <p:dataTable value="#{managedRetenue.plansRetenues}" var="pRet"  selectionMode="single"
+                                         rowKey="#{pRet.id}" rowIndexVar="line_p" id="tabPlanRet">
+                                <p:ajax event="rowSelect" listener="#{managedRetenue.loadOnViewPlan}" update=":form-param:bloc-param-01:form_editPlR"/>
+                                <p:column headerText="N° " width="20"
+                                          style="text-align: center">
+                                    <span style="display: #{(pRet.visibleEnGescom)?'inline':'none'}; font-weight: bold;color: #000; font-size: 1em">GC</span>
+                                    #{line_p+1}</p:column>
+                                <p:column headerText="#{lab.L_reference} " width="100">
+                                    #{pRet.referencePlan}
+                                </p:column>
+                                <p:column headerText="#{lab.LRH_PRS_type_decoupage} " width="100">
+                                    #{(pRet.basePlan=='T')?lab.LRH_PRS_taux_fixe:(pRet.basePlan=='F')?lab.LRH_PRS_retenue_fixe:lab.LRH_PM_duree}
+                                </p:column>
+                                <p:column headerText="#{lab.L_valeur} " width="100">
+                                    <h:outputText value="#{pRet.valeur}" converter="DN" />
+                                    <span>#{(pRet.basePlan=='T')?'%':(pRet.basePlan=='F')?' ':lab.L_mois}</span>
+                                </p:column>
+                                <p:column headerText="#{lab.LRH_PRS_base_retenue} " width="100">
+                                    #{(pRet.basePlan=='S')?lab.LRH_PRS_salaire:lab.LRH_PRS_dette}
+                                </p:column>                            
+                                <p:column headerText="#{lab.L_actif}" width="30" style="text-align: center">
+                                    <h:graphicImage library="img" name="#{(pRet.actif)?'vu.png':'vu_non.png'}" width="15" height="15" />
+                                </p:column>
+                                <p:column headerText="" width="30" style="text-align: center">
+                                    <p:commandButton title="#{lab.LRH_PPT_supprimer_ligne}" style="width: 22px; height: 22px" icon="ui-icon-trash"
+                                                     update="tabPlanRet :form-param:bloc-param-01:form_editPlR" 
+                                                     actionListener="#{managedRetenue.deletePlanRetenue(pRet)}" >
+                                        <!--<p:confirm header="Supprimer le plan" message="Confirmez-vous la suppression de ce plan ?"/>-->
+                                    </p:commandButton>
+                                </p:column>
+                            </p:dataTable>
+                        </div>
+                        <div style="clear: both"/>
+                    </p:tab>  
+                    <p:tab id="confirm" title="#{lab.LRH_PP_recapitulatif}"> 
+                        <p:commandButton value="#{lab.L_enregistrer}" actionListener="#{managedParametrageGRH.saveNew()}" />
+                        <h:outputText value="#{parametrageGRH.id}" style="float: right; padding: 2px ; background: #333; color: #FFF; font-size: 0.8em; margin-right: 8px"/>
+                        <h:panelGrid id="tab-recapilatif-param" columns="1"  style="width: 100%">
+                            <p:panelGrid style="width: 100%;text-align: center">
+                                <f:facet name="header">
+                                    <p:row>
+                                        <p:column colspan="#{managedParametrageGRH.listJoursOuvree.size()}">#{lab.LRH_PP_jours_ouvrees}</p:column>
+                                    </p:row>
+                                    <p:row>
+                                        <p:column colspan="1" rendered="#{managedParametrageGRH.lundi.isVu()}">#{lab.LP_PPG_lundi}</p:column>
+                                        <p:column colspan="1" rendered="#{managedParametrageGRH.mardi.isVu()}">#{lab.LP_PPG_mardi}</p:column>
+                                        <p:column colspan="1" rendered="#{managedParametrageGRH.mercredi.isVu()}">#{lab.LP_PPG_mercredi}</p:column>
+                                        <p:column colspan="1" rendered="#{managedParametrageGRH.jeudi.isVu()}">#{lab.LP_PPG_jeudi}</p:column>
+                                        <p:column colspan="1" rendered="#{managedParametrageGRH.vendredi.isVu()}">#{lab.LP_PPG_vendredi}</p:column>
+                                        <p:column colspan="1" rendered="#{managedParametrageGRH.samedi.isVu()}">#{lab.LP_PPG_samedi}</p:column>                                            
+                                        <p:column colspan="1" rendered="#{managedParametrageGRH.dimanche.isVu()}">#{lab.LP_PPG_dimanche}</p:column>
+                                    </p:row>
+                                </f:facet>
+                                <p:row>
+                                    <p:column rendered="#{managedParametrageGRH.lundi.isVu()}" style="border: none">
+                                        <h:panelGrid columns="3" styleClass="yvs_nostyle">
+                                            <h:outputText value="#{managedParametrageGRH.lundi.heureDebutTravail}" converter="TIME"/>
+                                            <h:outputText value=" - "/>
+                                            <h:outputText value="#{managedParametrageGRH.lundi.heureFinTravail}" converter="TIME"/>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{lab.LRH_PP_pause} :" styleClass="pause"/>
+                                                <h:outputText value="#{managedParametrageGRH.lundi.dureePause}" converter="TIME"/>
+                                            </f:facet>
+                                        </h:panelGrid>
+                                    </p:column>
+                                    <p:column rendered="#{managedParametrageGRH.mardi.isVu()}" >
+                                        <h:panelGrid columns="3" styleClass="yvs_nostyle">
+                                            <h:outputText value="#{managedParametrageGRH.mardi.heureDebutTravail}" converter="TIME"/>
+                                            <p:outputLabel value=" - "/>
+                                            <h:outputText value="#{managedParametrageGRH.mardi.heureFinTravail}" converter="TIME"/>                                        
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{lab.LRH_PP_pause} :" styleClass="pause"/>
+                                                <h:outputText value="#{managedParametrageGRH.mardi.dureePause}" converter="TIME"/>
+                                            </f:facet>
+                                        </h:panelGrid>                               
+                                    </p:column>
+                                    <p:column rendered="#{managedParametrageGRH.mercredi.isVu()}">
+                                        <h:panelGrid columns="3" styleClass="yvs_nostyle" >
+                                            <h:outputText value="#{managedParametrageGRH.mercredi.heureDebutTravail}" converter="TIME"/>
+                                            <p:outputLabel value=" - "/>
+                                            <h:outputText value="#{managedParametrageGRH.mercredi.heureFinTravail}" converter="TIME"/>                                        
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{lab.LRH_PP_pause} :" styleClass="pause"/>
+                                                <h:outputText value="#{managedParametrageGRH.mercredi.dureePause}" converter="TIME"/>
+                                            </f:facet>
+                                        </h:panelGrid>                               
+                                    </p:column>
+                                    <p:column rendered="#{managedParametrageGRH.jeudi.isVu()}">
+                                        <h:panelGrid columns="3" styleClass="yvs_nostyle">
+                                            <h:outputText value="#{managedParametrageGRH.jeudi.heureDebutTravail}" converter="TIME"/>
+                                            <p:outputLabel value=" - "/>
+                                            <h:outputText value="#{managedParametrageGRH.jeudi.heureFinTravail}" converter="TIME"/>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{lab.LRH_PP_pause} :" styleClass="pause"/>
+                                                <h:outputText value="#{managedParametrageGRH.jeudi.dureePause}" converter="TIME"/>
+                                            </f:facet>
+                                        </h:panelGrid>                               
+                                    </p:column>
+                                    <p:column rendered="#{managedParametrageGRH.vendredi.isVu()}">
+                                        <h:panelGrid columns="3" styleClass="yvs_nostyle">
+                                            <h:outputText value="#{managedParametrageGRH.vendredi.heureDebutTravail}" converter="TIME"/>
+                                            <h:outputText value=" - "/>
+                                            <h:outputText value="#{managedParametrageGRH.vendredi.heureFinTravail}" converter="TIME"/>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{lab.LRH_PP_pause} :" styleClass="pause"/>
+                                                <h:outputText value="#{managedParametrageGRH.vendredi.dureePause}" converter="TIME"/>
+                                            </f:facet>                                        
+                                        </h:panelGrid>         
+                                    </p:column>
+                                    <p:column rendered="#{managedParametrageGRH.samedi.isVu()}">
+                                        <h:panelGrid columns="3" styleClass="yvs_nostyle">
+                                            <h:outputText value="#{managedParametrageGRH.samedi.heureDebutTravail}" converter="TIME"/>
+                                            <h:outputText value=" #{lab.L_a} "/>
+                                            <h:outputText value="#{managedParametrageGRH.samedi.heureFinTravail}" converter="TIME"/>
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{lab.LRH_PP_pause} :" styleClass="pause"/>
+                                                <h:outputText value="#{managedParametrageGRH.samedi.dureePause}" converter="TIME"/>
+                                            </f:facet>                                           
+                                        </h:panelGrid>   
+                                    </p:column>
+                                    <p:column rendered="#{managedParametrageGRH.dimanche.isVu()}">
+                                        <h:panelGrid columns="3" styleClass="yvs_nostyle">
+                                            <h:outputText value="#{managedParametrageGRH.dimanche.heureDebutTravail}" converter="TIME"/>
+                                            <h:outputText value=" - "/>
+                                            <h:outputText value="#{managedParametrageGRH.dimanche.heureFinTravail}" converter="TIME"/>                                        
+                                            <f:facet name="footer">
+                                                <h:outputText value="#{lab.LRH_PP_pause} :" styleClass="pause"/>
+                                                <h:outputText value="#{managedParametrageGRH.dimanche.dureePause}" converter="TIME"/>
+                                            </f:facet>
+                                        </h:panelGrid> 
+                                    </p:column>
+                                </p:row>
+                            </p:panelGrid>
+                            <p:panelGrid style="width: 100%">
+                                <f:facet name="header">
+                                    <p:row>
+                                        <p:column colspan="4">#{lab.LRH_PP_travail}</p:column>
+                                    </p:row>
+                                    <p:row>
+                                        <p:column colspan="2">#{lab.LRH_PP_exercice}</p:column>
+                                        <p:column colspan="2">#{lab.LRH_PP_heures_travail}</p:column>
+                                    </p:row>
+                                </f:facet>
+                                <p:row>
+                                    <p:column>#{lab.LRH_PP_date_debut_traitement_salaires}</p:column>
+                                    <p:column><h:outputText value="#{parametrageGRH.dateDebutTraitementSalaire}" converter="DATE"/></p:column>
+                                    <p:column>#{lab.LRH_PP_total_heures_travail_hebdomadaire}</p:column>
+                                    <p:column>#{parametrageGRH.totalHeureTravailHebdo}</p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column>#{lab.LRH_PP_date_paiement_salaires}</p:column>
+                                    <p:column><h:outputText value="#{parametrageGRH.datePaiementSalaire}" converter="DATE"/></p:column>
+                                    <p:column>#{lab.LRH_PP_nombre_limite_heure_travail}</p:column>
+                                    <p:column>#{parametrageGRH.limitHeureSup}</p:column>
+                                </p:row>
+                            </p:panelGrid>                        
+                            <p:panelGrid style="width: 100%">
+                                <f:facet name="header">
+                                    <p:row>
+                                        <p:column colspan="6">#{lab.LRH_PP_regles_gene}</p:column>
+                                    </p:row>
+                                    <p:row>
+                                        <p:column colspan="2">#{lab.LRH_PP_conges}</p:column>
+                                        <p:column colspan="2">#{lab.LRH_PP_avancement}</p:column>
+                                        <p:column colspan="2">#{lab.LRH_PP_autres_options}</p:column>
+                                    </p:row>
+                                </f:facet>
+                                <p:row>
+                                    <p:column>#{lab.LRH_PP_nombre_total_jours_permis}</p:column>
+                                    <p:column>#{parametrageGRH.totaCongePermis} #{lab.LRH_PP_jours}</p:column>
+                                    <p:column>#{lab.LRH_PP_reclassement_automatique}</p:column>
+                                    <p:column>
+                                        <p:selectOneRadio value="#{parametrageGRH.echellonage}" disabled="true" style="border: none">
+                                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="true" />
+                                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="false" />
+                                        </p:selectOneRadio>
+                                    </p:column>                                    
+                                </p:row>
+                                <p:row>
+                                    <p:column>#{lab.LRH_PP_duree_periode_cumul_conges}</p:column>
+                                    <p:column>#{parametrageGRH.dureeCumulConge} #{lab.LRH_PP_an}(s)</p:column>
+                                    <p:column>Periode d'avancement</p:column>
+                                    <p:column>#{parametrageGRH.periodeDavancement} an(s)</p:column>
+                                </p:row>
+                                <p:row>
+                                    <p:column></p:column>
+                                    <p:column></p:column>
+                                    <p:column>#{lab.LRH_PP_periode_debut_reclassement}</p:column>
+                                    <p:column>#{parametrageGRH.periodePremierAvancement} #{lab.LRH_PP_an}(s)</p:column>
+                                    <p:column></p:column>
+                                    <p:column></p:column>
+                                </p:row>
+                            </p:panelGrid>
+                        </h:panelGrid>
+                    </p:tab>
+                </p:tabView>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

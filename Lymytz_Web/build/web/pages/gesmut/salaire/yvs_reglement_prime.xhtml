@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Primes','modMutuelle', 'smenPrime', true,managedReglementPrime)}
+    </ui:define>   
+    <ui:define name="contents"> 
+        #{managedMutualiste.loadActif(true)}
+        <script type="text/javascript">
+            $(function() {
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 140);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LM_PP_comptes_mutualiste}" width="50%" widgetVar="mutCompte">
+                <p:dataTable value="#{managedReglementPrime.comptes}" var="icpt" id="table_compte_mutualiste"
+                             selectionMode="single" rowKey="#{icpt.id}" rowIndexVar="line_">
+                    <p:ajax event="rowSelect" listener="#{managedReglementPrime.choixCompte}" oncomplete="mutCompte.hide()"/>
+                    <p:column headerText="N°">#{line_+1}</p:column>
+                    <p:column headerText="#{lab.LM_PE_mutualiste}">#{icpt.mutualiste.employe.nom_prenom}</p:column>
+                    <p:column headerText="#{lab.L_compte}">#{icpt.reference}</p:column>
+                    <p:column headerText="#{lab.L_nature}">#{icpt.typeCompte.nature}</p:column>
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="form_main_interet">    
+            #{managedReglementPrime.loadAll()}
+            <div class="part_fix">                               
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_interet" style="width: 99%; margin: auto; background: white">
+                    <p:dataTable id="data_interet" value="#{managedReglementPrime.interets}" var="inti" rowKey="#{inti.id}" rowIndexVar="intIdx"
+                                 editMode="cell" editable="true">
+                        <p:column headerText="N°" style="width: 5%;text-align: center">
+                            <span>#{intIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.LM_PEA_mutualistes}">
+                            <span>#{inti.mutualiste.employe.prenom} #{inti.mutualiste.employe.nom}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_compte}">
+                            <p:cellEditor>
+                                <f:facet name="input">
+                                    <h:inputText value="#{inti.refCompte}" >
+                                        <p:ajax event="blur" listener="#{managedReglementPrime.choiCompte(inti.compte.reference, inti)}" update="chp_int_cpt"/>
+                                    </h:inputText>
+                                </f:facet>
+                                <f:facet name="output">
+                                    <h:outputText value="#{inti.compte.reference}" id="chp_int_cpt" />
+                                </f:facet>
+                            </p:cellEditor>
+                        </p:column>
+                        <p:column headerText="#{lab.L_date} " width="100">
+                            <h:outputText value="#{inti.dateInteret}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LRH_PE_exercice}" style="text-align: center">
+                            <h:outputText value="#{inti.periode.exercice.reference}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_periode}" style="text-align: center">
+                            <h:outputText value="#{inti.periode.referencePeriode}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_montant}" width="80" style="text-align: right">
+                            <h:outputText value="#{inti.montant}" converter="DN" style="text-align: right"/>
+                        </p:column>                         
+                        <p:column headerText="#{lab.L_statut}" style="width: 5%;text-align: right">
+                            <h:outputText value="#{inti.statutPaiement.equals(constantes.ETAT_REGLE)?'Payé':'En attente'}" />
+                        </p:column>
+                        <p:column headerText="#{lab.L_statut}" style="width: 5%;text-align: center">
+                            <p:commandButton icon="ui-icon-circle-check" title="#{lab.LM_PP_valider_paiement}" rendered="#{inti.statutPaiement ne constantes.ETAT_REGLE}" style="width: 22px; height: 22px"
+                                             actionListener="#{managedReglementPrime.confirmPaiementOneInteret(inti, false)}"/>
+                            <h:graphicImage library="img" name="vu.png" width="15" height="15" title="#{lab.LM_PP_interet_deja_reverse}" rendered="#{inti.statutPaiement eq constantes.ETAT_REGLE}"/>
+                        </p:column>
+                    </p:dataTable>                                    
+                    <span class="nbSelectinteret" style="font-size: .8em; font-style: italic; color: #828c95;"></span>                   
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block" >
+                        <p:commandButton actionListener="#{managedReglementPrime.paginer(false)}" update="data_interet" icon="ui-icon-circle-triangle-w"  disabled="#{managedReglementPrime.paginator.disPrev}"/>
+                        <p:outputPanel ><p:outputLabel value="#{managedReglementPrime.paginator.currentPage}/#{managedReglementPrime.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                        <p:commandButton action="#{managedReglementPrime.paginer(true)}" update="data_interet" icon="ui-icon-circle-triangle-e"  disabled="#{managedReglementPrime.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedReglementPrime.imax}" label="#{lab.L_nombre_max_resultat}" style="float: right; font-size: 0.9em;" 
+                                         valueChangeListener="#{managedReglementPrime.choosePaginator}">
+                            <f:selectItems value="#{managedReglementPrime.paginations}" />
+                            <p:ajax event="valueChange" update="data_interet" />
+                        </p:selectOneMenu>
+                    </p:outputPanel>                                           
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false">
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>                    
+            <div class="zone_find">                                                              
+                <h:panelGrid columns="4" style="font-size: 0.8em; float: left">
+                    <h:outputText value="#{lab.LC_PTBC_exercice}" />
+                    <h:outputText value="#{lab.L_periode}" />
+                    <h:outputText value="#{lab.LM_PE_credit_mutualiste} " />
+                    <h:panelGroup>
+                        <h:outputText value="#{lab.LCF_PRV_statut_paiement} " />
+                        <h:selectOneMenu value="#{managedReglementPrime.operateur}" valueChangeListener="#{managedReglementPrime.changeOperateur}">
+                            <f:selectItem itemValue="#{'='}" itemLabel="#{lab.L_egale}" />
+                            <f:selectItem itemValue="#{'!='}" itemLabel="#{lab.L_different}" />
+                            <p:ajax event="valueChange" update=":form_main_interet:data_interet" />
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    <h:selectOneMenu value="#{managedReglementPrime.exercice}" valueChangeListener="#{managedReglementPrime.addParamExercice}">
+                        <f:selectItem itemValue="#{null}" itemLabel="" />
+                        <f:selectItems value="#{managedReglementPrime.exercices}" var="iex" itemValue="#{iex.id}" itemLabel="#{iex.reference}" />
+                        <p:ajax event="valueChange" update=":form_main_interet:data_interet" />
+                    </h:selectOneMenu>
+                    <h:selectOneMenu value="#{managedReglementPrime.periode}" valueChangeListener="#{managedReglementPrime.addParamPeriode}">
+                        <f:selectItem itemValue="#{null}" itemLabel="" />
+                        <f:selectItems value="#{managedReglementPrime.periodes}" var="ipe" itemValue="#{ipe.id}" itemLabel="#{ipe.referencePeriode}" />
+                        <p:ajax event="valueChange" update=":form_main_interet:data_interet" />
+                    </h:selectOneMenu>                    
+                    <h:inputText value="#{managedReglementPrime.matriculeMut}" >
+                        <p:ajax event="keyup" listener="#{managedReglementPrime.addParamMutualiste(managedReglementPrime.matriculeMut)}" update=":form_main_interet:data_interet"/>
+                    </h:inputText>
+                    <h:selectOneMenu value="#{managedReglementPrime.statut}" valueChangeListener="#{managedReglementPrime.addParamStatut}">
+                        <f:selectItem itemValue="#{null}" itemLabel="" />
+                        <f:selectItem itemValue="#{constantes.ETAT_REGLE}" itemLabel="#{lab.LM_PP_regle}" />
+                        <f:selectItem itemValue="#{constantes.ETAT_ATTENTE}" itemLabel="#{lab.L_en_attente}" />                        
+                        <p:ajax event="valueChange" update=":form_main_interet:data_interet" />
+                    </h:selectOneMenu>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>
+

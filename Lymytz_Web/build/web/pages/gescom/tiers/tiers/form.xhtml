@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition 
+    xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:p="http://primefaces.org/ui"
+    xmlns:pe="http://primefaces.org/ui/extensions"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:c="http://java.sun.com/jsp/jstl/core">    
+    <div>          
+        <h:panelGrid id="infos_tiers" columns="4" styleClass="yvs_table" style="width: 100%;margin: auto"
+                     cellpadding="0" cellspacing="0"> 
+            <f:facet name="header">    
+                <h:panelGrid id="blog_secteur_tiers" style="width: 100%" styleClass="yvs_nostyle" columns="7">
+                    <span>#{lab.LDB_PT_pays} </span>
+                    <h:selectOneMenu value="#{tiers.pays.id}" id="pays_tiers" style="min-width: 120px" tabindex="1">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{Mdico.pays}" var="pys" 
+                                       itemLabel="#{pys.libele}" itemValue="#{pys.id}" />
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItem itemLabel="Créer..." itemValue="-1"/>            
+                        <p:ajax event="valueChange" global="false" listener="#{managedTiers.choosePays()}" update="txt_code_tiers ville_tiers"/>                           
+                    </h:selectOneMenu> 
+                    <span>#{lab.LDB_PT_ville} </span>
+                    <h:selectOneMenu value="#{tiers.ville.id}" id="ville_tiers" valueChangeListener="#{managedTiers.chooseVille}" style="min-width: 120px" tabindex="5">
+                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                        <f:selectItems value="#{Mdico.villes}" var="dic" 
+                                       itemLabel="#{dic.libele}" itemValue="#{dic.id}" />
+                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                        <f:selectItem itemLabel="Créer..." itemValue="-1"/>                                    
+                        <p:ajax event="valueChange" global="false" update="txt_code_tiers secteur_tiers"/>
+                    </h:selectOneMenu>
+                    <span>#{lab.LDB_PT_secteur} </span>
+                    <h:selectOneMenu value="#{tiers.secteur.id}" id="secteur_tiers" valueChangeListener="#{managedTiers.chooseSecteur}" style="min-width: 120px" tabindex="7">
+                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                        <f:selectItems value="#{Mdico.secteurs}" var="sec" 
+                                       itemLabel="#{sec.libele}" itemValue="#{sec.id}" />
+                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                        <f:selectItem itemLabel="#{lab.L_creer}" itemValue="-1"/>                                    
+                        <p:ajax event="valueChange"  update="txt_code_tiers" global="false"/>
+                    </h:selectOneMenu> 
+                    <h:panelGroup style="float:right">
+                        <h:selectBooleanCheckbox value="#{tiers.actif}" title="#{lab.L_actif}" tabindex="8" style="margin-top: 10px;margin-right: 10px"/>
+                        <p:commandLink id="btnContacts_tiers" global="false" style="float: right;border: 2px solid #666; border-radius: 5px;padding: 3px">
+                            <h:graphicImage title="#{lab.LDB_PT_contact}" library="icones" name="phone.png" width="20" height="20"/>    
+                        </p:commandLink>
+                        <p:overlayPanel for="btnContacts_tiers" hideEffect="fade" style="width: 30%">
+                            <p:outputPanel id="blog_form_tiers_contact">
+                                <h:panelGrid id="form_tiers_contact" styleClass="yvs_nostyle" columns="4" cellpadding="0" cellspacing="0">
+                                    <span>#{lab.LDB_PT_numero} </span>
+                                    <h:inputText value="#{managedTiers.contact.numero}" tabindex="95"/>
+                                    <h:selectBooleanCheckbox value="#{managedTiers.contact.principal}" title="#{lab.LDB_PT_principal}?"/> 
+                                    <p:commandButton id="save_tiers_contact" icon="ui-icon-circle-plus" style="width: 22px; height: 22px"
+                                                     update="blog_form_tiers_contact" actionListener="#{managedTiers.saveNewContact()}"/>
+                                </h:panelGrid>                                      
+                                <h:inputHidden id="input_hide_tiers_contact" value="#{managedTiers.tabIds_contact}"/>
+                                <p:dataTable id="data_tiers_contact" value="#{managedTiers.contacts}" var="cont" rowKey="#{cont.id}" 
+                                             rowIndexVar="contIdx" selectionMode="single">
+                                    <p:ajax event="rowSelect" listener="#{managedTiers.loadOnViewContact}"/>
+                                    <p:ajax event="rowUnselect" listener="#{managedTiers.unLoadOnViewContact}"/>
+                                    <p:column headerText="N°" style="width: 12%">
+                                        <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{cont.new_}"/>
+                                        <span>#{contIdx+1}</span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LDB_PT_numero}" style="text-align: center">
+                                        <h:outputText value="#{cont.numero}" converter="PHONE"/>
+                                        <h:graphicImage title="#{lab.LDB_PC_numero_principal}" library="img"  name="bookmark.png" width="15" height="15" rendered="#{cont.principal}" style="float: right"/>
+                                    </p:column>
+                                    <p:column style="width: 10%;text-align: center">
+                                        <p:contextMenu for="btn_option_tiers_contact" event="left click" style="font-size: 0.8em">
+                                            <p:menuitem value="Set Principal" icon="ui-icon-star" actionListener="#{managedTiers.activeContact(cont)}" update="data_tiers_contact"/>
+                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedTiers.deleteBeanContact_(cont)}" oncomplete="dlgConfirmDeleteContact_.show()"/>
+                                        </p:contextMenu>                           
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_tiers_contact" type="button"/>
+                                    </p:column> 
+                                    <p:column style="width: 7%;text-align: center">
+                                        <f:facet name="header">
+                                            <h:selectBooleanCheckbox styleClass="chek_all_line_tiers_contact" value="false"
+                                                                     onclick="selectionAllLineTab(#{tiers.contacts.size()}, 'tiers_contact')">
+                                            </h:selectBooleanCheckbox>
+                                        </f:facet>
+                                        <h:selectBooleanCheckbox  value="#{cont.select}" styleClass="chek_line_tiers_contact" 
+                                                                  onclick="selectionLineTab(#{cont.id}, 'tiers_contact')">
+                                        </h:selectBooleanCheckbox>
+                                    </p:column>
+                                </p:dataTable>
+                                <p:commandButton id="delete_tiers_contact" value="#{lab.L_supprimer}" style="float: right"
+                                                 onclick="dlgConfirmDeleteContact.show()"/>
+                            </p:outputPanel>
+                        </p:overlayPanel>
+                    </h:panelGroup>
+                </h:panelGrid>
+            </f:facet>
+            <h:panelGroup>
+                <span>Code </span> 
+                <p:commandLink title="#{managedTiers.generation?'Déactiver':'Activer'} la génération du code tiers" actionListener="#{managedTiers.activeGenerationCode()}" 
+                               global="false" style="float: right;margin-top: 4px" update="@this">
+                    <p:graphicImage library="img" name="#{managedTiers.generation?'connecte.png':'deconnecte.png'}" width="12" height="12"/>
+                </p:commandLink> 
+            </h:panelGroup>
+            <h:panelGroup id="txt_code_tiers">
+                <h:inputText  value="#{tiers.codeTiers}" style="background: #009999;font-weight: bold;margin-top: 3px" tabindex="10">
+                    <p:ajax event="valueChange" global="false"/>
+                </h:inputText>
+                <p:commandLink title="#{lab.LDB_PT_template}" oncomplete="dlgListTemplate.show()" global="false" style="float: right;border: 2px solid #666; border-radius: 5px;">
+                    <p:graphicImage library="icones" name="ico_facture2.png" width="20" height="25"/>
+                </p:commandLink>  
+            </h:panelGroup>         
+            <h:outputText value="#{(!tiers.societe)?'Nom':'Désignation'}"/>
+            <h:panelGroup>
+                <h:selectOneMenu value="#{tiers.civilite}" rendered="#{!tiers.societe}" tabindex="11">
+                    <f:selectItem itemLabel="Mme" itemValue="Mme"/>
+                    <f:selectItem itemLabel="M." itemValue="M."/>
+                </h:selectOneMenu>
+                <p:spacer width="2"/>
+                <h:inputText value="#{tiers.nom}" style="width: 75%" tabindex="20">
+                    <p:ajax event="valueChange" global="false" listener="#{managedTiers.changeName()}" update="txt_code_tiers"/>
+                </h:inputText>
+            </h:panelGroup>                                            
+            <h:outputText value="#{lab.LDB_PT_prenom}" rendered="#{!tiers.societe}"/>  
+            <h:inputText value="#{tiers.prenom}" style="width: 90%" rendered="#{!tiers.societe}" tabindex="30">
+                <p:ajax event="valueChange" global="false" listener="#{managedTiers.changeName()}" update="txt_code_tiers"/>
+            </h:inputText>
+            <h:outputText value="#{lab.LDB_PT_site_web}" style="width: 90%" rendered="#{tiers.societe}" />  
+            <h:inputText value="#{tiers.site}" rendered="#{tiers.societe}" tabindex="30">
+                <p:ajax event="valueChange" global="false"/>
+            </h:inputText>                                           
+            <span>#{lab.LDB_PT_email} </span>
+            <h:inputText value="#{tiers.email}" style="width: 90%" converter="EMAIL" tabindex="40">
+                <p:ajax event="valueChange" global="false"/>
+            </h:inputText>
+            <span>#{lab.LDB_PT_adresse} </span>
+            <h:inputText value="#{tiers.adresse}" style="width: 90%" tabindex="50">
+                <p:ajax event="valueChange" global="false"/>
+            </h:inputText>
+            <span>#{lab.LDB_PT_code_postal} </span>
+            <h:inputText value="#{tiers.codePostal}" style="width: 90%" tabindex="60">
+                <p:ajax event="valueChange" global="false"/>
+            </h:inputText>
+            <span>#{lab.LDB_PT_boite_postal} </span>
+            <h:inputText value="#{tiers.bp}" style="width: 90%" tabindex="70">
+                <p:ajax event="valueChange" global="false"/>
+            </h:inputText>
+            <span title="#{lab.LDB_PT_categorie_comptable}">#{lab.LDB_PT_categorie_comptable}</span>
+            <h:selectOneMenu value="#{tiers.categorieComptable.id}" id="select_categorie_comptable_tiers" tabindex="80"
+                             onchange="openDialog(dlgAddCategorieComp, $(this))" style="width: 90%">
+                <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                <f:selectItems value="#{managedCatCompt.categories}" var="catC" 
+                               itemLabel="#{catC.designation}[#{catC.nature}]" itemValue="#{catC.id}" />
+                <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                <f:selectItem itemLabel="#{lab.L_plus_de_choix}" itemValue="-1"/>                                    
+            </h:selectOneMenu> 
+            <span>#{lab.LDB_PT_compte} </span>
+            <h:panelGroup id="txt_compte_tiers">
+                <h:inputText value="#{tiers.compte.numCompte}" style="color: #{tiers.compte.error?'red':''};width: 30%" tabindex="90">
+                    <p:ajax event="valueChange" global="false" listener="#{managedTiers.searchCompte()}" update="txt_compte_tiers"/>
+                </h:inputText>                     
+                <h:outputText value="#{tiers.compte.intitule}" style="color: green"/>                        
+                <p:commandButton icon="ui-icon-note" style="float: right; width: 20px;height: 22px" 
+                                 oncomplete="dlgListComptes.show()"/> 
+            </h:panelGroup>
+            <span>#{lab.LDB_PT_responsable} </span>
+            <h:inputText value="#{tiers.responsable}" style="width: 90%" tabindex="95">
+                <p:ajax event="valueChange" global="false"/>
+            </h:inputText>
+            <f:facet name="footer">
+                <div style="float: left">
+                    <h:panelGroup rendered="#{managedTiers.currentStock.activeRation}">
+                        <span>#{lab.LDB_PT_actif_pour_ration} </span>
+                        <h:selectBooleanCheckbox value="#{tiers.personnel}" tabindex="100" disabled="#{!accesRessource.base_tiers_attrib_ration}">
+                            <p:ajax event="valueChange" global="false" listener="#{managedTiers.buildCodeRation(false)}" update="blog_code_ration_tiers"/>
+                        </h:selectBooleanCheckbox>
+                        <h:panelGroup id="blog_code_ration_tiers" style="margin-left: 10px;color: #009999;text-align: center">
+                            <span>#{lab.LDB_PT_code} </span>
+                            <h:inputText value="#{tiers.codeRation}" disabled="#{!tiers.personnel or !accesRessource.base_tiers_attrib_ration}">
+                                <p:ajax event="valueChange" global="false"/>
+                            </h:inputText>
+                            <p:commandLink value="#{lab.LDB_PT_regenerer_code_ration}" actionListener="#{managedTiers.buildCodeRation(true)}"
+                                           disabled="#{!tiers.personnel or !accesRessource.base_tiers_attrib_ration}" update="blog_code_ration_tiers"/>
+                        </h:panelGroup>
+                    </h:panelGroup>
+                </div>
+                <h:panelGroup id="zone_param_agence_tiers" style="margin-left: 20px" >
+                    <h:panelGroup rendered="#{tiers.employe}">
+                        <span>Agence </span>
+                        <h:selectOneMenu value="#{tiers.agence.id}" style="min-width: 160px">
+                            <f:selectItem itemValue="#{0}" itemLabel="--"/>
+                            <f:selectItems value="#{managedAgence.agences}" var="ag_01" itemValue="#{ag_01.id}" itemLabel="#{ag_01.designation}"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                </h:panelGroup>
+            </f:facet>
+        </h:panelGrid>
+    </div>
+</ui:composition>
+

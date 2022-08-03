@@ -1,0 +1,1 @@
+ALTER SEQUENCE yvs_compta_caisse_piece_bulletin_id_seq RENAME TO yvs_compta_notif_reglement_bulletin_id_seq;

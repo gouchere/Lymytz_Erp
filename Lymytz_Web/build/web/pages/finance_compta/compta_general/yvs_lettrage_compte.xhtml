@@ -1,0 +1,370 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">  
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Lettrage Comptable','modCompta', 'smenLettrageCompta', true)}
+    </ui:define>        
+    <ui:define name="contents">
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('lettrage');
+//                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 135);
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script> 
+        #{managedAgence.addParamActifAgence(true)}
+        #{managedTiers.setColumns('123')} 
+        #{managedTiers.loadTiers(true, true)}
+        #{managedCompte.setColumns('123')}        
+        #{managedCompte.loadAllToLettrage(true)}
+        #{managedCompte.setManagedBean(managedSaisiePiece)}
+        #{managedSaisiePiece.initView('L')} 
+        #{managedExercice.loadAllExreciceActif(true)}
+        #{managedSaisiePiece.addParamLettrerContent()}
+        <h:form prependId="false" id="main-change_lettrage">
+            <p:dialog header="#{lab.LCF_PLC_changer_lettrage}" widgetVar="dlgChangeLettrage" width="20%" closeOnEscape="true" resizable="false">
+                <h:panelGrid columns="1" style="width: 100%">
+                    <span>Nouvelle lettre</span>
+                    <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                        <h:inputText value="#{managedSaisiePiece.newLettre}" id="txt_new_value_lettrage" style="text-align: center;width: 100%"/>
+                        <p:commandButton value="#{lab.LCF_PLC_changer}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.changeLettrageCompte()}"
+                                         update=":main-lettrage:data_contenu_lettrage" style="float: right"/>
+                    </h:panelGrid>
+                </h:panelGrid>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" >
+            <p:dialog header="#{lab.LCF_PLC_changer_lettrage}" widgetVar="dlgLettrageAuto" width="20%" closeOnEscape="true" resizable="false">
+                <h:panelGrid columns="1" style="width: 100%">
+                    <span>Type de lettrage</span>
+                    <p:selectOneRadio value="#{managedSaisiePiece.typeLettrage}" >
+                        <f:selectItem itemLabel="Par Montant" itemValue="M"/>
+                        <f:selectItem itemLabel="Par Document" itemValue="D"/>
+                    </p:selectOneRadio>
+                </h:panelGrid>
+                <p:commandButton value="Lettrer" actionListener="#{managedSaisiePiece.lettrageAutoByMontant()}" />
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LCF_PLC_annuler_lettrage_global}" widgetVar="dlgAnnuleAllLettrage" width="30%" closeOnEscape="true" resizable="false">
+                <h:panelGrid columns="1" style="width: 100%">
+                    <span>#{lab.LCF_PLC_exercice}</span>
+                    <h:selectOneMenu value="#{managedSaisiePiece.exoDeLetter}" style="width: 100%">
+                        <f:selectItem itemLabel="--" itemValue="0"/>
+                        <f:selectItems value="#{managedExercice.exercices}" var="ox" itemLabel="#{ox.reference}" itemValue="#{ox.id}"/>
+                        <p:ajax event="valueChange" global="false" process="@this"/>
+                    </h:selectOneMenu>
+                    <span>#{lab.LCF_PLC_compte_tiers}</span>
+                    <h:panelGroup id="blog-compte_tiers_deletter">
+                        <h:inputText value="#{managedSaisiePiece.tiersDeLetter.codeTiers}" style="color: #{managedSaisiePiece.tiersDeLetter.error?'red':''};width: 40%">
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.findTiersDeLetter()}" update="blog-compte_tiers_deletter"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedSaisiePiece.tiersDeLetter.selectProfil.value}" style="width: 60%">
+                            <f:selectItem itemLabel="--" itemValue="#{null}"/>
+                            <f:selectItems value="#{managedSaisiePiece.tiersDeLetter.profils}" var="pfl" itemLabel="#{pfl.nom} [#{pfl.type}]" itemValue="#{pfl.value}"/>
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.chooseProfilDeLetter()}" global="false" process="@this"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                    <span>#{lab.LCF_PLC_compte_general}</span>
+                    <h:panelGroup id="blog-compte_general_deletter">
+                        <h:inputText value="#{managedSaisiePiece.compteDeLetter.numCompte}" style="color: #{managedSaisiePiece.compteDeLetter.error?'red':''};width: 40%">
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.findCompteDeLetter()}" update="blog-compte_general_deletter"/>
+                        </h:inputText>
+                        <h:outputText value="#{managedSaisiePiece.compteDeLetter.intitule}"/>
+                    </h:panelGroup>
+                </h:panelGrid>
+                <f:facet name="footer">
+                    <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.deleteAllLettrageCompte()}"
+                                     style="float: right;margin-top: -5px"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:confirmDialog header="#{lab.L_confirmation}" message="#{lab.LCF_PLC_text}"
+                             widgetVar="dlgAnnuleLettrage" width="40%" closeOnEscape="true" >
+                <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedSaisiePiece.deleteLettrageCompte()}"
+                                 oncomplete="dlgAnnuleLettrage.hide()" update=":main-lettrage:data_contenu_lettrage"/>
+                <p:commandButton value="#{lab.L_non}" icon="ui-icon-circle-close" type="button" onclick="dlgAnnuleLettrage.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <h:form prependId="false">
+            <p:dialog header="#{lab.LCF_PLC_choisir_profil}"  widgetVar="dlgProfilTiers" width="70%" closeOnEscape="true" footer="&copy; Lymytz 2014">
+                <p:dataTable value="#{managedSaisiePiece.tiersLetter.profils}" var="ipro" rowIndexVar="line_p" rowKey="#{ipro.numero}" selectionMode="single"
+                             id="table_profils_tiers_letter">
+                    <p:ajax event="rowSelect" listener="#{managedSaisiePiece.chooseProfilLetter}"  />
+                    <p:column headerText="N°" width="20">
+                        <span >#{line_p+1}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_type}" width="100" style="font-weight: bold">
+                        <span>#{ipro.type}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_code}" width="100">
+                        <span >#{ipro.code}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_nom_prenom}">
+                        <span >#{ipro.nomPrenom}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.LCF_PLC_compte}">
+                        <span title="#{ipro.compte.intitule}">#{ipro.compte.numCompte}</span>
+                    </p:column>
+                    <p:column headerText="#{lab.L_actif}" style="width: 5%;text-align: center">
+                        <h:graphicImage library="img"  name="#{(ipro.actif)?'vu.png':'vu_non.png'}" width="15" height="15"/>
+                    </p:column>                    
+                </p:dataTable>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="main-lettrage">
+            <div class="part_fix">
+                <h:panelGroup id="form_btn_lettrage" style="float: left;width: 20%">                      
+                    <p:splitButton id="save_lettrage" icon="ui-icon-disk" value="Lettrer" disabled="#{(managedSaisiePiece.giveSoePieces(managedSaisiePiece.lettrages)!=0 or managedSaisiePiece.lettrages.size() lt 1)}"
+                                   actionListener="#{managedSaisiePiece.saveLettrageCompte()}" update="data_contenu_lettrage form_btn_lettrage">
+                    </p:splitButton>
+                    <p:splitButton icon="ui-icon-document"  value="#{lab.L_nouveau}" id="cancel_lettrage" style="font-size: 0.8em" actionListener="#{managedSaisiePiece.cancelLettrageCompte()}"
+                                   update="data_contenu_lettrage form_btn_lettrage" disabled="#{managedSaisiePiece.lettrages.size() lt 1}">
+                        <p:menuitem icon="ui-icon-refresh" value="#{lab.LCF_PLC_changer_lettrage}" id="change_lettrage" actionListener="#{managedSaisiePiece.openChangeLettrageCompte()}"
+                                    disabled="#{managedSaisiePiece.giveSoePieces(managedSaisiePiece.lettrages)!=0}"/>
+                        <p:menuitem icon="ui-icon-clipboard" value="#{lab.LCF_PLC_annuler_lettrer}" id="move_lettrage" onclick="dlgAnnuleLettrage.show()"
+                                    disabled="#{!accesRessource.compta_annule_lettrage_not_equilib}"/>
+                    </p:splitButton>
+                </h:panelGroup>
+                <div style="float: right">                        
+                    <h:panelGroup id="form_view_solde_lettrage">
+                        <span style="font-size: 1.1em">#{lab.LCF_PLC_solde} :</span>
+                        <h:outputText value="#{managedSaisiePiece.giveSoePieces(managedSaisiePiece.lettrages)}" converter="DNA" style="font-size: 1.0em;font-weight: bold"/>
+                    </h:panelGroup>     
+                </div> 
+            </div>
+            <div class="part_scroll">
+                <div class="yvs_form_lettrage">
+                    <div style="width: 30%;float: left">
+                        <p:outputPanel id="blog_form_data_lettrage">
+                            <p:outputPanel rendered="#{managedSaisiePiece.groupBy eq 'T'}">    
+                                <h:panelGrid columns="2" style="font-size: 1.0em;width: 100%" cellpadding="0" cellspacing="0">
+                                    <h:panelGroup>
+                                        <p:watermark value="#{lab.LCF_PLC_saisir_compte_tiers}...." for="txt-numero_search_tiers"/>
+                                        <h:inputText id="txt-numero_search_tiers" value="#{managedTiers.numSearch_}">
+                                            <p:ajax event="valueChange" listener="#{managedTiers.searchByNum()}"/>
+                                        </h:inputText>
+                                    </h:panelGroup>
+                                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                        <p:commandButton actionListener="#{managedTiers.init(false)}"  update="data_tiers" icon="ui-icon-circle-triangle-w" disabled="#{managedTiers.paginator.disPrev}"/>
+                                        <p:outputPanel >
+                                            <p:inplace label="#{managedTiers.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                                <pe:inputNumber value="#{managedTiers.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                                    <p:ajax event="valueChange" listener="#{managedTiers.gotoPagePaginator()}" update="data_tiers"/>
+                                                </pe:inputNumber>
+                                            </p:inplace><p:outputLabel value="/#{managedTiers.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                                        </p:outputPanel>
+                                        <p:commandButton actionListener="#{managedTiers.init(true)}"  update="data_tiers" icon="ui-icon-circle-triangle-e" disabled="#{managedTiers.paginator.disNext}"/>
+                                        <p:selectOneMenu value="#{managedTiers.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedTiers.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                            <f:selectItems value="#{managedTiers.paginations}"/>
+                                            <p:ajax event="valueChange" update="data_tiers"/>
+                                        </p:selectOneMenu>
+                                    </p:outputPanel>                                        
+                                </h:panelGrid>
+                                <p:outputPanel id="data_tiers">
+                                    <ui:include src="../../gescom/tiers/tiers/list.xhtml" />
+                                </p:outputPanel> 
+                            </p:outputPanel>
+                            <p:outputPanel rendered="#{managedSaisiePiece.groupBy eq 'C'}">     
+                                <h:panelGrid columns="2" style="font-size: 1.0em;width: 100%" cellpadding="0" cellspacing="0">
+                                    <h:panelGroup>
+                                        <p:watermark value="#{lab.LCF_PLC_saisir_numero_compte}...." for="txt-numero_search_compte"/>
+                                        <h:selectOneMenu value="#{managedSaisiePiece.agenceSearch}" >
+                                            <f:selectItem itemLabel="" itemValue="#{null}" />
+                                            <f:selectItems value="#{managedAgence.listAgence}" var="iag" itemLabel="#{iag.designation}" itemValue="#{iag.id}" />
+                                            <p:ajax event="valueChange" global="false"/>
+                                        </h:selectOneMenu>
+                                        <h:inputText id="txt-numero_search_compte" value="#{managedCompte.numCompteF}" >
+                                            <p:ajax event="valueChange" listener="#{managedCompte.addParamNumCompte(managedCompte.numCompteF)}" update="table_plan_compte"/>
+                                        </h:inputText>  
+                                    </h:panelGroup>
+                                    <p:outputPanel style="float: right" layout="block" autoUpdate="true">
+                                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(false)}" update="table_plan_compte" icon="ui-icon-circle-triangle-w" disabled="#{managedCompte.paginator.disPrev}"/>
+                                        <p:outputPanel >
+                                            <p:inplace label="#{managedCompte.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                                <pe:inputNumber value="#{managedCompte.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                                    <p:ajax event="valueChange" listener="#{managedCompte.gotoPagePaginator()}" update="table_plan_compte"/>
+                                                </pe:inputNumber>
+                                            </p:inplace><p:outputLabel value="/#{managedCompte.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                                        </p:outputPanel>
+                                        <p:commandButton actionListener="#{managedCompte.pagineDataCompte(true)}" update="table_plan_compte" icon="ui-icon-circle-triangle-e" disabled="#{managedCompte.paginator.disNext}"/>
+                                        <p:selectOneMenu value="#{managedCompte.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCompte.changeMaxResult}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                            <f:selectItems value="#{managedCompte.paginations}"/>
+                                            <p:ajax event="valueChange" update="table_plan_compte"/>
+                                        </p:selectOneMenu>
+                                    </p:outputPanel>                              
+                                </h:panelGrid>
+                                <p:outputPanel id="table_plan_compte">
+                                    <ui:include src="../../finance_compta/base/compte/list.xhtml" />
+                                </p:outputPanel> 
+                            </p:outputPanel>
+                        </p:outputPanel>
+                    </div>
+                    <div style="width: 69%;margin-left: 31%">  
+                        <p:outputPanel id="blog_list_data_lettrage">
+                            <h:panelGroup rendered="#{managedSaisiePiece.groupBy eq 'T'}" style="margin-left: 45%">
+                                <p:commandButton actionListener="#{managedSaisiePiece.parcoursInAllTiers(false)}" update="txt_parc_linear_tiers data_tiers" icon="ui-icon-circle-triangle-w"/>
+                                <h:inputText value="#{managedTiers.offset}" style="width: 35px; text-align: center;"  title="#{lab.L_aller_au}" id="txt_parc_linear_tiers"/>
+                                <p:outputPanel autoUpdate="true">                        
+                                    <p:outputLabel value="/#{managedTiers.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                                </p:outputPanel>
+                                <p:commandButton actionListener="#{managedSaisiePiece.parcoursInAllTiers(true)}" update="txt_parc_linear_tiers data_tiers" icon="ui-icon-circle-triangle-e"/>
+                            </h:panelGroup>
+                            <h:panelGroup rendered="#{managedSaisiePiece.groupBy eq 'C'}" style="margin-left: 45%">
+                                <p:commandButton actionListener="#{managedSaisiePiece.parcoursInAllCompte(false)}" update="txt_parc_linear_planCompte table_plan_compte" icon="ui-icon-circle-triangle-w"/>
+                                <h:inputText value="#{managedCompte.offset}" style="width: 35px; text-align: center"  title="#{lab.L_aller_au}" id="txt_parc_linear_planCompte"/>
+                                <p:outputPanel autoUpdate="true">                        
+                                    <p:outputLabel  value="/#{managedCompte.paginator.nbResult}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                                </p:outputPanel>
+                                <p:commandButton actionListener="#{managedSaisiePiece.parcoursInAllCompte(true)}" update="txt_parc_linear_planCompte table_plan_compte" icon="ui-icon-circle-triangle-e"/>                                    
+                            </h:panelGroup>
+                        </p:outputPanel>
+                        <p:dataTable id="data_contenu_lettrage" value="#{managedSaisiePiece.contenus}" var="cont" rowIndexVar="line" selection="#{managedSaisiePiece.lettrages}" rowKey="#{cont.id}"> 
+                            <p:ajax event="rowSelect" global="false" update=":main-lettrage:form_btn_lettrage :main-lettrage:form_view_solde_lettrage" />
+                            <p:ajax event="rowUnselect" global="false" update=":main-lettrage:form_btn_lettrage :main-lettrage:form_view_solde_lettrage" />
+                            <p:column headerText="N°" width="30" style="text-align: center">
+                                <span title="#{cont.libelle}">#{line+1}</span>   
+                            </p:column>  
+                            <p:column headerText="#{lab.L_date}" width="80" style="text-align: center">
+                                <h:outputText value="#{cont.piece.datePiece}" converter="DATE"  title="#{cont.libelle}"/>
+                            </p:column>               
+                            <p:column headerText="#{lab.LCF_PSS_compte_g}" width="80" style="text-align: center" rendered="#{managedSaisiePiece.groupBy ne 'C'}">
+                                <span title="#{cont.compteGeneral.intitule}">#{cont.compteGeneral.numCompte}</span>                             
+                            </p:column>
+                            <p:column headerText="#{lab.L_reference}" width="100">
+                                <h:outputText value="#{managedSaisiePiece.resumeText(cont.numRef, 30)}" title="#{cont.libelle}" rendered="#{!cont.numRef.startsWith('null')}"/>
+                                <h:outputText value="#{cont.piece.numPiece}" title="#{cont.libelle}" rendered="#{cont.numRef.startsWith('null')}"/>                              
+                                <h:panelGroup style="float: right">
+                                    <h:outputText title="[#{managedSaisiePiece.nameTiers(cont.compteTiers, cont.tableTiers, 'R')}] #{managedSaisiePiece.nameTiers(cont.compteTiers, cont.tableTiers, 'N')}"
+                                                  value="T" rendered="#{cont.compteTiers gt 0}" styleClass="style_statut"/>
+                                </h:panelGroup>                        
+                            </p:column>  
+                            <p:column headerText="#{lab.L_libelle}">
+                                <h:outputText title="#{cont.libelle}" value="#{managedSaisiePiece.resumeText(cont.libelle, 30)}" />
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PLC_debit}" width="100" style="text-align: right">
+                                <h:panelGroup style="float: left" rendered="#{cont.debit gt 0}">
+                                    <h:outputText title="#{lab.LCF_PLC_lettrage}" value="#{cont.lettrage}" rendered="#{cont.lettrage != null}" styleClass="style_statut"/>
+                                </h:panelGroup>     
+                                <h:outputText value="#{cont.debit}" converter="#{managedSaisiePiece.converter}"  title="#{cont.libelle}"/>  
+                            </p:column>
+                            <p:column headerText="#{lab.LCF_PLC_credit}" width="100" style="text-align: right">
+                                <h:panelGroup style="float: left" rendered="#{cont.credit gt 0}">
+                                    <h:outputText title="#{lab.LCF_PLC_lettrage}" value="#{cont.lettrage}" rendered="#{cont.lettrage != null}" styleClass="style_statut"/>
+                                </h:panelGroup>     
+                                <h:outputText value="#{cont.credit}" converter="#{managedSaisiePiece.converter}"  title="#{cont.libelle}"/>  
+                            </p:column>
+                            <p:column headerText="#{lab.LDB_PP_journal}" width="80"  >
+                                <h:outputText value="#{cont.piece.journal.intitule}" title="Agence: #{cont.piece.journal.agence.designation}"/>
+                            </p:column>
+                            <p:column selectionMode="multiple" style="width:16px;text-align:center" disabledSelection="true"/>
+                        </p:dataTable>
+                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                            <p:commandButton actionListener="#{managedSaisiePiece.loadAllContenu(false, false)}" global="false" update="data_contenu_lettrage" icon="ui-icon-circle-triangle-w" disabled="#{managedSaisiePiece.p_contenu.disPrev}"/>
+                            <p:outputPanel ><p:outputLabel value="#{managedSaisiePiece.p_contenu.currentPage}/#{managedSaisiePiece.p_contenu.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                            <p:commandButton actionListener="#{managedSaisiePiece.loadAllContenu(true, false)}" global="false" update="data_contenu_lettrage" icon="ui-icon-circle-triangle-e" disabled="#{managedSaisiePiece.p_contenu.disNext}"/>
+                            <p:selectOneMenu value="#{managedSaisiePiece.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedSaisiePiece.choosePaginatorContenu}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                                <f:selectItems value="#{managedSaisiePiece.paginations}"/>
+                                <p:ajax event="valueChange" update="data_contenu_lettrage"/>
+                            </p:selectOneMenu>
+                        </p:outputPanel> 
+                    </div>
+                </div>
+                <div class="yvs_list_lettrage">
+
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">    
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:panelGrid id="zone-search_contenu_journal" columns="10" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                        <h:outputText value="" />
+                        <h:outputText value="Exercice" />
+                        <h:panelGroup>
+                            <h:selectBooleanCheckbox value="#{managedSaisiePiece.dateContentSearch}">
+                                <p:ajax event="valueChange" listener="#{managedSaisiePiece.findByDateContent()}" oncomplete="collapseForm('lettrage')" update="blog_date_search_lettrage_"/>
+                            </h:selectBooleanCheckbox>
+                            <h:outputText value="#{lab.L_date}" />
+                        </h:panelGroup>
+                        <h:outputText value="#{lab.LCF_PLC_compte}" />
+                        <h:outputText value="#{lab.LCF_PLC_tiers}" />
+                        <h:outputText value="#{lab.L_reference}" />
+                        <h:outputText value="#{lab.LCF_PLC_lettrage}" />
+                        <h:outputText value="#{lab.LCF_PLC_lettrer}" />
+                        <h:outputText value="#{lab.L_montant}" />
+                        <h:outputText value="" />
+                        <p:commandButton icon="ui-icon-bullet" style="width: 22px; height: 22px;" title="#{lab.LCF_PLC_initialiser_filtres}" actionListener="#{managedSaisiePiece.clearParamsContenu()}"/>
+                        <h:selectOneMenu value="#{managedSaisiePiece.exerciceSearch}" valueChangeListener="#{managedSaisiePiece.addParamExercices}">
+                            <f:selectItem itemLabel="" itemValue="#{null}" />
+                            <f:selectItems value="#{managedExercice.exercices}" var="iexo" itemLabel="#{iexo.reference}" itemValue="#{iexo.id}" />
+                            <p:ajax event="valueChange" oncomplete="collapseForm('lettrage')" update="blog_date_search_lettrage_" />
+                        </h:selectOneMenu>
+                        <h:panelGroup id="blog_date_search_lettrage_">
+                            <p:calendar value="#{managedSaisiePiece.debutContentSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedSaisiePiece.dateContentSearch}" size="10" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedSaisiePiece.addParamDateContent}" oncomplete="collapseForm('dateContenu')"/>
+                            </p:calendar>
+                            <p:spacer width="5px" style="background: black"/>
+                            <p:calendar value="#{managedSaisiePiece.finContentSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedSaisiePiece.dateContentSearch}" size="10" style="font-size: 0.8em">
+                                <p:ajax event="dateSelect" listener="#{managedSaisiePiece.addParamDateContent}" oncomplete="collapseForm('lettrage')"/>
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:inputText value="#{managedSaisiePiece.compteSearch}" style="min-width: 120px" id="value-compte_search_lettrage">
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamCompteContent()}" oncomplete="collapseForm('lettrage')"/>
+                        </h:inputText>
+                        <h:inputText value="#{managedSaisiePiece.tiersSearch}" style="min-width: 120px" id="value-tiers_search_lettrage">
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamTiersContent()}" oncomplete="collapseForm('lettrage')"/>
+                        </h:inputText>
+                        <h:inputText value="#{managedSaisiePiece.referenceSearch}" style="min-width: 120px">
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamReferenceContent()}" oncomplete="collapseForm('lettrage')"/>
+                        </h:inputText>
+                        <h:inputText value="#{managedSaisiePiece.lettrageSearch}" style="width: 100px">
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamLettrageContent()}" oncomplete="collapseForm('lettrage')"/>
+                        </h:inputText>
+                        <h:selectOneMenu value="#{managedSaisiePiece.lettrerSearch}" id="value-search_lettrerSearch">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                            <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}"/>
+                            <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}"/>
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamLettrerContent()}" oncomplete="collapseForm('lettrage')"/>
+                        </h:selectOneMenu>
+                        <h:inputText value="#{managedSaisiePiece.montantSearch}" style="width: 100px">
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamMontantContent()}" oncomplete="collapseForm('lettrage')"/>
+                        </h:inputText>
+                        <h:panelGroup>
+                            <p:contextMenu for="btn_option_filter_lettrage" event="left click" styleClass="context_menu" style="width: 210px">
+                                <p:menuitem value="#{lab.LCF_PLC_lettrage_automatique}" icon="ui-icon-link" 
+                                            update=":main-lettrage:data_contenu_lettrage" onclick="dlgLettrageAuto.show()" global="false"/>
+                                <p:menuitem value="#{lab.LCF_PLC_delettrage_global}" icon="ui-icon-link" onclick="dlgAnnuleAllLettrage.show()" global="false"/>
+                            </p:contextMenu>  
+                            <p:commandButton icon="ui-icon-gear" style="width: 19px; height: 19px" id="btn_option_filter_lettrage" global="false"/>
+                        </h:panelGroup>
+                    </h:panelGrid>
+                    <h:panelGroup style="float: right">
+                        <h:outputText value="#{lab.LCF_PLC_lettrer_les} " />
+                        <h:selectOneMenu value="#{managedSaisiePiece.groupBy}">
+                            <f:selectItem itemLabel="#{lab.LCF_PC_compte_gen}" itemValue="C"/>
+                            <f:selectItem itemLabel="#{lab.LCF_PC_compte_tiers}" itemValue="T"/>
+                            <p:ajax event="valueChange" listener="#{managedSaisiePiece.changeGroupContent()}" oncomplete="collapseForm('lettrage')"
+                                    update=":main-lettrage:data_contenu_lettrage :main-lettrage:blog_form_data_lettrage :main-lettrage:blog_list_data_lettrage zone-search_contenu_journal"/>
+                        </h:selectOneMenu>
+                    </h:panelGroup>
+                </h:panelGrid>  
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,2 @@
+INSERT INTO yvs_ressources_page(reference_ressource, libelle, description, page_module, author) VALUES 
+('tr_valid_all', 'Valider tous les tranferts', 'Valider tous les tranferts', (SELECT y.id FROM yvs_page_module y WHERE reference = 'gescom_transfert'), 16);
