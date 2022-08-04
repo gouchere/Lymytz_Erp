@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="impayes_achats_by_fournisseur" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a219c691-8013-4927-b969-8bea2dd6391b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#E6E5E5">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="bad26bc4-230a-45d5-a236-3bad63bdbf82">
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/12/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/12/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT y.num_doc, y.date_doc , f.code_fsseur, t.nom, t.prenom, (SELECT get_ttc_achat(y.id)) AS ttc,
+COALESCE((SELECT SUM(r.montant) FROM yvs_compta_caisse_piece_achat r WHERE r.achat = y.id AND r.statut_piece = 'P'), 0) AS avance
+FROM yvs_com_doc_achats y INNER JOIN yvs_base_fournisseur f ON y.fournisseur = f.id
+INNER JOIN yvs_base_tiers t ON f.tiers = t.id INNER JOIN yvs_agences a ON y.agence = a.id
+WHERE a.societe = $P{SOCIETE} AND ((COALESCE($P{AGENCE}, 0) > 0 AND y.agence = $P{AGENCE}) OR (COALESCE($P{AGENCE}, 0) < 1 AND y.agence IS NOT NULL)) AND y.date_doc BETWEEN $P{DATE_DEBUT} AND $P{DATE_FIN}
+AND y.type_doc = 'FA' AND y.statut_regle != 'P'
+ORDER BY t.nom, t.prenom, y.date_doc]]>
+		</queryString>
+		<field name="num_doc" class="java.lang.String"/>
+		<field name="date_doc" class="java.sql.Date"/>
+		<field name="code_fsseur" class="java.lang.String"/>
+		<field name="nom" class="java.lang.String"/>
+		<field name="prenom" class="java.lang.String"/>
+		<field name="ttc" class="java.lang.Double"/>
+		<field name="avance" class="java.lang.Double"/>
+		<variable name="reste" class="java.lang.Double">
+			<variableExpression><![CDATA[$F{ttc} - $F{avance}]]></variableExpression>
+		</variable>
+		<variable name="total_group" class="java.lang.Double" resetType="Group" resetGroup="group" calculation="Sum">
+			<variableExpression><![CDATA[$F{ttc}]]></variableExpression>
+		</variable>
+		<variable name="avance_group" class="java.lang.Double" resetType="Group" resetGroup="group" calculation="Sum">
+			<variableExpression><![CDATA[$F{avance}]]></variableExpression>
+		</variable>
+		<variable name="reste_group" class="java.lang.Double" resetType="Group" resetGroup="group" calculation="Sum">
+			<variableExpression><![CDATA[$V{reste}]]></variableExpression>
+		</variable>
+		<variable name="total_global" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{ttc}]]></variableExpression>
+		</variable>
+		<variable name="avance_global" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{avance}]]></variableExpression>
+		</variable>
+		<variable name="reste_global" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$V{reste}]]></variableExpression>
+		</variable>
+		<group name="group">
+			<groupExpression><![CDATA[$F{code_fsseur}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/12/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/12/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["DOWES MBELLA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_agences."id" AS yvs_agences_id
+FROM
+     "public"."yvs_societes" yvs_societes INNER JOIN "public"."yvs_agences" yvs_agences ON yvs_agences."societe" = yvs_societes."id"
+WHERE
+     ((COALESCE($P{AGENCE}, 0) > 0 AND yvs_agences."id" = $P{AGENCE}) OR (COALESCE($P{AGENCE}, 0) < 1 AND yvs_societes."id" = $P{SOCIETE}))
+ORDER BY
+     yvs_agences."id"
+LIMIT 1]]>
+	</queryString>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<columnHeader>
+		<band height="73" splitType="Stretch">
+			<textField>
+				<reportElement positionType="Float" x="262" y="53" width="293" height="20" uuid="c2032b9a-a39a-4868-8042-e5cd9ef6e421"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Période du "+new SimpleDateFormat("dd MMM yyyy").format($P{DATE_DEBUT})+" Au "+new SimpleDateFormat("dd MMM yyyy").format($P{DATE_FIN})]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="51" uuid="3e651ee6-119b-4122-baa3-b4a8ca724163"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA["FACTURES ACHAT IMPAYES"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_agences_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport_portrait.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="180" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table 1" style="table" x="0" y="0" width="555" height="180" uuid="16f9ce08-24a0-45eb-bfcd-57ff16a7dfd0"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="34b4699c-cacf-454b-bc38-87fc92951d02">
+						<datasetParameter name="AGENCE">
+							<datasetParameterExpression><![CDATA[$P{AGENCE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_FIN">
+							<datasetParameterExpression><![CDATA[$P{DATE_FIN}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_DEBUT">
+							<datasetParameterExpression><![CDATA[$P{DATE_DEBUT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="SOCIETE">
+							<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:columnGroup width="561" uuid="c4e76b5f-e94c-48f2-929c-7c4b929070a7">
+						<jr:groupHeader groupName="group">
+							<jr:cell style="table_TH" height="15" rowSpan="1">
+								<textField pattern="" isBlankWhenNull="true">
+									<reportElement x="1" y="0" width="560" height="15" uuid="772625ca-cef9-40a5-b9d6-d83d61e9fd87"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA["["+$F{code_fsseur}+"] "+$F{nom}+" "+$F{prenom}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:column width="170" uuid="9e9357b3-3437-40fd-a97c-de2da7b59ca3">
+							<jr:groupFooter groupName="group">
+								<jr:cell style="table_TH" height="15" rowSpan="1"/>
+							</jr:groupFooter>
+							<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="170" height="20" uuid="a080d0fc-5b39-4277-84da-695f57fe20d4"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="12" isBold="true"/>
+									</textElement>
+									<text><![CDATA[NUMERO]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_CH" height="17" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="170" height="15" uuid="9d558fb6-2421-4bf2-b3b2-afca4879979a"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" isBold="true"/>
+									</textElement>
+									<text><![CDATA[TOTAUX]]></text>
+								</staticText>
+							</jr:columnFooter>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField>
+									<reportElement x="0" y="0" width="170" height="15" uuid="ea667bac-a5fe-433e-aeb6-a4a39dcc8c79"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{num_doc}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="90" uuid="0e5046e5-3ef5-449f-a9b2-7f13cbc86e5d">
+							<jr:tableFooter height="0" rowSpan="1"/>
+							<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="90" height="20" uuid="ba7ae71f-1fca-44bc-ad7a-88e55715a87b"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="12" isBold="true"/>
+									</textElement>
+									<text><![CDATA[DATE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_CH" height="17" rowSpan="1"/>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="90" height="15" uuid="2b865251-f147-461e-b1d5-2a43fe7e67df"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{date_doc}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="100" uuid="4318c906-9e69-411e-af41-9f509a02b884">
+							<jr:groupFooter groupName="group">
+								<jr:cell style="table_TH" height="15" rowSpan="1">
+									<textField pattern="#,##0" isBlankWhenNull="true">
+										<reportElement x="0" y="0" width="100" height="15" uuid="464b78cd-329c-4f22-8a36-323a5aae55b2"/>
+										<box rightPadding="5"/>
+										<textElement textAlignment="Right" verticalAlignment="Middle">
+											<font fontName="DejaVu Sans" size="9" isBold="true"/>
+										</textElement>
+										<textFieldExpression><![CDATA[$V{total_group}]]></textFieldExpression>
+									</textField>
+								</jr:cell>
+							</jr:groupFooter>
+							<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="100" height="20" uuid="96092272-0c2a-46b0-bb4f-5939c4a5b4b2"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="12" isBold="true"/>
+									</textElement>
+									<text><![CDATA[TOTAL]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_CH" height="17" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="100" height="15" uuid="5c51e74f-cbfa-4238-9a87-5bcebd89bf17"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{total_global}]]></textFieldExpression>
+								</textField>
+							</jr:columnFooter>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="100" height="15" uuid="2386bdf4-728e-4846-bf02-ea3461a2cffe"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{ttc}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="101" uuid="7a419174-eca1-494b-9b71-4df2d06c4ab6">
+							<jr:groupFooter groupName="group">
+								<jr:cell style="table_TH" height="15" rowSpan="1">
+									<textField pattern="#,##0" isBlankWhenNull="true">
+										<reportElement x="0" y="0" width="100" height="15" uuid="c3461d2f-4a42-4354-9bdf-452e01cc1ca9"/>
+										<box rightPadding="5"/>
+										<textElement textAlignment="Right" verticalAlignment="Middle">
+											<font fontName="DejaVu Sans" size="9" isBold="true"/>
+										</textElement>
+										<textFieldExpression><![CDATA[$V{avance_group}]]></textFieldExpression>
+									</textField>
+								</jr:cell>
+							</jr:groupFooter>
+							<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="100" height="20" uuid="217c4dd1-bafc-4144-914d-5f633165db20"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="12" isBold="true"/>
+									</textElement>
+									<text><![CDATA[AVANCE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_CH" height="17" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="100" height="15" uuid="8d6a95f6-c0c6-42b7-997a-9944d876eec2"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{avance_global}]]></textFieldExpression>
+								</textField>
+							</jr:columnFooter>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="100" height="15" uuid="37a1bc61-2baa-4bde-818e-d9eb89ed318b"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{avance}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="100" uuid="9f4c30b0-2561-4853-b3a7-1f964938a97c">
+							<jr:groupFooter groupName="group">
+								<jr:cell style="table_TH" height="15" rowSpan="1">
+									<textField pattern="#,##0" isBlankWhenNull="true">
+										<reportElement x="0" y="0" width="100" height="15" uuid="66b62d62-902d-452b-b5c4-930ef4d7fe42"/>
+										<box rightPadding="5"/>
+										<textElement textAlignment="Right" verticalAlignment="Middle">
+											<font fontName="DejaVu Sans" size="9" isBold="true"/>
+										</textElement>
+										<textFieldExpression><![CDATA[$V{reste_group}]]></textFieldExpression>
+									</textField>
+								</jr:cell>
+							</jr:groupFooter>
+							<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="100" height="20" uuid="8a12d849-a2ce-4b98-90ad-db12674ed51c"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="12" isBold="true"/>
+									</textElement>
+									<text><![CDATA[RESTE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_CH" height="17" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="100" height="15" uuid="de1dc0ca-dbd3-42ee-8982-40d383fc498a"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{reste_global}]]></textFieldExpression>
+								</textField>
+							</jr:columnFooter>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="100" height="15" uuid="e750f08c-b890-4872-9db7-73414fbab64a"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{reste}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField>
+				<reportElement x="331" y="0" width="80" height="20" uuid="3f34f232-5730-43cf-ab3b-46ac858f1109"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+"/"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="411" y="0" width="40" height="20" uuid="b34c093d-c5c9-4dc7-9cde-d2c7239a754f"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

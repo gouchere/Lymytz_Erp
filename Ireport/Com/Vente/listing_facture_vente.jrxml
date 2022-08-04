@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="listing_facture_vente" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7ec24867-9a28-414a-ad73-d9523a56007c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#DCDCDC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#D4D4D4">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="9d9e8be1-adeb-40a7-a95e-9e6eebeff71f">
+		<parameter name="DATEDEBUT" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/02/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATEFIN" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("28/02/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="VENDEUR" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+		</parameter>
+		<parameter name="POINT" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="CLIENT" class="java.lang.Integer" isForPrompting="false"/>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+	e.date_entete AS yvs_com_doc_ventes_date,
+	d.num_doc AS yvs_com_doc_ventes_numdoc,
+	CONCAT(CONCAT('[', y.code_client, ']'), ' ', d.nom_client) AS yvs_com_doc_ventes_client,
+	u.nom_users AS yvs_com_doc_ventes_vendeur,
+	get_ttc_vente(d.id) AS yvs_com_doc_ventes_ttc
+FROM
+     yvs_com_doc_ventes d INNER JOIN yvs_com_entete_doc_vente e ON d.entete_doc = e.id
+     INNER JOIN yvs_com_creneau_horaire_users h ON e.creneau = h.id INNER JOIN yvs_com_client y ON d.client = y.id
+     INNER JOIN yvs_users u ON h.users = u.id INNER JOIN yvs_agences a ON u.agence = a.id
+     INNER JOIN yvs_com_creneau_point cp ON h.creneau_point = cp.id INNER JOIN yvs_base_point_vente p ON cp.point = p.id
+WHERE
+     d.type_doc = 'FV' AND d.statut = 'V' AND e.date_entete BETWEEN $P{DATEDEBUT} AND $P{DATEFIN} AND
+     (($P{CLIENT} IS NOT NULL AND d.client = $P{CLIENT}) OR ($P{CLIENT} IS NULL AND d.client IS NOT NULL)) AND
+     (($P{POINT} IS NOT NULL AND cp.point = $P{POINT}) OR ($P{POINT} IS NULL AND cp.point IS NOT NULL)) AND
+     (($P{VENDEUR} IS NOT NULL AND h.users = $P{VENDEUR}) OR ($P{VENDEUR} IS NULL AND h.users IS NOT NULL)) AND
+     (($P{AGENCE} IS NOT NULL AND u.agence = $P{AGENCE}) OR ($P{AGENCE} IS NULL AND u.agence IS NOT NULL)) AND
+     a.societe = $P{SOCIETE}
+ORDER BY
+     e.date_entete, d.num_doc]]>
+		</queryString>
+		<field name="yvs_com_doc_ventes_date" class="java.sql.Date"/>
+		<field name="yvs_com_doc_ventes_numdoc" class="java.lang.String"/>
+		<field name="yvs_com_doc_ventes_client" class="java.lang.String"/>
+		<field name="yvs_com_doc_ventes_vendeur" class="java.lang.String"/>
+		<field name="yvs_com_doc_ventes_ttc" class="java.lang.Double"/>
+		<variable name="SUM_TTC" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{yvs_com_doc_ventes_ttc}]]></variableExpression>
+		</variable>
+	</subDataset>
+	<parameter name="DATEDEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/02/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATEFIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("28/02/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NAME_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["LISTING FACTURE VENTE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="VENDEUR" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+	</parameter>
+	<parameter name="POINT" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CLIENT" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_agences."id" AS yvs_agences_id,
+     yvs_agences."societe" AS yvs_agences_societe
+FROM
+     "public"."yvs_societes" yvs_societes INNER JOIN "public"."yvs_agences" yvs_agences ON yvs_agences."societe" = yvs_societes."id"
+WHERE
+     ((COALESCE($P{AGENCE}, 0) > 0 AND yvs_agences."id" = $P{AGENCE}) OR (COALESCE($P{AGENCE}, 0) < 1 AND yvs_societes."id" = $P{SOCIETE}))
+ORDER BY
+     yvs_agences."id"
+LIMIT 1]]>
+	</queryString>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<field name="yvs_agences_societe" class="java.lang.Integer"/>
+	<variable name="LABEL" class="java.lang.String"/>
+	<columnHeader>
+		<band height="88" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="FixRelativeToBottom" x="285" y="67" width="270" height="20" uuid="31839bec-6b1c-43a9-be76-d53c43c8c17e"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Du "+new SimpleDateFormat("dd/MM/yyyy").format($P{DATEDEBUT})+ " au "+new SimpleDateFormat("dd/MM/yyyy").format($P{DATEFIN})]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="67" uuid="b65801c0-4872-4242-a35a-4dc7063e5e19"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA[$P{NAME_TITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_agences_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport_portrait.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="92">
+			<componentElement>
+				<reportElement key="table 1" x="0" y="0" width="555" height="92" uuid="5897286e-653e-428f-aa47-3aa267911285"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="bffbdddf-b334-43c6-8d28-ca1092140e50">
+						<datasetParameter name="DATEDEBUT">
+							<datasetParameterExpression><![CDATA[$P{DATEDEBUT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATEFIN">
+							<datasetParameterExpression><![CDATA[$P{DATEFIN}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="VENDEUR">
+							<datasetParameterExpression><![CDATA[$P{VENDEUR}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="AGENCE">
+							<datasetParameterExpression><![CDATA[$P{AGENCE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="POINT">
+							<datasetParameterExpression><![CDATA[$P{POINT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="CLIENT">
+							<datasetParameterExpression><![CDATA[$P{CLIENT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="SOCIETE">
+							<datasetParameterExpression><![CDATA[$F{yvs_agences_societe}.intValue()]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="70" uuid="1ab88adc-3054-4732-8ded-484dd4588676">
+						<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement style="table_CH" x="0" y="0" width="70" height="15" uuid="7186fd5a-cc03-4bd8-a2b8-ea78bf64cc3e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[DATE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="70" height="15" uuid="68e3c7cc-6b1c-4a4f-ad99-571f4cb9890a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_date}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="100" uuid="90ac13e6-cdb4-48cf-b3f9-bb8f19d1d972">
+						<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="100" height="15" uuid="bd021daa-66b6-438c-9ab6-0ed2dde98b2e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[NUMERO]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="100" height="15" uuid="85a61bc5-d0a2-4595-966a-c418eeed37d6"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_numdoc}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="150" uuid="c5dfe144-b50c-4c8f-b785-8c9eb0332ff3">
+						<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="150" height="15" uuid="bc9596a5-af12-4cb2-86c8-3db413f400a1"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[VENDEUR]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="150" height="15" uuid="6d644c44-f76c-4195-b545-78e757a23690"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_vendeur}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="164" uuid="04fb8f84-875f-4af4-b60c-74b6622f07a4">
+						<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="164" height="15" uuid="9afe53a6-6334-48d1-8671-185cb241ddc5"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[CLIENT]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="164" height="15" uuid="76b81ea8-49ff-4c7e-be8c-cb587734aee7"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_client}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="70" uuid="1e7313d9-b699-4604-afb7-c15dfe341bae">
+						<jr:tableFooter style="table_TH" height="16" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="70" height="16" uuid="4b8cd82b-a744-4033-bd0b-41ea74e4ef1b"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="7" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SUM_TTC}]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="70" height="15" uuid="1648fede-834d-4ca2-9951-3bbe1aa92481"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[TTC]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="70" height="15" uuid="1ae8f741-78e5-4425-b21b-27f8cc65b956"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_ttc}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="16"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="16" splitType="Stretch">
+			<textField>
+				<reportElement x="435" y="1" width="80" height="15" uuid="72dcced4-f0bf-4382-8d2c-4c20610f7759"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="515" y="1" width="40" height="15" uuid="670ef3c9-ff9b-473c-a526-a20dad4d4fac"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

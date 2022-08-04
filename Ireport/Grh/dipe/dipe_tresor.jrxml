@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="dipe_tresor" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="de37d1a3-0310-4d2a-918e-ee5045366ff2">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="96"/>
+	<parameter name="SOCIETE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["CCO SA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BP" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["224"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="VILLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Bafoussam"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TEL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["672 15 33 37"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NUM_EMPLOYEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["XXXXXXX"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="REGIME_CNPS" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["XXXXXXX"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Avril 2017"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="HEADER" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[109]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_SOCIETE" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[2297]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCES" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["2308,2312"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_stat_grh_element_dipe."id" AS yvs_stat_grh_element_dipe_id,
+     yvs_stat_grh_element_dipe."libelle" AS yvs_stat_grh_element_dipe_libelle,
+     yvs_stat_grh_element_dipe."element_salaire" AS yvs_stat_grh_element_dipe_element_salaire,
+     yvs_grh_detail_bulletin."retenu_salariale" AS yvs_grh_detail_bulletin_retenu_salariale,
+     yvs_grh_detail_bulletin."montant_payer" AS yvs_grh_detail_bulletin_montant_payer,
+     yvs_grh_detail_bulletin."taux_patronal" AS yvs_grh_detail_bulletin_taux_patronal,
+     yvs_stat_grh_etat."id" AS yvs_stat_grh_etat_id,
+     yvs_stat_grh_etat."code" AS yvs_stat_grh_etat_code,
+     yvs_grh_ordre_calcul_salaire."id" AS yvs_grh_ordre_calcul_salaire_id,
+     yvs_grh_employes."agence" AS yvs_grh_employes_agence
+FROM
+     "public"."yvs_grh_bulletins" yvs_grh_bulletins
+	 INNER JOIN "public"."yvs_grh_header_bulletin" yvs_grh_header_bulletin ON yvs_grh_bulletins."id" = yvs_grh_header_bulletin."bulletin"
+	 INNER JOIN "public"."yvs_grh_detail_bulletin" yvs_grh_detail_bulletin ON yvs_grh_bulletins."id" = yvs_grh_detail_bulletin."bulletin"
+     INNER JOIN "public"."yvs_grh_ordre_calcul_salaire" yvs_grh_ordre_calcul_salaire ON yvs_grh_bulletins."entete" = yvs_grh_ordre_calcul_salaire."id"
+     INNER JOIN "public"."yvs_grh_contrat_emps" yvs_grh_contrat_emps ON yvs_grh_bulletins."contrat" = yvs_grh_contrat_emps."id"
+     INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
+     INNER JOIN "public"."yvs_stat_grh_element_dipe" yvs_stat_grh_element_dipe ON yvs_grh_detail_bulletin."element_salaire" = yvs_stat_grh_element_dipe."element_salaire"
+     INNER JOIN "public"."yvs_stat_grh_etat" yvs_stat_grh_etat ON yvs_stat_grh_element_dipe."etat" = yvs_stat_grh_etat."id"
+WHERE
+     yvs_stat_grh_etat."code" = 'DIPE_IRPP'
+ AND yvs_stat_grh_etat."societe" = $P{ID_SOCIETE}
+ AND yvs_grh_ordre_calcul_salaire."id" = $P{HEADER}
+ AND yvs_grh_header_bulletin."agence"::character varying IN (select val from regexp_split_to_table($P{AGENCES},',') val)
+ORDER BY
+     yvs_stat_grh_element_dipe."libelle" ASC]]>
+	</queryString>
+	<field name="yvs_stat_grh_element_dipe_id" class="java.lang.Long"/>
+	<field name="yvs_stat_grh_element_dipe_libelle" class="java.lang.String"/>
+	<field name="yvs_stat_grh_element_dipe_element_salaire" class="java.lang.Long"/>
+	<field name="yvs_grh_detail_bulletin_retenu_salariale" class="java.lang.Double"/>
+	<field name="yvs_grh_detail_bulletin_montant_payer" class="java.lang.Double"/>
+	<field name="yvs_grh_detail_bulletin_taux_patronal" class="java.lang.Double"/>
+	<field name="yvs_stat_grh_etat_id" class="java.lang.Long"/>
+	<field name="yvs_stat_grh_etat_code" class="java.lang.String"/>
+	<field name="yvs_grh_ordre_calcul_salaire_id" class="java.lang.Long"/>
+	<field name="yvs_grh_employes_agence" class="java.lang.Long"/>
+	<variable name="soe_irpp" class="java.lang.Double" resetType="Group" resetGroup="rubrique" calculation="Sum">
+		<variableExpression><![CDATA[$F{yvs_grh_detail_bulletin_retenu_salariale}]]></variableExpression>
+	</variable>
+	<variable name="seTotal" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{yvs_grh_detail_bulletin_retenu_salariale}]]></variableExpression>
+	</variable>
+	<group name="rubrique">
+		<groupExpression><![CDATA[$F{yvs_stat_grh_element_dipe_libelle}]]></groupExpression>
+		<groupFooter>
+			<band height="28">
+				<textField pattern="#,##0">
+					<reportElement x="279" y="0" width="100" height="20" uuid="01342a35-d830-450d-af65-2329e009cea3"/>
+					<textFieldExpression><![CDATA[$V{soe_irpp}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="137" y="0" width="124" height="20" uuid="a52b9587-a7b5-441a-b386-be4de9cde76d"/>
+					<textFieldExpression><![CDATA[$F{yvs_stat_grh_element_dipe_libelle}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="192" splitType="Stretch">
+			<staticText>
+				<reportElement x="104" y="137" width="331" height="20" uuid="d5ba5bb1-8d02-460e-86fa-432db208155b"/>
+				<textElement textAlignment="Center">
+					<font size="13" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[ETAT DE REVERSEMENT A TRESOR]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="16" y="0" width="156" height="44" uuid="c69d733e-a05e-4081-b5f1-a8308079a89d"/>
+				<text><![CDATA[REPUBLIQUE DU CAMEROUN     DOCUMENT D'INFORMATION SUR LE PERSONNEL EMPLOYE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="0" width="99" height="15" uuid="3c25ac96-e4ad-490b-bfd7-5ef7179e844e"/>
+				<text><![CDATA[RAISON SOCIALE :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="18" width="99" height="15" uuid="a7670850-7fca-421f-92df-e0b9bae37f89"/>
+				<text><![CDATA[BP                          :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="36" width="99" height="15" uuid="82190f80-4213-41c5-b6e7-7a9bbd45a7c8"/>
+				<text><![CDATA[Ville                        :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="53" width="99" height="15" uuid="c0c13728-8147-45d5-b107-7177edd9c92a"/>
+				<text><![CDATA[Téléphone              :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="71" width="99" height="15" uuid="a8c34119-a6d1-4f3a-89dc-5d7704c2e585"/>
+				<text><![CDATA[N° Employeur         :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="88" width="99" height="15" uuid="c42964a7-d30a-4b4e-ac50-38587f0fa93f"/>
+				<text><![CDATA[Régime CNPS        :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="105" width="99" height="15" uuid="20fd68f0-097c-4783-957d-18eaa7300afa"/>
+				<text><![CDATA[Période                    :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="38" y="44" width="99" height="15" uuid="07d1961a-105e-4321-96c3-8773e2520777"/>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[D.I.P.E.]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="449" y="0" width="100" height="15" uuid="68d33a8b-5e09-4d60-91fd-c1e784b4681d"/>
+				<textFieldExpression><![CDATA[$P{SOCIETE}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="449" y="18" width="100" height="15" uuid="bab28518-f2c7-4ebb-bf2c-6b0060d40ba2"/>
+				<textFieldExpression><![CDATA[$P{BP}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="448" y="36" width="100" height="15" uuid="116bba8c-074e-4c98-ab8f-3e052f0613fa"/>
+				<textFieldExpression><![CDATA[$P{VILLE}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="449" y="53" width="100" height="15" uuid="37417b8c-4bc8-4e81-b595-362f8f5255ea"/>
+				<textFieldExpression><![CDATA[$P{TEL}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="448" y="71" width="100" height="15" uuid="5884b7c4-b446-4f7b-829b-ec593c47535a"/>
+				<textFieldExpression><![CDATA[$P{NUM_EMPLOYEUR}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="449" y="88" width="100" height="15" uuid="c8955ddb-a39c-4599-85b6-6cd15c441bac"/>
+				<textFieldExpression><![CDATA[$P{REGIME_CNPS}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="449" y="105" width="100" height="13" uuid="abe60b31-97c4-4bd6-98b7-a4c3d96aff5b"/>
+				<textFieldExpression><![CDATA[$P{PERIODE}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="187">
+			<textField pattern="#,##0">
+				<reportElement x="279" y="41" width="100" height="20" uuid="9db2552c-954d-4806-bec0-8bae828ab2e7"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{seTotal}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="137" y="41" width="100" height="20" uuid="1b690d15-6e4e-4d10-8fee-80116d90b1d6"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total Trésor]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="5" y="62" width="167" height="36" uuid="4cde28bc-25ad-4704-b61b-14a218cd8884"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[CE VOLANT SERA ADRESSE PAR LE COMPTABLE PUBLIC A LA DIRECTION DES IMPÖTS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="5" y="98" width="167" height="15" uuid="63d054a2-fef7-4760-854f-2190dbcbad05"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[BP 1613 YAOUNDE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="5" y="113" width="167" height="38" uuid="eb20778b-0968-401c-bf92-551e33aa1f81"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[AVEC LE RECAPITULATIF DES ENCAISSEMENT  DU MOIS PRECEDENT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="62" width="199" height="15" forecolor="#333333" uuid="76959d23-f06c-4a1d-9532-37e8bbf3ab1b"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Versement effectué le_ _ _ _ _ __ _ _ _ _ _ _ _ __]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="98" width="199" height="15" forecolor="#333333" uuid="ca7a23d4-a1c7-4014-b5ac-92cca0dc5968"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Poste comptable N° _ _ _ _ _ __ _ _ _ _ _ _ _ _]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="115" width="199" height="15" forecolor="#333333" uuid="252ba21f-4709-4a57-a718-6f03eb58ce3c"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Quittance N° _ _ _ _ _ __ _ _ _ _ _ _ _ ___ _ _]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="80" width="199" height="15" forecolor="#333333" uuid="a79e1051-8aea-486d-8a78-286f7ff80256"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[A _ _ _ _ _ __ _ _ _ _ _ _ _ ___ _ _ _ _ __ _ _ ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="133" width="199" height="15" forecolor="#333333" uuid="e3192f42-7cc9-4b4f-9d46-d33674f0cabd"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Du _ _ _ _ _ __ _ _ _ _ _ _ _ ___ _ _ _ _ __ _ _]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="405" y="156" width="100" height="20" uuid="7a1d14d5-a684-480b-ad60-ac3b27c4b139"/>
+				<textElement textAlignment="Center"/>
+				<text><![CDATA[Visa]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="137" y="0" width="124" height="29" uuid="d16a3db8-5197-43d8-8e0f-461877b0f210"/>
+				<text><![CDATA[PENALITES :]]></text>
+			</staticText>
+			<line>
+				<reportElement x="38" y="28" width="380" height="1" uuid="eb3f139a-4f73-48a7-a722-9d97fb3921ae"/>
+				<graphicElement>
+					<pen lineColor="#CCCCCC"/>
+				</graphicElement>
+			</line>
+		</band>
+	</summary>
+</jasperReport>

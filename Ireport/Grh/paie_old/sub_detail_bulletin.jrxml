@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="sub_detail_bulletin" language="groovy" pageWidth="550" pageHeight="500" columnWidth="550" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="199f81bc-faec-4a2e-ba8b-eead68648be8">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ID_BULLETIN" class="java.lang.Long"/>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_element_salaire."nom" AS yvs_element_salaire_nom,
+     yvs_element_salaire."code" AS yvs_element_salaire_code,
+     yvs_element_salaire."categorie" AS yvs_element_salaire_categorie,
+     yvs_element_salaire."visible_bulletin" AS yvs_element_salaire_visible_bulletin,
+     yvs_element_salaire."retenue" AS yvs_element_salaire_retenue,
+     yvs_grh_detail_bulletin."element_salaire" AS yvs_grh_detail_bulletin_element_salaire,
+     yvs_grh_detail_bulletin."bulletin" AS yvs_grh_detail_bulletin_bulletin,
+     yvs_grh_detail_bulletin."base" AS yvs_grh_detail_bulletin_base,
+     yvs_grh_detail_bulletin."quantite" AS yvs_grh_detail_bulletin_quantite,
+     yvs_grh_detail_bulletin."taux_salarial" AS yvs_grh_detail_bulletin_taux_salarial,
+     yvs_grh_detail_bulletin."taux_patronal" AS yvs_grh_detail_bulletin_taux_patronal,
+     yvs_categorie_element."code_categorie" AS yvs_categorie_element_code_categorie,
+     yvs_categorie_element."designation" AS yvs_categorie_element_designation,
+     yvs_element_salaire."num_sequence" AS yvs_element_salaire_num_sequence,
+     yvs_grh_rubrique_bulletin."designation" AS yvs_grh_rubrique_bulletin_designation,
+     yvs_grh_rubrique_bulletin."code" AS yvs_grh_rubrique_bulletin_code,
+     yvs_grh_detail_bulletin."retenu_salariale" AS yvs_grh_detail_bulletin_retenu_salariale,
+     yvs_grh_detail_bulletin."montant_payer" AS yvs_grh_detail_bulletin_montant_payer,
+     yvs_grh_detail_bulletin."montant_employeur" AS yvs_grh_detail_bulletin_montant_employeur
+FROM
+     "public"."yvs_element_salaire" yvs_element_salaire INNER JOIN "public"."yvs_grh_detail_bulletin" yvs_grh_detail_bulletin ON yvs_element_salaire."id" = yvs_grh_detail_bulletin."element_salaire"
+     INNER JOIN "public"."yvs_categorie_element" yvs_categorie_element ON yvs_element_salaire."categorie" = yvs_categorie_element."id"
+     INNER JOIN "public"."yvs_grh_rubrique_bulletin" yvs_grh_rubrique_bulletin ON yvs_element_salaire."rubrique" = yvs_grh_rubrique_bulletin."id"
+WHERE
+(yvs_grh_detail_bulletin."retenu_salariale" !=0 OR yvs_grh_detail_bulletin."montant_payer" !=0	 OR yvs_grh_detail_bulletin."montant_employeur" !=0) AND
+     yvs_element_salaire."visible_bulletin" = true AND yvs_grh_detail_bulletin.now_visible = true
+ AND yvs_grh_detail_bulletin."bulletin" = $P{ID_BULLETIN}
+ORDER BY
+     yvs_element_salaire."num_sequence" ASC,
+     yvs_element_salaire."categorie" ASC,
+     yvs_element_salaire."num_sequence" ASC,
+     yvs_element_salaire."retenue" ASC,
+     yvs_grh_rubrique_bulletin."designation" ASC]]>
+	</queryString>
+	<field name="yvs_element_salaire_nom" class="java.lang.String"/>
+	<field name="yvs_element_salaire_code" class="java.lang.String"/>
+	<field name="yvs_element_salaire_categorie" class="java.lang.Integer"/>
+	<field name="yvs_element_salaire_visible_bulletin" class="java.lang.Boolean"/>
+	<field name="yvs_element_salaire_retenue" class="java.lang.Boolean"/>
+	<field name="yvs_grh_detail_bulletin_element_salaire" class="java.lang.Long"/>
+	<field name="yvs_grh_detail_bulletin_bulletin" class="java.lang.Long"/>
+	<field name="yvs_grh_detail_bulletin_base" class="java.lang.Double"/>
+	<field name="yvs_grh_detail_bulletin_quantite" class="java.lang.Double"/>
+	<field name="yvs_grh_detail_bulletin_taux_salarial" class="java.lang.Double"/>
+	<field name="yvs_grh_detail_bulletin_taux_patronal" class="java.lang.Double"/>
+	<field name="yvs_categorie_element_code_categorie" class="java.lang.String"/>
+	<field name="yvs_categorie_element_designation" class="java.lang.String"/>
+	<field name="yvs_element_salaire_num_sequence" class="java.lang.Integer"/>
+	<field name="yvs_grh_rubrique_bulletin_designation" class="java.lang.String"/>
+	<field name="yvs_grh_rubrique_bulletin_code" class="java.lang.String"/>
+	<field name="yvs_grh_detail_bulletin_retenu_salariale" class="java.lang.Double"/>
+	<field name="yvs_grh_detail_bulletin_montant_payer" class="java.lang.Double"/>
+	<field name="yvs_grh_detail_bulletin_montant_employeur" class="java.lang.Double"/>
+	<variable name="TOTAL_RETENU_EMPLOYE_R" class="java.lang.Double" resetType="Group" resetGroup="bulletin" calculation="Sum">
+		<variableExpression><![CDATA[$F{yvs_grh_detail_bulletin_retenu_salariale}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="TOTAL_PAYE_EMPLOYE_R" class="java.lang.Double" resetType="Group" resetGroup="bulletin" calculation="Sum">
+		<variableExpression><![CDATA[$F{yvs_grh_detail_bulletin_montant_payer}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="TOTAL_RETENU_EMPLOYEUR_R" class="java.lang.Double" resetType="Group" resetGroup="bulletin" calculation="Sum">
+		<variableExpression><![CDATA[$F{yvs_grh_detail_bulletin_montant_employeur}]]></variableExpression>
+	</variable>
+	<variable name="TOTAL_SALAIRE_R" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{yvs_grh_detail_bulletin_montant_payer}-$F{yvs_grh_detail_bulletin_retenu_salariale}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="total_Rubrique" class="java.lang.Double" resetType="Group" resetGroup="rubrique" calculation="Sum">
+		<variableExpression><![CDATA[($F{yvs_grh_detail_bulletin_montant_payer}-$F{yvs_grh_detail_bulletin_retenu_salariale})]]></variableExpression>
+	</variable>
+	<group name="bulletin">
+		<groupExpression><![CDATA[$F{yvs_grh_detail_bulletin_bulletin}]]></groupExpression>
+		<groupFooter>
+			<band height="47">
+				<rectangle>
+					<reportElement x="0" y="0" width="547" height="14" uuid="d56287ee-8fad-41c3-92e1-97b22036260f"/>
+				</rectangle>
+				<staticText>
+					<reportElement x="12" y="0" width="262" height="14" uuid="51fd28f0-45ab-43aa-80c7-e07ee6fdec1a"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="12" isBold="true" isItalic="true"/>
+					</textElement>
+					<text><![CDATA[TOTAL]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="306" y="22" width="147" height="21" uuid="b10390d0-33a3-4cf4-ae23-d2744bae8372"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="18" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Net a payer : ]]></text>
+				</staticText>
+				<textField pattern="#,##0">
+					<reportElement isPrintRepeatedValues="false" x="454" y="22" width="93" height="21" uuid="bd7aa3d0-8025-4735-a5c5-6b175f745bf7"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="18" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{TOTAL_SALAIRE_R}]]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="335" y="0" width="1" height="14" uuid="47fc9e5f-f7a0-4b4a-845c-40b18a12d401"/>
+				</line>
+				<line>
+					<reportElement x="393" y="0" width="1" height="14" uuid="8c32b5dd-84ad-47ac-b36d-1f43cebf296d"/>
+				</line>
+				<line>
+					<reportElement x="453" y="0" width="1" height="14" uuid="a9588b55-36dc-4b71-8810-553df0912aa2"/>
+				</line>
+				<line>
+					<reportElement x="485" y="0" width="1" height="14" uuid="7fe455c1-6032-4cc0-adfa-8b6fe36a8257"/>
+				</line>
+				<textField pattern="#,##0.00">
+					<reportElement x="335" y="0" width="57" height="14" uuid="33f813e9-db2c-49c2-9315-cde06947515c"/>
+					<box>
+						<pen lineColor="#CCCCCC"/>
+						<topPen lineWidth="0.0" lineColor="#FFFFFF"/>
+						<leftPen lineColor="#CCCCCC"/>
+						<bottomPen lineColor="#CCCCCC"/>
+						<rightPen lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="12" isBold="true" isItalic="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{TOTAL_RETENU_EMPLOYE_R}==0)?"":$V{TOTAL_RETENU_EMPLOYE_R}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement x="394" y="0" width="58" height="14" uuid="4756c392-ebc6-4b8d-bba5-9e805986eab7"/>
+					<box>
+						<pen lineColor="#CCCCCC"/>
+						<topPen lineWidth="0.0" lineColor="#FFFFFF"/>
+						<leftPen lineColor="#CCCCCC"/>
+						<bottomPen lineColor="#CCCCCC"/>
+						<rightPen lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="12" isBold="true" isItalic="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{TOTAL_PAYE_EMPLOYE_R}==0)?"":$V{TOTAL_PAYE_EMPLOYE_R}]]></textFieldExpression>
+				</textField>
+				<textField pattern="#,##0.00">
+					<reportElement x="486" y="0" width="61" height="14" uuid="6ccf78e5-c99b-45df-926a-928f7ae14c2e"/>
+					<box>
+						<pen lineColor="#CCCCCC"/>
+						<topPen lineWidth="0.0" lineColor="#FFFFFF"/>
+						<leftPen lineColor="#CCCCCC"/>
+						<bottomPen lineColor="#CCCCCC"/>
+						<rightPen lineColor="#FFFFFF"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="12" isBold="true" isItalic="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{TOTAL_RETENU_EMPLOYEUR_R}==0)?"":$V{TOTAL_RETENU_EMPLOYEUR_R}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="rubrique">
+		<groupExpression><![CDATA[$F{yvs_grh_rubrique_bulletin_designation}]]></groupExpression>
+		<groupFooter>
+			<band height="22">
+				<textField pattern="#,##0.00" isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="395" y="3" width="60" height="14" uuid="3a26e6f3-fdc1-4b65-91c5-c823dc5f0899"/>
+					<box topPadding="0">
+						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{total_Rubrique}>0)?$V{total_Rubrique}:'']]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="90" y="2" width="100" height="14" uuid="47cf0941-8adc-4efb-9d6b-8eb10471682f"/>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{yvs_grh_rubrique_bulletin_designation}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement mode="Opaque" x="339" y="3" width="55" height="14" uuid="0e4eab16-0e5b-4273-9606-a95d37fd1d7c"/>
+					<box topPadding="0">
+						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#999999"/>
+					</box>
+					<textElement textAlignment="Center">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[($V{total_Rubrique}<0)?-$V{total_Rubrique}:'']]></textFieldExpression>
+				</textField>
+				<line>
+					<reportElement x="210" y="0" width="1" height="22" uuid="09ae8b89-9090-4969-b922-6a5ab18fd8c0"/>
+				</line>
+				<line>
+					<reportElement x="34" y="0" width="1" height="22" uuid="1aed6032-2a9c-4394-9160-3691737eb702"/>
+				</line>
+				<line>
+					<reportElement x="336" y="0" width="1" height="22" uuid="71ce5049-cb0b-463e-b6df-fd1706377105"/>
+				</line>
+				<line>
+					<reportElement x="394" y="0" width="1" height="22" uuid="b41b9c96-5a30-42f4-9fab-e3c0bce8b215"/>
+				</line>
+				<line>
+					<reportElement x="454" y="0" width="1" height="22" uuid="b0ebb196-ce69-4e22-978f-070d366bd1ba"/>
+				</line>
+				<line>
+					<reportElement x="486" y="0" width="1" height="22" uuid="5e332e33-9e04-4db5-be3d-1118534b5177"/>
+				</line>
+				<line>
+					<reportElement x="547" y="0" width="1" height="22" uuid="45bdb9a2-2feb-4833-b2bd-4ed576973376"/>
+				</line>
+				<line>
+					<reportElement x="266" y="0" width="1" height="22" uuid="b414d814-2a87-46d9-ae9a-596715a9ef0e"/>
+				</line>
+				<line>
+					<reportElement x="306" y="0" width="1" height="22" uuid="30218098-34e3-4b79-b4a5-61623aba83f9"/>
+				</line>
+				<line>
+					<reportElement x="0" y="0" width="1" height="22" uuid="666b388d-ab06-4906-a32c-9faf9f2b24a3"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<columnHeader>
+		<band height="30">
+			<rectangle>
+				<reportElement mode="Opaque" x="34" y="15" width="177" height="14" uuid="a2647875-5891-4ea8-bf86-e776ab34765d"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="210" y="15" width="56" height="14" uuid="fd5b9898-8c70-4fe7-bd1a-88385fce5505"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="306" y="15" width="30" height="14" uuid="451302f8-556e-4b05-afdd-d78a4373845e"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="394" y="15" width="60" height="14" uuid="59864c17-452c-4cd5-9d8a-64bb238ffb06"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="336" y="15" width="58" height="14" uuid="b79b91cc-e9ca-4a04-83ef-6b2c6b1563c5"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="454" y="15" width="32" height="14" uuid="2649af02-e450-47af-8396-f2f38e3612b7"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="486" y="15" width="62" height="14" uuid="d2f3ef7a-aec0-4eca-955c-1d2fa7fb1ea5"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="454" y="0" width="94" height="14" uuid="17f2eb9a-349c-4bb7-a8fc-b2081b421e23"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="306" y="0" width="148" height="14" uuid="96c168ce-601a-44e3-8fe3-228e804e35de"/>
+			</rectangle>
+			<rectangle>
+				<reportElement x="266" y="15" width="40" height="14" uuid="1dc2b6b3-e49d-40cc-8178-2618b791ef76"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="307" y="0" width="148" height="14" uuid="cbf5dd9a-9c1a-42dc-8e15-5302e34ebdcf"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[EMPLOYE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="455" y="0" width="93" height="14" uuid="f747033c-3a74-440d-89a8-37b2b2bb1c21"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[EMPLOYEUR]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="35" y="14" width="175" height="14" uuid="09d80d42-7775-453c-a259-269289201c6b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[Designation]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="211" y="14" width="56" height="14" uuid="53fb71ae-5dbb-4a38-807b-87c4cea96305"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[Base]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="267" y="14" width="39" height="14" uuid="778b7d30-7214-4186-80be-9e824fb28bb2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[Nombre]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="306" y="14" width="30" height="14" uuid="574cb13d-9d4d-4996-9812-eb6576107f9e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[Taux]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="336" y="14" width="58" height="14" uuid="65db1057-04d8-4e18-a49a-e3f87053cc38"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[A Retenir]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="394" y="14" width="60" height="14" uuid="6290c182-653a-4f29-a00c-519fdf74a37e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[A Payer]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="454" y="14" width="32" height="14" uuid="42069725-16b0-412a-a71b-dc962bf0566d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[Taux]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="486" y="15" width="62" height="12" uuid="c4d61069-e623-4d92-ac8a-7828ecf4c963"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman"/>
+				</textElement>
+				<text><![CDATA[Montant]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement x="0" y="15" width="34" height="14" uuid="b2b6e1bd-b90f-4046-b186-b8502c029200"/>
+			</rectangle>
+			<staticText>
+				<reportElement mode="Transparent" x="0" y="16" width="34" height="14" forecolor="#000000" backcolor="#FFFFFF" uuid="746fcb39-1802-40fb-8874-79ec09e0b6bb"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Times New Roman" size="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<text><![CDATA[N°]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement mode="Transparent" x="267" y="0" width="39" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="acba03f0-e781-4659-894e-5a8641aae99d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Times New Roman" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{yvs_grh_detail_bulletin_quantite}==0)?"":$F{yvs_grh_detail_bulletin_quantite}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement mode="Transparent" x="337" y="0" width="57" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="528ddc2c-f1d4-49f0-bde1-86c3e20a0e64"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Times New Roman" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{yvs_grh_detail_bulletin_retenu_salariale}==0)?"":$F{yvs_grh_detail_bulletin_retenu_salariale}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement mode="Transparent" x="395" y="0" width="59" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="d8c3cf32-6794-4e3c-af15-f916599243f7"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Times New Roman" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{yvs_grh_detail_bulletin_montant_payer}==0)?"":$F{yvs_grh_detail_bulletin_montant_payer}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement mode="Transparent" x="455" y="0" width="31" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="f469ddf0-2519-4288-9a5a-5eb07e2bfa6d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Times New Roman" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{yvs_grh_detail_bulletin_taux_patronal}==0)?"":$F{yvs_grh_detail_bulletin_taux_patronal}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement mode="Transparent" x="487" y="0" width="61" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="20847e5e-e547-4f91-9cd3-0cfd6376faaf"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Times New Roman" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{yvs_grh_detail_bulletin_montant_employeur}==0)?"":$F{yvs_grh_detail_bulletin_montant_employeur}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="63" y="1" width="147" height="12" uuid="83b49673-7000-4980-b038-c0b07d36af04"/>
+				<textElement verticalAlignment="Top">
+					<font fontName="Times New Roman" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_element_salaire_nom}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="210" y="0" width="1" height="14" uuid="2d0c98bb-8eb4-4d28-aef4-600743f4014a"/>
+			</line>
+			<line>
+				<reportElement x="266" y="0" width="1" height="14" uuid="ac587923-e0a5-4bb2-842e-9846988b485d"/>
+			</line>
+			<line>
+				<reportElement x="306" y="0" width="1" height="14" uuid="d76b8fb2-15b5-491b-9260-7b7599ddd91e"/>
+			</line>
+			<line>
+				<reportElement x="336" y="0" width="1" height="14" uuid="5c2194d1-3a60-4bfc-9c3a-fca573a40a8b"/>
+			</line>
+			<line>
+				<reportElement x="394" y="0" width="1" height="14" uuid="b1b96af9-7a2a-444f-8d6f-795f791ac68e"/>
+			</line>
+			<line>
+				<reportElement x="454" y="0" width="1" height="14" uuid="3b089fd3-07d2-47ea-8d39-f2f0b58d45d2"/>
+			</line>
+			<line>
+				<reportElement x="486" y="0" width="1" height="14" uuid="cb1aaefa-153f-40c3-aff5-aeeb952e1360"/>
+			</line>
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement mode="Transparent" x="307" y="0" width="29" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="c27423e7-1c65-414a-91f8-5486e881d748"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Times New Roman" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{yvs_grh_detail_bulletin_taux_salarial}==0)?"":$F{yvs_grh_detail_bulletin_taux_salarial}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="34" y="0" width="1" height="14" uuid="b8869220-5b23-4c86-b621-4e321b58afd9"/>
+			</line>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement mode="Transparent" x="0" y="1" width="34" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="7abffd6c-d185-4c6d-a127-ea4c646f5e62"/>
+				<textElement textAlignment="Center" verticalAlignment="Top" rotation="None" markup="none">
+					<font fontName="Times New Roman" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{yvs_element_salaire_num_sequence} == 0)?"":$F{yvs_element_salaire_num_sequence}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="0" width="1" height="14" uuid="aa8abfe9-c765-43e3-a155-056c535d34c0"/>
+			</line>
+			<line>
+				<reportElement x="547" y="0" width="1" height="14" uuid="0e585fde-0fb2-4efe-a576-10b62068b53a"/>
+			</line>
+			<textField pattern="#,##0.00" isBlankWhenNull="false">
+				<reportElement mode="Transparent" x="211" y="0" width="55" height="13" forecolor="#000000" backcolor="#FFFFFF" uuid="887bf0d4-5da4-494f-8ac1-a00842c503f2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None" markup="none">
+					<font fontName="Times New Roman" size="9" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfEncoding="Cp1252" isPdfEmbedded="false"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{yvs_grh_detail_bulletin_base}==0)?"":$F{yvs_grh_detail_bulletin_base}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

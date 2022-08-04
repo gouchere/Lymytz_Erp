@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="tiers" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dfebf1db-1569-4268-8e2c-8638e0ab30e2">
+	<property name="ireport.zoom" value="1.2396694214876032"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#EBEBEB">
+		<pen lineStyle="Dotted"/>
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.0" lineStyle="Dashed"/>
+			<leftPen lineWidth="0.0" lineStyle="Dashed"/>
+			<bottomPen lineStyle="Dashed"/>
+			<rightPen lineWidth="0.0" lineStyle="Dashed"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="46bcc100-78ef-4cad-b6bb-398e6bbf808e">
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2297]]></defaultValueExpression>
+		</parameter>
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false"/>
+		<parameter name="PAYS" class="java.lang.Integer" isForPrompting="false"/>
+		<parameter name="VILLE" class="java.lang.Integer" isForPrompting="false"/>
+		<parameter name="SECTEUR" class="java.lang.Integer" isForPrompting="false"/>
+		<queryString>
+			<![CDATA[SELECT
+     yvs_villes."libele" AS yvs_villes_libele,
+     yvs_secteurs."libele" AS yvs_secteurs_libele,
+     yvs_pays."libele" AS yvs_pays_libele,
+     yvs_base_tiers."adresse" AS yvs_base_tiers_adresse,
+     yvs_base_tiers."bp" AS yvs_base_tiers_bp,
+     TRIM(yvs_base_tiers."civilite") AS yvs_base_tiers_civilite,
+     yvs_base_tiers."email" AS yvs_base_tiers_email,
+     TRIM(CONCAT(yvs_base_tiers."nom", ' ', yvs_base_tiers."prenom")) AS yvs_base_tiers_nom_prenom,
+     yvs_base_tiers."tel" AS yvs_base_tiers_tel,
+     yvs_base_tiers."code_tiers" AS yvs_base_tiers_code_tiers
+FROM
+     "public"."yvs_base_tiers" yvs_base_tiers
+     LEFT JOIN "public"."yvs_dictionnaire" yvs_villes ON yvs_base_tiers."ville" = yvs_villes."id"
+     LEFT JOIN "public"."yvs_dictionnaire" yvs_secteurs ON yvs_base_tiers."secteur" = yvs_secteurs."id"
+     LEFT JOIN "public"."yvs_dictionnaire" yvs_pays ON yvs_base_tiers."pays" = yvs_pays."id"
+WHERE
+     yvs_base_tiers."societe" = $P{SOCIETE} AND ((COALESCE($P{TYPE}, '') IN ('', ' ')) OR ($P{TYPE} = 'C' AND yvs_base_tiers.client IS TRUE)  OR ($P{TYPE} = 'CF' AND yvs_base_tiers.fournisseur IS TRUE AND yvs_base_tiers.client IS TRUE)
+	 OR ($P{TYPE} = 'F' AND yvs_base_tiers.fournisseur IS TRUE) OR ($P{TYPE} = 'E' AND yvs_base_tiers.employe IS TRUE))
+AND ((COALESCE($P{PAYS}, 0) < 1) OR (COALESCE($P{PAYS}, 0) > 0 AND yvs_base_tiers."pays" = $P{PAYS}))
+AND ((COALESCE($P{VILLE}, 0) < 1) OR (COALESCE($P{VILLE}, 0) > 0 AND yvs_base_tiers."ville" = $P{VILLE}))
+AND ((COALESCE($P{SECTEUR}, 0) < 1) OR (COALESCE($P{SECTEUR}, 0) > 0 AND yvs_base_tiers."secteur" = $P{SECTEUR}))
+ORDER BY
+     yvs_pays_libele, yvs_villes."libele", yvs_base_tiers."code_tiers"]]>
+		</queryString>
+		<field name="yvs_villes_libele" class="java.lang.String"/>
+		<field name="yvs_secteurs_libele" class="java.lang.String"/>
+		<field name="yvs_pays_libele" class="java.lang.String"/>
+		<field name="yvs_base_tiers_adresse" class="java.lang.String"/>
+		<field name="yvs_base_tiers_bp" class="java.lang.String"/>
+		<field name="yvs_base_tiers_civilite" class="java.lang.String"/>
+		<field name="yvs_base_tiers_email" class="java.lang.String"/>
+		<field name="yvs_base_tiers_nom_prenom" class="java.lang.String"/>
+		<field name="yvs_base_tiers_tel" class="java.lang.String"/>
+		<field name="yvs_base_tiers_code_tiers" class="java.lang.String"/>
+		<group name="pays">
+			<groupExpression><![CDATA[$F{yvs_pays_libele}]]></groupExpression>
+		</group>
+		<group name="ville">
+			<groupExpression><![CDATA[$F{yvs_villes_libele}]]></groupExpression>
+		</group>
+		<group name="secteur">
+			<groupExpression><![CDATA[$F{yvs_secteurs_libele}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Mbella Dowes"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TITRE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Liste des tiers"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TYPE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="PAYS" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="VILLE" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="SECTEUR" class="java.lang.Integer" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT
+	yvs_agences."id" AS yvs_agences_id,
+	yvs_agences."societe" AS yvs_agences_societe
+FROM
+	public."yvs_agences" yvs_agences
+WHERE
+	yvs_agences."id" = $P{AGENCE}]]>
+	</queryString>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<field name="yvs_agences_societe" class="java.lang.Integer"/>
+	<title>
+		<band height="68" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="68" uuid="4fd8325c-1b96-4fac-bc2f-250f2b934f01"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA[$P{TITRE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_agences_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport_portrait.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="15">
+			<textField>
+				<reportElement x="0" y="0" width="554" height="15" uuid="2072692a-2209-4e41-9601-77801716c019"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{TITRE}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="166" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table" style="table" x="0" y="0" width="555" height="166" uuid="d4577c0a-925f-4527-95d5-a0e8b994ac66"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="458c8ffa-b247-4308-9f88-1dc976549463">
+						<datasetParameter name="SOCIETE">
+							<datasetParameterExpression><![CDATA[$F{yvs_agences_societe}.intValue()]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="TYPE">
+							<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="PAYS">
+							<datasetParameterExpression><![CDATA[$P{PAYS}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="VILLE">
+							<datasetParameterExpression><![CDATA[$P{VILLE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="SECTEUR">
+							<datasetParameterExpression><![CDATA[$P{SECTEUR}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="84" uuid="97c72516-6caf-4ba9-9b09-68b8d755483c">
+						<jr:groupHeader groupName="pays">
+							<jr:cell style="table_TH" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="84" height="15" uuid="92bcf31e-f72b-4bf6-ab36-21a395ecaf46"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Bottom">
+										<font fontName="DejaVu Sans" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_pays_libele}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:groupHeader groupName="ville">
+							<jr:cell height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="84" height="15" uuid="88d8e965-ac55-47c2-852f-d78414ad3ea9"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Bottom">
+										<font fontName="DejaVu Sans" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_pays_libele}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="84" height="20" uuid="a8ef38f6-661d-4945-8933-a99cf84c75e3"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[CODE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="84" height="15" uuid="cbcbdf95-162d-4cf7-a0bf-f852f6bccdd7"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_tiers_code_tiers}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="148" uuid="baa8f031-93c2-4991-885f-0060b96bff7f">
+						<jr:groupHeader groupName="ville">
+							<jr:cell height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="148" height="15" uuid="2ad9d830-24ba-4f1d-ab45-4d89766b891b"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Bottom">
+										<font fontName="DejaVu Sans" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_villes_libele}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:groupHeader groupName="pays">
+							<jr:cell style="table_TH" height="15" rowSpan="1"/>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="148" height="20" uuid="d267f93b-46df-4207-847b-b9eba020fa92"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[NOMS & PRENOMS]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="148" height="15" uuid="7606a5e3-3924-4d27-9f22-bced9914fd48"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_tiers_nom_prenom}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="70" uuid="cad225ff-263f-4347-9a35-39f2d09edddd">
+						<jr:groupHeader groupName="pays">
+							<jr:cell style="table_TH" height="15" rowSpan="1"/>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="70" height="20" uuid="67723de1-677e-4cac-9bc4-aece4b471dc4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[TELEPHONE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="70" height="15" uuid="f9cf4b16-9b0a-486c-b659-e707185234f3"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_tiers_tel}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="91" uuid="5fe1d967-1689-4496-aceb-2a25844c69a5">
+						<jr:groupHeader groupName="pays">
+							<jr:cell style="table_TH" height="15" rowSpan="1"/>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="90" height="20" uuid="0e4a869a-e96c-468a-9644-71a072a47c63"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[EMAIL]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="90" height="15" uuid="9bf7912b-e33e-4bd5-9c25-f295e26de243"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_tiers_email}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="80" uuid="124ce8c9-c345-4d16-9241-8a30e2d74f7f">
+						<jr:groupHeader groupName="pays">
+							<jr:cell style="table_TH" height="15" rowSpan="1"/>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="80" height="20" uuid="5a91464a-c556-452b-9569-65f242736325"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[ADRESSE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="80" height="15" uuid="fc8aa3a6-8b79-4cd3-916a-62c9aa46ec27"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_tiers_adresse}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="80" uuid="fb5dfe26-b0cd-4553-917b-a6fab18d75ea">
+						<jr:groupHeader groupName="pays">
+							<jr:cell style="table_TH" height="15" rowSpan="1"/>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="80" height="20" uuid="1dccb849-55dc-465c-8d1a-a9a8089d9c08"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[SECTEUR]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="80" height="15" uuid="9e944f8f-3116-45f6-8f3e-be5db57e4a63"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_secteurs_libele}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="14" splitType="Stretch">
+			<textField>
+				<reportElement x="434" y="0" width="80" height="12" uuid="1ef15219-b5f6-454f-8348-1349831ae250"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" /"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="514" y="0" width="40" height="12" uuid="076d1673-ed71-4781-97a7-5026b3aa4f9e"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

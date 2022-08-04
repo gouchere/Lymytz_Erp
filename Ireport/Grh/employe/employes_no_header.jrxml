@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="employes_no_header" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="36ec1c9a-9865-4177-9e78-83aae864efcf">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table 1">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="04f54cc8-b32f-4b04-9694-9f143da89eb1">
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[11]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DEPARTEMENT" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="ORDRE" class="java.lang.String" isForPrompting="false"/>
+		<queryString>
+			<![CDATA[SELECT
+	yvs_grh_employes."civilite" AS yvs_grh_employes_civilite,
+	yvs_grh_employes."matricule" AS yvs_grh_employes_matricule,
+	yvs_grh_employes."nom" AS yvs_grh_employes_nom,
+	yvs_grh_employes."prenom" AS yvs_grh_employes_prenom,
+	yvs_grh_employes."agence" AS yvs_grh_employes_agence,
+	yvs_grh_categorie_professionelle."categorie" AS yvs_grh_categorie_professionelle_categorie,
+	yvs_grh_echelons."echelon" AS yvs_grh_echelons_echelon,
+	yvs_grh_poste_de_travail."intitule" AS yvs_grh_poste_de_travail_intitule,
+	yvs_grh_departement."code_departement" AS yvs_grh_departement_code_departement,
+	yvs_agences."designation" AS yvs_agences_designation
+FROM
+	"public"."yvs_grh_employes" yvs_grh_employes
+INNER JOIN "public"."yvs_agences" yvs_agences ON yvs_grh_employes."agence" = yvs_agences."id"
+LEFT JOIN "public"."yvs_grh_poste_de_travail" yvs_grh_poste_de_travail ON yvs_grh_employes."poste_actif" = yvs_grh_poste_de_travail."id"
+LEFT JOIN "public"."yvs_grh_departement" yvs_grh_departement ON yvs_grh_poste_de_travail."departement" = yvs_grh_departement."id"
+LEFT JOIN "public"."yvs_grh_convention_employe" yvs_grh_convention_employe ON (yvs_grh_convention_employe."employe" = yvs_grh_employes."id" AND yvs_grh_convention_employe."actif" IS TRUE)
+LEFT JOIN "public"."yvs_grh_convention_collective" yvs_grh_convention_collective ON yvs_grh_convention_employe."convention" = yvs_grh_convention_collective."id"
+LEFT JOIN "public"."yvs_grh_echelons" yvs_grh_echelons ON yvs_grh_convention_collective."echellon" = yvs_grh_echelons."id"
+LEFT JOIN "public"."yvs_grh_categorie_professionelle" yvs_grh_categorie_professionelle ON yvs_grh_convention_collective."categorie" = yvs_grh_categorie_professionelle."id"
+WHERE yvs_agences."societe" = $P{SOCIETE}
+AND ((COALESCE($P{AGENCE},0)>0 AND yvs_grh_employes."agence" = $P{AGENCE}) OR (COALESCE($P{AGENCE},0)<1 AND yvs_grh_employes."id" IS NOT NULL))
+AND ((COALESCE($P{DEPARTEMENT},0)>0 AND yvs_grh_departement."id" = $P{DEPARTEMENT}) OR (COALESCE($P{DEPARTEMENT},0) <1 AND yvs_grh_employes."id" IS NOT NULL))
+ORDER BY
+       yvs_grh_employes."agence", $P!{ORDRE}]]>
+		</queryString>
+		<field name="yvs_grh_employes_civilite" class="java.lang.String"/>
+		<field name="yvs_grh_employes_matricule" class="java.lang.String"/>
+		<field name="yvs_grh_employes_nom" class="java.lang.String"/>
+		<field name="yvs_grh_employes_prenom" class="java.lang.String"/>
+		<field name="yvs_grh_employes_agence" class="java.lang.Long"/>
+		<field name="yvs_grh_categorie_professionelle_categorie" class="java.lang.String"/>
+		<field name="yvs_grh_echelons_echelon" class="java.lang.String"/>
+		<field name="yvs_grh_poste_de_travail_intitule" class="java.lang.String"/>
+		<field name="yvs_grh_departement_code_departement" class="java.lang.String"/>
+		<field name="yvs_agences_designation" class="java.lang.String"/>
+		<group name="yvs_grh_employes_agence" isStartNewPage="true">
+			<groupExpression><![CDATA[$F{yvs_grh_employes_agence}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="AGENCE" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NAME_AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TITLE_RAPPORT" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\Projet web\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DEPARTEMENT" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ORDRE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["matricule"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_agences."id" AS yvs_agences_id,
+     yvs_agences."societe" AS yvs_agences_societe
+FROM
+     "public"."yvs_agences" yvs_agences
+WHERE
+((COALESCE($P{AGENCE},0)>0 AND yvs_agences."id" = $P{AGENCE}) OR (COALESCE($P{AGENCE},0) < 1 AND yvs_agences."societe" = $P{SOCIETE}))
+LIMIT 1]]>
+	</queryString>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<field name="yvs_agences_societe" class="java.lang.Integer"/>
+	<detail>
+		<band height="246" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table 1" style="table 1" x="0" y="0" width="555" height="246" uuid="20915595-36f3-40d0-8fb8-c533d67e2a2e"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="954055d3-1543-469b-b149-02843aa246b6">
+						<datasetParameter name="SOCIETE">
+							<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="AGENCE">
+							<datasetParameterExpression><![CDATA[$P{AGENCE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DEPARTEMENT">
+							<datasetParameterExpression><![CDATA[$P{DEPARTEMENT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="ORDRE">
+							<datasetParameterExpression><![CDATA[$P{ORDRE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:columnGroup width="566" uuid="cd4f20ae-6923-4d56-8ec4-b410d9bd26ea">
+						<jr:groupHeader groupName="yvs_grh_employes_agence">
+							<jr:cell height="17" rowSpan="1">
+								<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="566" height="17" uuid="42c301b6-5a19-40d0-9508-10dcb494d3dd"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_agences_designation}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:column width="100" uuid="bd067ed9-e410-425f-8c77-3c694c6de60e">
+							<jr:columnHeader style="table 1_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="100" height="20" uuid="de9883ca-08df-45d3-be2d-64a1fa1ab650"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[MATRICULE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table 1_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="100" height="15" uuid="7dcec950-67d0-4f4e-b6f0-e88bf9ebcbb7"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_grh_employes_matricule}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="150" uuid="18b81f76-b55d-4edd-884a-4a2c1845a1f6">
+							<jr:columnHeader style="table 1_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="150" height="20" uuid="f56818d4-78c7-490c-ae0e-fb9cea50b2b2"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[NOMS & PRENOMS]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table 1_TD" height="15" rowSpan="1">
+								<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="150" height="15" uuid="ca4292e0-e529-43e0-91ae-5d82618c18ce"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_grh_employes_nom} + " "+ $F{yvs_grh_employes_prenom}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="50" uuid="16c4b16f-497f-4881-a330-271968cadb47">
+							<jr:columnHeader style="table 1_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="50" height="20" uuid="fd91be72-8c5f-49ba-84bd-941101766b65"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[CAT..]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table 1_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="50" height="15" uuid="e8dd03c9-57cc-4632-b114-3b2f401c662d"/>
+									<box rightPadding="0"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_grh_categorie_professionelle_categorie}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="50" uuid="918454cc-1fc0-4855-b116-675b5d930100">
+							<jr:columnHeader style="table 1_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="50" height="20" uuid="b642922d-e422-4513-8fd6-811c5fa55f73"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[ECH..]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table 1_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="50" height="15" uuid="495a3e85-38bf-4ae2-9a95-0dedba06441b"/>
+									<box rightPadding="0"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_grh_echelons_echelon}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="116" uuid="9ed94e1f-0919-46de-9e45-3c17e96e3720">
+							<jr:columnHeader style="table 1_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="116" height="20" uuid="2ca50dfa-c75f-4a4f-b1b5-36939ecc4cd0"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[POSTE DE TRAVAIL]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table 1_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="116" height="15" uuid="45d9518d-c5cc-48ab-84eb-b1c0ec51ebed"/>
+									<box leftPadding="0"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_grh_poste_de_travail_intitule}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="100" uuid="96ae4b38-b87b-4226-94f5-c3320eed5297">
+							<jr:columnHeader style="table 1_CH" height="20" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="100" height="20" uuid="a8623bc1-1ea2-41d7-825b-7aa6dd774c92"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[DEPARTEMENT]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table 1_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="100" height="15" uuid="9a2fde67-af02-4d85-bb04-1ecab1091c93"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_grh_departement_code_departement}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="12" splitType="Stretch">
+			<textField>
+				<reportElement x="435" y="0" width="80" height="12" uuid="6d082f5b-0832-4738-88c3-a2b1668a5ff5"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="515" y="0" width="40" height="12" uuid="e470336a-50dd-4f49-aa79-0e8fd6d6ca82"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

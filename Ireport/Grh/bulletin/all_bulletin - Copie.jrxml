@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="all_bulletin" language="groovy" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="23f2eca2-f43b-44d2-873f-a139772fdfc2">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="220"/>
+	<parameter name="ID_HEADER" class="java.lang.Long" isForPrompting="false">
+		<defaultValueExpression><![CDATA[115]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NOM_USER" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["GOUCHERE YVES"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_BULLETIN" class="java.lang.Long" isForPrompting="false"/>
+	<parameter name="PATH" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="ANCIENNETE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="POSTE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="DEPARTEMENT" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="ID_BULLETINS" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["10063,10064,10065"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_grh_ordre_calcul_salaire."id" AS yvs_grh_ordre_calcul_salaire_id,
+     yvs_grh_bulletins."entete" AS yvs_grh_bulletins_entete,
+     yvs_grh_bulletins."id" AS yvs_grh_bulletins_id,
+     yvs_grh_ordre_calcul_salaire."societe" AS yvs_grh_ordre_calcul_salaire_societe
+FROM
+     "public"."yvs_grh_ordre_calcul_salaire" yvs_grh_ordre_calcul_salaire INNER JOIN "public"."yvs_grh_bulletins" yvs_grh_bulletins ON yvs_grh_ordre_calcul_salaire."id" = yvs_grh_bulletins."entete"
+     INNER JOIN "public"."yvs_grh_contrat_emps" yvs_grh_contrat_emps ON yvs_grh_bulletins."contrat" = yvs_grh_contrat_emps."id"
+     INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
+WHERE
+yvs_grh_bulletins."id"::character varying IN (select val from regexp_split_to_table($P{ID_BULLETINS},',') val)
+ORDER BY
+     yvs_grh_employes."agence",yvs_grh_employes."matricule" ASC]]>
+	</queryString>
+	<field name="yvs_grh_ordre_calcul_salaire_id" class="java.lang.Long"/>
+	<field name="yvs_grh_bulletins_entete" class="java.lang.Long"/>
+	<field name="yvs_grh_bulletins_id" class="java.lang.Long"/>
+	<field name="yvs_grh_ordre_calcul_salaire_societe" class="java.lang.Long"/>
+	<group name="BULLETIN" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{yvs_grh_bulletins_id}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+	</group>
+	<detail>
+		<band height="822">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="822" uuid="04e8d888-07e0-4123-b02c-d21199370949"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="POSTE">
+					<subreportParameterExpression><![CDATA[$P{POSTE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ANCIENNETE">
+					<subreportParameterExpression><![CDATA[$P{ANCIENNETE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_BULLETIN">
+					<subreportParameterExpression><![CDATA[$F{yvs_grh_bulletins_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NOM_USER">
+					<subreportParameterExpression><![CDATA[$P{NOM_USER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DEPARTEMENT">
+					<subreportParameterExpression><![CDATA[$P{DEPARTEMENT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PATH">
+					<subreportParameterExpression><![CDATA[$P{PATH}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "Bulletin_paie.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField>
+				<reportElement x="475" y="0" width="80" height="20" uuid="0a52adca-3692-4a8d-aa0c-7c35562bd1fa"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="555" y="0" width="40" height="20" uuid="dba2aacc-ee1e-4eea-93b9-6f749a16d89e"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

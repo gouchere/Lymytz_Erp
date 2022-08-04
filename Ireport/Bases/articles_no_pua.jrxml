@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="articles_no_pua" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="36ec1c9a-9865-4177-9e78-83aae864efcf">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table 1">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="04f54cc8-b32f-4b04-9694-9f143da89eb1">
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<parameter name="CATEGORIE" class="java.lang.String" isForPrompting="false"/>
+		<parameter name="FAMILLE" class="java.lang.Integer" isForPrompting="false"/>
+		<parameter name="GROUPE" class="java.lang.Integer" isForPrompting="false"/>
+		<queryString>
+			<![CDATA[SELECT DISTINCT
+     yvs_base_articles."ref_art" AS yvs_base_articles_ref_art,
+     yvs_base_articles."designation" AS yvs_base_articles_designation,
+     yvs_base_unite_mesure."reference" AS yvs_base_unite_mesure_reference,
+     yvs_base_conditionnement."prix" AS yvs_base_conditionnement_prix,
+     yvs_base_articles."categorie" AS yvs_base_articles_categorie,
+     yvs_base_famille_article."designation" AS yvs_base_famille_article_designation
+FROM
+    "public"."yvs_base_articles" yvs_base_articles
+INNER JOIN "public"."yvs_base_famille_article" yvs_base_famille_article ON yvs_base_famille_article."id" = yvs_base_articles."famille"
+INNER JOIN "public"."yvs_base_conditionnement" yvs_base_conditionnement ON yvs_base_articles."id" = yvs_base_conditionnement."article"
+INNER JOIN "public"."yvs_base_unite_mesure" yvs_base_unite_mesure ON yvs_base_unite_mesure."id" = yvs_base_conditionnement."unite"
+WHERE
+    yvs_base_famille_article."societe" = $P{SOCIETE} AND COALESCE(yvs_base_conditionnement."prix_achat", 0) <= 0
+AND ((COALESCE($P{CATEGORIE}, '') != '' AND yvs_base_articles."categorie" = $P{CATEGORIE}) OR (COALESCE($P{CATEGORIE}, '') = '' AND yvs_base_articles."id" IS NOT NULL))
+AND ((COALESCE($P{FAMILLE}, 0) > 0 AND yvs_base_articles."famille" = $P{FAMILLE}) OR (COALESCE($P{FAMILLE}, 0) < 1 AND yvs_base_articles."id" IS NOT NULL))
+AND ((COALESCE($P{GROUPE}, 0) > 0 AND yvs_base_articles."groupe" = $P{GROUPE}) OR (COALESCE($P{GROUPE}, 0) < 1 AND yvs_base_articles."id" IS NOT NULL))
+ORDER BY
+    yvs_base_articles."ref_art"]]>
+		</queryString>
+		<field name="yvs_base_articles_ref_art" class="java.lang.String"/>
+		<field name="yvs_base_articles_designation" class="java.lang.String"/>
+		<field name="yvs_base_unite_mesure_reference" class="java.lang.String"/>
+		<field name="yvs_base_conditionnement_prix" class="java.lang.Double"/>
+		<field name="yvs_base_articles_categorie" class="java.lang.String"/>
+		<field name="yvs_base_famille_article_designation" class="java.lang.String"/>
+	</subDataset>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NAME_AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CATEGORIE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FAMILLE" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="GROUPE" class="java.lang.Integer" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_agences."societe" AS yvs_agences_societe
+FROM
+     "public"."yvs_agences" yvs_agences
+WHERE
+     yvs_agences."id" = $P{AGENCE}]]>
+	</queryString>
+	<field name="yvs_agences_societe" class="java.lang.Integer"/>
+	<title>
+		<band height="79" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="79" uuid="8c8bd5ea-606a-471f-b705-c9eca6ee8a52"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA[]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{NAME_AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$P{AGENCE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_portrait.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="31" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="20" uuid="1d92e9ae-6652-42f7-be4f-6511dc1826c3"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="15" isBold="true"/>
+				</textElement>
+				<text><![CDATA[LISTE DES ARTICLES SANS PRIX D'ACHAT]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="246" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table 1" style="table 1" x="0" y="0" width="555" height="246" uuid="20915595-36f3-40d0-8fb8-c533d67e2a2e"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="350dae9a-328b-457c-a14e-3260a4fb5507">
+						<datasetParameter name="SOCIETE">
+							<datasetParameterExpression><![CDATA[$F{yvs_agences_societe}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="CATEGORIE">
+							<datasetParameterExpression><![CDATA[$P{CATEGORIE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="FAMILLE">
+							<datasetParameterExpression><![CDATA[$P{FAMILLE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="GROUPE">
+							<datasetParameterExpression><![CDATA[$P{GROUPE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="86" uuid="bd067ed9-e410-425f-8c77-3c694c6de60e">
+						<jr:columnHeader style="table 1_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="86" height="15" uuid="de9883ca-08df-45d3-be2d-64a1fa1ab650"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[REFERENCE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="16" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="86" height="15" uuid="7dcec950-67d0-4f4e-b6f0-e88bf9ebcbb7"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_articles_ref_art}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="162" uuid="18b81f76-b55d-4edd-884a-4a2c1845a1f6">
+						<jr:columnHeader style="table 1_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="162" height="15" uuid="f56818d4-78c7-490c-ae0e-fb9cea50b2b2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[DESIGNATION]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="16" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="162" height="15" uuid="ca4292e0-e529-43e0-91ae-5d82618c18ce"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_articles_designation}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="60" uuid="16c4b16f-497f-4881-a330-271968cadb47">
+						<jr:columnHeader style="table 1_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="60" height="15" uuid="fd91be72-8c5f-49ba-84bd-941101766b65"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[UNITE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="16" rowSpan="1">
+							<textField pattern="" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="60" height="15" uuid="e8dd03c9-57cc-4632-b114-3b2f401c662d"/>
+								<box rightPadding="0"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_unite_mesure_reference}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="60" uuid="918454cc-1fc0-4855-b116-675b5d930100">
+						<jr:columnHeader style="table 1_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="60" height="15" uuid="b642922d-e422-4513-8fd6-811c5fa55f73"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[PUV]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="16" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="60" height="15" uuid="495a3e85-38bf-4ae2-9a95-0dedba06441b"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_conditionnement_prix}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="116" uuid="9ed94e1f-0919-46de-9e45-3c17e96e3720">
+						<jr:columnHeader style="table 1_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="116" height="15" uuid="2ca50dfa-c75f-4a4f-b1b5-36939ecc4cd0"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[FAMILLE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="16" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="116" height="15" uuid="45d9518d-c5cc-48ab-84eb-b1c0ec51ebed"/>
+								<box leftPadding="0"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_famille_article_designation}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="70" uuid="95f9b1c3-8545-40f2-91af-6c73cba3fc18">
+						<jr:columnHeader style="table 1_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="70" height="15" uuid="97651076-37c7-40de-8825-f015a09bb942"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[CATEGORIE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="16" rowSpan="1">
+							<textField pattern="" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="70" height="16" uuid="9f62b219-aefc-4613-8fdc-31055d86afcf"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_articles_categorie}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="12" splitType="Stretch">
+			<textField>
+				<reportElement x="435" y="0" width="80" height="12" uuid="6d082f5b-0832-4738-88c3-a2b1668a5ff5"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="515" y="0" width="40" height="12" uuid="e470336a-50dd-4f49-aa79-0e8fd6d6ca82"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

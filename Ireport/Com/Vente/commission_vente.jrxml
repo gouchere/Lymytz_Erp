@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="commission_vente" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7ec24867-9a28-414a-ad73-d9523a56007c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#DCDCDC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#D4D4D4">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="9d9e8be1-adeb-40a7-a95e-9e6eebeff71f">
+		<parameter name="PERIODE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+		</parameter>
+		<parameter name="COMMERCIAL" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[38]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     UPPER(yvs_com_periode_objectif."code_ref") AS yvs_com_periode_objectif_code_ref,
+     yvs_com_doc_ventes."num_doc" AS yvs_com_doc_ventes_num_doc,
+     yvs_com_doc_ventes."commision" AS yvs_com_doc_ventes_commission,
+     yvs_com_periode_objectif."id" AS yvs_com_periode_objectif_id,
+     yvs_com_commercial_vente."taux" AS yvs_com_commercial_vente_taux,
+     yvs_com_commercial_vente."commercial" AS yvs_com_commercial_vente_commercial,
+     yvs_com_entete_doc_vente."date_entete" AS yvs_com_entete_doc_vente_date_entete,
+     yvs_com_commercial_vente."commercial" AS yvs_com_commercial_vente_commercial,
+     ((yvs_com_commission_vente."montant" *yvs_com_commercial_vente."taux" ) / 100) AS yvs_com_commission_vente_montant
+FROM
+     "public"."yvs_com_doc_ventes" yvs_com_doc_ventes
+     INNER JOIN "public"."yvs_com_commission_vente" yvs_com_commission_vente ON yvs_com_doc_ventes."id" = yvs_com_commission_vente."facture"
+     INNER JOIN "public"."yvs_com_commercial_vente" yvs_com_commercial_vente ON yvs_com_doc_ventes."id" = yvs_com_commercial_vente."facture"
+     INNER JOIN "public"."yvs_com_entete_doc_vente" yvs_com_entete_doc_vente ON yvs_com_doc_ventes."entete_doc" = yvs_com_entete_doc_vente."id"
+     INNER JOIN "public"."yvs_com_periode_objectif" yvs_com_periode_objectif ON yvs_com_periode_objectif."id" = yvs_com_commission_vente."periode"
+WHERE
+     yvs_com_doc_ventes."type_doc" = 'FV' AND yvs_com_doc_ventes."statut" = 'V' AND yvs_com_commercial_vente."commercial" = $P{COMMERCIAL}
+ AND ((COALESCE($P{PERIODE},0) > 0 AND $P{PERIODE} = yvs_com_periode_objectif."id") OR (COALESCE($P{PERIODE},0) < 1
+ AND yvs_com_periode_objectif."id" IS NOT NULL))
+ORDER BY
+     yvs_com_periode_objectif."date_debut" ASC,
+     yvs_com_entete_doc_vente."date_entete" ASC,
+     yvs_com_doc_ventes."num_doc" ASC]]>
+		</queryString>
+		<field name="yvs_com_periode_objectif_code_ref" class="java.lang.String"/>
+		<field name="yvs_com_doc_ventes_num_doc" class="java.lang.String"/>
+		<field name="yvs_com_doc_ventes_commission" class="java.lang.Double"/>
+		<field name="yvs_com_periode_objectif_id" class="java.lang.Long"/>
+		<field name="yvs_com_commercial_vente_taux" class="java.lang.Double"/>
+		<field name="yvs_com_commercial_vente_commercial" class="java.lang.Long"/>
+		<field name="yvs_com_entete_doc_vente_date_entete" class="java.sql.Date"/>
+		<field name="yvs_com_commission_vente_montant" class="java.lang.Double"/>
+		<variable name="MONTANT" class="java.lang.Double">
+			<variableExpression><![CDATA[($F{yvs_com_commission_vente_montant} * $F{yvs_com_commercial_vente_taux})/100]]></variableExpression>
+		</variable>
+		<variable name="TOTAL_PERIODE" class="java.lang.Double" resetType="Group" resetGroup="periode" calculation="Sum">
+			<variableExpression><![CDATA[$F{yvs_com_commission_vente_montant}]]></variableExpression>
+		</variable>
+		<variable name="TOTAL" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{yvs_com_commission_vente_montant}]]></variableExpression>
+		</variable>
+		<group name="periode">
+			<groupExpression><![CDATA[$F{yvs_com_periode_objectif_id}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NAME_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["COMMISSIONS VENTE "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[14]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMMERCIAL" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[38]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_agences."id" AS yvs_agences_id,
+     yvs_agences."societe" AS yvs_agences_societe,
+     yvs_com_comerciale."id" AS yvs_com_comerciale_id,
+     yvs_com_comerciale."code_ref" AS yvs_com_comerciale_code_ref,
+     CONCAT(yvs_com_comerciale."nom", ' ', yvs_com_comerciale."prenom") AS yvs_com_comerciale_nom_prenom,
+     yvs_com_comerciale."actif" AS yvs_com_comerciale_actif
+FROM
+     "public"."yvs_agences" yvs_agences INNER JOIN "public"."yvs_com_comerciale" yvs_com_comerciale ON yvs_agences."id" = yvs_com_comerciale."agence"
+WHERE
+     yvs_agences."id" = $P{AGENCE} AND yvs_com_comerciale."actif" AND
+     ((COALESCE($P{COMMERCIAL}, 0) > 0 AND $P{COMMERCIAL} = yvs_com_comerciale."id")
+	OR (COALESCE($P{COMMERCIAL}, 0) < 1 AND yvs_com_comerciale."id" IS NOT NULL))
+ORDER BY
+     yvs_com_comerciale."nom", yvs_com_comerciale."prenom"]]>
+	</queryString>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<field name="yvs_agences_societe" class="java.lang.Integer"/>
+	<field name="yvs_com_comerciale_id" class="java.lang.Long"/>
+	<field name="yvs_com_comerciale_code_ref" class="java.lang.String"/>
+	<field name="yvs_com_comerciale_nom_prenom" class="java.lang.String"/>
+	<field name="yvs_com_comerciale_actif" class="java.lang.Boolean"/>
+	<columnHeader>
+		<band height="68" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="67" uuid="b65801c0-4872-4242-a35a-4dc7063e5e19"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA[$P{NAME_TITLE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_agences_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport.jasper"]]></subreportExpression>
+			</subreport>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="67" width="555" height="1" uuid="76cd0c0d-6b72-4ce0-b880-881b40484b99"/>
+			</line>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="112">
+			<componentElement>
+				<reportElement key="table 1" x="0" y="20" width="555" height="92" uuid="59be7965-eb9e-4ca0-8228-7e83b012f56c"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="400398fe-0a28-4f42-8cba-56dc8d029b9b">
+						<datasetParameter name="COMMERCIAL">
+							<datasetParameterExpression><![CDATA[$F{yvs_com_comerciale_id}.intValue()]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="PERIODE">
+							<datasetParameterExpression><![CDATA[$P{PERIODE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:columnGroup width="554" uuid="b53fceaa-8a71-4c08-8439-f15f4757ae32">
+						<jr:groupHeader groupName="periode">
+							<jr:cell height="17" rowSpan="1">
+								<textField>
+									<reportElement mode="Opaque" x="0" y="0" width="553" height="17" backcolor="#F4F4F4" uuid="d3f27e52-4670-4d79-9a8e-619dda2ca7a7"/>
+									<box leftPadding="5">
+										<topPen lineWidth="0.5"/>
+										<leftPen lineWidth="0.5"/>
+										<rightPen lineWidth="0.5"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="10" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_com_periode_objectif_code_ref}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:column width="159" uuid="721500bd-26ed-4226-86a6-e27adbbc6d0a">
+							<jr:tableFooter style="table_TH" height="15" rowSpan="1"/>
+							<jr:columnHeader style="table_CH" height="21" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="159" height="21" uuid="7e562ad9-bd98-455a-b392-ed56660e3644"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[DATE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="17" rowSpan="1">
+								<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="159" height="17" uuid="587ef273-d7d1-45e9-b7ec-8bf41b8c643a"/>
+									<box leftPadding="5">
+										<bottomPen lineWidth="0.25"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" isBold="false"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_com_entete_doc_vente_date_entete}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="271" uuid="1bec6d71-4b15-48c8-9adf-5b0f2d13638d">
+							<jr:tableFooter style="table_TH" height="15" rowSpan="1"/>
+							<jr:columnHeader style="table_CH" height="21" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="271" height="21" uuid="0c0d6fd8-5d6c-4997-b78c-abe6c81b2847"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[FACTURE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="17" rowSpan="1">
+								<textField>
+									<reportElement x="0" y="0" width="271" height="17" uuid="65782574-a7fa-4f49-92cd-afd4d21bd599"/>
+									<box leftPadding="5">
+										<bottomPen lineWidth="0.25"/>
+									</box>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" isBold="false"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_num_doc}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="124" uuid="b996a463-cf03-47eb-bd7c-13d94a63a082">
+							<jr:tableFooter style="table_TH" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="124" height="15" uuid="10f1aa2a-ed00-4964-9614-981c6eb1046b"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{TOTAL}]]></textFieldExpression>
+								</textField>
+							</jr:tableFooter>
+							<jr:groupFooter groupName="periode">
+								<jr:cell height="16" rowSpan="1">
+									<textField pattern="#,##0" isBlankWhenNull="true">
+										<reportElement mode="Opaque" x="0" y="0" width="124" height="16" backcolor="#ECECEC" uuid="74d8a823-1bac-4164-bcae-60b973a5b3a1"/>
+										<box rightPadding="5">
+											<topPen lineWidth="0.25"/>
+											<leftPen lineWidth="0.25"/>
+											<bottomPen lineWidth="0.25"/>
+											<rightPen lineWidth="0.25"/>
+										</box>
+										<textElement textAlignment="Right" verticalAlignment="Middle">
+											<font fontName="DejaVu Sans" size="8" isBold="true"/>
+										</textElement>
+										<textFieldExpression><![CDATA[$V{TOTAL_PERIODE}]]></textFieldExpression>
+									</textField>
+								</jr:cell>
+							</jr:groupFooter>
+							<jr:columnHeader style="table_CH" height="21" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="124" height="21" uuid="40dedf99-1011-46d7-88fa-3554b9f92fe5"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[MONTANT]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="17" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="124" height="17" uuid="0d9a4906-25b6-4af3-93ca-2905e5722e73"/>
+									<box rightPadding="5">
+										<topPen lineWidth="0.5"/>
+									</box>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" isBold="false"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{MONTANT}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+				</jr:table>
+			</componentElement>
+			<textField>
+				<reportElement x="0" y="0" width="555" height="20" uuid="1f131382-16be-401e-a0ae-9a69c4f026f8"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_comerciale_nom_prenom}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="16">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="555" height="15" backcolor="#D8D8D8" uuid="ddaa6774-5c12-4381-9b2e-cff51fb36d48"/>
+				<text><![CDATA[***En cas de perte de ce document, la boulangerie décline sa responsabilité pour toute revendication ultérieure***]]></text>
+			</staticText>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="16" splitType="Stretch">
+			<textField>
+				<reportElement x="205" y="0" width="80" height="15" uuid="72dcced4-f0bf-4382-8d2c-4c20610f7759"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="285" y="0" width="40" height="15" uuid="670ef3c9-ff9b-473c-a526-a20dad4d4fac"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

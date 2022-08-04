@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="presence_employe_day" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="842" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5c878f89-b32b-4c2b-addf-7de39833476a">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="employe" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\LYMYTZ_ERP_LOCAL\\LYMYTZ-ERP\\Ireport\\presences\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="date_" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_grh_presence."total_heure_compensation" AS yvs_grh_presence_total_heure_compensation,
+     yvs_grh_presence."total_heure_sup" AS yvs_grh_presence_total_heure_sup,
+     yvs_grh_presence."total_presence" AS yvs_grh_presence_total_presence,
+     yvs_grh_presence."date_debut" AS yvs_grh_presence_date_debut,
+     find_disponibilite_employe($P{employe},yvs_grh_presence."date_debut") AS disponibilite
+FROM
+     "public"."yvs_grh_presence" yvs_grh_presence
+WHERE  yvs_grh_presence."employe"=$P{employe} AND (yvs_grh_presence."date_debut"= $P{date_} OR yvs_grh_presence."date_fin"= $P{date_})]]>
+	</queryString>
+	<field name="yvs_grh_presence_total_heure_compensation" class="java.lang.Double"/>
+	<field name="yvs_grh_presence_total_heure_sup" class="java.lang.Double"/>
+	<field name="yvs_grh_presence_total_presence" class="java.lang.Double"/>
+	<field name="yvs_grh_presence_date_debut" class="java.sql.Date"/>
+	<field name="disponibilite" class="java.lang.String"/>
+	<variable name="heure_comp" class="java.lang.String">
+		<variableExpression><![CDATA[((int)($F{yvs_grh_presence_total_heure_compensation}))+" : "+(int)(($F{yvs_grh_presence_total_heure_compensation}-(int)$F{yvs_grh_presence_total_heure_compensation})*60)]]></variableExpression>
+	</variable>
+	<variable name="heure_sup" class="java.lang.String">
+		<variableExpression><![CDATA[((int)($F{yvs_grh_presence_total_heure_sup}))+" : "+(int)(($F{yvs_grh_presence_total_heure_sup}-(int)$F{yvs_grh_presence_total_heure_sup})*60)]]></variableExpression>
+	</variable>
+	<variable name="heure_normale" class="java.lang.String">
+		<variableExpression><![CDATA[((int)($F{yvs_grh_presence_total_presence}))+" : "+(int)(($F{yvs_grh_presence_total_presence}-(int)$F{yvs_grh_presence_total_presence})*60)]]></variableExpression>
+	</variable>
+	<variable name="sum_normal" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{yvs_grh_presence_total_presence}]]></variableExpression>
+	</variable>
+	<variable name="sum_sup" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{yvs_grh_presence_total_heure_sup}]]></variableExpression>
+	</variable>
+	<variable name="sum_comps" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{yvs_grh_presence_total_heure_compensation}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="31" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="107" y="0" width="106" height="31" uuid="51486fb5-2bce-47fe-9515-21bb5d52ea51"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{heure_sup}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="213" y="0" width="108" height="31" uuid="e8c3cdea-8bb7-46e6-87f8-36a6aec9faa3"/>
+				<box leftPadding="3">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{heure_comp}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="321" y="0" width="112" height="31" uuid="d180e8b0-bb50-46b3-a9bb-3e8915740b4d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{disponibilite}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="48" y="0" width="59" height="31" uuid="57f43f36-a63b-4d00-a966-e64ed6103e2e"/>
+				<box leftPadding="2"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(((int)(($F{yvs_grh_presence_total_presence}-(int)$F{yvs_grh_presence_total_presence})*60))<10)?"0"+(int)(($F{yvs_grh_presence_total_presence}-(int)$F{yvs_grh_presence_total_presence})*60):(int)(($F{yvs_grh_presence_total_presence}-(int)$F{yvs_grh_presence_total_presence})*60)]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="-1" y="0" width="49" height="31" uuid="dbab7d8c-7be2-47f8-a4e7-eedcfe79c420"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(((int)($F{yvs_grh_presence_total_presence}))<10?'0'+(int)($F{yvs_grh_presence_total_presence}):(int)($F{yvs_grh_presence_total_presence}))+" : "]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

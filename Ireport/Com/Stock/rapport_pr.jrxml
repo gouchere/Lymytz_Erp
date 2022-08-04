@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rapport_pr" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="21b258d0-599f-445d-8eaf-da2e773a9071">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString>
+		<![CDATA[select a.refart,a.designation, coalesce(findlastpr(a.refart,'MAGASIN', '31-08-2017', ad.prix_revient),0) as findlastpr ,a.refFamille  from articledepots ad inner join articles a on a.refart=ad.refart and ad.codedepot='MAGASIN' AND a.categorie='REVENTE' AND
+coalesce(findlastpr(a.refart,'MAGASIN', '31-08-2017', ad.prix_revient),0)=0
+ ORDER BY a.refFamille, a.refart  ]]>
+	</queryString>
+	<field name="refart" class="java.lang.String"/>
+	<field name="designation" class="java.lang.String"/>
+	<field name="findlastpr" class="java.lang.Double"/>
+	<field name="reffamille" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="24" splitType="Stretch">
+			<staticText>
+				<reportElement x="185" y="0" width="284" height="20" uuid="b8e91399-8ba4-4b2d-b90e-298a202e8700"/>
+				<textElement textAlignment="Center">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[PRIX DE REVIENT DES ARTICLES DU MAGASIN]]></text>
+			</staticText>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="227" height="20" uuid="0b127cf1-79b3-46ae-8818-1c58e1ab89f5"/>
+				<text><![CDATA[Articles]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="259" y="0" width="100" height="20" uuid="6f9ad851-6f81-4e6b-9c54-ccff84abb633"/>
+				<text><![CDATA[Prix R]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="369" y="0" width="100" height="20" uuid="f7ba11f6-d7e1-4ebd-9aee-b935a1bb4625"/>
+				<text><![CDATA[Familles]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="227" height="20" uuid="820080c4-448d-4a07-b9eb-61cd4daa0cf1"/>
+				<textFieldExpression><![CDATA["["+$F{refart}+"] "+$F{designation}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00">
+				<reportElement x="259" y="0" width="100" height="20" uuid="3d22e21e-09bc-4d12-a619-9a5a07071e24"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$F{findlastpr}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="369" y="0" width="100" height="20" uuid="79139896-0b3e-41f7-ae2a-754576f1a0d9"/>
+				<textFieldExpression><![CDATA[$F{reffamille}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="25">
+			<textField>
+				<reportElement x="427" y="2" width="88" height="23" uuid="7525b923-43d9-4d3f-b029-38e1e49a6122"/>
+				<textElement textAlignment="Right">
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" / "]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="507" y="2" width="48" height="23" uuid="95f7a1dc-e35b-4a51-83c4-b97c20269fbb"/>
+				<textElement>
+					<font size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

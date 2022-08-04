@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="stock" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a9816bf8-0b9a-4188-8066-92566aa4394c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<pen lineStyle="Solid"/>
+		<box>
+			<pen lineWidth="0.5" lineColor="#CCCCCC"/>
+			<topPen lineColor="#CCCCCC"/>
+			<leftPen lineColor="#CCCCCC"/>
+			<bottomPen lineColor="#CCCCCC"/>
+			<rightPen lineColor="#CCCCCC"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="b92503dc-5918-4006-8d27-32d7ddd0c77c">
+		<parameter name="DEPOT" class="java.lang.Integer">
+			<defaultValueExpression><![CDATA[1922]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_DEBUT" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/09/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("02/09/2019")]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     yvs_base_mouvement_stock."quantite" AS  yvs_base_mouvement_stock_quantite,
+     yvs_base_mouvement_stock."date_doc" AS  yvs_base_mouvement_stock_date_doc,
+     yvs_base_mouvement_stock."mouvement" AS yvs_base_mouvement_stock_mouvement,
+     yvs_base_mouvement_stock."article" AS yvs_base_mouvement_stock_article,
+     yvs_base_mouvement_stock."cout_entree" AS yvs_base_mouvement_stock_cout_entree,
+     yvs_base_articles."designation" AS  yvs_base_articles_designation,
+     yvs_base_conditionnement."prix_achat" AS yvs_base_conditionnement_prix_achat,
+     yvs_base_conditionnement."prix" AS yvs_base_conditionnement_prix,
+     yvs_base_mouvement_stock."description" AS yvs_base_mouvement_stock_description,
+     yvs_base_conditionnement."prix_prod" AS yvs_base_conditionnement_prix_prod,
+     yvs_base_unite_mesure."libelle" AS yvs_base_unite_mesure_libelle,
+     yvs_base_unite_mesure."reference" AS yvs_base_unite_mesure_reference
+FROM
+     "public"."yvs_base_articles" yvs_base_articles INNER JOIN "public"."yvs_base_mouvement_stock" yvs_base_mouvement_stock ON yvs_base_articles."id" = yvs_base_mouvement_stock."article"
+     INNER JOIN "public"."yvs_base_conditionnement" yvs_base_conditionnement ON yvs_base_articles."id" = yvs_base_conditionnement."article"
+     AND yvs_base_conditionnement."id" = yvs_base_mouvement_stock."conditionnement"
+     INNER JOIN "public"."yvs_base_unite_mesure" yvs_base_unite_mesure ON yvs_base_conditionnement."unite" = yvs_base_unite_mesure."id"
+
+WHERE yvs_base_mouvement_stock."depot" = $P{DEPOT} AND yvs_base_mouvement_stock."date_doc" BETWEEN $P{DATE_DEBUT} AND $P{DATE_FIN}
+order by   yvs_base_mouvement_stock."date_doc",yvs_base_mouvement_stock."mouvement"]]>
+		</queryString>
+		<field name="yvs_base_mouvement_stock_quantite" class="java.lang.Double"/>
+		<field name="yvs_base_mouvement_stock_date_doc" class="java.sql.Date"/>
+		<field name="yvs_base_mouvement_stock_mouvement" class="java.lang.String"/>
+		<field name="yvs_base_mouvement_stock_article" class="java.lang.Long"/>
+		<field name="yvs_base_mouvement_stock_cout_entree" class="java.lang.Double"/>
+		<field name="yvs_base_articles_designation" class="java.lang.String"/>
+		<field name="yvs_base_conditionnement_prix_achat" class="java.lang.Double"/>
+		<field name="yvs_base_conditionnement_prix" class="java.lang.Double"/>
+		<field name="yvs_base_mouvement_stock_description" class="java.lang.String"/>
+		<field name="yvs_base_conditionnement_prix_prod" class="java.lang.Double"/>
+		<field name="yvs_base_unite_mesure_libelle" class="java.lang.String"/>
+		<field name="yvs_base_unite_mesure_reference" class="java.lang.String"/>
+		<variable name="ENTREE" class="java.lang.Double">
+			<variableExpression><![CDATA[$F{yvs_base_mouvement_stock_mouvement}.equals("E") ?$F{yvs_base_mouvement_stock_quantite} : null]]></variableExpression>
+		</variable>
+		<variable name="SORTIE" class="java.lang.Double">
+			<variableExpression><![CDATA[$F{yvs_base_mouvement_stock_mouvement}.equals("S") ? $F{yvs_base_mouvement_stock_quantite}:null]]></variableExpression>
+		</variable>
+		<variable name="SOMME_ENTRE" class="java.lang.Double" resetType="Group" resetGroup="yvs_base_mouvement_stock_mouvement" calculation="Sum">
+			<variableExpression><![CDATA[$V{ENTREE} * $F{yvs_base_mouvement_stock_cout_entree}]]></variableExpression>
+		</variable>
+		<variable name="SOMME_SORTIE" class="java.lang.Double" resetType="Group" resetGroup="yvs_base_mouvement_stock_mouvement" calculation="Sum">
+			<variableExpression><![CDATA[$V{SORTIE} * $F{yvs_base_mouvement_stock_cout_entree}]]></variableExpression>
+		</variable>
+		<variable name="VALEUR" class="java.lang.Double">
+			<variableExpression><![CDATA[$V{SOMME_TOTAL_ENTRE}-$V{SOMME_TOTAL_SORTIE}]]></variableExpression>
+		</variable>
+		<variable name="VALEUR_STOCK" class="java.lang.Double">
+			<variableExpression><![CDATA[$F{yvs_base_mouvement_stock_quantite} * $F{yvs_base_mouvement_stock_cout_entree}]]></variableExpression>
+		</variable>
+		<variable name="SOMME_ENTRE_DATE" class="java.lang.Double" resetType="Group" resetGroup="date" calculation="Sum">
+			<variableExpression><![CDATA[$V{ENTREE} * $F{yvs_base_mouvement_stock_cout_entree}]]></variableExpression>
+		</variable>
+		<variable name="SOMME_SORTIE_DATE" class="java.lang.Double" resetType="Group" resetGroup="date" calculation="Sum">
+			<variableExpression><![CDATA[$V{SORTIE} * $F{yvs_base_mouvement_stock_cout_entree}]]></variableExpression>
+		</variable>
+		<variable name="SOMME_TOTAL_ENTRE" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$V{ENTREE} * $F{yvs_base_mouvement_stock_cout_entree}]]></variableExpression>
+			<initialValueExpression><![CDATA[]]></initialValueExpression>
+		</variable>
+		<variable name="SOMME_TOTAL_SORTIE" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$V{SORTIE} * $F{yvs_base_mouvement_stock_cout_entree}]]></variableExpression>
+		</variable>
+		<variable name="VALEUR_P" class="java.lang.Double" resetType="Group" resetGroup="date" calculation="Sum">
+			<variableExpression><![CDATA[$V{SOMME_ENTRE}-$V{SOMME_SORTIE}]]></variableExpression>
+		</variable>
+		<variable name="SOLDE" class="java.lang.Double" resetType="Group" resetGroup="date">
+			<variableExpression><![CDATA[$V{SOMME_ENTRE_DATE}-$V{SOMME_SORTIE_DATE}]]></variableExpression>
+		</variable>
+		<group name="date">
+			<groupExpression><![CDATA[$F{yvs_base_mouvement_stock_date_doc}]]></groupExpression>
+		</group>
+		<group name="yvs_base_mouvement_stock_mouvement">
+			<groupExpression><![CDATA[$F{yvs_base_mouvement_stock_mouvement}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="DEPOT" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[1922]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["GEORGES"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\Projet web\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false"/>
+	<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_base_depots."code" AS yvs_base_depots_code,
+     yvs_base_depots."designation" AS yvs_base_depots_designation,
+     yvs_base_depots."agence" AS yvs_base_depots_agence
+FROM
+     "public"."yvs_base_depots" yvs_base_depots
+
+WHERE yvs_base_depots."id" = $P{DEPOT}]]>
+	</queryString>
+	<field name="yvs_base_depots_code" class="java.lang.String"/>
+	<field name="yvs_base_depots_designation" class="java.lang.String"/>
+	<field name="yvs_base_depots_agence" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch">
+			<subreport>
+				<reportElement x="10" y="10" width="555" height="51" uuid="5ec85dc8-d142-4c27-9de4-c8ceecee3226"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA["MOUVEMENTS STOCKS"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_base_depots_agence}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport_portrait.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="183" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table" style="table" x="0" y="0" width="555" height="183" uuid="ace8d61c-c362-4e43-9d52-0afdc921a519"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="74d302f3-3807-40e2-9410-d411a7235b17">
+						<datasetParameter name="DEPOT">
+							<datasetParameterExpression><![CDATA[$P{DEPOT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_DEBUT">
+							<datasetParameterExpression><![CDATA[$P{DATE_DEBUT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_FIN">
+							<datasetParameterExpression><![CDATA[$P{DATE_FIN}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="65" uuid="07bdc815-daf4-4294-8520-a36b2edb93a1">
+						<jr:groupFooter groupName="yvs_base_mouvement_stock_mouvement">
+							<jr:cell style="table_TH" height="20" rowSpan="1"/>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="65" height="30" uuid="a6405a9a-04b4-4c70-b2db-1ade21c4b61e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[DATE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="19" rowSpan="1">
+							<textField pattern="dd/MM/yyyy">
+								<reportElement x="0" y="0" width="65" height="19" uuid="49bbde27-ccaf-410d-8bd7-717d4f338f02"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<textFieldExpression><![CDATA[$F{yvs_base_mouvement_stock_date_doc}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="117" uuid="4fe00087-523f-453c-acb8-dfb7d139ad5c">
+						<jr:groupFooter groupName="yvs_base_mouvement_stock_mouvement">
+							<jr:cell style="table_TH" height="20" rowSpan="1"/>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="117" height="30" uuid="b50406b4-6ddd-4e37-8db9-fb2a8761b440"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[ARTICLES]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="19" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="117" height="19" uuid="b8bf08dc-6f58-48fe-9553-762c75fdae1a"/>
+								<box leftPadding="5"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_articles_designation}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="58" uuid="d3eecd72-ed09-434a-9551-aa54f84f7d03">
+						<jr:groupFooter groupName="yvs_base_mouvement_stock_mouvement">
+							<jr:cell style="table_TH" height="20" rowSpan="1"/>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="57" height="30" uuid="6bb914c0-c2f2-4693-b488-9ad2573cb3bc"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[UNITE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="19" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="57" height="19" uuid="e611dcee-a735-4fd3-8924-91c1ae88f6b3"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_unite_mesure_reference}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="53" uuid="675b2e8f-f2d9-44f1-9616-a7326af2b4a5">
+						<jr:groupFooter groupName="yvs_base_mouvement_stock_mouvement">
+							<jr:cell style="table_TH" height="20" rowSpan="1"/>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="52" height="30" uuid="9897f828-ec6e-4253-945b-0da2638fb9b7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[PRIX]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="19" rowSpan="1">
+							<textField pattern="#,##0.00">
+								<reportElement x="0" y="0" width="52" height="19" uuid="5a7fc658-b587-45f9-a7f8-b6a9f63ce566"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_mouvement_stock_cout_entree}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="68" uuid="460fd6d3-bce4-4d07-8866-2569beba0226">
+						<jr:groupFooter groupName="yvs_base_mouvement_stock_mouvement">
+							<jr:cell style="table_TH" height="20" rowSpan="1"/>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="68" height="30" uuid="985d9e86-ceb9-4d9f-96b4-06ce334a365d"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[NATURE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="19" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="68" height="19" uuid="700f1741-4f7c-40b6-8009-21abbfcbb1b6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_mouvement_stock_description}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="66" uuid="045c8722-54e5-4bb4-b017-0980d98b3448">
+						<jr:tableFooter style="table_CH" height="30" rowSpan="1">
+							<textField pattern="#,##0.00" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="66" height="30" uuid="5d3a34b8-6a61-49f7-ab1a-601a36158389"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SOMME_TOTAL_ENTRE}]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:groupFooter groupName="yvs_base_mouvement_stock_mouvement">
+							<jr:cell style="table_TH" height="20" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="66" height="20" uuid="2733360d-74d5-4c36-a0a9-1baa2a7aa349"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{SOMME_ENTRE}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:groupFooter groupName="date">
+							<jr:cell style="table_TH" height="30" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="66" height="30" uuid="e66bf0fb-6f98-4d1f-b159-1d86f6181805"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{SOMME_ENTRE_DATE}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="66" height="30" uuid="6b2eb119-fd30-416d-9ab7-4192ecb48a23"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[ENTREE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="19" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="66" height="19" uuid="f6dd6534-d796-47d1-8602-35f8769c1f0a"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{ENTREE}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="73" uuid="45e3c5c9-e369-45f6-9ac6-389eff7433bf">
+						<jr:tableFooter style="table_CH" height="30" rowSpan="1">
+							<textField pattern="#,##0.00" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="73" height="30" uuid="777e19b5-abbf-4100-81b0-77587abb094e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle" rotation="None">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SOMME_TOTAL_SORTIE}]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:groupFooter groupName="yvs_base_mouvement_stock_mouvement">
+							<jr:cell style="table_TH" height="20" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="73" height="20" uuid="b944802e-5f25-4556-9a08-26b9f223422e"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{SOMME_SORTIE}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:groupFooter groupName="date">
+							<jr:cell style="table_TH" height="30" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="73" height="30" uuid="f95aaec3-ccb8-431d-88cf-546a30c0a657"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{SOMME_SORTIE_DATE}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="73" height="30" uuid="be397891-913d-455e-b79e-edd4781a56f6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[SORTIE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="19" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="73" height="19" uuid="dcd89f50-efa1-424b-9b16-f3c5b7b2511a"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SORTIE}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="52" uuid="2fa18dde-f444-4848-8869-2b159978449c">
+						<jr:tableFooter style="table_CH" height="30" rowSpan="1">
+							<textField pattern="#,##0.00" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="52" height="30" uuid="0bed6d4e-27f2-4a0a-9415-1da6455655ea"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{VALEUR}]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:groupFooter groupName="date">
+							<jr:cell style="table_TH" height="30" rowSpan="1">
+								<textField pattern="#,##0.00" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="52" height="30" uuid="10563015-92f6-49a0-bf0e-39e0ed70c67b"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{SOLDE}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement style="table_CH" x="0" y="0" width="52" height="30" uuid="6cbae1f1-0c95-4b8d-9b52-e90da1410f29"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[STOCK]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="19" rowSpan="1">
+							<textField pattern="#,##0.00" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="52" height="19" uuid="5ce5e34c-ed7f-48db-bbb5-26fe29ed872e"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{VALEUR_STOCK}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

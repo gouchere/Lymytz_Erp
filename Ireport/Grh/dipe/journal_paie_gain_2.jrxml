@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="recapitulatif_paie" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="0f2650bd-af2c-4469-8c80-19044723b900">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<subDataset name="New Dataset" uuid="3a88c641-e773-4c05-8d65-424229706727">
+		<parameter name="ID_HEADER" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["68"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="ID_AGENCE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["2308"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="ID_SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2297]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[select * from grh_et_journal_paye_gain($P{ID_SOCIETE}, $P{ID_AGENCE}, $P{ID_HEADER})]]>
+		</queryString>
+		<field name="employe" class="java.lang.Long"/>
+		<field name="matricule" class="java.lang.String"/>
+		<field name="nom" class="java.lang.String"/>
+		<field name="element" class="java.lang.String"/>
+		<field name="valeur" class="java.lang.String"/>
+		<field name="rang" class="java.lang.Integer"/>
+		<field name="is_double" class="java.lang.Boolean"/>
+	</subDataset>
+	<parameter name="HEADER" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["77,78,79,81,82,83,84,93,95,96,97,98"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_AGENCE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["2309"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_SOCIETE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2297]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Avril 2017"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="MULTIPLE" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_agences."designation" AS yvs_agences_designation,
+     yvs_societes."code_postal" AS yvs_societes_code_postal,
+     yvs_societes."name" AS yvs_societes_name,
+     yvs_societes."numero_registre_comerce" AS yvs_societes_numero_registre_comerce,
+     yvs_societes."tel" AS yvs_societes_tel,
+     yvs_dictionnaire_agence."libele" AS yvs_agence_ville,
+     yvs_dictionnaire_societe."libele" AS yvs_societe_ville
+FROM
+     "public"."yvs_societes" yvs_societes INNER JOIN "public"."yvs_agences" yvs_agences ON yvs_societes."id" = yvs_agences."societe"
+     LEFT JOIN "public"."yvs_dictionnaire" yvs_dictionnaire_agence ON yvs_agences."ville" = yvs_dictionnaire_agence."id"
+     LEFT JOIN "public"."yvs_dictionnaire" yvs_dictionnaire_societe ON yvs_societes."ville" = yvs_dictionnaire_societe."id"
+WHERE
+   ($P{MULTIPLE} is false AND  yvs_agences."id"::character varying = $P{ID_AGENCE})
+OR ($P{MULTIPLE} is true AND yvs_societes."id" = $P{ID_SOCIETE})]]>
+	</queryString>
+	<field name="yvs_agences_designation" class="java.lang.String"/>
+	<field name="yvs_societes_code_postal" class="java.lang.String"/>
+	<field name="yvs_societes_name" class="java.lang.String"/>
+	<field name="yvs_societes_numero_registre_comerce" class="java.lang.String"/>
+	<field name="yvs_societes_tel" class="java.lang.String"/>
+	<field name="yvs_agence_ville" class="java.lang.String"/>
+	<field name="yvs_societe_ville" class="java.lang.String"/>
+	<title>
+		<band height="70">
+			<textField>
+				<reportElement x="47" y="54" width="240" height="14" uuid="7aae9a49-a252-459f-bf60-a95728d82569"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_societes_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="54" width="47" height="16" uuid="01dbfa68-cd84-413e-b470-b34822fceebc"/>
+				<text><![CDATA[Société : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="89" y="32" width="100" height="14" uuid="ca423972-96ba-44bb-b0fd-f7e8051b07a8"/>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{PERIODE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="8" y="32" width="81" height="16" uuid="a841eb16-8cd9-4e33-8ac0-0aed7ffad7c9"/>
+				<text><![CDATA[Période : ]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="89" y="0" width="100" height="16" uuid="0d329f2b-7cda-42bf-8652-50744b532886"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField pattern="HH.mm">
+				<reportElement x="89" y="16" width="100" height="16" uuid="805f24a1-3feb-4fd5-b84c-b677ead211c6"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="8" y="16" width="81" height="16" uuid="a7925dbf-6841-46ef-8f64-cef5d9df11f4"/>
+				<text><![CDATA[Heure : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="8" y="0" width="81" height="16" uuid="11842ac9-00c6-449d-a364-4f41e6891673"/>
+				<text><![CDATA[Date du jour : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="199" y="16" width="246" height="20" uuid="32f562af-144c-40cb-8a4a-975a7a1105fe"/>
+				<textElement textAlignment="Center">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[JOURNAL DE SALAIRE (GAIN)]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageFooter>
+		<band height="15">
+			<staticText>
+				<reportElement x="0" y="0" width="206" height="15" uuid="f79e72ec-c8b4-4c6c-adfa-de25dc8850f2"/>
+				<text><![CDATA[copyrigth (c) 2014-2017 Lymytz]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="300" splitType="Stretch">
+			<crosstab>
+				<reportElement x="0" y="0" width="555" height="300" uuid="2851f4f5-18cf-43f9-b229-adadb23c9a18"/>
+				<crosstabDataset>
+					<dataset>
+						<datasetRun subDataset="New Dataset" uuid="242263cc-980b-4015-ade8-64666e33ec75">
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+				</crosstabDataset>
+				<rowGroup name="matricule" width="70" totalPosition="End">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{matricule}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="70" height="25" uuid="72166086-d1d6-4e8e-ad83-305c3b0fe462"/>
+								<textFieldExpression><![CDATA[$V{matricule}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents backcolor="#005FB3" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<staticText>
+								<reportElement x="0" y="0" width="140" height="25" forecolor="#FFFFFF" uuid="57a68c9f-8c50-4c3f-9d2e-0fd3c6d599b8"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<text><![CDATA[Total matricule]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="employe" width="70" totalPosition="End">
+					<bucket class="java.lang.Long">
+						<bucketExpression><![CDATA[$F{employe}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="70" height="25" uuid="8e202664-f0ae-4c42-964b-102b45bb4066"/>
+								<textFieldExpression><![CDATA[$V{employe}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents backcolor="#BFE1FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+						</cellContents>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="rang" height="30">
+					<bucket class="java.lang.Integer">
+						<bucketExpression><![CDATA[$F{rang}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="30" uuid="42dcb1e6-2c97-4aed-af82-6a27a344a67c"/>
+								<textFieldExpression><![CDATA[$V{rang}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents/>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<columnGroup name="element" height="30">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{element}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="30" uuid="4b6e7774-78e2-4681-8351-bba8d37a913e"/>
+								<textFieldExpression><![CDATA[$V{element}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents/>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="valeurMeasure" class="java.lang.String">
+					<measureExpression><![CDATA[$F{valeur}]]></measureExpression>
+				</measure>
+				<crosstabCell width="50" height="25">
+					<cellContents>
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="c0f9eeb8-8e84-437f-ba54-99786e29a15c"/>
+							<textFieldExpression><![CDATA[$V{valeurMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="matricule">
+					<cellContents backcolor="#005FB3" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" forecolor="#FFFFFF" uuid="b50ad31f-ce2e-49bf-93d3-b20cd3ba8e16"/>
+							<textFieldExpression><![CDATA[$V{valeurMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" columnTotalGroup="rang">
+					<cellContents backcolor="#005FB3" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" forecolor="#FFFFFF" uuid="53743434-930e-4bd8-8aea-2328ccfe8183"/>
+							<textFieldExpression><![CDATA[$V{valeurMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="matricule" columnTotalGroup="rang">
+					<cellContents backcolor="#005FB3" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" forecolor="#FFFFFF" uuid="2506f5af-80ea-4423-9447-a1ad14795d18"/>
+							<textFieldExpression><![CDATA[$V{valeurMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" columnTotalGroup="element">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="f8cdca7d-edb3-4f7c-8b77-4afd4972deca"/>
+							<textFieldExpression><![CDATA[$V{valeurMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="matricule" columnTotalGroup="element">
+					<cellContents backcolor="#005FB3" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" forecolor="#FFFFFF" uuid="ef50efbe-f6f5-4020-96db-dcc95f2142cf"/>
+							<textFieldExpression><![CDATA[$V{valeurMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="0" rowTotalGroup="employe">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="employe" columnTotalGroup="rang">
+					<cellContents backcolor="#005FB3" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" forecolor="#FFFFFF" uuid="e56ac1a9-3216-4345-9450-bc8c426c6af0"/>
+							<textFieldExpression><![CDATA[$V{valeurMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="employe" columnTotalGroup="element">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="de147b08-0ee5-470f-930f-bad4a3b8fd05"/>
+							<textFieldExpression><![CDATA[$V{valeurMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+		</band>
+	</summary>
+</jasperReport>

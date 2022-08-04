@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="recap_paye" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="d77450d4-bbf0-4431-8f01-8345832e071b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="ds_recap_paye" uuid="cf3d1f7c-ee05-4e09-9870-8ccfa47196e7">
+		<parameter name="HEADER" class="java.lang.Long">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="ID_AGENCE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["2308,2312"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     yvs_grh_poste_de_travail."intitule" AS yvs_grh_poste_de_travail_intitule,
+     yvs_grh_employes."matricule" AS yvs_grh_employes_matricule,
+     yvs_grh_employes."nom" AS yvs_grh_employes_nom,
+     yvs_grh_employes."prenom" AS yvs_grh_employes_prenom,
+     SUM(yvs_grh_detail_bulletin."montant_payer" - yvs_grh_detail_bulletin."retenu_salariale") AS Salaire,
+     yvs_grh_bulletins."entete"
+FROM
+     "public"."yvs_grh_bulletins" yvs_grh_bulletins
+	 INNER JOIN "public"."yvs_grh_detail_bulletin" yvs_grh_detail_bulletin ON yvs_grh_bulletins."id" = yvs_grh_detail_bulletin."bulletin"
+	 INNER JOIN "public"."yvs_grh_header_bulletin" yvs_grh_header_bulletin ON yvs_grh_bulletins."id" = yvs_grh_header_bulletin."bulletin"
+     INNER JOIN "public"."yvs_grh_element_salaire" yvs_grh_element_salaire ON yvs_grh_detail_bulletin."element_salaire" = yvs_grh_element_salaire."id"
+     INNER JOIN "public"."yvs_grh_contrat_emps" yvs_grh_contrat_emps ON yvs_grh_bulletins."contrat" = yvs_grh_contrat_emps."id"
+     INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
+     INNER JOIN "public"."yvs_grh_poste_de_travail" yvs_grh_poste_de_travail ON yvs_grh_employes."poste_actif" = yvs_grh_poste_de_travail."id"
+WHERE yvs_grh_bulletins."entete"=$P{HEADER} AND yvs_grh_element_salaire."visible_bulletin" IS true AND
+(yvs_grh_detail_bulletin."montant_payer" >0 or yvs_grh_detail_bulletin."retenu_salariale" >0 or yvs_grh_detail_bulletin."montant_employeur">0 ) and yvs_grh_detail_bulletin."now_visible" is true and yvs_grh_bulletins."statut" IN ('V', 'P')
+AND yvs_grh_header_bulletin."agence"::character varying IN (select val from regexp_split_to_table($P{ID_AGENCE},',') val)
+GROUP BY yvs_grh_employes."matricule", yvs_grh_bulletins."contrat", yvs_grh_employes."nom", yvs_grh_employes."prenom",yvs_grh_poste_de_travail."intitule",yvs_grh_bulletins."entete"
+ORDER BY yvs_grh_employes."matricule",  yvs_grh_employes."nom" asc]]>
+		</queryString>
+		<field name="yvs_grh_poste_de_travail_intitule" class="java.lang.String"/>
+		<field name="yvs_grh_employes_matricule" class="java.lang.String"/>
+		<field name="yvs_grh_employes_nom" class="java.lang.String"/>
+		<field name="yvs_grh_employes_prenom" class="java.lang.String"/>
+		<field name="salaire" class="java.lang.Double"/>
+		<field name="entete" class="java.lang.Long"/>
+		<variable name="TOTAL" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$V{SAL}]]></variableExpression>
+			<initialValueExpression><![CDATA[]]></initialValueExpression>
+		</variable>
+		<variable name="SAL" class="java.lang.Double">
+			<variableExpression><![CDATA[$F{salaire}]]></variableExpression>
+		</variable>
+		<variable name="variable1" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{salaire}]]></variableExpression>
+		</variable>
+		<group name="group1">
+			<groupExpression><![CDATA[$F{yvs_grh_employes_matricule}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="HEADER" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NAME_AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["GOUCHERE Yves"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TITLE_RAPPORT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Récapitulatif Paye"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_AGENCE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["2308,2312"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Mai 2017"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SOCIETE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["CCO SA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["BAFOUSSAM"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_grh_poste_de_travail."intitule" AS yvs_grh_poste_de_travail_intitule,
+     yvs_grh_employes."matricule" AS yvs_grh_employes_matricule,
+     yvs_grh_employes."nom" AS yvs_grh_employes_nom,
+     yvs_grh_employes."prenom" AS yvs_grh_employes_prenom,
+     SUM(yvs_grh_detail_bulletin."montant_payer" - yvs_grh_detail_bulletin."retenu_salariale") AS Salaire
+FROM
+     "public"."yvs_grh_bulletins" yvs_grh_bulletins INNER JOIN "public"."yvs_grh_detail_bulletin" yvs_grh_detail_bulletin ON yvs_grh_bulletins."id" = yvs_grh_detail_bulletin."bulletin"
+     INNER JOIN "public"."yvs_grh_element_salaire" yvs_grh_element_salaire ON yvs_grh_detail_bulletin."element_salaire" = yvs_grh_element_salaire."id"
+     INNER JOIN "public"."yvs_grh_contrat_emps" yvs_grh_contrat_emps ON yvs_grh_bulletins."contrat" = yvs_grh_contrat_emps."id"
+     INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
+     INNER JOIN "public"."yvs_grh_poste_de_travail" yvs_grh_poste_de_travail ON yvs_grh_employes."poste_actif" = yvs_grh_poste_de_travail."id"
+WHERE yvs_grh_bulletins."entete"=$P{HEADER} AND yvs_grh_element_salaire."visible_bulletin" IS true AND
+(yvs_grh_detail_bulletin."montant_payer" >=0 or yvs_grh_detail_bulletin."retenu_salariale" >=0 or yvs_grh_detail_bulletin."montant_employeur"!=0 ) and yvs_grh_detail_bulletin."now_visible" is true
+ AND yvs_grh_employes."agence"::character varying IN (select val from regexp_split_to_table($P{ID_AGENCE},',') val)
+GROUP BY yvs_grh_bulletins."id" ,yvs_grh_bulletins."contrat", yvs_grh_employes."nom", yvs_grh_employes."prenom",yvs_grh_poste_de_travail."intitule", yvs_grh_employes."matricule"
+ORDER BY yvs_grh_bulletins."contrat"
+LIMIT 1]]>
+	</queryString>
+	<field name="yvs_grh_poste_de_travail_intitule" class="java.lang.String"/>
+	<field name="yvs_grh_employes_matricule" class="java.lang.String"/>
+	<field name="yvs_grh_employes_nom" class="java.lang.String"/>
+	<field name="yvs_grh_employes_prenom" class="java.lang.String"/>
+	<field name="salaire" class="java.lang.Double"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="76" splitType="Stretch">
+			<textField>
+				<reportElement x="131" y="0" width="271" height="31" uuid="6ce3a2e6-f3c9-433f-843c-8c81d4900001"/>
+				<textElement verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{TITLE_RAPPORT}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="131" y="31" width="50" height="20" uuid="91fae84a-d161-42db-9d2c-e21c0e8820b3"/>
+				<text><![CDATA[Période :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="181" y="31" width="100" height="20" uuid="80c769d1-b7cd-43d5-adcc-0642757f85c2"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{PERIODE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="402" y="0" width="53" height="20" uuid="2c98de12-1fb8-418e-81bb-1eeea0d30903"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Imprimé Par:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="455" y="0" width="100" height="20" uuid="242cb783-52f7-4765-b492-12399aaa44af"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{NAME_AUTEUR}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd-MMM-yy">
+				<reportElement x="435" y="20" width="80" height="11" uuid="4cb7df38-7dc9-424f-91bf-6d80960c7896"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField pattern="HH.mm.ss">
+				<reportElement x="435" y="32" width="80" height="20" uuid="2fce5590-163e-481f-aae7-8dcfd13fb66b"/>
+				<textElement verticalAlignment="Top">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="32" width="100" height="20" uuid="390a2440-3bae-46f2-a7bd-4580298d48bb"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{SOCIETE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="52" width="318" height="20" uuid="fd25a39f-c401-4404-a848-e5797c00a368"/>
+				<textFieldExpression><![CDATA[$P{AGENCE}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="17">
+			<textField>
+				<reportElement x="435" y="0" width="80" height="17" uuid="2a7c5869-54c4-46f9-8d6d-40ec0ce13d5e"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="515" y="0" width="40" height="17" uuid="d4d5a5d9-4768-4326-806e-eadc2de8c4b2"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="144">
+			<componentElement>
+				<reportElement key="table 1" style="table 1" x="0" y="0" width="555" height="144" isRemoveLineWhenBlank="true" uuid="c445dcc0-1d37-4bb2-a6a2-b0068a89ed26"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="ds_recap_paye" uuid="b831f671-bd2c-423b-9687-51a4026291a2">
+						<datasetParameter name="HEADER">
+							<datasetParameterExpression><![CDATA[$P{HEADER}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="ID_AGENCE">
+							<datasetParameterExpression><![CDATA[$P{ID_AGENCE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="170" uuid="53585f35-def2-4466-8bab-5f34deaad72e">
+						<jr:tableFooter height="47" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="170" height="47" uuid="446c3426-81ac-49ee-a59c-0a34317a8b5e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="12" isBold="true"/>
+								</textElement>
+								<text><![CDATA[TOTAL NET A PAYER]]></text>
+							</staticText>
+						</jr:tableFooter>
+						<jr:columnHeader style="table 1_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="170" height="30" uuid="50c6aaf4-eb55-428b-9811-6a4771e0bec1"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<text><![CDATA[Employés]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="170" height="20" uuid="21b24a18-4e17-4bf0-89b4-0e556a583dd1"/>
+								<box leftPadding="4"/>
+								<textFieldExpression><![CDATA[$F{yvs_grh_employes_nom}+" "+$F{yvs_grh_employes_prenom}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="85" uuid="2a64006a-71dc-4492-9363-8f2b458bd3e9">
+						<jr:columnHeader style="table 1_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="85" height="30" uuid="93a0a48e-ebf7-4ebc-853e-22cd43f8e00d"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<text><![CDATA[Matricule]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="85" height="20" uuid="98981094-63fb-4061-975f-6a498b60e09a"/>
+								<box leftPadding="4"/>
+								<textElement textAlignment="Center"/>
+								<textFieldExpression><![CDATA[$F{yvs_grh_employes_matricule}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="162" uuid="24f082e4-ae05-425f-8248-d8b07071d82c">
+						<jr:tableFooter height="47" rowSpan="1"/>
+						<jr:columnHeader style="table 1_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="162" height="30" uuid="c1ea129e-1336-4bff-8227-5bee644024df"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<text><![CDATA[Poste de travail]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="21" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="162" height="20" uuid="c597597b-175b-4888-bf8f-64e3fa53d456"/>
+								<box leftPadding="4"/>
+								<textFieldExpression><![CDATA[$F{yvs_grh_poste_de_travail_intitule}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="123" uuid="ce99012c-b6f5-4071-b2a4-76e3c3920ba8">
+						<jr:tableFooter height="47" rowSpan="1">
+							<textField pattern="#,##0">
+								<reportElement x="0" y="0" width="123" height="47" uuid="af5ec5bd-c9cb-439d-8ac6-751cf151a23a"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="18" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{variable1}]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:columnHeader style="table 1_CH" height="30" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="122" height="30" uuid="57f03896-1e48-4157-afb6-e84cb05ff24a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle"/>
+								<text><![CDATA[Net à payer]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table 1_TD" height="21" rowSpan="1">
+							<textField pattern="#,##0">
+								<reportElement x="0" y="0" width="122" height="20" uuid="a34c6222-1e17-42be-be49-32e483f44224"/>
+								<box leftPadding="4" rightPadding="2"/>
+								<textElement textAlignment="Right"/>
+								<textFieldExpression><![CDATA[$F{salaire}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+	<lastPageFooter>
+		<band height="17">
+			<staticText>
+				<reportElement x="455" y="0" width="100" height="17" uuid="c5710bc9-34d8-4e5c-8a24-e473f0f5af9e"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[Copyright(c) Lymytz 2014]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+</jasperReport>

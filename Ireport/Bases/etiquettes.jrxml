@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="etiquettes" language="groovy" columnCount="5" printOrder="Horizontal" pageWidth="595" pageHeight="842" columnWidth="111" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="19c4e14d-cfaf-42bd-a584-4136568c35a1">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<parameter name="societe" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+	</parameter>
+	<parameter name="categorie" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="famille" class="java.lang.Long" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="groupe" class="java.lang.Long" isForPrompting="false">
+		<defaultValueExpression><![CDATA[0L]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IDS" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\Bases\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="logo" class="java.lang.String"/>
+	<parameter name="model" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["etiquette_style"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="BACKCOLOR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["#FFAF02"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FORECOLOR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["#C78801"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="point" class="java.lang.Long" isForPrompting="false">
+		<defaultValueExpression><![CDATA[79L]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     COALESCE(yvs_base_conditionnement_point.puv, yvs_base_conditionnement."prix") AS yvs_base_conditionnement_prix,
+     yvs_base_conditionnement."prix_min" AS yvs_base_conditionnement_prix_min,
+     yvs_base_conditionnement."cond_vente" AS yvs_base_conditionnement_cond_vente,
+     yvs_base_conditionnement."prix_achat" AS yvs_base_conditionnement_prix_achat,
+     yvs_base_conditionnement."prix_prod" AS yvs_base_conditionnement_prix_prod,
+     yvs_base_articles."designation" AS yvs_base_articles_designation,
+     yvs_base_unite_mesure."reference" AS yvs_base_unite_mesure_reference,
+     yvs_base_unite_mesure."libelle" AS yvs_base_unite_mesure_libelle,
+     yvs_base_articles."ref_art" AS yvs_base_articles_ref_art,
+     MAX(yvs_base_article_code_barre."code_barre") AS yvs_base_article_code_barre_code_barre
+FROM
+     "public"."yvs_base_articles" yvs_base_articles
+     INNER JOIN "public"."yvs_base_conditionnement" yvs_base_conditionnement ON yvs_base_articles."id" = yvs_base_conditionnement."article"
+     INNER JOIN "public"."yvs_base_unite_mesure" yvs_base_unite_mesure ON yvs_base_conditionnement."unite" = yvs_base_unite_mesure."id"
+     INNER JOIN "public"."yvs_base_famille_article" yvs_base_famille_article ON yvs_base_articles."famille" = yvs_base_famille_article."id"
+     LEFT JOIN "public"."yvs_base_article_code_barre" yvs_base_article_code_barre ON (yvs_base_article_code_barre."conditionnement" = yvs_base_conditionnement."id" AND yvs_base_article_code_barre."code_barre" NOT LIKE '%°%')
+     LEFT JOIN "public"."yvs_base_article_point" yvs_base_article_point ON (yvs_base_article_point."article" = yvs_base_articles."id" AND yvs_base_article_point."point" = $P{point})
+     LEFT JOIN "public"."yvs_base_conditionnement_point" yvs_base_conditionnement_point ON yvs_base_conditionnement_point."article" = yvs_base_article_point."id"
+where yvs_base_famille_article.societe = $P{societe} AND ((COALESCE($P{famille},0)>0 AND yvs_base_famille_article."id" = $P{famille})OR (COALESCE($P{famille},0)<1 AND yvs_base_articles."id" IS NOT NULL))
+AND ((COALESCE($P{groupe},0)>0 AND yvs_base_articles."groupe" = $P{groupe}) OR (COALESCE($P{groupe},0)<1 AND yvs_base_articles."id" IS NOT NULL))
+AND ((COALESCE($P{categorie},'')!='' AND yvs_base_articles."categorie" = $P{categorie}) OR (COALESCE($P{categorie},'')='' AND yvs_base_articles."id" IS NOT NULL))
+AND((COALESCE($P{IDS},'')!='' AND yvs_base_articles.id::CHARACTER VARYING IN (SELECT val FROM regexp_split_to_table($P{IDS},',') val)) OR (COALESCE($P{IDS},'')='' AND yvs_base_articles."id" IS NOT NULL))
+GROUP BY yvs_base_conditionnement."id", yvs_base_conditionnement_point."id", yvs_base_articles."id", yvs_base_unite_mesure."id"
+ORDER BY yvs_base_articles."designation"]]>
+	</queryString>
+	<field name="yvs_base_conditionnement_prix" class="java.lang.Double"/>
+	<field name="yvs_base_conditionnement_prix_min" class="java.lang.Double"/>
+	<field name="yvs_base_conditionnement_cond_vente" class="java.lang.Boolean"/>
+	<field name="yvs_base_conditionnement_prix_achat" class="java.lang.Double"/>
+	<field name="yvs_base_conditionnement_prix_prod" class="java.lang.Double"/>
+	<field name="yvs_base_articles_designation" class="java.lang.String"/>
+	<field name="yvs_base_unite_mesure_reference" class="java.lang.String"/>
+	<field name="yvs_base_unite_mesure_libelle" class="java.lang.String"/>
+	<field name="yvs_base_articles_ref_art" class="java.lang.String"/>
+	<field name="yvs_base_article_code_barre_code_barre" class="java.lang.String"/>
+	<detail>
+		<band height="107" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="112" height="107" uuid="194da673-f08e-41fa-a961-83a4038deda2"/>
+				<subreportParameter name="logo">
+					<subreportParameterExpression><![CDATA[$P{logo}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FORECOLOR">
+					<subreportParameterExpression><![CDATA[$P{FORECOLOR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_base_articles_designation">
+					<subreportParameterExpression><![CDATA[$F{yvs_base_articles_designation}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_base_conditionnement_prix">
+					<subreportParameterExpression><![CDATA[$F{yvs_base_conditionnement_prix}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="BACKCOLOR">
+					<subreportParameterExpression><![CDATA[$P{BACKCOLOR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_base_article_code_barre_code_barre">
+					<subreportParameterExpression><![CDATA[$F{yvs_base_article_code_barre_code_barre}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_base_articles_ref_art">
+					<subreportParameterExpression><![CDATA[$F{yvs_base_articles_ref_art}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_base_unite_mesure_libelle">
+					<subreportParameterExpression><![CDATA[$F{yvs_base_unite_mesure_libelle}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + $P{model} + ".jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="22">
+			<textField>
+				<reportElement x="412" y="1" width="80" height="20" uuid="d9d0e5c0-5fc8-4757-8d90-26936fcce059"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="492" y="1" width="40" height="20" uuid="e3205750-1aaf-46ec-82ce-b12bce71562a"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ordre_mission" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f745e918-e4cd-4c14-a6c2-351016b5651f">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="106"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#DDDDDD">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="886e73fc-2d09-4154-b6f8-f79178ec183b">
+		<parameter name="MISSION" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[121]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DUREE" class="java.lang.Integer" isForPrompting="false"/>
+		<queryString>
+			<![CDATA[SELECT
+     yvs_grh_frais_mission."montant" AS yvs_grh_frais_mission_montant,
+     yvs_grh_type_cout."libelle" AS yvs_grh_type_cout_libelle
+FROM
+     "public"."yvs_grh_type_cout" yvs_grh_type_cout INNER JOIN "public"."yvs_grh_frais_mission" yvs_grh_frais_mission ON yvs_grh_type_cout."id" = yvs_grh_frais_mission."type_cout"
+WHERE
+     yvs_grh_frais_mission."mission" = $P{MISSION} AND yvs_grh_frais_mission."montant"!=0]]>
+		</queryString>
+		<field name="yvs_grh_frais_mission_montant" class="java.lang.Double"/>
+		<field name="yvs_grh_type_cout_libelle" class="java.lang.String"/>
+		<variable name="COMPTEUR" class="java.lang.Integer" calculation="Count">
+			<variableExpression><![CDATA[$V{COMPTEUR}++]]></variableExpression>
+			<initialValueExpression><![CDATA[1]]></initialValueExpression>
+		</variable>
+		<variable name="TOTAL" class="java.lang.Double">
+			<variableExpression><![CDATA[$F{yvs_grh_frais_mission_montant}*$P{DUREE}]]></variableExpression>
+		</variable>
+		<variable name="SUM_TOTAL" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{yvs_grh_frais_mission_montant}]]></variableExpression>
+		</variable>
+	</subDataset>
+	<parameter name="ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[121]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IMG_LOGO" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="IMG_PHONE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="IMG_SIEGE" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="AUTEUR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\full\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TITRE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["ORDRE DE MISSION"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="MONTANT_CHIFFRE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["un million"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT DISTINCT
+     (yvs_grh_missions."date_debut") AS yvs_grh_missions_date_debut,
+     concat(yvs_grh_employes."civilite",' ',concat(yvs_grh_employes."nom",' ',yvs_grh_employes."prenom")) AS yvs_grh_employes_nom,
+     yvs_grh_missions."date_fin" AS yvs_grh_missions_date_fin,
+     yvs_grh_missions."ordre" AS yvs_grh_missions_ordre,
+     yvs_grh_poste_de_travail."intitule" AS yvs_grh_poste_de_travail_intitule,
+     yvs_grh_departement."intitule" AS yvs_grh_departement_intitule,
+     yvs_grh_employes."agence" AS yvs_grh_employes_agence,
+     yvs_grh_missions."date_debut" AS yvs_grh_missions_date_debut,
+     yvs_grh_missions."reference_mission" AS yvs_grh_missions_reference,
+     yvs_dictionnaire."libele" AS yvs_dictionnaire_libele,
+     yvs_grh_missions."lieu_escale" AS yvs_grh_missions_lieu_escale,
+     yvs_grh_missions."role_mission" AS yvs_grh_missions_role_mission,
+     yvs_grh_missions."transport" AS yvs_grh_missions_transport,
+     yvs_grh_missions."date_retour" AS yvs_grh_missions_date_retour,
+     yvs_grh_missions."heure_depart" AS yvs_grh_missions_heure_depart,
+     yvs_grh_missions."heure_arrive" AS yvs_grh_missions_heure_arrive,
+     di.libele
+FROM
+     "public"."yvs_grh_employes" yvs_grh_employes INNER JOIN "public"."yvs_grh_missions" yvs_grh_missions ON yvs_grh_employes."id" = yvs_grh_missions."employe"
+     INNER JOIN "public"."yvs_grh_poste_employes" yvs_grh_poste_employes ON yvs_grh_employes."id" = yvs_grh_poste_employes."employe"
+     INNER JOIN "public"."yvs_grh_poste_de_travail" yvs_grh_poste_de_travail ON yvs_grh_poste_employes."poste" = yvs_grh_poste_de_travail."id"
+     INNER JOIN "public"."yvs_grh_departement" yvs_grh_departement ON yvs_grh_poste_de_travail."departement" = yvs_grh_departement."id"
+     INNER JOIN "public"."yvs_dictionnaire" yvs_dictionnaire ON yvs_grh_missions."lieu" = yvs_dictionnaire."id"
+INNER JOIN yvs_agences ag ON ag.id=yvs_grh_employes."agence" INNER JOIN yvs_societes s ON s.id=ag.societe LEFT OUTER JOIN yvs_dictionnaire di ON di.id=s.ville
+WHERE
+     yvs_grh_missions."id" = $P{ID}]]>
+	</queryString>
+	<field name="yvs_grh_missions_date_debut" class="java.sql.Date"/>
+	<field name="yvs_grh_employes_nom" class="java.lang.String"/>
+	<field name="yvs_grh_missions_date_fin" class="java.sql.Date"/>
+	<field name="yvs_grh_missions_ordre" class="java.lang.String"/>
+	<field name="yvs_grh_poste_de_travail_intitule" class="java.lang.String"/>
+	<field name="yvs_grh_departement_intitule" class="java.lang.String"/>
+	<field name="yvs_grh_employes_agence" class="java.lang.Long"/>
+	<field name="yvs_grh_missions_reference" class="java.lang.String"/>
+	<field name="yvs_dictionnaire_libele" class="java.lang.String"/>
+	<field name="yvs_grh_missions_lieu_escale" class="java.lang.String"/>
+	<field name="yvs_grh_missions_role_mission" class="java.lang.String"/>
+	<field name="yvs_grh_missions_transport" class="java.lang.String"/>
+	<field name="yvs_grh_missions_date_retour" class="java.sql.Date"/>
+	<field name="yvs_grh_missions_heure_depart" class="java.sql.Time"/>
+	<field name="yvs_grh_missions_heure_arrive" class="java.sql.Time"/>
+	<field name="libele" class="java.lang.String"/>
+	<variable name="duree" class="java.lang.Integer">
+		<variableExpression><![CDATA[$F{yvs_grh_missions_date_fin}-$F{yvs_grh_missions_date_debut}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="60" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="60" uuid="9451f375-d6c5-4d7c-b564-b7053017f8b6"/>
+				<subreportParameter name="AGENCE">
+					<subreportParameterExpression><![CDATA[$F{yvs_grh_employes_agence}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="IMG_LOGO">
+					<subreportParameterExpression><![CDATA[$P{IMG_LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="IMG_PHONE">
+					<subreportParameterExpression><![CDATA[$P{IMG_PHONE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="IMG_SIEGE">
+					<subreportParameterExpression><![CDATA[$P{IMG_SIEGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="TITRE">
+					<subreportParameterExpression><![CDATA[$P{TITRE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "entete_portrait.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="577" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="1" y="0" width="284" height="16" uuid="756c2459-ac71-463c-8fc6-cd763d025c8d"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_nom}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="18" width="45" height="16" uuid="45a830e8-bffe-4905-b349-5f1e50c61dd7"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Service : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="46" y="18" width="239" height="16" uuid="c80f249c-4edc-4ed5-bd9d-62e52cb73816"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{yvs_grh_departement_intitule}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="36" width="45" height="16" uuid="62f88508-63ad-4484-9fb4-c63827cf8a9a"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Qualité : ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="46" y="36" width="239" height="16" uuid="00011d7c-c69c-442a-9825-d5a1177b8dfb"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{yvs_grh_missions_role_mission}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="54" width="111" height="16" uuid="7683a8da-579b-4fcc-bbcb-939b0f3be419"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Est autorisé à se rendre ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="112" y="54" width="173" height="16" uuid="db1a79ef-9b2e-411e-904a-cbce98845eb1"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_dictionnaire_libele}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="72" width="18" height="16" uuid="fde13a67-ba12-42d1-9bd2-4b15a46211c5"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Via ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="19" y="72" width="266" height="16" uuid="dc341b8f-e163-44ac-800f-3e6e96f4055d"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{yvs_grh_missions_lieu_escale}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="1" y="90" width="284" height="79" uuid="a59b2be3-ac40-4c7e-abdd-906066ebbc15"/>
+				<textFieldExpression><![CDATA["Motif : "+$F{yvs_grh_missions_ordre}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="1" y="171" width="93" height="16" uuid="1bd9b474-3c1e-4c96-bfc6-d6384b6432a5"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Moyen de transport ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="94" y="171" width="461" height="16" uuid="c239ea0d-bf39-41f3-9cdc-961ed320d24e"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{yvs_grh_missions_transport}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0" isBlankWhenNull="true">
+				<reportElement x="529" y="189" width="26" height="16" uuid="076f6f21-d542-4b1c-a436-f778a5ef9a50"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{duree}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="429" y="189" width="100" height="16" uuid="85e7fd26-6ef5-408a-919d-6e69194f33bd"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Durée de la mission : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="1" y="189" width="63" height="16" uuid="b8d2f403-c494-44a5-82d6-a110374ef4a1"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Date départ : ]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="64" y="189" width="55" height="16" uuid="c143d158-2f68-4997-88e3-1b2522a93bb5"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_missions_date_debut}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="222" y="189" width="63" height="16" uuid="1d555741-3559-4e5b-bbff-2d1005c30c65"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Date retour : ]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="285" y="189" width="55" height="16" uuid="ab3fb161-1663-4a94-a50e-1a85d8f28af1"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_missions_date_fin}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="214" width="555" height="1" uuid="ee6147ab-8ba9-4173-835e-05b2b9b6975a"/>
+				<graphicElement>
+					<pen lineStyle="Dashed"/>
+				</graphicElement>
+			</line>
+			<componentElement>
+				<reportElement key="table" style="table" x="285" y="20" width="270" height="80" uuid="e9423194-0a86-4dac-9d7f-06202370e677"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="742ef7c0-2afd-43e3-a36c-68db11b5016f">
+						<datasetParameter name="MISSION">
+							<datasetParameterExpression><![CDATA[$P{ID}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DUREE">
+							<datasetParameterExpression><![CDATA[$V{duree}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="42" uuid="1d84a82a-96bd-4d3c-96b5-4aa2ae73f617">
+						<jr:tableHeader style="table_TH" height="16" rowSpan="1"/>
+						<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+						<jr:detailCell style="table_TD" height="17" rowSpan="1">
+							<textField pattern="###0" isBlankWhenNull="true">
+								<reportElement x="4" y="0" width="38" height="16" uuid="61a019a5-fd95-4179-9df8-190360a94dd8"/>
+								<textElement verticalAlignment="Middle"/>
+								<textFieldExpression><![CDATA[$V{COMPTEUR}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="286" uuid="b6e9a595-fabd-443c-8d32-098b3e78e3f9">
+						<jr:tableHeader style="table_TH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="286" height="16" uuid="9a2e838b-c2f1-4490-9e8d-fe38a8cb8ede"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[Titre]]></text>
+							</staticText>
+						</jr:tableHeader>
+						<jr:tableFooter style="table_TH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="216" height="16" uuid="74f6bce0-633f-44d4-85d9-3e26d5907cd4"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[Totaux]]></text>
+							</staticText>
+						</jr:tableFooter>
+						<jr:detailCell style="table_TD" height="17" rowSpan="1">
+							<textField>
+								<reportElement x="5" y="0" width="281" height="16" uuid="6a852364-a938-4ce8-904c-acb6239edd34"/>
+								<textElement verticalAlignment="Middle"/>
+								<textFieldExpression><![CDATA[$F{yvs_grh_type_cout_libelle}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="111" uuid="345e5364-c699-4c45-a63f-18f200e2ce33">
+						<jr:tableHeader style="table_TH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="111" height="16" uuid="ef2e48dd-44d8-4333-bdf3-e54203fab0a7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[Montant prévu]]></text>
+							</staticText>
+						</jr:tableHeader>
+						<jr:tableFooter style="table_TH" height="16" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="105" height="16" uuid="e29d5bfb-18e0-4aaa-a1a7-d7b548a72681"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SUM_TOTAL}]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:detailCell style="table_TD" height="17" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="105" height="16" uuid="aee0b23e-a3be-429c-87ab-ea47999a5a00"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle"/>
+								<textFieldExpression><![CDATA[$F{yvs_grh_frais_mission_montant}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="109" uuid="bc366d59-96fe-41da-8172-1655134d50ea">
+						<jr:tableHeader style="table_TH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="109" height="16" uuid="4c0e3f27-5986-4ba1-acf1-7b3dd872ab14"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[Montant engagé]]></text>
+							</staticText>
+						</jr:tableHeader>
+						<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+						<jr:detailCell style="table_TD" height="17" rowSpan="1"/>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<textField isBlankWhenNull="true">
+				<reportElement x="312" y="153" width="243" height="16" uuid="9168f850-3d5a-4c54-913e-8fd3aa900a67"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{MONTANT_CHIFFRE}+' Fcfa']]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="340" y="266" width="42" height="16" uuid="bc0d867f-07b6-4655-9606-a319d78d3ee0"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Avance : ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="386" y="280" width="150" height="1" uuid="205c9a3f-21cb-478c-b7cc-04c85f39edba"/>
+				<graphicElement>
+					<pen lineStyle="Dotted"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="285" y="137" width="200" height="16" uuid="7cb15751-dbe5-4449-9336-b03f5721b57c"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Arrêté le présent état ordre à la somme de ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="284" width="50" height="16" uuid="baadf1f0-5685-4003-8a28-448a46ff147e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Départ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="3" y="301" width="43" height="16" uuid="a71d0ddd-0951-4832-b4ff-13b613c36091"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Date : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="3" y="317" width="43" height="16" uuid="0c50b155-4558-4a79-8bb2-290d995a9dea"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Heure : ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="49" y="314" width="150" height="1" uuid="0dea47a1-c6cb-43ed-b398-620dd7866bac"/>
+				<graphicElement>
+					<pen lineStyle="Dashed"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="49" y="330" width="150" height="1" uuid="8873cb84-1a10-4546-9e51-b2f5c5768df8"/>
+				<graphicElement>
+					<pen lineStyle="Dashed"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="379" y="284" width="50" height="16" uuid="25052adb-e4e2-455e-85d2-c78f2d0e41f8"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true" isUnderline="true"/>
+				</textElement>
+				<text><![CDATA[Arrivée]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="340" y="301" width="42" height="16" uuid="9c888b29-99c2-46fb-89fa-573639132ccf"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Date : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="340" y="317" width="42" height="16" uuid="6a3a3c52-524d-457a-8ee4-4f3e29844982"/>
+				<text><![CDATA[Heure : ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="386" y="331" width="150" height="1" uuid="5c078151-54ec-413b-a797-1f575ee2bb5f"/>
+				<graphicElement>
+					<pen lineStyle="Dashed"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="386" y="315" width="150" height="1" uuid="47073359-5f44-4065-88af-1e1178e93bb5"/>
+				<graphicElement>
+					<pen lineStyle="Dashed"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="5" y="390" width="100" height="16" uuid="d783071d-b0a6-4233-be47-151787ee0eb7"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Exploitation]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="3" y="333" width="43" height="16" uuid="58f31d8c-1ac9-4b92-a988-5ac01d25cc68"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Visa :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="340" y="333" width="42" height="16" uuid="084bf8b4-4bbf-4ca5-a65c-c5291b02aa24"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Visa : ]]></text>
+			</staticText>
+			<line>
+				<reportElement x="386" y="346" width="150" height="1" uuid="e91f818c-71ef-4e7d-b684-29af04b3778c"/>
+				<graphicElement>
+					<pen lineStyle="Dashed"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement x="49" y="346" width="150" height="1" uuid="ee38efd6-5be9-40fd-8dbc-9fcc29f4d947"/>
+				<graphicElement>
+					<pen lineStyle="Dashed"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="212" y="390" width="100" height="16" uuid="f2f3cd69-1f44-4bdc-8f79-0336f9e7b4aa"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Contrôle de Gestion]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="429" y="390" width="100" height="16" uuid="5c965b17-2b6c-45c3-8f75-c88e50d287ce"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[DIrection]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="293" y="0" width="243" height="20" uuid="b92ef83b-c52b-4e45-bb0c-b5f9bdb6c7c7"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FRAIS ACCESSOIRES]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="138" y="368" width="281" height="16" uuid="b7ccfdbc-845e-493e-bc74-c9d4aa3c341f"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[($F{libele}!=null)?($F{libele}+", le "+new SimpleDateFormat("dd/MM/yyyy").format(new Date())):("imprimé le "+new SimpleDateFormat("dd/MM/yyyy").format(new Date()))]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<summary>
+		<band height="29"/>
+	</summary>
+</jasperReport>

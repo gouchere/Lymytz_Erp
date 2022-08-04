@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="dipe_rav" language="groovy" pageWidth="500" pageHeight="50" orientation="Landscape" columnWidth="500" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="683e2e6d-dc72-4032-aa58-a665d55f0564">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="montant" class="java.lang.Double"/>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_stat_grh_taux_contribution."libelle" AS yvs_stat_grh_taux_contribution_libelle,
+     yvs_stat_grh_taux_contribution."taux" AS yvs_stat_grh_taux_contribution_taux,
+     yvs_stat_grh_taux_contribution."etat" AS yvs_stat_grh_taux_contribution_etat
+FROM
+     "public"."yvs_stat_grh_etat" yvs_stat_grh_etat INNER JOIN "public"."yvs_stat_grh_taux_contribution" yvs_stat_grh_taux_contribution ON yvs_stat_grh_etat."id" = yvs_stat_grh_taux_contribution."etat"
+WHERE yvs_stat_grh_etat."code"='DIPE_FNE']]>
+	</queryString>
+	<field name="yvs_stat_grh_taux_contribution_libelle" class="java.lang.String"/>
+	<field name="yvs_stat_grh_taux_contribution_taux" class="java.lang.Double"/>
+	<field name="yvs_stat_grh_taux_contribution_etat" class="java.lang.Long"/>
+	<variable name="valeur" class="java.lang.Double">
+		<variableExpression><![CDATA[($P{montant}*$F{yvs_stat_grh_taux_contribution_taux})/100]]></variableExpression>
+	</variable>
+	<variable name="taux" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{yvs_stat_grh_taux_contribution_taux}]]></variableExpression>
+	</variable>
+	<detail>
+		<band height="23" splitType="Stretch">
+			<textField pattern="#,##0.00">
+				<reportElement x="372" y="0" width="100" height="20" uuid="8729b1ff-b4ad-497e-94b7-40185eaa3f0c"/>
+				<textFieldExpression><![CDATA[$V{valeur}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0.00 %">
+				<reportElement x="175" y="0" width="100" height="20" uuid="71897ee7-6249-4b2c-a96c-31262cee275a"/>
+				<textFieldExpression><![CDATA[$F{yvs_stat_grh_taux_contribution_taux}/100]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="14" y="0" width="100" height="20" uuid="ba11d141-5edf-4eb9-9b9e-df85e358488a"/>
+				<textFieldExpression><![CDATA[$F{yvs_stat_grh_taux_contribution_libelle}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

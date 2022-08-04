@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="factures_non_regle" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7ae130ee-2831-4ecc-9d48-b7c7e462d958">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString>
+		<![CDATA[SELECT SUM(cn.prix_total) total , d.num_doc, concat(c.nom,' ',c.prenom) nom_client,p.code,p.libelle point_vente, e.date_entete date_facture FROM yvs_com_doc_ventes d INNER JOIN yvs_com_entete_doc_vente e ON e.id=d.entete_doc INNER JOIN yvs_com_creneau_horaire_users cu ON cu.id=e.creneau INNER JOIN yvs_com_creneau_point cp ON cp.id=cu.creneau_point INNER JOIN yvs_base_point_vente p ON p.id=cp.point INNER JOIN yvs_agences a ON a.id=p.agence
+INNER JOIN yvs_com_client c ON d.client=c.id INNER JOIN yvs_com_contenu_doc_vente cn ON cn.doc_vente=d.id
+WHERE a.societe=2297 AND d.statut_regle!='P' AND d.type_doc IN('FV','BCV')
+GROUP BY d.num_doc, c.nom, c.prenom, p.code,p.libelle,e.date_entete,p.id
+ORDER BY p.id, d.num_doc ASC]]>
+	</queryString>
+	<field name="total" class="java.lang.Double"/>
+	<field name="num_doc" class="java.lang.String"/>
+	<field name="nom_client" class="java.lang.String"/>
+	<field name="code" class="java.lang.String"/>
+	<field name="point_vente" class="java.lang.String"/>
+	<field name="date_facture" class="java.sql.Date"/>
+	<group name="point_vente" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{point_vente}]]></groupExpression>
+		<groupHeader>
+			<band height="43">
+				<staticText>
+					<reportElement x="0" y="0" width="555" height="19" uuid="95950c89-935a-49bf-802a-bea483511e14"/>
+					<box leftPadding="3">
+						<topPen lineWidth="0.25"/>
+						<leftPen lineWidth="0.25"/>
+						<bottomPen lineWidth="0.25"/>
+						<rightPen lineWidth="0.25"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<text><![CDATA[LISTE DES FACTURES NON ENCORE REGLE ]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="0" y="19" width="151" height="24" uuid="1c0bfe08-a12d-47a6-98d9-7e928c835431"/>
+					<box leftPadding="3">
+						<topPen lineWidth="0.25"/>
+						<leftPen lineWidth="0.25"/>
+						<bottomPen lineWidth="0.25"/>
+						<rightPen lineWidth="0.25"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{point_vente}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupHeader>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="18" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="115" height="18" uuid="510c14d8-33e9-4fd0-939b-ba70b6d3d3ed"/>
+				<box leftPadding="4"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[Numéro]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="115" y="0" width="90" height="18" uuid="b622af2b-ac1b-4da2-a4fa-b89e213e9659"/>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="205" y="0" width="140" height="18" uuid="6464fa8d-0488-48a9-b033-95d86194b8b8"/>
+				<text><![CDATA[Clients]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="370" y="0" width="185" height="18" uuid="d263dfd3-07fd-4e50-961f-6e4e3bff5bae"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Montant]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="115" height="14" uuid="9220fb6d-98ab-475b-a464-6c854d3766e2"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{num_doc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="205" y="0" width="165" height="14" uuid="c63980bb-3975-4d80-b0d6-c4b157545344"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nom_client}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="370" y="0" width="185" height="14" uuid="9e3be1cb-2ff8-499b-9646-c49b3458a079"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{total}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="115" y="0" width="90" height="14" uuid="59211c90-cf7d-4f34-aed2-599f99e569ae"/>
+				<box leftPadding="3"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{date_facture}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="21" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="100" height="20" uuid="db89a984-c704-4285-911b-10f877829904"/>
+				<textElement verticalAlignment="Bottom">
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[By Lymytz]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+</jasperReport>

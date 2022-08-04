@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="all_fiche_ind" language="groovy" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="bc2b91ef-db62-40ad-abc7-e49181b20cbe">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ID_AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+	</parameter>
+	<parameter name="matricule1" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["I001"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="matricule2" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["I003"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/01/2018")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/12/2018")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["M"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_grh_employes."id" AS yvs_grh_employes_id,
+     yvs_grh_employes."agence" AS yvs_grh_employes_agence
+FROM
+     "public"."yvs_grh_employes" yvs_grh_employes
+WHERE yvs_grh_employes."agence"=$P{ID_AGENCE} AND (($P{matricule1} IS NOT NULL AND $P{matricule2} IS NULL AND yvs_grh_employes."matricule" >= $P{matricule1}) OR ($P{matricule1} IS NULL AND $P{matricule2} IS NOT NULL AND yvs_grh_employes."matricule" <= $P{matricule1}) OR
+(yvs_grh_employes."matricule" BETWEEN $P{matricule1} AND $P{matricule2}))
+GROUP BY yvs_grh_employes."id"
+ORDER BY yvs_grh_employes."matricule"]]>
+	</queryString>
+	<field name="yvs_grh_employes_id" class="java.lang.Long"/>
+	<field name="yvs_grh_employes_agence" class="java.lang.Long"/>
+	<group name="Employe" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{yvs_grh_employes_id}]]></groupExpression>
+		<groupHeader>
+			<band/>
+		</groupHeader>
+		<groupFooter>
+			<band/>
+		</groupFooter>
+	</group>
+	<detail>
+		<band height="579">
+			<subreport>
+				<reportElement x="0" y="0" width="595" height="579" isPrintWhenDetailOverflows="true" printWhenGroupChanges="Employe" uuid="33ae96e8-ab19-4d96-9256-28a6d1587537"/>
+				<subreportParameter name="DATE_FIN">
+					<subreportParameterExpression><![CDATA[$P{DATE_FIN}!=null?$P{DATE_FIN}:new Date()]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PERIODE">
+					<subreportParameterExpression><![CDATA[$P{PERIODE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DATE_DEBUT">
+					<subreportParameterExpression><![CDATA[$P{DATE_DEBUT}!=null?$P{DATE_DEBUT}:new Date()]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_EMPLOYE">
+					<subreportParameterExpression><![CDATA[$F{yvs_grh_employes_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "fiche_individuelle_excel.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="29">
+			<textField>
+				<reportElement x="449" y="0" width="80" height="20" uuid="808eb37f-f0ea-433d-9feb-1384b8e1aafc"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="529" y="0" width="40" height="20" uuid="7444c2e6-17fe-4890-8fd1-4755f3d014e2"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,866 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="brouillard_caisse_2_colonne" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a219c691-8013-4927-b969-8bea2dd6391b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#E6E5E5">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="bad26bc4-230a-45d5-a236-3bad63bdbf82">
+		<parameter name="CAISSE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[111]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/05/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/02/2019")]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT * FROM public.compta_et_brouillard_caisse($P{CAISSE}, $P{DATE_DEBUT}, $P{DATE_FIN}) WHERE numero != 'S.I'
+ORDER BY date_mvt,type DESC, numero, id]]>
+		</queryString>
+		<field name="id" class="java.lang.Long"/>
+		<field name="numero" class="java.lang.String"/>
+		<field name="date_mvt" class="java.sql.Date"/>
+		<field name="note" class="java.lang.String"/>
+		<field name="tiers" class="java.lang.String"/>
+		<field name="mode" class="java.lang.String"/>
+		<field name="montant" class="java.lang.Double"/>
+		<field name="type" class="java.lang.String"/>
+		<field name="solde" class="java.lang.Double"/>
+		<field name="solde_periode" class="java.lang.Double"/>
+		<field name="id_externe" class="java.lang.Long"/>
+		<field name="table_externe" class="java.lang.String"/>
+		<variable name="SOLDE" class="java.lang.Double">
+			<variableExpression><![CDATA[$F{solde}]]></variableExpression>
+		</variable>
+		<variable name="SOLDE_PERIODE" class="java.lang.Double">
+			<variableExpression><![CDATA[$F{solde_periode}]]></variableExpression>
+		</variable>
+		<variable name="DEPENSE_DATE" class="java.lang.Double" resetType="Group" resetGroup="date" calculation="Sum">
+			<variableExpression><![CDATA[!$F{type}.equals("RECETTE")?$F{montant}:0.0]]></variableExpression>
+		</variable>
+		<variable name="RECETTE_DATE" class="java.lang.Double" resetType="Group" resetGroup="date" calculation="Sum">
+			<variableExpression><![CDATA[$F{type}.equals("RECETTE")?$F{montant}:0.0]]></variableExpression>
+		</variable>
+		<group name="date">
+			<groupExpression><![CDATA[$F{date_mvt}]]></groupExpression>
+		</group>
+	</subDataset>
+	<subDataset name="Bon_Provisoire" uuid="37e4a417-77e1-41bc-82ec-0552696b81a6">
+		<parameter name="CAISSE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[111]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/05/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/02/2019")]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     yvs_users."nom_users" AS yvs_users_nom_users,
+     yvs_compta_bon_provisoire."beneficiaire" AS yvs_compta_bon_provisoire_beneficiaire,
+     yvs_compta_bon_provisoire."numero" AS yvs_compta_bon_provisoire_numero,
+     yvs_compta_bon_provisoire."date_bon" AS yvs_compta_bon_provisoire_date_bon,
+     yvs_compta_bon_provisoire."montant" AS yvs_compta_bon_provisoire_montant,
+     yvs_compta_bon_provisoire."description" AS yvs_compta_bon_provisoire_description
+FROM
+     "public"."yvs_compta_bon_provisoire" yvs_compta_bon_provisoire INNER JOIN "public"."yvs_users" yvs_users ON yvs_compta_bon_provisoire."ordonnateur" = yvs_users."id"
+WHERE
+     yvs_compta_bon_provisoire.statut_paiement = 'P'
+ AND yvs_compta_bon_provisoire.statut_justify != 'J'
+ AND yvs_compta_bon_provisoire.caisse = $P{CAISSE}
+ AND yvs_compta_bon_provisoire.date_payer BETWEEN $P{DATE_DEBUT} AND $P{DATE_FIN}]]>
+		</queryString>
+		<field name="yvs_users_nom_users" class="java.lang.String"/>
+		<field name="yvs_compta_bon_provisoire_beneficiaire" class="java.lang.String"/>
+		<field name="yvs_compta_bon_provisoire_numero" class="java.lang.String"/>
+		<field name="yvs_compta_bon_provisoire_date_bon" class="java.sql.Date"/>
+		<field name="yvs_compta_bon_provisoire_montant" class="java.lang.Double"/>
+		<field name="yvs_compta_bon_provisoire_description" class="java.lang.String"/>
+		<variable name="montant" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{yvs_compta_bon_provisoire_montant}]]></variableExpression>
+		</variable>
+	</subDataset>
+	<parameter name="CAISSE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[34]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/01/2020")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/01/2020")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["DOWES MBELLA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_base_caisse."intitule" AS yvs_base_caisse_intitule
+FROM
+     "public"."yvs_base_caisse" yvs_base_caisse
+WHERE
+     yvs_base_caisse."id" = $P{CAISSE}]]>
+	</queryString>
+	<field name="yvs_base_caisse_intitule" class="java.lang.String"/>
+	<variable name="DATE_LAST" class="java.util.Date">
+		<variableExpression><![CDATA[$P{DATE_DEBUT}-1]]></variableExpression>
+	</variable>
+	<columnHeader>
+		<band height="75" splitType="Stretch">
+			<textField>
+				<reportElement positionType="Float" x="0" y="54" width="273" height="20" uuid="ef993a0d-e918-428f-919b-87641f15cba6"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Caisse : "+$F{yvs_base_caisse_intitule}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="509" y="54" width="293" height="20" uuid="c2032b9a-a39a-4868-8042-e5cd9ef6e421"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Période du "+new SimpleDateFormat("dd MMM yyyy").format($P{DATE_DEBUT})+" Au "+new SimpleDateFormat("dd MMM yyyy").format($P{DATE_FIN})]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="0" width="802" height="51" uuid="3e651ee6-119b-4122-baa3-b4a8ca724163"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA["BROUILLARD DE CAISSE"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$P{AGENCE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport_paysage.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="231" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table" style="table" x="0" y="30" width="802" height="21" uuid="06796f62-904b-4be5-87a6-34af900ce62b"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="6e5a1e57-6d51-4b1a-8a11-8bc165868dc9">
+						<datasetParameter name="CAISSE">
+							<datasetParameterExpression><![CDATA[$P{CAISSE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_FIN">
+							<datasetParameterExpression><![CDATA[$P{DATE_FIN}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_DEBUT">
+							<datasetParameterExpression><![CDATA[$P{DATE_DEBUT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:columnGroup width="801" uuid="bb385bdd-d652-42ca-85cb-3b6d947ffb13">
+						<jr:groupHeader groupName="date">
+							<jr:cell height="18" rowSpan="1">
+								<textField pattern="EEEEE dd MMMMM yyyy" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="801" height="18" uuid="44f303f0-7613-46d5-add9-5d0ef57ed54c"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{date_mvt}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:column width="117" uuid="85982417-9b71-4317-bf5f-b05fbbbc3331">
+							<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+							<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="117" height="16" uuid="faf0d203-85ac-4661-bcfb-6e0bbcc38194"/>
+									<box leftPadding="5"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans"/>
+									</textElement>
+									<text><![CDATA[NUMERO]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="117" height="15" uuid="ec25560e-b745-4a0d-8615-d6577fed1c94"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{numero}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="190" uuid="3764fcaf-7d39-49c8-8101-4246084c626f">
+							<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+							<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="190" height="16" uuid="f0c7342f-8535-4bac-ade8-550184694090"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans"/>
+									</textElement>
+									<text><![CDATA[NOTE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="190" height="15" uuid="ad652dd0-c6c4-4aae-8a4b-922074c49efa"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{note}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="137" uuid="7ade7d48-a443-4435-951b-315a89384949">
+							<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+							<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="137" height="16" uuid="ebd21f30-0e97-4570-926c-7401e9745878"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans"/>
+									</textElement>
+									<text><![CDATA[TIERS]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="137" height="15" uuid="50413d97-87b8-4895-9c94-7d7288b4ca0c"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{tiers}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="62" uuid="070d5eca-6387-4354-9cd8-1c3607acd08a">
+							<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+							<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="62" height="16" uuid="88120c82-a9ef-4f65-bd17-7e7315ea3f81"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans"/>
+									</textElement>
+									<text><![CDATA[MODE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="62" height="15" uuid="7bd838fb-333c-4c4f-bea6-e03c0311e0d4"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{mode}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="72" uuid="3fe39715-3c36-4a05-b7fd-1a9dced88171">
+							<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+							<jr:groupFooter groupName="date">
+								<jr:cell style="table_TD" height="20" rowSpan="1">
+									<textField pattern="#,##0" isBlankWhenNull="true">
+										<reportElement x="0" y="0" width="72" height="20" uuid="e9899a0e-1339-44bd-93fe-cb6ed5e16ee9"/>
+										<box rightPadding="5"/>
+										<textElement textAlignment="Right" verticalAlignment="Middle">
+											<font fontName="DejaVu Sans" size="9" isBold="true"/>
+										</textElement>
+										<textFieldExpression><![CDATA[$V{RECETTE_DATE}]]></textFieldExpression>
+									</textField>
+								</jr:cell>
+							</jr:groupFooter>
+							<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="72" height="16" uuid="06396be3-f08c-4290-b619-a0a02c996bc6"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans"/>
+									</textElement>
+									<text><![CDATA[RECETTE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="72" height="15" uuid="4921fed8-fe43-4d60-a40c-958945d5c590"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{type}.equals("RECETTE")?$F{montant}:null]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="70" uuid="2aa65eaa-f165-4612-b3e7-ce938fc0222c">
+							<jr:tableFooter style="table_TH" height="16" rowSpan="1"/>
+							<jr:groupFooter groupName="date">
+								<jr:cell style="table_TD" height="20" rowSpan="1">
+									<textField pattern="#,##0" isBlankWhenNull="true">
+										<reportElement x="0" y="0" width="70" height="20" uuid="df11cdbc-f186-4049-bb0b-a903b7b04a7b"/>
+										<box rightPadding="5"/>
+										<textElement textAlignment="Right" verticalAlignment="Middle">
+											<font fontName="DejaVu Sans" size="9" isBold="true"/>
+										</textElement>
+										<textFieldExpression><![CDATA[$V{DEPENSE_DATE}]]></textFieldExpression>
+									</textField>
+								</jr:cell>
+							</jr:groupFooter>
+							<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="70" height="16" uuid="4c402391-f8a5-41d3-9761-217bd05670f4"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans"/>
+									</textElement>
+									<text><![CDATA[DEPENSE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="70" height="15" uuid="2c3dbb04-2335-4335-a7ab-d8c372fff339"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9"/>
+									</textElement>
+									<textFieldExpression><![CDATA[!$F{type}.equals("RECETTE")?$F{montant}:null]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="68" uuid="b6f96e84-5ab4-4ee1-9bdf-17ed95cbe4a4">
+							<jr:tableFooter style="table_TH" height="16" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="68" height="16" uuid="267542e0-5321-46ce-9336-6423fcfd13fc"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="7" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{SOLDE_PERIODE}]]></textFieldExpression>
+								</textField>
+							</jr:tableFooter>
+							<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="68" height="16" uuid="535b0a79-865a-48aa-981d-f9aaebb3553e"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans"/>
+									</textElement>
+									<text><![CDATA[S.P]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter height="0" rowSpan="1"/>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="68" height="15" uuid="d47b8459-71e4-4415-9cc9-aff23e196b71"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{solde_periode}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="85" uuid="47815ac4-5a14-4a54-8354-4585e4a5e908">
+							<jr:tableFooter style="table_TH" height="16" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="85" height="16" uuid="3a4a9321-7f04-43fb-b91e-21ea4d25850d"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{SOLDE}]]></textFieldExpression>
+								</textField>
+							</jr:tableFooter>
+							<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="85" height="16" uuid="ff182094-596f-494b-86e7-29f922eef56b"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans"/>
+									</textElement>
+									<text><![CDATA[SOLDE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="85" height="15" uuid="da2d12ef-1fe2-4ede-9c27-70ec5ed71ca8"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{solde}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+				</jr:table>
+			</componentElement>
+			<componentElement>
+				<reportElement key="table 1" style="table" positionType="Float" x="1" y="67" width="802" height="21" uuid="75dc656d-010b-45d4-b54b-d8aa8a2352f4"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Bon_Provisoire" uuid="432591fb-b05f-4f80-810c-5d7b567bb648">
+						<datasetParameter name="CAISSE">
+							<datasetParameterExpression><![CDATA[$P{CAISSE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_FIN">
+							<datasetParameterExpression><![CDATA[$P{DATE_FIN}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_DEBUT">
+							<datasetParameterExpression><![CDATA[$P{DATE_DEBUT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:columnGroup width="800" uuid="faba2a7a-fa3f-4723-974e-ff345dee9439">
+						<jr:tableHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="800" height="15" uuid="b4ea3111-367b-49e5-9537-2d8af0d15ef5"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[BON PROVISOIRE DE LA PERIODE]]></text>
+							</staticText>
+						</jr:tableHeader>
+						<jr:column width="90" uuid="ead14b50-f0f2-46c6-a12a-7f17d4abab82">
+							<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="90" height="15" uuid="950b6bf7-8c47-4beb-836e-b96ea9dad3b1"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle"/>
+									<text><![CDATA[NUMERO]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_TH" height="15" rowSpan="1"/>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="90" height="15" uuid="2a390c72-e7ad-44ff-b099-94db9c06fb68"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_compta_bon_provisoire_numero}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="90" uuid="9e4f9865-811f-418f-b993-ca1767018a87">
+							<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="90" height="15" uuid="41f1dc96-430a-49e4-8050-ab726d2439f6"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle"/>
+									<text><![CDATA[DATE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_TH" height="15" rowSpan="1"/>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="90" height="15" uuid="3dafdb8a-0a92-4990-bb8f-bfe28f35a06b"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_compta_bon_provisoire_date_bon}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="137" uuid="51534162-eea7-4870-b597-8cee9072cdfa">
+							<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="137" height="15" uuid="15b7a8d3-2855-4cdf-99bd-dbc26c13dd97"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle"/>
+									<text><![CDATA[BENEFICIAIRE]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_TH" height="15" rowSpan="1"/>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="137" height="15" uuid="1f60a947-c473-475f-919e-43c5ed6a3d78"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_compta_bon_provisoire_beneficiaire}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="138" uuid="c05a2013-9fb8-41b7-8950-1e86f00d30ec">
+							<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="138" height="15" uuid="644dad01-89b2-434e-8986-3f38c94726db"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle"/>
+									<text><![CDATA[ORDONATEUR]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_TH" height="15" rowSpan="1"/>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="138" height="15" uuid="5607a031-58cc-4fdd-8e52-09153acd0f0e"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_users_nom_users}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="247" uuid="00272710-0944-4073-9746-60dca67c8277">
+							<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="247" height="15" uuid="e3b02fc4-a72d-4703-b164-55b37d02d09e"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle"/>
+									<text><![CDATA[DESCRIPTION]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_TH" height="15" rowSpan="1"/>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="247" height="15" uuid="f0e5811f-54fd-4135-9edd-d70e0a12e44d"/>
+									<box leftPadding="5" rightPadding="0"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_compta_bon_provisoire_description}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="98" uuid="c376f226-9578-406c-a23f-510d3e01708b">
+							<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+								<staticText>
+									<reportElement x="0" y="0" width="98" height="15" uuid="802c5081-5abd-483c-b6ee-e2982eae7bf6"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle"/>
+									<text><![CDATA[MONTANT]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:columnFooter style="table_TH" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="98" height="15" uuid="634b6ccc-0ae6-4456-a380-69525652a0ae"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{montant}]]></textFieldExpression>
+								</textField>
+							</jr:columnFooter>
+							<jr:detailCell style="table_TD" height="15" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="98" height="15" uuid="bff52fc8-5973-46f9-96b7-85c3c25dba87"/>
+									<box leftPadding="0" rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_compta_bon_provisoire_montant}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+				</jr:table>
+			</componentElement>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="1" y="104" width="802" height="1" uuid="8c2e4ac2-7171-4664-b91b-e1b659d1568f"/>
+				<graphicElement>
+					<pen lineStyle="Dashed"/>
+				</graphicElement>
+			</line>
+			<rectangle>
+				<reportElement positionType="FixRelativeToBottom" x="1" y="107" width="802" height="121" uuid="00e4e970-b2a8-4379-a685-bce0004bac61"/>
+			</rectangle>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="337" y="115" width="125" height="16" uuid="e296acb1-cac9-472f-bd6c-3c4cf75e2324"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[BILLETAGE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="14" y="153" width="185" height="16" uuid="4dd07b10-e181-40ab-a3c3-4c994881f34a"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[5 000]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="14" y="169" width="185" height="16" uuid="5532ea2d-cc74-42c9-b48d-5b807912c0d2"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[2 000]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="14" y="137" width="185" height="16" uuid="a060b302-f817-41a9-a64d-cfe40e4a651d"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[10 000]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="14" y="185" width="185" height="16" uuid="21652c68-8f8b-495b-b6fb-aa075fa8bfdc"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[1 000]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="14" y="201" width="185" height="16" uuid="6c88ca43-769a-42d2-a0d6-a877a3c8f514"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[500]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="199" y="137" width="185" height="16" uuid="19fe68f6-7e23-498a-b2cd-a7d3330a1598"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="199" y="153" width="185" height="16" uuid="3d6179b8-0672-4c56-8568-7aafa1b38420"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="199" y="169" width="185" height="16" uuid="4c23dcef-e855-4d11-8eba-8c38c820401e"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="199" y="185" width="185" height="16" uuid="5a909a5b-3efc-4339-8bdb-5e4c4785fec8"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="199" y="201" width="185" height="16" uuid="20078b71-fd07-46da-ab33-0cb4cbfb07eb"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="416" y="137" width="185" height="16" uuid="fbef3030-c5c4-4a76-b1a8-e91ee667dbb1"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[500]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="416" y="153" width="185" height="16" uuid="88eba497-3ad7-4459-a4fb-5397f06bfcdd"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[100]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="416" y="169" width="185" height="16" uuid="c4626ad4-1a55-4edf-8be2-ea346e4d18b9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[50]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="416" y="185" width="185" height="16" uuid="402d66f5-983d-4cdb-b970-2677b093e865"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[25]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="416" y="201" width="185" height="16" uuid="df8d45b5-1e72-4ec1-8d85-91fc99493702"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<text><![CDATA[10]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="601" y="137" width="185" height="16" uuid="e8c07edb-a50c-4093-adf4-ae8192bec49e"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="601" y="153" width="185" height="16" uuid="a700c46b-0e98-49fd-82af-f1348e8899ab"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="601" y="169" width="185" height="16" uuid="806e6da1-096d-40e9-ba0c-93f4d070b139"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="601" y="185" width="185" height="16" uuid="1bd43f6c-99c9-4cc0-87ec-53b4749aca3a"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="601" y="201" width="185" height="16" uuid="9f11df34-f191-48a1-9fac-7273223b71a4"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="633" y="0" width="168" height="28" uuid="3a8e76a0-8859-48c5-8262-5149cad56308"/>
+				<subreportParameter name="DATE">
+					<subreportParameterExpression><![CDATA[$V{DATE_LAST}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CAISSE">
+					<subreportParameterExpression><![CDATA[$P{CAISSE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "solde_initial.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField>
+				<reportElement x="331" y="0" width="80" height="20" uuid="3f34f232-5730-43cf-ab3b-46ac858f1109"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+"/"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="411" y="0" width="40" height="20" uuid="b34c093d-c5c9-4dc7-9cde-d2c7239a754f"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

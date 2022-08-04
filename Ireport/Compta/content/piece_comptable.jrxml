@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="piece_comptable" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a219c691-8013-4927-b969-8bea2dd6391b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#E6E5E5">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="bad26bc4-230a-45d5-a236-3bad63bdbf82">
+		<parameter name="ID" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[18]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     yvs_base_plan_comptable."num_compte" AS yvs_base_plan_comptable_num_compte,
+     yvs_base_tiers."id" AS yvs_base_tiers_id,
+     yvs_base_tiers."code_tiers" AS yvs_base_tiers_code_tiers,
+     yvs_compta_content_journal."jour" AS yvs_compta_content_journal_jour,
+     yvs_compta_content_journal."num_ref" AS yvs_compta_content_journal_num_piece,
+     yvs_compta_content_journal."libelle" AS yvs_compta_content_journal_libelle,
+     yvs_compta_content_journal."debit" AS yvs_compta_content_journal_debit,
+     yvs_compta_content_journal."credit" AS yvs_compta_content_journal_credit,
+     yvs_compta_content_journal."piece" AS yvs_compta_content_journal_piece,
+     yvs_compta_content_journal."numero" AS yvs_compta_content_journal_numero
+FROM
+     "public"."yvs_compta_content_journal" yvs_compta_content_journal
+     LEFT JOIN "public"."yvs_base_tiers" yvs_base_tiers ON yvs_compta_content_journal."compte_tiers" = yvs_base_tiers."id"
+     INNER JOIN "public"."yvs_base_plan_comptable" yvs_base_plan_comptable ON yvs_base_plan_comptable."id" = yvs_compta_content_journal."compte_general"
+WHERE
+      yvs_compta_content_journal."piece" = $P{ID}
+ORDER BY
+     yvs_compta_content_journal."numero",
+     yvs_compta_content_journal."debit" DESC,
+     yvs_compta_content_journal."credit" DESC]]>
+		</queryString>
+		<field name="yvs_base_plan_comptable_num_compte" class="java.lang.String"/>
+		<field name="yvs_base_tiers_id" class="java.lang.Long"/>
+		<field name="yvs_base_tiers_code_tiers" class="java.lang.String"/>
+		<field name="yvs_compta_content_journal_jour" class="java.lang.Integer"/>
+		<field name="yvs_compta_content_journal_num_piece" class="java.lang.String"/>
+		<field name="yvs_compta_content_journal_libelle" class="java.lang.String"/>
+		<field name="yvs_compta_content_journal_debit" class="java.lang.Double"/>
+		<field name="yvs_compta_content_journal_credit" class="java.lang.Double"/>
+		<field name="yvs_compta_content_journal_piece" class="java.lang.Long"/>
+		<field name="yvs_compta_content_journal_numero" class="java.lang.Integer"/>
+		<variable name="Credit" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{yvs_compta_content_journal_debit}]]></variableExpression>
+		</variable>
+		<variable name="Debit" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{yvs_compta_content_journal_debit}]]></variableExpression>
+		</variable>
+	</subDataset>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["DOWES MBELLA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[21]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_compta_pieces_comptable."num_piece" AS yvs_compta_pieces_comptable_num_piece,
+     yvs_compta_pieces_comptable."date_piece" AS yvs_compta_pieces_comptable_date_piece,
+     yvs_compta_pieces_comptable."date_saisie" AS yvs_compta_pieces_comptable_date_saisie,
+     yvs_compta_pieces_comptable."exercice" AS yvs_compta_pieces_comptable_exercice,
+     yvs_compta_journaux."code_journal" AS yvs_compta_journaux_code_journal,
+     yvs_compta_journaux."agence" AS yvs_compta_journaux_agence,
+     yvs_agences."societe" AS yvs_agences_societe
+FROM
+     "public"."yvs_compta_journaux" yvs_compta_journaux INNER JOIN "public"."yvs_compta_pieces_comptable" yvs_compta_pieces_comptable ON yvs_compta_journaux."id" = yvs_compta_pieces_comptable."journal"
+     INNER JOIN "public"."yvs_agences" yvs_agences ON yvs_compta_journaux."agence" = yvs_agences."id"
+WHERE
+    yvs_compta_pieces_comptable."id" = $P{ID}]]>
+	</queryString>
+	<field name="yvs_compta_pieces_comptable_num_piece" class="java.lang.String"/>
+	<field name="yvs_compta_pieces_comptable_date_piece" class="java.sql.Date"/>
+	<field name="yvs_compta_pieces_comptable_date_saisie" class="java.sql.Date"/>
+	<field name="yvs_compta_pieces_comptable_exercice" class="java.lang.Long"/>
+	<field name="yvs_compta_journaux_code_journal" class="java.lang.String"/>
+	<field name="yvs_compta_journaux_agence" class="java.lang.Long"/>
+	<field name="yvs_agences_societe" class="java.lang.Integer"/>
+	<title>
+		<band height="51" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="802" height="51" uuid="3e651ee6-119b-4122-baa3-b4a8ca724163"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA["PIECE N° "+$F{yvs_compta_pieces_comptable_num_piece}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_compta_journaux_agence}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport_paysage.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="22" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="2" width="321" height="20" uuid="ef993a0d-e918-428f-919b-87641f15cba6"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Date Piece "+new SimpleDateFormat("dd MMM yyyy").format($F{yvs_compta_pieces_comptable_date_piece})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="612" y="2" width="190" height="20" uuid="c2032b9a-a39a-4868-8042-e5cd9ef6e421"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Date Saisie "+new SimpleDateFormat("dd MMM yyyy").format($F{yvs_compta_pieces_comptable_date_saisie})]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="180" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table" style="table" x="0" y="0" width="802" height="180" uuid="93f5a124-f661-44fe-8b88-7a06c8e1bdfe"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="f8bfd7a0-6b7a-4f83-976c-11145ef15a59">
+						<datasetParameter name="ID">
+							<datasetParameterExpression><![CDATA[$P{ID}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="47" uuid="3db1654d-799f-4e18-be86-bfd2eb7b80b9">
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="47" height="15" uuid="88c1e61f-cf67-4e74-8f0a-3442e7e015bf"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[JOUR]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="47" height="15" uuid="e35521af-730c-449c-9539-21af47ec5ff4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_compta_content_journal_jour}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="117" uuid="c452b515-d259-491c-adc0-7e87edd9d476">
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="117" height="15" uuid="9da2d363-ef2d-408e-9015-d02c9d036aca"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[N°PIECE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="117" height="15" uuid="5344491f-fce6-46cf-b39d-e8445541991a"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_compta_content_journal_num_piece}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="90" uuid="0ff43eb9-48cd-4c93-b5a7-471222061870">
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="90" height="15" uuid="00195d4b-d72f-4999-b782-7f336e4ba9ed"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[COMPTE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="90" height="15" uuid="09b8221e-dc1a-4ede-b6f8-730d90940dc2"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_plan_comptable_num_compte}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="90" uuid="93416f75-f22b-44b8-bc5e-920ef80928a2">
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="90" height="15" uuid="1b8b4f24-cf3c-415e-bba8-597a2fc45071"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[TIERS]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="90" height="15" uuid="15c7ee7c-2abb-419b-a82d-26df5912b92f"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_base_tiers_code_tiers}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="277" uuid="fab6c4e1-5da0-40c6-abc7-1386949681e7">
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="277" height="15" uuid="5b31bc92-d82b-4fab-b69d-0646616d00b3"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[LIBELLE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="277" height="15" uuid="237b63fe-9359-44a1-9c3a-ea2bebdd0c89"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_compta_content_journal_libelle}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="90" uuid="ce409662-85f0-4a8a-85d5-9220c82570e5">
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="90" height="15" uuid="a2303936-1efd-455d-af98-0550013c30b6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[DEBIT]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:columnFooter style="table_TH" height="16" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="90" height="16" uuid="d546335a-29ee-4652-9a10-860acb07df1a"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{Debit}==0.0?null:$V{Debit}]]></textFieldExpression>
+							</textField>
+						</jr:columnFooter>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="90" height="15" uuid="94518976-7fd5-4429-a28e-5da4459d1b4a"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_compta_content_journal_debit}==0.0?null:$F{yvs_compta_content_journal_debit}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="90" uuid="ad62e21f-2b2c-457e-bda9-e69883289080">
+						<jr:columnHeader style="table_CH" height="15" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="90" height="15" uuid="237d6d3d-d8af-4010-a32e-afa034b75d01"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" isBold="true"/>
+								</textElement>
+								<text><![CDATA[CREDIT]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:columnFooter style="table_TH" height="16" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="90" height="16" uuid="7901c4df-9327-4254-9b7f-2f92aaab58d3"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{Credit}==0.0?null:$V{Credit}]]></textFieldExpression>
+							</textField>
+						</jr:columnFooter>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="90" height="15" uuid="2f82f187-1782-43c3-b841-5fb20709f538"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{yvs_compta_content_journal_credit}==0.0?null:$F{yvs_compta_content_journal_credit}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField>
+				<reportElement x="331" y="0" width="80" height="20" uuid="3f34f232-5730-43cf-ab3b-46ac858f1109"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+"/"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="411" y="0" width="40" height="20" uuid="b34c093d-c5c9-4dc7-9cde-d2c7239a754f"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

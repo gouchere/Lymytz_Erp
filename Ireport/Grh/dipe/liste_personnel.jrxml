@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="information_personnel" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="0f2650bd-af2c-4469-8c80-19044723b900">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="NAME_AGENCE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["AGENCE DE DOUALA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NAME_SOCIETE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["CCO Sa"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Avril 2017"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CURRENT_DATE" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("22/05/2017")]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     distinct(yvs_grh_employes."id") as yvs_grh_employes_id,
+     concat(yvs_grh_employes."nom",' ',yvs_grh_employes."prenom") AS yvs_grh_employes_nom,
+    (SELECT (12* EXTRACT(YEAR FROM age($P{CURRENT_DATE}, yvs_grh_employes."date_embauche"))::INTEGER) + (EXTRACT(MONTH FROM age($P{CURRENT_DATE}, yvs_grh_employes."date_embauche"))::INTEGER)) AS yvs_grh_employes_anciennete,
+     yvs_grh_employes."date_naissance" AS yvs_grh_employes_date_naissance,
+     yvs_grh_employes."matricule" AS yvs_grh_employes_matricule,
+     yvs_grh_employes."etat_civil" AS yvs_grh_employes_etat_civil,
+     yvs_grh_categorie_professionelle."categorie" AS yvs_grh_categorie_professionelle_categorie,
+     yvs_grh_echelons."echelon" AS yvs_grh_echelons_echelon,
+     yvs_grh_employes."date_embauche" AS yvs_grh_employes_date_embauche,
+     yvs_grh_poste_de_travail."intitule" AS yvs_grh_poste_de_travail_intitule,
+     yvs_grh_departement."intitule" AS yvs_grh_departement_intitule,
+     yvs_grh_employes."matricule_cnps" AS yvs_grh_employes_matricule_cnps
+FROM
+     "public"."yvs_grh_categorie_professionelle" yvs_grh_categorie_professionelle INNER JOIN "public"."yvs_grh_convention_collective" yvs_grh_convention_collective ON yvs_grh_categorie_professionelle."id" = yvs_grh_convention_collective."categorie"
+     INNER JOIN "public"."yvs_grh_convention_employe" yvs_grh_convention_employe ON yvs_grh_convention_collective."id" = yvs_grh_convention_employe."convention"
+     INNER JOIN "public"."yvs_grh_echelons" yvs_grh_echelons ON yvs_grh_convention_collective."echellon" = yvs_grh_echelons."id"
+     INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_convention_employe."employe" = yvs_grh_employes."id"
+     INNER JOIN "public"."yvs_grh_poste_de_travail" yvs_grh_poste_de_travail ON yvs_grh_employes."poste_actif" = yvs_grh_poste_de_travail."id"
+     INNER JOIN "public"."yvs_grh_departement" yvs_grh_departement ON yvs_grh_poste_de_travail."departement" = yvs_grh_departement."id"
+WHERE
+     yvs_grh_employes."agence" = $P{ID_AGENCE}
+ORDER BY yvs_grh_employes_matricule]]>
+	</queryString>
+	<field name="yvs_grh_employes_id" class="java.lang.Long"/>
+	<field name="yvs_grh_employes_nom" class="java.lang.String"/>
+	<field name="yvs_grh_employes_anciennete" class="java.lang.Integer"/>
+	<field name="yvs_grh_employes_date_naissance" class="java.sql.Date"/>
+	<field name="yvs_grh_employes_matricule" class="java.lang.String"/>
+	<field name="yvs_grh_employes_etat_civil" class="java.lang.String"/>
+	<field name="yvs_grh_categorie_professionelle_categorie" class="java.lang.String"/>
+	<field name="yvs_grh_echelons_echelon" class="java.lang.String"/>
+	<field name="yvs_grh_employes_date_embauche" class="java.sql.Date"/>
+	<field name="yvs_grh_poste_de_travail_intitule" class="java.lang.String"/>
+	<field name="yvs_grh_departement_intitule" class="java.lang.String"/>
+	<field name="yvs_grh_employes_matricule_cnps" class="java.lang.String"/>
+	<pageHeader>
+		<band height="75">
+			<rectangle>
+				<reportElement x="0" y="0" width="555" height="48" uuid="13cb2a05-dacb-4d4a-a431-abf800081bf2"/>
+				<graphicElement>
+					<pen lineWidth="0.25"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement x="47" y="54" width="240" height="14" uuid="7aae9a49-a252-459f-bf60-a95728d82569"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{NAME_SOCIETE}+" "+$P{NAME_AGENCE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="54" width="47" height="16" uuid="01dbfa68-cd84-413e-b470-b34822fceebc"/>
+				<text><![CDATA[Société : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="89" y="32" width="100" height="14" uuid="ca423972-96ba-44bb-b0fd-f7e8051b07a8"/>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{PERIODE}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="8" y="32" width="81" height="16" uuid="a841eb16-8cd9-4e33-8ac0-0aed7ffad7c9"/>
+				<text><![CDATA[Période : ]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="89" y="0" width="100" height="16" uuid="0d329f2b-7cda-42bf-8652-50744b532886"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField pattern="HH.mm">
+				<reportElement x="89" y="16" width="100" height="16" uuid="805f24a1-3feb-4fd5-b84c-b677ead211c6"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="8" y="16" width="81" height="16" uuid="a7925dbf-6841-46ef-8f64-cef5d9df11f4"/>
+				<text><![CDATA[Heure : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="8" y="0" width="81" height="16" uuid="11842ac9-00c6-449d-a364-4f41e6891673"/>
+				<text><![CDATA[Date du jour : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="199" y="16" width="284" height="20" uuid="32f562af-144c-40cb-8a4a-975a7a1105fe"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[LISTE DU PERSONNEL]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="17">
+			<staticText>
+				<reportElement x="-1" y="0" width="23" height="16" uuid="5581a147-0927-4350-b240-60101af54581"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Mat]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="21" y="0" width="100" height="16" uuid="c680c7ff-28fa-4075-85ff-e10140ec8ea6"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Noms & Prénoms]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="120" y="0" width="46" height="16" uuid="eb509fd7-5198-4b64-b331-bc9bb9044552"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Sit. Famil]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="165" y="0" width="20" height="16" uuid="2e767b17-cd36-46c4-bd46-259ee306b2a5"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[CAT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="183" y="0" width="20" height="16" uuid="00d4c90b-1f50-4a8e-abed-59fa318d58cf"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ECH]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="203" y="0" width="30" height="16" uuid="81cc8cde-7974-4162-91f4-39b593f0a430"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Ancie.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="233" y="0" width="54" height="16" uuid="437f0f83-e918-4cae-a2d8-0d3481c9c733"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[N° CNPS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="287" y="0" width="50" height="16" uuid="5bbd453c-9464-488b-9ab4-cfbf1b686307"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date Nais]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="337" y="0" width="50" height="16" uuid="ff3ac985-14b2-4342-927c-8e56362a15fa"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date Emb]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="387" y="0" width="78" height="16" uuid="97304ce7-ceed-446c-9cfc-658f57e275c9"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Emploi occupé]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="465" y="0" width="90" height="16" uuid="0dfaef30-588e-4ddf-853a-2d1d8497fde5"/>
+				<box>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Service/Unité]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="16">
+			<textField isBlankWhenNull="true">
+				<reportElement x="-1" y="0" width="22" height="16" uuid="9cc53e66-1f04-4b66-a9f6-e0c1985e60ce"/>
+				<box leftPadding="2">
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_matricule}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="21" y="0" width="100" height="16" uuid="fd24ac5b-da0f-4194-9f22-43503c364ea4"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_nom}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="120" y="0" width="45" height="16" uuid="787aaae7-d0f1-4944-8869-95aaf67f5e20"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_etat_civil}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="165" y="0" width="20" height="16" uuid="11645047-46c9-42dd-8283-c57e82e0c76d"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_categorie_professionelle_categorie}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="183" y="0" width="20" height="16" uuid="d1552db7-0bc1-4b70-8d2b-5fbf9979282a"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_echelons_echelon}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="203" y="0" width="25" height="16" uuid="286523cd-8505-4588-acff-c8c4ce26cf29"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_anciennete}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="233" y="0" width="54" height="16" uuid="3a01fc62-69be-4f05-bd5b-105662242151"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_matricule_cnps}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="287" y="0" width="45" height="16" uuid="4000faaa-bd4f-43fb-91a8-f0aa4e6834e8"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_date_naissance}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="337" y="0" width="45" height="16" uuid="0914e965-0893-4f16-b65d-73481b181ad3"/>
+				<box>
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_date_embauche}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="387" y="0" width="78" height="16" uuid="ab455f63-e531-4193-89f5-e27028035927"/>
+				<box leftPadding="4">
+					<leftPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_poste_de_travail_intitule}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="465" y="0" width="90" height="16" uuid="f8673ce4-36e5-486a-8219-3724caf54d87"/>
+				<box leftPadding="4">
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_grh_departement_intitule}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="22">
+			<textField>
+				<reportElement x="435" y="0" width="80" height="20" uuid="d3923e41-9b43-4cb1-88f7-678a297ce6fe"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="515" y="0" width="40" height="20" uuid="127741fa-56c9-4ab3-a176-25a47a1d6dcd"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

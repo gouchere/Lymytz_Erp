@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="pc_virement" language="groovy" pageWidth="612" pageHeight="792" columnWidth="572" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="066f44ab-9783-4b06-adb1-d9e734332870">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[16304]]></defaultValueExpression>
+	</parameter>
+	<parameter name="MONTANT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Vingt mille trois cent"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IMG_PAYE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_compta_caisse_piece_virement."id" AS yvs_compta_caisse_piece_virement_id,
+     yvs_compta_caisse_piece_virement."montant" AS yvs_compta_caisse_piece_virement_montant,
+     yvs_compta_caisse_piece_virement."source" AS yvs_compta_caisse_piece_virement_source,
+     yvs_compta_caisse_piece_virement."date_piece" AS yvs_compta_caisse_piece_virement_date_piece,
+     yvs_compta_caisse_piece_virement."date_paiement" AS yvs_compta_caisse_piece_virement_date_paiement,
+     yvs_compta_caisse_piece_virement."caissier_cible" AS yvs_compta_caisse_piece_virement_caissier_cible,
+     source."intitule" AS source_intitule,
+     cible."intitule" AS cible_intitule,
+     yvs_compta_caisse_piece_virement."cible" AS yvs_compta_caisse_piece_virement_cible,
+     yvs_compta_caisse_piece_virement."caissier_source" AS yvs_compta_caisse_piece_virement_caissier_source,
+     yvs_compta_caisse_piece_virement."numero_piece" AS yvs_compta_caisse_piece_virement_numero_piece,
+     COALESCE((SELECT SUM(y.montant) FROM yvs_compta_cout_sup_piece_virement y WHERE y.virement = yvs_compta_caisse_piece_virement."id"),0) AS yvs_compta_caisse_piece_virement_cout,
+     yvs_compta_journaux."agence" AS yvs_compta_journaux_agence,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '10 000') AS yvs_compta_bielletage_dix_mille,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '5000') AS yvs_compta_bielletage_cinq_mille,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '2000') AS yvs_compta_bielletage_deux_mille,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '1000') AS yvs_compta_bielletage_mille,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '500' AND billet IS TRUE) AS yvs_compta_bielletage_cinq_cent_billet,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '500' AND billet IS FALSE) AS yvs_compta_bielletage_cinq_cent_piece,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '100') AS yvs_compta_bielletage_cent,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '50') AS yvs_compta_bielletage_cinquante,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '25') AS yvs_compta_bielletage_vingt_cinq,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '10') AS yvs_compta_bielletage_dix,
+     (SELECT SUM(y.quantite) FROM yvs_compta_bielletage y WHERE y.piece_virement = $P{ID} AND format_monai = '5') AS yvs_compta_bielletage_cinq
+FROM
+     "public"."yvs_compta_caisse_piece_virement" yvs_compta_caisse_piece_virement
+     LEFT OUTER JOIN "public"."yvs_base_caisse" source ON yvs_compta_caisse_piece_virement."source" = source."id"
+     LEFT OUTER JOIN "public"."yvs_base_caisse" cible ON cible."id" = yvs_compta_caisse_piece_virement."cible"
+     LEFT OUTER JOIN "public"."yvs_compta_journaux" yvs_compta_journaux ON source."journal" = yvs_compta_journaux."id"
+WHERE
+     yvs_compta_caisse_piece_virement."id" = $P{ID}]]>
+	</queryString>
+	<field name="yvs_compta_caisse_piece_virement_id" class="java.lang.Long"/>
+	<field name="yvs_compta_caisse_piece_virement_montant" class="java.lang.Double"/>
+	<field name="yvs_compta_caisse_piece_virement_source" class="java.lang.Long"/>
+	<field name="yvs_compta_caisse_piece_virement_date_piece" class="java.sql.Date"/>
+	<field name="yvs_compta_caisse_piece_virement_date_paiement" class="java.sql.Timestamp"/>
+	<field name="yvs_compta_caisse_piece_virement_caissier_cible" class="java.lang.Long"/>
+	<field name="source_intitule" class="java.lang.String"/>
+	<field name="cible_intitule" class="java.lang.String"/>
+	<field name="yvs_compta_caisse_piece_virement_cible" class="java.lang.Long"/>
+	<field name="yvs_compta_caisse_piece_virement_caissier_source" class="java.lang.Long"/>
+	<field name="yvs_compta_caisse_piece_virement_numero_piece" class="java.lang.String"/>
+	<field name="yvs_compta_caisse_piece_virement_cout" class="java.lang.Double"/>
+	<field name="yvs_compta_journaux_agence" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_dix_mille" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_cinq_mille" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_deux_mille" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_mille" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_cinq_cent_billet" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_cinq_cent_piece" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_cent" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_cinquante" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_vingt_cinq" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_dix" class="java.lang.Long"/>
+	<field name="yvs_compta_bielletage_cinq" class="java.lang.Long"/>
+	<variable name="BIELLETAGE" class="java.lang.Boolean">
+		<variableExpression><![CDATA[$F{yvs_compta_bielletage_dix_mille} > 0.0 ||
+$F{yvs_compta_bielletage_cinq_mille} > 0.0 ||
+$F{yvs_compta_bielletage_deux_mille} > 0.0 ||
+$F{yvs_compta_bielletage_mille} > 0.0 ||
+$F{yvs_compta_bielletage_cinq_cent_billet} > 0.0 ||
+$F{yvs_compta_bielletage_cinq_cent_piece} > 0.0 ||
+$F{yvs_compta_bielletage_cent} > 0.0 ||
+$F{yvs_compta_bielletage_cinquante} > 0.0 ||
+$F{yvs_compta_bielletage_vingt_cinq} > 0.0 ||
+$F{yvs_compta_bielletage_dix} > 0.0 ||
+$F{yvs_compta_bielletage_cinq} > 0.0]]></variableExpression>
+	</variable>
+	<title>
+		<band height="40">
+			<subreport>
+				<reportElement x="0" y="0" width="573" height="40" uuid="90c0cecc-3cf4-4065-a035-caa560f504e7"/>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_compta_journaux_agence}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_simple_portrait.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="265" splitType="Stretch">
+			<staticText>
+				<reportElement x="6" y="45" width="90" height="16" uuid="94051a0a-666e-49ac-bc1e-d5c604d009be"/>
+				<text><![CDATA[Caisse destination]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="6" y="29" width="90" height="16" uuid="b25db11a-0beb-4a3f-bec6-3a7b5ef9972d"/>
+				<text><![CDATA[Caisse Source :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="96" y="29" width="191" height="16" uuid="24c0c9e4-fdfc-4281-80c0-3fc0b434e158"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{source_intitule}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="96" y="45" width="191" height="16" uuid="bc16076d-5de6-4e62-89c4-8be0bae8a696"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cible_intitule}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="0" width="572" height="20" backcolor="#CCCCCC" uuid="951d5f8d-de7b-4ead-92eb-3d44a2b6113b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="13" isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Virement N° "+$F{yvs_compta_caisse_piece_virement_numero_piece}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="7" y="61" width="89" height="16" uuid="a2ae0879-e49c-4902-9dce-f78c35b0702e"/>
+				<text><![CDATA[Note : ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="7" y="121" width="90" height="16" uuid="6f5726e5-2fc5-492f-8a98-3f4f712f6e55"/>
+				<textElement textAlignment="Right"/>
+				<text><![CDATA[Montant : ]]></text>
+			</staticText>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="335" y="67" width="190" height="27" uuid="e870ef83-2457-4661-8a07-ec1ac89102cb"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_caisse_piece_virement_montant}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="525" y="78" width="48" height="16" uuid="219140ce-5cca-40c6-888b-5297c7bb85ac"/>
+				<textElement verticalAlignment="Middle">
+					<font isItalic="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[ Fcfa]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="97" y="121" width="475" height="16" uuid="c1263bd1-18c4-41d2-a407-6f49df711851"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{MONTANT}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="141" width="572" height="1" uuid="b75a897d-af6d-4c21-9a99-ed6ee062efb5"/>
+			</line>
+			<image scaleImage="FillFrame">
+				<reportElement x="532" y="122" width="40" height="34" uuid="0edcf59a-1f7a-4430-972d-8766c0d5e725"/>
+				<imageExpression><![CDATA[$P{IMG_PAYE}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="365" y="45" width="67" height="0" uuid="60f7d829-d623-4870-9cea-1a3064b0602a"/>
+				<text><![CDATA[Date édition : ]]></text>
+			</staticText>
+			<textField pattern="dd MMM yyyy" isBlankWhenNull="true">
+				<reportElement x="472" y="45" width="100" height="0" uuid="90050b24-c512-4f28-8f85-aaa5924519bb"/>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_caisse_piece_virement_date_piece}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="365" y="61" width="107" height="0" uuid="039badc2-3e1f-4d8c-8daa-ddb467c6a298"/>
+				<text><![CDATA[Date paiement :]]></text>
+			</staticText>
+			<textField pattern="dd MMM yyyy" isBlankWhenNull="true">
+				<reportElement x="472" y="61" width="100" height="0" uuid="b690fb16-05da-470f-ba2f-88fb04722a19"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_caisse_piece_virement_date_paiement}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="382" y="29" width="191" height="16" uuid="34dab624-82ea-4357-9c40-c1b2741f8bb9"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_caisse_piece_virement_date_piece}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="292" y="29" width="90" height="16" uuid="97f636c9-fc67-4f0f-b8a0-1d1bc20bb427"/>
+				<text><![CDATA[Date Edition]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement x="382" y="50" width="191" height="16" uuid="3af4a6f5-949f-4e16-b494-1c8f770df27e"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_caisse_piece_virement_date_paiement}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="292" y="50" width="90" height="16" uuid="1b7b071a-0875-4132-8525-c9332584e470"/>
+				<text><![CDATA[Date Paiement]]></text>
+			</staticText>
+			<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+				<reportElement x="382" y="98" width="142" height="20" uuid="d45d0473-6a53-414a-83fa-2c1d8e47568b"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_caisse_piece_virement_cout}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="524" y="98" width="48" height="20" uuid="27ba38af-25ef-4b34-8732-387dd60f1155"/>
+				<textElement verticalAlignment="Bottom">
+					<font isItalic="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[ Fcfa]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="292" y="98" width="90" height="20" uuid="cba26456-92ab-45c7-b779-98f4138502bb"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<text><![CDATA[Frais :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="149" y="174" width="50" height="15" uuid="59fd27d4-e76e-4a72-a759-c9f032a499d9"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_dix_mille}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="149" y="189" width="50" height="15" uuid="ac90fcfe-72e0-4285-ba5d-9cd1e43d899f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_cinq_mille}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="149" y="204" width="50" height="15" uuid="50edd192-6624-4640-abd9-10a72a5d6677"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_deux_mille}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="149" y="219" width="50" height="15" uuid="f61e43be-e2a4-40db-a5a5-9714dfeaa532"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_mille}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="149" y="234" width="50" height="15" uuid="853b2a6f-dd4c-49f4-9e90-646dd76f12cf"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_cinq_cent_billet}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="418" y="167" width="50" height="15" uuid="17b10c63-4d54-42a1-8102-73e7a2f3f9ab"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_cinq_cent_piece}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="418" y="182" width="50" height="15" uuid="0075a510-13d6-4d11-99ad-fd20187b58b2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_cent}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="418" y="197" width="50" height="15" uuid="48ee6e12-ec90-4e1c-8138-4a5045cf2b42"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_cinquante}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="418" y="212" width="50" height="15" uuid="c91ab1ae-b5dc-41f7-b73a-e86e834dbce1"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_vingt_cinq}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="418" y="227" width="50" height="15" uuid="b534111d-4b5f-4ec7-a56b-d3199dc12038"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_dix}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="418" y="242" width="50" height="15" uuid="a63c6baf-afe0-43ba-880c-8ccb5761d266"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_compta_bielletage_cinq}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="78" y="144" width="100" height="20" uuid="de76734d-7093-4485-b84d-eeae4074206f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"BILLETS":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="351" y="144" width="100" height="20" uuid="9096ae81-85b5-4ba3-a47d-96d229654b4c"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"PIECES":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="49" y="174" width="100" height="15" uuid="0259f589-de69-405d-8162-dea85613b584"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"10 000":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="49" y="189" width="100" height="15" uuid="98c5d77a-e0b3-4ee6-811b-5c11df6ab206"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"5 000":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="49" y="204" width="100" height="15" uuid="b2297e1c-08da-46ae-886c-99eff1a1bc91"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"2 000":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="49" y="219" width="100" height="15" uuid="9b683d85-ab50-4eb4-a5fb-18b1d8dc038f"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"1 000":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="49" y="234" width="100" height="15" uuid="873fc7f6-65bd-4869-89d8-cbf6d5ca6615"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"500":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="318" y="167" width="100" height="15" uuid="c76023eb-c508-4002-b9ca-1e9dbca32fcf"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"500":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="318" y="182" width="100" height="15" uuid="b59e3672-3e72-46bd-bb1a-783992d21e22"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"100":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="318" y="197" width="100" height="15" uuid="5b4dc4c2-4756-4592-adf1-37123bbb30e0"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"50":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="318" y="212" width="100" height="15" uuid="2d9b6d97-dc8c-43c6-865a-9a27dc83df9e"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"25":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="318" y="227" width="100" height="15" uuid="1e8428f2-6748-4769-8604-c6efd39bb460"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"10":null]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="318" y="242" width="100" height="15" uuid="85844b33-725a-42e5-a032-8a6e8d5115a6"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{BIELLETAGE}?"5":null]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

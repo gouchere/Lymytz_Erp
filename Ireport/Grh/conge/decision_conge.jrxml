@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="decision_conge" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5fca5874-f0ec-434f-904c-0fc79f41422c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="ID" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[3997]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IMG_LOGO" class="java.lang.String"/>
+	<parameter name="IMG_PHONE" class="java.lang.String"/>
+	<parameter name="IMG_SIEGE" class="java.lang.String"/>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TITRE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["MISE EN CONGE"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TEXT_DUREE_CONGE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TEXT_CONGE_PRINCIPAL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TEXT_MAJORATION" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TEXT_PERMISSION" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="MODEL" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yvs_grh_conge_emps_duree_principal" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yvs_grh_conge_emps_duree_permission_prise" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+	</parameter>
+	<parameter name="yvs_grh_conge_emps_duree_sup" class="java.lang.Double" isForPrompting="false">
+		<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT DISTINCT
+     (yvs_grh_conge_emps."id") AS yvs_grh_conge_emps_id,
+     (yvs_grh_conge_emps."duree"-yvs_grh_conge_emps."duree_sup")::integer AS yvs_grh_conge_emps_duree_principal,
+     concat(yvs_grh_employes."civilite",' ',concat(yvs_grh_employes."nom",' ',yvs_grh_employes."prenom")) AS yvs_grh_employes_nom,
+     yvs_grh_conge_emps."motif" AS yvs_grh_conge_emps_motif,
+     yvs_grh_conge_emps."reference_conge" AS yvs_grh_conge_emps_reference_conge,
+     yvs_agences."id" AS yvs_agences_id,
+     yvs_societes."id" AS yvs_societes_id,
+     yvs_societes."name" AS yvs_societes_name,
+     yvs_grh_employes."agence" AS yvs_grh_employes_agence,
+     yvs_grh_conge_emps."heure_debut" AS yvs_grh_conge_emps_heure_debut,
+     yvs_grh_conge_emps."heure_fin" AS yvs_grh_conge_emps_heure_fin,
+     yvs_grh_conge_emps."date_retour" AS yvs_grh_conge_emps_date_retour,
+     yvs_base_exercice."date_debut" AS yvs_base_exercice_date_debut,
+     yvs_base_exercice."date_fin" AS yvs_base_exercice_date_fin,
+     yvs_grh_conge_emps."duree_permission_prise"::integer AS yvs_grh_conge_emps_duree_permission_prise,
+     yvs_grh_conge_emps."duree_sup"::integer AS yvs_grh_conge_emps_duree_sup,
+     yvs_grh_conge_emps."heure_retour_effectif" AS yvs_grh_conge_emps_heure_retour_effectif,
+     yvs_grh_conge_emps."date_debut" AS yvs_grh_conge_emps_date_debut,
+     yvs_grh_conge_emps."date_fin" AS yvs_grh_conge_emps_date_fin,
+     yvs_grh_conge_emps."duree" AS yvs_grh_conge_emps_duree,
+     yvs_dictionnaire."libele" AS ville,
+     yvs_print_decision_conge_header."titre" AS yvs_print_contrat_employe_header_titre,
+     yvs_print_decision_conge_header."model" AS yvs_print_contrat_employe_header_model,
+     yvs_print_decision_conge_header."introduction" AS yvs_print_contrat_employe_header_introduction,
+     yvs_print_decision_conge_header."definition_conventive" AS yvs_print_contrat_employe_header_definition_conventive
+FROM
+     "public"."yvs_grh_employes" yvs_grh_employes INNER JOIN "public"."yvs_grh_conge_emps" yvs_grh_conge_emps ON yvs_grh_employes."id" = yvs_grh_conge_emps."employe"
+     INNER JOIN "public"."yvs_agences" yvs_agences ON yvs_grh_employes."agence" = yvs_agences."id"
+     INNER JOIN "public"."yvs_societes" yvs_societes ON yvs_agences."societe" = yvs_societes."id"
+     INNER JOIN "public"."yvs_base_exercice" yvs_base_exercice ON (yvs_societes."id" = yvs_base_exercice."societe" AND yvs_grh_conge_emps."date_debut" BETWEEN yvs_base_exercice."date_debut" AND yvs_base_exercice."date_fin")
+     LEFT OUTER JOIN "public"."yvs_dictionnaire" yvs_dictionnaire ON yvs_dictionnaire.id= yvs_societes.ville
+LEFT JOIN "public"."yvs_print_decision_conge_header" yvs_print_decision_conge_header ON (yvs_print_decision_conge_header."societe" = yvs_societes."id" AND yvs_print_decision_conge_header."id" = $P{MODEL})
+WHERE
+     yvs_grh_conge_emps."id" = $P{ID}]]>
+	</queryString>
+	<field name="yvs_grh_conge_emps_id" class="java.lang.Long"/>
+	<field name="yvs_grh_conge_emps_duree_principal" class="java.lang.Integer"/>
+	<field name="yvs_grh_employes_nom" class="java.lang.String"/>
+	<field name="yvs_grh_conge_emps_motif" class="java.lang.String"/>
+	<field name="yvs_grh_conge_emps_reference_conge" class="java.lang.String"/>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<field name="yvs_societes_id" class="java.lang.Integer"/>
+	<field name="yvs_societes_name" class="java.lang.String"/>
+	<field name="yvs_grh_employes_agence" class="java.lang.Long"/>
+	<field name="yvs_grh_conge_emps_heure_debut" class="java.sql.Time"/>
+	<field name="yvs_grh_conge_emps_heure_fin" class="java.sql.Time"/>
+	<field name="yvs_grh_conge_emps_date_retour" class="java.sql.Date"/>
+	<field name="yvs_base_exercice_date_debut" class="java.sql.Date"/>
+	<field name="yvs_base_exercice_date_fin" class="java.sql.Date"/>
+	<field name="yvs_grh_conge_emps_duree_permission_prise" class="java.lang.Integer"/>
+	<field name="yvs_grh_conge_emps_duree_sup" class="java.lang.Integer"/>
+	<field name="yvs_grh_conge_emps_heure_retour_effectif" class="java.sql.Time"/>
+	<field name="yvs_grh_conge_emps_date_debut" class="java.sql.Date"/>
+	<field name="yvs_grh_conge_emps_date_fin" class="java.sql.Date"/>
+	<field name="yvs_grh_conge_emps_duree" class="java.lang.Integer"/>
+	<field name="ville" class="java.lang.String"/>
+	<field name="yvs_print_contrat_employe_header_titre" class="java.lang.String"/>
+	<field name="yvs_print_contrat_employe_header_model" class="java.lang.String"/>
+	<field name="yvs_print_contrat_employe_header_introduction" class="java.lang.String"/>
+	<field name="yvs_print_contrat_employe_header_definition_conventive" class="java.lang.String"/>
+	<title>
+		<band height="220" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="65" uuid="14c824ef-9b90-4501-9c58-d8169e9156d4"/>
+				<subreportParameter name="AGENCE">
+					<subreportParameterExpression><![CDATA[$F{yvs_grh_employes_agence}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="IMG_LOGO">
+					<subreportParameterExpression><![CDATA[$P{IMG_LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="IMG_PHONE">
+					<subreportParameterExpression><![CDATA[$P{IMG_PHONE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="IMG_SIEGE">
+					<subreportParameterExpression><![CDATA[$P{IMG_SIEGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="TITRE">
+					<subreportParameterExpression><![CDATA[$P{TITRE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "full"+System.getProperty("file.separator")+"entete_portrait.jasper"]]></subreportExpression>
+			</subreport>
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="76" width="555" height="20" uuid="b126213c-2cff-48eb-8c54-844717c5a280"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true" isUnderline="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["DECISION N° "+(($F{yvs_grh_conge_emps_reference_conge}!=null)?$F{yvs_grh_conge_emps_reference_conge}:"")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="Float" x="11" y="144" width="544" height="16" uuid="a87c9438-1132-439b-a17f-642024030bc0"/>
+				<textElement>
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Vu le Code du Travail]]></text>
+			</staticText>
+			<textField>
+				<reportElement positionType="Float" x="0" y="118" width="555" height="20" uuid="829c32b2-59c3-4acd-afc6-d71e85b98f30"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{yvs_print_contrat_employe_header_introduction}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement positionType="Float" x="0" y="168" width="555" height="20" uuid="6afc849f-b0a2-401e-8d84-a9f472fcaa65"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{yvs_print_contrat_employe_header_definition_conventive}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="Float" x="0" y="203" width="555" height="16" uuid="fc844d29-7d6c-49ff-ae87-df0bad07f102"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[DECIDE : ]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="277">
+			<textField pattern="dd MMMMM yyyy">
+				<reportElement positionType="Float" x="0" y="145" width="555" height="16" uuid="1f955458-6250-43c1-aa1e-3c93ea8ade73"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[($F{ville}!=null)?($F{ville}+", le "+new SimpleDateFormat("dd MMMMM yyyy").format(new Date())):("imprimé le "+new SimpleDateFormat("dd MMMMM yyyy").format(new Date()))]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="Float" x="11" y="195" width="162" height="80" uuid="3a419522-9c6e-4052-8f29-e0e83a6c8e34"/>
+				<text><![CDATA[Ampl :
+    *   L'interessé
+    *   DG
+    *   RH
+    *   Dossier
+    *   Chrono]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="Float" x="411" y="195" width="130" height="16" uuid="fdf436c4-1650-4907-ab5d-451e7fda5800"/>
+				<text><![CDATA[Le Directeur Général A]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="133" uuid="ab97bc91-1a57-468a-b5f6-5ad517102997"/>
+				<subreportParameter name="yvs_grh_conge_emps_date_fin">
+					<subreportParameterExpression><![CDATA[new SimpleDateFormat("dd-MM-YYYY").format($F{yvs_grh_conge_emps_date_fin})]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_duree_permission_prise">
+					<subreportParameterExpression><![CDATA[$P{yvs_grh_conge_emps_duree_permission_prise}.toString()]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_duree_principal_lettre">
+					<subreportParameterExpression><![CDATA[$P{TEXT_CONGE_PRINCIPAL}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_date_retour">
+					<subreportParameterExpression><![CDATA[new SimpleDateFormat("dd-MM-YYYY").format($F{yvs_grh_conge_emps_date_retour})]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_date_debut">
+					<subreportParameterExpression><![CDATA[new SimpleDateFormat("dd-MM-YYYY").format($F{yvs_grh_conge_emps_date_debut})]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_base_exercice_date_fin">
+					<subreportParameterExpression><![CDATA[new SimpleDateFormat("dd-MM-YYYY").format($F{yvs_base_exercice_date_fin})]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="MODEL">
+					<subreportParameterExpression><![CDATA[$P{MODEL}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_duree_lettre">
+					<subreportParameterExpression><![CDATA[$P{TEXT_DUREE_CONGE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_duree_principal">
+					<subreportParameterExpression><![CDATA[$P{yvs_grh_conge_emps_duree_principal}.toString()]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_duree">
+					<subreportParameterExpression><![CDATA[$F{yvs_grh_conge_emps_duree}.toString()]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_duree_permission_prise_lettre">
+					<subreportParameterExpression><![CDATA[$P{TEXT_PERMISSION}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_employes_nom">
+					<subreportParameterExpression><![CDATA[$F{yvs_grh_employes_nom}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_base_exercice_date_debut">
+					<subreportParameterExpression><![CDATA[new SimpleDateFormat("dd-MM-YYYY").format($F{yvs_base_exercice_date_debut})]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_duree_sup">
+					<subreportParameterExpression><![CDATA[$P{yvs_grh_conge_emps_duree_sup}.toString()]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_duree_sup_lettre">
+					<subreportParameterExpression><![CDATA[$P{TEXT_MAJORATION}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_grh_conge_emps_heure_retour_effectif">
+					<subreportParameterExpression><![CDATA[new SimpleDateFormat("HH:mm").format($F{yvs_grh_conge_emps_heure_retour_effectif})]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "decision_conge_article.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="36">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="36" uuid="f89ab426-6352-466f-b75e-95b4c799453b"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_SOCIETE">
+					<subreportParameterExpression><![CDATA[$F{yvs_societes_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="MODEL">
+					<subreportParameterExpression><![CDATA["footer_v1"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PAGE_CURRENT">
+					<subreportParameterExpression><![CDATA[$V{PAGE_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FORE_COLOR"/>
+				<subreportParameter name="PAGE_NUMBER">
+					<subreportParameterExpression><![CDATA[$V{PAGE_COUNT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_AGENCE">
+					<subreportParameterExpression><![CDATA[$F{yvs_agences_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "footer_v1_paysage.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</pageFooter>
+</jasperReport>

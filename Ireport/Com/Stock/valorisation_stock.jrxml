@@ -1,0 +1,508 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="valorisation_stock" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f5d62acb-5d96-468a-9d95-9325a430829b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#D5D5D5">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.0"/>
+			<rightPen lineWidth="0.0"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.25"/>
+			<rightPen lineWidth="0.25"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="c85f2194-4d68-49b4-a60e-954db2763b8d">
+		<parameter name="DEPOT" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["V"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("20/11/2018")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="CATEGORIE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false"/>
+		<parameter name="GROUP" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["A"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT * FROM com_et_valorise_stock($P{DATE}, $P{CATEGORIE}, $P{DEPOT}, $P{GROUP}, $P{SOCIETE})
+ORDER BY code, reference]]>
+		</queryString>
+		<field name="id" class="java.lang.Long"/>
+		<field name="reference" class="java.lang.String"/>
+		<field name="designation" class="java.lang.String"/>
+		<field name="unite" class="java.lang.String"/>
+		<field name="code" class="java.lang.String"/>
+		<field name="depot" class="java.lang.String"/>
+		<field name="quantite" class="java.lang.Double"/>
+		<field name="prix_revient" class="java.lang.Double"/>
+		<field name="prix_vente" class="java.lang.Double"/>
+		<field name="prix_achat" class="java.lang.Double"/>
+		<variable name="VALEUR" class="java.lang.Double">
+			<variableExpression><![CDATA[($P{TYPE}.equals("V")?$F{prix_vente}:($P{TYPE}.equals("A")?$F{prix_achat}:$F{prix_revient}))*$F{quantite}]]></variableExpression>
+		</variable>
+		<variable name="VALEUR_DEPOT" class="java.lang.Double" resetType="Group" resetGroup="depot" calculation="Sum">
+			<variableExpression><![CDATA[$V{VALEUR}]]></variableExpression>
+		</variable>
+		<variable name="VALEUR_TOTAL" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$V{VALEUR}]]></variableExpression>
+		</variable>
+		<group name="depot">
+			<groupExpression><![CDATA[$F{depot}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["DOWES MBELLA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DEPOT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["R"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("20/11/2018")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CATEGORIE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GROUP" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["A"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_agences."id" AS yvs_agences_id,
+     yvs_agences."designation" AS yvs_agences_designation,
+     yvs_agences."societe" AS yvs_agences_societe
+FROM
+     "public"."yvs_agences" yvs_agences
+WHERE
+     yvs_agences."id" = $P{AGENCE}]]>
+	</queryString>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<field name="yvs_agences_designation" class="java.lang.String"/>
+	<field name="yvs_agences_societe" class="java.lang.Integer"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="74">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="51" uuid="24b0a1dd-eda3-4652-a658-40c05c0bf2f4"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA["VALORISATION STOCK"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_agences_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport_portrait.jasper"]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement positionType="Float" x="262" y="54" width="293" height="20" uuid="45b08ef2-4a3c-4423-898d-bc3887a77f83"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["A la date du "+new SimpleDateFormat("dd MMM yyyy").format($P{DATE})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="Float" x="0" y="54" width="218" height="20" uuid="5151cdc0-7078-4cec-b71f-46571cb5208d"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Valorisation sur "+($P{TYPE}.equals("V")?"prix de vente":($P{TYPE}.equals("A")?"prix d'achat":"prix de revient"))]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="160" splitType="Stretch">
+			<componentElement>
+				<reportElement key="table" style="table" x="0" y="0" width="555" height="160" uuid="0d2d97d9-cb61-4330-a32d-e8e758acf513"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="87286530-b09f-4528-b651-ee1bf473fa64">
+						<datasetParameter name="DEPOT">
+							<datasetParameterExpression><![CDATA[$P{DEPOT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="TYPE">
+							<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="SOCIETE">
+							<datasetParameterExpression><![CDATA[$F{yvs_agences_societe}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE">
+							<datasetParameterExpression><![CDATA[$P{DATE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="CATEGORIE">
+							<datasetParameterExpression><![CDATA[$P{CATEGORIE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="GROUP">
+							<datasetParameterExpression><![CDATA[$P{GROUP}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="69" uuid="32d0f02c-86a9-4f95-b5fa-86041e6cc327">
+						<jr:tableFooter style="table_TH" height="18" rowSpan="1"/>
+						<jr:groupHeader groupName="depot">
+							<jr:cell height="18" rowSpan="1">
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textField>
+									<reportElement x="0" y="0" width="69" height="18" uuid="ef17ac4b-e95c-4418-916e-1802ba2bc1c9"/>
+									<box leftPadding="0"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="7" isBold="false"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{code}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="69" height="20" uuid="a6d39088-cf48-4cb2-80b1-aaa16eba8569"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[REFERENCE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="69" height="15" uuid="ecb1dd76-bfd5-4331-aa6d-d4b003cc0e8b"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{reference}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="148" uuid="c54dbf82-315a-43be-a031-534a976f4e67">
+						<jr:tableFooter style="table_TH" height="18" rowSpan="1"/>
+						<jr:groupHeader groupName="depot">
+							<jr:cell height="18" rowSpan="1">
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+								<textField>
+									<reportElement x="0" y="0" width="147" height="18" uuid="4e3de812-7e5a-4eda-b7ab-e14e9a04ddea"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{depot}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="147" height="20" uuid="5ea121c8-c792-41e0-9538-5276c5489107"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[DESIGNATION]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="147" height="15" uuid="344af83b-ed64-4292-a71a-b506d48d3ad2"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{designation}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="57" uuid="e93a4e4c-5fea-468a-9e9d-58392ca157df">
+						<jr:tableFooter style="table_TH" height="18" rowSpan="1"/>
+						<jr:groupHeader groupName="depot">
+							<jr:cell height="18" rowSpan="1">
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="57" height="20" uuid="82c48e3f-d90e-4ecd-89dd-ceadd9976b44"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[P.U.A]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="57" height="15" uuid="8ac69385-bee5-471f-8397-0c551d6d060f"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{prix_achat}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="57" uuid="6f129725-eba8-4676-bc1c-c65c4b4e2ad4">
+						<jr:tableFooter style="table_TH" height="18" rowSpan="1"/>
+						<jr:groupHeader groupName="depot">
+							<jr:cell height="18" rowSpan="1">
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="57" height="20" uuid="c5f18383-df1a-41c5-8e06-1c045a9d344e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[P.U.V]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="57" height="15" uuid="b2518fc4-292f-4b45-970a-ed0639ea5739"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{prix_vente}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="57" uuid="e2b1e528-30fb-450e-b472-f28552853668">
+						<jr:tableFooter style="table_TH" height="18" rowSpan="1"/>
+						<jr:groupHeader groupName="depot">
+							<jr:cell height="18" rowSpan="1">
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="57" height="20" uuid="d3414fb1-f486-4701-a35c-c9e2263d5c76"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[P.R]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="57" height="15" uuid="239e8afb-446d-4212-ad07-d7e4ace34326"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{prix_revient}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="57" uuid="09959b63-920d-4ad1-bd86-bd9da12c25c1">
+						<jr:tableFooter style="table_TH" height="18" rowSpan="1"/>
+						<jr:groupHeader groupName="depot">
+							<jr:cell height="18" rowSpan="1">
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="57" height="20" uuid="ea90e628-1f69-498b-a5b9-42215ea4d54a"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[STOCK]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="57" height="15" uuid="4dc69564-d8c6-416b-bbd1-0b33d10c5aad"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{quantite}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="50" uuid="d283ae4a-dbbd-4478-82d0-a6017843b2b0">
+						<jr:tableFooter style="table_TH" height="18" rowSpan="1"/>
+						<jr:groupHeader groupName="depot">
+							<jr:cell height="18" rowSpan="1">
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="50" height="20" uuid="24b269d1-7a92-4761-a468-b609add2538e"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[UNITE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField>
+								<reportElement x="0" y="0" width="50" height="15" uuid="5c7b71bc-47e3-4069-8f00-3ee624ddab13"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{unite}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="61" uuid="373951c8-aeea-4c0a-968c-667282301b08">
+						<jr:tableFooter style="table_TH" height="18" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="61" height="18" uuid="90b860d2-e5f4-4603-859d-71330724413c"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Bottom">
+									<font fontName="DejaVu Sans" size="7" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{VALEUR_TOTAL}]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:groupHeader groupName="depot">
+							<jr:cell height="18" rowSpan="1">
+								<box>
+									<pen lineWidth="0.0"/>
+									<topPen lineWidth="0.5" lineStyle="Dashed"/>
+									<leftPen lineWidth="0.0"/>
+									<bottomPen lineWidth="0.0"/>
+									<rightPen lineWidth="0.0"/>
+								</box>
+							</jr:cell>
+						</jr:groupHeader>
+						<jr:groupFooter groupName="depot">
+							<jr:cell height="15" rowSpan="1">
+								<box>
+									<leftPen lineWidth="0.25"/>
+								</box>
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="61" height="15" uuid="2936138b-133e-43d6-8fed-1c367eb19eea"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="7" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{VALEUR_DEPOT}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="20" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="60" height="20" uuid="9be84fe6-2882-48cf-9b77-d8acb22fc862"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[VALEUR]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="15" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="61" height="15" uuid="ba43bf7a-28d4-478c-b769-cdfaa715bde6"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{VALEUR}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="18">
+			<textField>
+				<reportElement x="436" y="0" width="80" height="18" uuid="a0d982e3-6be7-4260-8442-d49b67237574"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" /"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="515" y="0" width="40" height="18" uuid="55a3e8ae-d551-409b-901b-6b442ef12d01"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="2" y="0" width="100" height="16" uuid="7e115b32-4328-455f-bb66-66c3df917495"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[copyright]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+</jasperReport>

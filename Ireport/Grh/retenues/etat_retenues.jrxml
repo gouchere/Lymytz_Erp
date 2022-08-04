@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="etat_retenues" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7b82e7bc-6958-4e8b-bcdb-0b4a84ff5116">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="NAME_SOCIETE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["CCO SA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NAME_AGENCE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["BAFOUSSAM"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Avril 2017"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_DEBUT" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_FIN" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_grh_type_element_additionel."id" AS yvs_grh_type_element_additionel_id,
+     yvs_grh_type_element_additionel."code_element" AS yvs_grh_type_element_additionel_code_element,
+     yvs_grh_type_element_additionel."libelle" AS yvs_grh_type_element_additionel_libelle,
+     yvs_grh_employes."nom" AS yvs_grh_employes_nom,
+     yvs_grh_employes."matricule" AS yvs_grh_employes_matricule,
+     yvs_grh_employes."prenom" AS yvs_grh_employes_prenom,
+     yvs_grh_detail_prelevement_emps."valeur" AS yvs_grh_detail_prelevement_emps_valeur,
+     yvs_grh_element_additionel."planifier" AS yvs_grh_element_additionel_planifier,
+     yvs_grh_detail_prelevement_emps."retenu_fixe" AS yvs_grh_detail_prelevement_emps_retenu_fixe,
+     yvs_grh_detail_prelevement_emps."date_prelevement" AS yvs_grh_detail_prelevement_emps_date_prelevement,
+     yvs_grh_detail_prelevement_emps."id" AS yvs_grh_detail_prelevement_emps_id,
+     yvs_grh_detail_prelevement_emps."statut_reglement" AS yvs_grh_detail_prelevement_emps_statut_reglement
+FROM
+     "public"."yvs_grh_type_element_additionel" yvs_grh_type_element_additionel INNER JOIN "public"."yvs_grh_element_additionel" yvs_grh_element_additionel ON yvs_grh_type_element_additionel."id" = yvs_grh_element_additionel."type_element"
+     INNER JOIN "public"."yvs_grh_detail_prelevement_emps" yvs_grh_detail_prelevement_emps ON yvs_grh_element_additionel."id" = yvs_grh_detail_prelevement_emps."retenue"
+     INNER JOIN "public"."yvs_grh_contrat_emps" yvs_grh_contrat_emps ON yvs_grh_element_additionel."contrat" = yvs_grh_contrat_emps."id"
+     INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
+WHERE
+   yvs_grh_type_element_additionel."retenu" IS true AND  ((COALESCE($P{ID_AGENCE},0)>0 AND yvs_grh_employes."agence" = $P{ID_AGENCE}) OR (COALESCE($P{ID_AGENCE},0)<1 AND yvs_grh_employes."agence"IS NOT NULL))AND
+   ((yvs_grh_detail_prelevement_emps."statut_reglement"='E' AND yvs_grh_detail_prelevement_emps."date_prelevement" <= $P{DATE_FIN})
+	OR (yvs_grh_detail_prelevement_emps."statut_reglement"='P' AND yvs_grh_detail_prelevement_emps."date_prelevement" BETWEEN $P{DATE_DEBUT} AND $P{DATE_FIN})
+	OR (yvs_grh_detail_prelevement_emps."retenu_fixe" IS true AND yvs_grh_detail_prelevement_emps."statut_reglement"!='S'))
+ORDER BY
+     yvs_grh_type_element_additionel."libelle" ASC,
+     yvs_grh_employes."agence" ASC,
+     yvs_grh_employes."matricule" ASC]]>
+	</queryString>
+	<field name="yvs_grh_type_element_additionel_id" class="java.lang.Integer"/>
+	<field name="yvs_grh_type_element_additionel_code_element" class="java.lang.String"/>
+	<field name="yvs_grh_type_element_additionel_libelle" class="java.lang.String"/>
+	<field name="yvs_grh_employes_nom" class="java.lang.String"/>
+	<field name="yvs_grh_employes_matricule" class="java.lang.String"/>
+	<field name="yvs_grh_employes_prenom" class="java.lang.String"/>
+	<field name="yvs_grh_detail_prelevement_emps_valeur" class="java.lang.Double"/>
+	<field name="yvs_grh_element_additionel_planifier" class="java.lang.Boolean"/>
+	<field name="yvs_grh_detail_prelevement_emps_retenu_fixe" class="java.lang.Boolean"/>
+	<field name="yvs_grh_detail_prelevement_emps_date_prelevement" class="java.sql.Date"/>
+	<field name="yvs_grh_detail_prelevement_emps_id" class="java.lang.Long"/>
+	<field name="yvs_grh_detail_prelevement_emps_statut_reglement" class="java.lang.String"/>
+	<variable name="Soe" class="java.lang.Double" resetType="Group" resetGroup="TYPE" calculation="Sum">
+		<variableExpression><![CDATA[$F{yvs_grh_detail_prelevement_emps_valeur}]]></variableExpression>
+	</variable>
+	<group name="TYPE" isStartNewPage="true">
+		<groupExpression><![CDATA[$F{yvs_grh_type_element_additionel_libelle}]]></groupExpression>
+		<groupHeader>
+			<band height="91">
+				<rectangle>
+					<reportElement x="0" y="0" width="555" height="70" backcolor="#CCCCCC" uuid="6c521f48-f6bd-43ef-8f7a-03b6c09512af"/>
+					<graphicElement>
+						<pen lineColor="#FFFFFF"/>
+					</graphicElement>
+				</rectangle>
+				<staticText>
+					<reportElement x="7" y="16" width="81" height="16" uuid="1761f2e4-9c91-4f57-af02-6e49dc92aa14"/>
+					<text><![CDATA[Heure : ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="7" y="54" width="47" height="16" uuid="ffd50eb3-32d6-423f-b127-73445d533de3"/>
+					<text><![CDATA[Société : ]]></text>
+				</staticText>
+				<textField pattern="HH.mm">
+					<reportElement x="88" y="16" width="100" height="16" uuid="cba21ef0-1f83-4cb1-b414-eec26632d3c7"/>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd/MM/yyyy">
+					<reportElement x="88" y="0" width="100" height="16" uuid="b899bbac-25c7-47b7-87fc-7c9d311aaf2f"/>
+					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="88" y="32" width="100" height="14" uuid="9fe9794a-d9c5-4563-82cc-10d6a5f72144"/>
+					<textElement textAlignment="Left">
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{PERIODE}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="7" y="0" width="81" height="16" uuid="c24f7d73-2339-41a4-95a1-1f1985f8d621"/>
+					<text><![CDATA[Date du jour : ]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="7" y="32" width="81" height="16" uuid="f7b60bb0-8e96-449a-84a4-ef62f2825430"/>
+					<text><![CDATA[Période : ]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="50" y="54" width="240" height="14" uuid="5c041957-28ff-494f-a8e7-6f1777173a08"/>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{NAME_SOCIETE}+" "+$P{NAME_AGENCE}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="333" y="26" width="222" height="20" uuid="e01aa97f-c05d-4be5-b849-974353e34ef5"/>
+					<textElement>
+						<font size="14" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{yvs_grh_type_element_additionel_libelle}]]></textFieldExpression>
+				</textField>
+				<rectangle>
+					<reportElement x="0" y="70" width="555" height="20" backcolor="#DFDFE1" uuid="a7a8154e-23e4-403a-80aa-4f0ada1f0246"/>
+					<graphicElement>
+						<pen lineColor="#CCCCCC"/>
+					</graphicElement>
+				</rectangle>
+				<staticText>
+					<reportElement x="0" y="70" width="107" height="20" uuid="bccd6302-d7ac-47f7-a4f1-7c39502d7368"/>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Matricule]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="107" y="70" width="148" height="20" uuid="715d2e8a-85c1-438e-a311-399390b746d8"/>
+					<box leftPadding="5">
+						<leftPen lineWidth="0.25"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Nom & Prénom]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="255" y="70" width="100" height="20" uuid="66bf04a7-d278-4c3f-89ba-cc209efa2195"/>
+					<box leftPadding="5">
+						<leftPen lineWidth="0.25"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Montant]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="355" y="70" width="100" height="20" uuid="42071054-fb2a-4c2c-86a4-a145c42277db"/>
+					<box leftPadding="5">
+						<leftPen lineWidth="0.25"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Date]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="455" y="71" width="100" height="20" uuid="28ab7403-3517-4494-816d-23a3e97519fd"/>
+					<box leftPadding="5">
+						<leftPen lineWidth="0.25"/>
+					</box>
+					<textElement verticalAlignment="Middle">
+						<font isBold="true"/>
+					</textElement>
+					<text><![CDATA[Statut]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="25">
+				<rectangle>
+					<reportElement x="0" y="0" width="555" height="25" backcolor="#999999" uuid="995cd021-cb24-4551-91f2-0e0c725472bf"/>
+					<graphicElement>
+						<pen lineColor="#CCCCCC"/>
+					</graphicElement>
+				</rectangle>
+				<textField pattern="#,##0">
+					<reportElement x="455" y="0" width="100" height="25" uuid="a883263f-24ad-4a13-b39d-7035d4cae781"/>
+					<box rightPadding="5"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="12" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{Soe}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="0" y="0" width="304" height="25" uuid="603783ce-72bd-4893-80d1-9d37cca45c0d"/>
+					<box leftPadding="5"/>
+					<textElement verticalAlignment="Middle">
+						<font size="11" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Total "+$F{yvs_grh_type_element_additionel_libelle}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<pageHeader>
+		<band height="16" splitType="Stretch">
+			<rectangle>
+				<reportElement x="0" y="0" width="555" height="16" backcolor="#D8E4FF" uuid="e68faa54-122c-406d-abee-0afd3264e7b6"/>
+				<graphicElement>
+					<pen lineWidth="0.75" lineColor="#CCCCCC"/>
+				</graphicElement>
+			</rectangle>
+			<textField>
+				<reportElement x="435" y="0" width="80" height="16" uuid="83c4386d-9342-43dd-9352-a57f183b5a07"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="515" y="0" width="40" height="16" uuid="ae3fd906-45ec-4c36-9f5a-81db9773f927"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="107" height="20" uuid="0cf341d8-9a69-407a-822c-24b53b72a68d"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_matricule}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="107" y="0" width="148" height="20" uuid="2979d32b-3c03-4a51-888d-6b5d1c21a30e"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{yvs_grh_employes_nom}+"  "+$F{yvs_grh_employes_prenom}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="255" y="0" width="100" height="20" uuid="2a002a50-75f2-4d6a-a830-829aa9519b35"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{yvs_grh_detail_prelevement_emps_valeur}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="355" y="0" width="100" height="20" uuid="034c8d90-cc47-4b0f-b878-b48296cc6af3"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.25"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{yvs_grh_detail_prelevement_emps_date_prelevement}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement x="455" y="0" width="100" height="20" uuid="5eb3a54d-0b89-4d95-b5d3-ef588aa477a2"/>
+				<box leftPadding="5">
+					<leftPen lineWidth="0.25"/>
+				</box>
+				<textFieldExpression><![CDATA[$F{yvs_grh_detail_prelevement_emps_date_prelevement}.equals("S")?"Suspendu":
+($F{yvs_grh_detail_prelevement_emps_date_prelevement}.equals("P")?"Payé": "En cours")]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

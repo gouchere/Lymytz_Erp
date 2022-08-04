@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="listing_vente_by_client_dates" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isIgnorePagination="true" uuid="7ec24867-9a28-414a-ad73-d9523a56007c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#DCDCDC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#D4D4D4">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<subDataset name="Dataset" uuid="9d9e8be1-adeb-40a7-a95e-9e6eebeff71f">
+		<parameter name="DATEDEBUT" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/12/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATEFIN" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("02/12/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["J"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="VENDEUR" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		</parameter>
+		<parameter name="CUMULE" class="java.lang.Integer">
+			<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+		</parameter>
+		<parameter name="CLIENT" class="java.lang.Integer" isForPrompting="false"/>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+		</parameter>
+		<parameter name="ZONE" class="java.lang.Integer" isForPrompting="false"/>
+		<queryString>
+			<![CDATA[SELECT
+     	y.*,
+	a.ref_art,
+	a.designation,
+	u.reference,
+ 	u.libelle,
+	CONCAT(a.ref_art, ' ', CONCAT('(', u.reference, ')')) AS article_reference
+FROM
+     "public"."com_et_listing_vente_by_client"($P{SOCIETE}, $P{AGENCE},$P{ZONE} ,$P{VENDEUR}, $P{CLIENT}, $P{DATEDEBUT}, $P{DATEFIN}, $P{PERIODE}, $P{CUMULE}) y
+     LEFT JOIN "public".yvs_base_conditionnement c ON y.unite = c.id LEFT JOIN "public".yvs_base_articles a ON c.article = a.id
+     LEFT JOIN "public".yvs_base_unite_mesure u ON c.unite = u.id
+ORDER BY
+     y.code, y.nom, y.rang]]>
+		</queryString>
+		<field name="client" class="java.lang.Long"/>
+		<field name="code" class="java.lang.String"/>
+		<field name="nom" class="java.lang.String"/>
+		<field name="users" class="java.lang.Long"/>
+		<field name="code_users" class="java.lang.String"/>
+		<field name="nom_users" class="java.lang.String"/>
+		<field name="unite" class="java.lang.Long"/>
+		<field name="entete" class="java.lang.String"/>
+		<field name="quantite" class="java.lang.Double"/>
+		<field name="prix_total" class="java.lang.Double"/>
+		<field name="ristourne" class="java.lang.Double"/>
+		<field name="rang" class="java.lang.Integer"/>
+		<field name="ref_art" class="java.lang.String"/>
+		<field name="designation" class="java.lang.String"/>
+		<field name="reference" class="java.lang.String"/>
+		<field name="libelle" class="java.lang.String"/>
+		<field name="article_reference" class="java.lang.String"/>
+		<variable name="RIST_CLIENT" class="java.lang.Double" resetType="Group" resetGroup="CLIENT" calculation="Sum">
+			<variableExpression><![CDATA[$F{ristourne}]]></variableExpression>
+			<initialValueExpression><![CDATA[0]]></initialValueExpression>
+		</variable>
+		<variable name="RIST_TOTAL" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{ristourne}]]></variableExpression>
+		</variable>
+		<variable name="PRIX_TOTAL" class="java.lang.Double" resetType="Group" resetGroup="CLIENT" calculation="Sum">
+			<variableExpression><![CDATA[$F{prix_total}]]></variableExpression>
+			<initialValueExpression><![CDATA[0]]></initialValueExpression>
+		</variable>
+		<variable name="RIST_PAIN" class="java.lang.Double" resetType="Group" resetGroup="CLIENT">
+			<variableExpression><![CDATA[(($V{RIST_CLIENT}>2000)?(int)($V{RIST_CLIENT}/5000)+1:0)]]></variableExpression>
+		</variable>
+		<group name="CLIENT" isStartNewPage="true">
+			<groupExpression><![CDATA[$F{client}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="DATEDEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/12/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATEFIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("02/12/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NAME_TITLE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["LISTING VENTE PAR CLIENT "]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["J"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="VENDEUR" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CUMULE" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+	</parameter>
+	<parameter name="CLIENT" class="java.lang.Integer" isForPrompting="false"/>
+	<parameter name="ZONE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+    DISTINCT y.id, y.code_client as code, CONCAT(t.nom, ' ', y.prenom) as nom
+FROM
+     yvs_com_client y INNER JOIN yvs_com_doc_ventes d ON d.client = y.id
+	INNER JOIN yvs_com_entete_doc_vente e ON d.entete_doc = e.id INNER JOIN yvs_base_tiers t ON y.tiers = t.id
+	INNER JOIN yvs_com_creneau_horaire_users h ON e.creneau = h.id
+	INNER JOIN yvs_users u ON h.users = u.id  INNER JOIN yvs_agences a ON u.agence = a.id
+WHERE d.type_doc = 'FV' AND e.date_entete BETWEEN $P{DATEDEBUT} AND $P{DATEFIN}
+AND ((COALESCE($P{AGENCE}, 0) > 0 AND a.id = $P{AGENCE}) OR (COALESCE($P{AGENCE}, 0) < 1 AND a.societe = $P{SOCIETE}))]]>
+	</queryString>
+	<field name="id" class="java.lang.Long"/>
+	<field name="code" class="java.lang.String"/>
+	<field name="nom" class="java.lang.String"/>
+	<detail>
+		<band height="159">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="0" width="555" height="20" backcolor="#EEEEEE" uuid="ed014f3b-4ef5-4510-b7c7-6ac438480b46"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["["+$F{code}+"] "+$F{nom}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="20" width="555" height="139" uuid="c6b0d500-3965-4f36-940b-e43f73cc0189"/>
+				<subreportParameter name="VENDEUR">
+					<subreportParameterExpression><![CDATA[$P{VENDEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DATEFIN">
+					<subreportParameterExpression><![CDATA[$P{DATEFIN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PERIODE">
+					<subreportParameterExpression><![CDATA[$P{PERIODE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CLIENT">
+					<subreportParameterExpression><![CDATA[$F{id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="AGENCE">
+					<subreportParameterExpression><![CDATA[$P{AGENCE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DATEDEBUT">
+					<subreportParameterExpression><![CDATA[$P{DATEDEBUT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ZONE">
+					<subreportParameterExpression><![CDATA[$P{ZONE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SOCIETE">
+					<subreportParameterExpression><![CDATA[$P{SOCIETE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CUMULE">
+					<subreportParameterExpression><![CDATA[$P{CUMULE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "listing_vente_by_client_dates_subreport.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="16" splitType="Stretch">
+			<textField>
+				<reportElement x="205" y="0" width="80" height="15" uuid="72dcced4-f0bf-4382-8d2c-4c20610f7759"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="285" y="0" width="40" height="15" uuid="670ef3c9-ff9b-473c-a526-a20dad4d4fac"/>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

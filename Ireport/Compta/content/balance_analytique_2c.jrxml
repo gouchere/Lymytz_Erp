@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="balance_analytique_2c" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a219c691-8013-4927-b969-8bea2dd6391b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#E6E5E5">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#CCCCCC">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="bad26bc4-230a-45d5-a236-3bad63bdbf82">
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/12/2017")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/01/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="COMPTES" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["ADAPPR"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2297]]></defaultValueExpression>
+		</parameter>
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="JOURNAL" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     numero as id,
+     code as numero,
+     designation as libelle,
+     null as general,
+     null as libelle_general,
+     debit_initial,
+     credit_initial,
+     debit_periode,
+     credit_periode,
+     debit_solde_periode,
+     credit_solde_periode,
+     debit_solde_cumul,
+     credit_solde_cumul,
+     is_general,
+     table_tiers
+FROM
+     "public".compta_et_balance($P{AGENCE}, $P{SOCIETE}, $P{COMPTES}, $P{DATE_DEBUT}, $P{DATE_FIN}, $P{JOURNAL}, $P{TYPE})
+      LEFT JOIN "public".yvs_compta_centre_analytique comptes on comptes."id" = numero
+ORDER BY
+     code;]]>
+		</queryString>
+		<field name="id" class="java.lang.Long"/>
+		<field name="numero" class="java.lang.String"/>
+		<field name="libelle" class="java.lang.String"/>
+		<field name="general" class="java.lang.String"/>
+		<field name="libelle_general" class="java.lang.String"/>
+		<field name="debit_initial" class="java.lang.Double"/>
+		<field name="credit_initial" class="java.lang.Double"/>
+		<field name="debit_periode" class="java.lang.Double"/>
+		<field name="credit_periode" class="java.lang.Double"/>
+		<field name="debit_solde_periode" class="java.lang.Double"/>
+		<field name="credit_solde_periode" class="java.lang.Double"/>
+		<field name="debit_solde_cumul" class="java.lang.Double"/>
+		<field name="credit_solde_cumul" class="java.lang.Double"/>
+		<field name="is_general" class="java.lang.Boolean"/>
+		<field name="table_tiers" class="java.lang.String"/>
+		<variable name="SUM_SI" class="java.lang.Double" resetType="None">
+			<variableExpression><![CDATA[$F{debit_periode}-$F{credit_periode}]]></variableExpression>
+		</variable>
+		<variable name="SUM_DI" class="java.lang.Double" resetType="None">
+			<variableExpression><![CDATA[$V{SUM_SI}>0.0?$V{SUM_SI}:null]]></variableExpression>
+		</variable>
+		<variable name="SUM_CI" class="java.lang.Double" resetType="None">
+			<variableExpression><![CDATA[$V{SUM_SI}<0.0?-$V{SUM_SI}:null]]></variableExpression>
+		</variable>
+		<variable name="SUM_DP" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{debit_periode}]]></variableExpression>
+		</variable>
+		<variable name="SUM_CP" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{credit_periode}]]></variableExpression>
+		</variable>
+		<variable name="SUM_SSP" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{debit_solde_periode}-$F{credit_solde_periode}]]></variableExpression>
+		</variable>
+		<variable name="SUM_DSP" class="java.lang.Double">
+			<variableExpression><![CDATA[$V{SUM_SSP}>0.0?$V{SUM_SSP}:null]]></variableExpression>
+		</variable>
+		<variable name="SUM_CSP" class="java.lang.Double">
+			<variableExpression><![CDATA[$V{SUM_SSP}<0.0?-($V{SUM_SSP}):null]]></variableExpression>
+		</variable>
+		<variable name="SUM_SSC" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$V{SUM_SI}]]></variableExpression>
+		</variable>
+		<variable name="SUM_DSC" class="java.lang.Double">
+			<variableExpression><![CDATA[$V{SUM_SSC}>0.0?$V{SUM_SSC}:null]]></variableExpression>
+		</variable>
+		<variable name="SUM_CSC" class="java.lang.Double">
+			<variableExpression><![CDATA[$V{SUM_SSC}<0.0?-($V{SUM_SSC}):null]]></variableExpression>
+		</variable>
+		<variable name="GROUP_SI" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL" calculation="Sum">
+			<variableExpression><![CDATA[$F{debit_initial}-$F{credit_initial}]]></variableExpression>
+		</variable>
+		<variable name="GROUP_DI" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL">
+			<variableExpression><![CDATA[$V{GROUP_SI}>0.0?$V{GROUP_SI}:null]]></variableExpression>
+		</variable>
+		<variable name="GROUP_CI" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL">
+			<variableExpression><![CDATA[$V{GROUP_SI}<0.0?-($V{GROUP_SI}):null]]></variableExpression>
+		</variable>
+		<variable name="GROUP_DP" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL" calculation="Sum">
+			<variableExpression><![CDATA[$F{debit_periode}]]></variableExpression>
+		</variable>
+		<variable name="GROUP_CP" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL" calculation="Sum">
+			<variableExpression><![CDATA[$F{credit_periode}]]></variableExpression>
+		</variable>
+		<variable name="GROUP_SSP" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL" calculation="Sum">
+			<variableExpression><![CDATA[$V{SUM_SI}]]></variableExpression>
+		</variable>
+		<variable name="GROUP_DSP" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL">
+			<variableExpression><![CDATA[$V{GROUP_SSP}>0.0?$V{GROUP_SSP}:null]]></variableExpression>
+		</variable>
+		<variable name="GROUP_CSP" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL">
+			<variableExpression><![CDATA[$V{GROUP_SSP}<0.0?-($V{GROUP_SSP}):null]]></variableExpression>
+		</variable>
+		<variable name="GROUP_SSC" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL" calculation="Sum">
+			<variableExpression><![CDATA[$F{debit_solde_cumul}-$F{credit_solde_cumul}]]></variableExpression>
+		</variable>
+		<variable name="GROUP_DSC" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL">
+			<variableExpression><![CDATA[$V{GROUP_SSC}>0.0?$V{GROUP_SSC}:null]]></variableExpression>
+		</variable>
+		<variable name="GROUP_CSC" class="java.lang.Double" resetType="Group" resetGroup="GROUP_GENERAL">
+			<variableExpression><![CDATA[$V{GROUP_SSC}<0.0?-($V{GROUP_SSC}):null]]></variableExpression>
+		</variable>
+		<group name="GROUP_GENERAL">
+			<groupExpression><![CDATA[$F{general}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="COMPTES" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["ADAPPR"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/01/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/03/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["DOWES MBELLA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2297]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["A"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="JOURNAL" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_agences."id" AS yvs_agences_id
+FROM
+     "public"."yvs_societes" yvs_societes INNER JOIN "public"."yvs_agences" yvs_agences ON yvs_agences."societe" = yvs_societes."id"
+WHERE
+     ((COALESCE($P{AGENCE}, 0) > 0 AND yvs_agences."id" = $P{AGENCE}) OR (COALESCE($P{AGENCE}, 0) < 1 AND yvs_societes."id" = $P{SOCIETE}))
+ORDER BY
+     yvs_agences."id"
+LIMIT 1]]>
+	</queryString>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<columnHeader>
+		<band height="73" splitType="Stretch">
+			<textField>
+				<reportElement positionType="Float" x="509" y="51" width="293" height="20" uuid="c2032b9a-a39a-4868-8042-e5cd9ef6e421"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Période du "+new SimpleDateFormat("dd MMM yyyy").format($P{DATE_DEBUT})+" Au "+new SimpleDateFormat("dd MMM yyyy").format($P{DATE_FIN})]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="0" width="802" height="51" uuid="3e651ee6-119b-4122-baa3-b4a8ca724163"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA["BALANCE "+($P{TYPE}.equals("T")?" DES TIERS":($P{TYPE}.equals("C")?" GENERALE": "ANALYTIQUE"))]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_agences_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport_paysage.jasper"]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement positionType="Float" x="0" y="51" width="492" height="20" uuid="c3627d3e-738b-47b7-aea1-a2f612e5affd"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$P{COMPTES}!=null?"Comptes de "+$P{COMPTES}.split(",")[0]+" Au "+$P{COMPTES}.split(",")[$P{COMPTES}.split(",").length - 1]:""]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="180" splitType="Stretch">
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="92" width="100" height="16" uuid="4f185b4d-1d41-4fa3-9bde-718497b4618a"/>
+				<textElement verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[LEGENDE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="129" width="163" height="16" uuid="7385d923-aa1a-4600-9363-f6ef58eda84c"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[DP : Débit Périodique]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="161" width="163" height="16" uuid="1742c7cb-6572-41f9-be2f-79a6eae574cd"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[DSC : Débit Solde Cumulé]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="173" y="129" width="163" height="16" uuid="ae0485a5-b68c-47e0-b31d-eb90adb1edc7"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[CP : Crédit Périodique]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="173" y="113" width="163" height="16" uuid="4d4d2bb5-20cd-463e-8f3d-21fe1b6107b5"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[CI : Crédit Initial]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="173" y="145" width="163" height="16" uuid="fbd37aa1-78b4-4fb3-b47b-3c60cda83f4c"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[CSP : Crédit Solde Périodique]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="145" width="163" height="16" uuid="7dc33f1c-9d07-469c-85b7-a3189f9c893e"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[DSP : Débit Solde Périodique]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="113" width="163" height="16" uuid="7f86f599-87fc-48a7-9e68-73252c63fce2"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[DI : Débit Initial]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="173" y="161" width="163" height="16" uuid="d88832be-a846-4fe7-a9ec-e48a23c49b66"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[CSC : Crédit Solde Cumulé]]></text>
+			</staticText>
+			<componentElement>
+				<reportElement key="table" style="table" x="0" y="0" width="802" height="61" uuid="0d31a938-b019-408c-acd8-16b0fdbf84da"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="77915716-c029-40eb-a731-ddc8ac2bb2c5">
+						<datasetParameter name="AGENCE">
+							<datasetParameterExpression><![CDATA[$P{AGENCE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_FIN">
+							<datasetParameterExpression><![CDATA[$P{DATE_FIN}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="DATE_DEBUT">
+							<datasetParameterExpression><![CDATA[$P{DATE_DEBUT}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="COMPTES">
+							<datasetParameterExpression><![CDATA[$P{COMPTES}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="SOCIETE">
+							<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="TYPE">
+							<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="JOURNAL">
+							<datasetParameterExpression><![CDATA[$P{JOURNAL}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:column width="82" uuid="caf54854-1fd3-4237-a25c-4ab347cca23c">
+						<jr:tableFooter style="table_CH" height="16" rowSpan="1"/>
+						<jr:groupFooter groupName="GROUP_GENERAL">
+							<jr:cell style="table_TH" height="16" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="5" y="0" width="77" height="16" uuid="c7c1fa66-9d72-495c-a08f-035e245bfb34"/>
+									<textElement verticalAlignment="Middle">
+										<font size="8" isBold="true"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{general}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="82" height="16" uuid="be3494cb-9f21-4dc2-8fdb-c9ab1d25ecb4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[NUMERO]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="16" rowSpan="1">
+							<textField>
+								<reportElement x="5" y="0" width="77" height="16" uuid="7c0e72d9-9ff7-4c40-8b6d-a932613c6281"/>
+								<textElement verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{numero}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="207" uuid="e64b86e2-e8ab-4a31-aa80-4a5dea59f4b9">
+						<jr:tableFooter style="table_CH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="7" y="0" width="200" height="16" uuid="346b0559-6e69-4759-9fad-b78a519f18e9"/>
+								<textElement verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[TOTAL GENERAL]]></text>
+							</staticText>
+						</jr:tableFooter>
+						<jr:groupFooter groupName="GROUP_GENERAL">
+							<jr:cell style="table_TH" height="16" rowSpan="1">
+								<textField isBlankWhenNull="true">
+									<reportElement x="7" y="0" width="200" height="16" uuid="81462071-9052-40d4-8dce-0c47ffb02b7f"/>
+									<textElement verticalAlignment="Middle">
+										<font size="8" isBold="false"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{libelle_general}]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="207" height="16" uuid="22b59660-9f6d-4de0-8460-c0d0a7cde927"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[LIBELLE]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="16" rowSpan="1">
+							<textField isBlankWhenNull="true">
+								<reportElement x="7" y="0" width="200" height="16" uuid="21428ea5-4aab-41ff-bdf7-9340475bbffc"/>
+								<textElement verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{libelle}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="134" uuid="c526df28-c7b2-4227-88f3-e3503de18e97">
+						<jr:tableFooter style="table_CH" height="16" rowSpan="1">
+							<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="134" height="16" uuid="0db6fee8-4178-45fc-9fe3-d69d6811cc12"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="9" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SUM_DP}!=0.0?$V{SUM_DP}:null]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:groupFooter groupName="GROUP_GENERAL">
+							<jr:cell style="table_TH" height="16" rowSpan="1">
+								<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="134" height="16" uuid="67e0fcb3-8485-490c-ad68-4917045cf203"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{GROUP_DP}!=0.0?$V{GROUP_DP}:null]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="134" height="16" uuid="56e3e3bc-e852-46db-b24a-d6e0959aa657"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[DEBIT]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="16" rowSpan="1">
+							<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="134" height="16" uuid="873ae332-1986-44ea-a0e6-65d65204a9cb"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{debit_periode}!=0.0?$F{debit_periode}:null]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="126" uuid="30a312b6-9cff-4f3e-bfe4-26c3c6f27e5e">
+						<jr:tableFooter style="table_CH" height="16" rowSpan="1">
+							<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="126" height="16" uuid="cfd70dbe-acdc-4426-8f10-bb0b3527a9cb"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="9" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SUM_CP}!=0.0?$V{SUM_CP}:null]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:groupFooter groupName="GROUP_GENERAL">
+							<jr:cell style="table_TH" height="16" rowSpan="1">
+								<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="126" height="16" uuid="de01365e-2c91-43bb-9046-f834eec68516"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{GROUP_CP}!=0.0?$V{GROUP_CP}:null]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="126" height="16" uuid="5a59d494-4656-4f3f-bc28-05fece35a849"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[CREDIT]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="16" rowSpan="1">
+							<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="126" height="16" uuid="afebdc79-787d-45b8-9f03-0f89955a57b0"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$F{credit_periode}!=0.0?$F{credit_periode}:null]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="120" uuid="3ad3204c-d04d-45d5-bf2a-b91e28456d52">
+						<jr:tableFooter style="table_CH" height="16" rowSpan="1">
+							<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="120" height="16" uuid="06fb11a7-e4ea-4d6e-a9f5-1d949c028821"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="9" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SUM_DSP}!=0.0?$V{SUM_DSP}:null]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:groupFooter groupName="GROUP_GENERAL">
+							<jr:cell style="table_TH" height="16" rowSpan="1">
+								<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="120" height="16" uuid="eb58908f-c605-42f2-8985-97cb4ca8ca5d"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{GROUP_DSP}!=0.0?$V{GROUP_DSP}:null]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="120" height="16" uuid="7e865136-9ea1-4821-a6c0-c8712ed9269d"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[SOLDE DEBIT]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="16" rowSpan="1">
+							<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="120" height="16" uuid="c25a5753-23af-434f-bcde-6cc5f72e7e16"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SUM_DI}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+					<jr:column width="131" uuid="d8303767-8df8-4447-b136-41095c485f19">
+						<jr:tableFooter style="table_CH" height="16" rowSpan="1">
+							<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="131" height="16" uuid="a0811087-f8a7-4071-8f94-fb879482c141"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="9" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SUM_CSP}!=0.0?$V{SUM_CSP}:null]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:groupFooter groupName="GROUP_GENERAL">
+							<jr:cell style="table_TH" height="16" rowSpan="1">
+								<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="131" height="16" uuid="c0cc4eda-7128-4e7e-b616-9db0321a4f1c"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$V{GROUP_CSP}!=0.0?$V{GROUP_CSP}:null]]></textFieldExpression>
+								</textField>
+							</jr:cell>
+						</jr:groupFooter>
+						<jr:columnHeader style="table_CH" height="16" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="131" height="16" uuid="2d9f1195-6f8d-4f53-8552-ce31b6c662ca"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<text><![CDATA[SOLDE CREDIT]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="16" rowSpan="1">
+							<textField pattern="#,##0;#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="131" height="16" uuid="b9f6750c-2933-45d7-8448-3ea8ce359886"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{SUM_CI}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<line>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="87" width="802" height="1" uuid="8c2e4ac2-7171-4664-b91b-e1b659d1568f"/>
+				<graphicElement>
+					<pen lineStyle="Dashed"/>
+				</graphicElement>
+			</line>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField>
+				<reportElement x="331" y="0" width="80" height="20" uuid="3f34f232-5730-43cf-ab3b-46ac858f1109"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+"/"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="411" y="0" width="40" height="20" uuid="b34c093d-c5c9-4dc7-9cde-d2c7239a754f"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="5" width="206" height="15" uuid="2bca71ef-8eb4-417c-8ffc-53f82b595c8b"/>
+				<text><![CDATA[copyrigth (c) 2014-2017 Lymytz]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+</jasperReport>

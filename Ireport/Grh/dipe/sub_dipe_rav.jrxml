@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="dipe_rav" language="groovy" pageWidth="200" pageHeight="20" orientation="Landscape" columnWidth="200" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="683e2e6d-dc72-4032-aa58-a665d55f0564">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="tMin" class="java.lang.Double">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="tMax" class="java.lang.Double">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="montant" class="java.lang.Double"/>
+	<parameter name="HEADER" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCES" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["2308,2312"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     COUNT(*)NBRE
+FROM
+     "public"."yvs_stat_grh_etat" yvs_stat_grh_etat INNER JOIN "public"."yvs_stat_grh_element_dipe" yvs_stat_grh_element_dipe ON yvs_stat_grh_etat."id" = yvs_stat_grh_element_dipe."etat"
+     INNER JOIN "public"."yvs_grh_detail_bulletin" yvs_grh_detail_bulletin ON yvs_stat_grh_element_dipe."element_salaire" = yvs_grh_detail_bulletin."element_salaire"
+     INNER JOIN "public"."yvs_grh_bulletins" yvs_grh_bulletins ON yvs_grh_detail_bulletin."bulletin" = yvs_grh_bulletins."id"
+     INNER JOIN "public"."yvs_grh_header_bulletin" yvs_grh_header_bulletin ON yvs_grh_header_bulletin."bulletin" = yvs_grh_bulletins."id"
+     INNER JOIN "public"."yvs_grh_ordre_calcul_salaire" yvs_grh_ordre_calcul_salaire ON yvs_grh_bulletins."entete" = yvs_grh_ordre_calcul_salaire."id"
+     INNER JOIN "public"."yvs_grh_contrat_emps" yvs_grh_contrat_emps ON yvs_grh_bulletins."contrat" = yvs_grh_contrat_emps."id"
+     INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
+WHERE
+     yvs_grh_detail_bulletin."tranche_min" <= $P{tMin}
+ AND yvs_grh_detail_bulletin."tranche_max" >= $P{tMax}
+ AND yvs_stat_grh_etat."code" = 'DIPE_RAV'
+ AND yvs_grh_ordre_calcul_salaire."id" = $P{HEADER}
+ AND yvs_grh_header_bulletin."agence"::character varying IN (select val from regexp_split_to_table($P{AGENCES},',') val)]]>
+	</queryString>
+	<field name="nbre" class="java.lang.Long"/>
+	<variable name="montant" class="java.lang.Double">
+		<variableExpression><![CDATA[$P{montant}*$F{nbre}]]></variableExpression>
+	</variable>
+	<variable name="total" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$V{montant}]]></variableExpression>
+	</variable>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="1" y="0" width="56" height="20" uuid="ba3a05d4-193c-47e3-a1b1-9a81e256e780"/>
+				<textFieldExpression><![CDATA[$F{nbre}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="145" y="0" width="55" height="20" uuid="73ac2250-8b88-48b2-816c-ec9e9ccee88f"/>
+				<textFieldExpression><![CDATA[$V{montant}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement x="62" y="0" width="71" height="20" uuid="ceaf3477-5948-4cda-9044-2f51a7fde471"/>
+				<textFieldExpression><![CDATA[$P{montant}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,821 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="facture_vente_v2" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="9a980cd4-dae9-4977-90c6-e59b6b2072a1">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="108"/>
+	<style name="table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+			<topPen lineWidth="0.0"/>
+			<leftPen lineWidth="0.0"/>
+			<bottomPen lineWidth="0.0"/>
+			<rightPen lineWidth="0.0"/>
+		</box>
+	</style>
+	<style name="table_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.0"/>
+			<leftPen lineWidth="0.0"/>
+			<bottomPen lineWidth="0.0"/>
+			<rightPen lineWidth="0.0"/>
+		</box>
+	</style>
+	<style name="table_CH" mode="Opaque" backcolor="#E4E8EB">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.0"/>
+			<leftPen lineWidth="0.0"/>
+			<bottomPen lineWidth="0.0"/>
+			<rightPen lineWidth="0.0"/>
+		</box>
+	</style>
+	<style name="table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.0"/>
+			<leftPen lineWidth="0.0"/>
+			<bottomPen lineWidth="0.25"/>
+			<rightPen lineWidth="0.0"/>
+		</box>
+	</style>
+	<subDataset name="Dataset" uuid="f37d3ece-03d8-45d5-bb7a-a296372e8c2a">
+		<parameter name="ID" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[215085]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     yvs_base_articles."designation" AS yvs_base_articles_designation,
+     yvs_base_articles."ref_art" AS yvs_base_articles_ref_art,
+     yvs_com_contenu_doc_vente."quantite" AS yvs_com_contenu_doc_vente_quantite,
+     yvs_com_contenu_doc_vente."commentaire" AS yvs_com_contenu_doc_vente_commentaire,
+     (yvs_com_contenu_doc_vente."prix" - COALESCE(yvs_com_contenu_doc_vente."rabais", 0)) AS yvs_com_contenu_doc_vente_prix,
+     (yvs_com_contenu_doc_vente."remise" + (COALESCE(yvs_com_contenu_doc_vente."rabais", 0) * yvs_com_contenu_doc_vente."quantite")) AS yvs_com_contenu_doc_vente_remise,
+     yvs_com_contenu_doc_vente."prix_total" AS yvs_com_contenu_doc_vente_total,
+     COALESCE((select SUM(t.montant) from yvs_com_taxe_contenu_vente t where t.contenu = yvs_com_contenu_doc_vente."id"), 0) AS yvs_com_contenu_doc_vente_taxe
+FROM "public"."yvs_base_articles" yvs_base_articles
+     INNER JOIN "public"."yvs_com_contenu_doc_vente" yvs_com_contenu_doc_vente ON yvs_base_articles."id" = yvs_com_contenu_doc_vente."article"
+WHERE yvs_com_contenu_doc_vente."doc_vente" =  $P{ID}]]>
+		</queryString>
+		<field name="yvs_base_articles_designation" class="java.lang.String"/>
+		<field name="yvs_base_articles_ref_art" class="java.lang.String"/>
+		<field name="yvs_com_contenu_doc_vente_quantite" class="java.lang.Double"/>
+		<field name="yvs_com_contenu_doc_vente_commentaire" class="java.lang.String"/>
+		<field name="yvs_com_contenu_doc_vente_prix" class="java.lang.Double"/>
+		<field name="yvs_com_contenu_doc_vente_remise" class="java.lang.Double"/>
+		<field name="yvs_com_contenu_doc_vente_total" class="java.lang.Double"/>
+		<field name="yvs_com_contenu_doc_vente_taxe" class="java.lang.Double"/>
+		<variable name="TOTAL" class="java.lang.Double" calculation="Sum">
+			<variableExpression><![CDATA[$F{yvs_com_contenu_doc_vente_total} - $F{yvs_com_contenu_doc_vente_taxe}]]></variableExpression>
+		</variable>
+		<variable name="yvs_com_contenu_doc_vente_ht" class="java.lang.Double">
+			<variableExpression><![CDATA[$F{yvs_com_contenu_doc_vente_total} - $F{yvs_com_contenu_doc_vente_taxe}]]></variableExpression>
+		</variable>
+	</subDataset>
+	<subDataset name="DatasetComptes" uuid="5ae039a1-9350-4415-91a3-76c650829c43">
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     yvs_base_mode_reglement."designation" AS yvs_base_mode_reglement_designation,
+     yvs_base_mode_reglement."type_reglement" AS yvs_base_mode_reglement_type,
+     COALESCE(yvs_base_mode_reglement_informations."channel_user_msisdn", '') AS yvs_base_mode_reglement_telephone,
+     COALESCE(yvs_base_mode_reglement_banque."code_banque", '') AS yvs_base_mode_reglement_code_banque,
+     COALESCE(yvs_base_mode_reglement_banque."code_guichet", '') AS yvs_base_mode_reglement_code_guichet,
+     COALESCE(yvs_base_mode_reglement_banque."numero", '') AS yvs_base_mode_reglement_numero,
+     COALESCE(yvs_base_mode_reglement_banque."cle", '') AS yvs_base_mode_reglement_cle
+
+FROM "public"."yvs_base_mode_reglement" yvs_base_mode_reglement
+     LEFT JOIN "public"."yvs_base_mode_reglement_banque" yvs_base_mode_reglement_banque ON yvs_base_mode_reglement."id" = yvs_base_mode_reglement_banque."mode"
+     LEFT JOIN "public"."yvs_base_mode_reglement_informations" yvs_base_mode_reglement_informations ON yvs_base_mode_reglement."id" = yvs_base_mode_reglement_informations."mode"
+WHERE yvs_base_mode_reglement."societe" =  $P{SOCIETE} AND yvs_base_mode_reglement."visible_on_print_vente" = TRUE]]>
+		</queryString>
+		<field name="yvs_base_mode_reglement_designation" class="java.lang.String"/>
+		<field name="yvs_base_mode_reglement_type" class="java.lang.String"/>
+		<field name="yvs_base_mode_reglement_telephone" class="java.lang.String"/>
+		<field name="yvs_base_mode_reglement_code_banque" class="java.lang.String"/>
+		<field name="yvs_base_mode_reglement_code_guichet" class="java.lang.String"/>
+		<field name="yvs_base_mode_reglement_numero" class="java.lang.String"/>
+		<field name="yvs_base_mode_reglement_cle" class="java.lang.String"/>
+	</subDataset>
+	<subDataset name="DatasetNote" uuid="7e6b0d57-c082-4e89-9def-a220c3b2dbfe">
+		<parameter name="CONTENU" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[684717]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     TRIM(unnest(regexp_split_to_array(yvs_com_contenu_doc_vente."commentaire", ';'))) AS yvs_com_contenu_doc_vente_note
+FROM "public"."yvs_com_contenu_doc_vente" yvs_com_contenu_doc_vente
+WHERE yvs_com_contenu_doc_vente."id" =  $P{CONTENU}]]>
+		</queryString>
+		<field name="yvs_com_contenu_doc_vente_note" class="java.lang.String"/>
+	</subDataset>
+	<parameter name="ID" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[807800]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="MODEL" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["FORMEL"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TITRE_DOC" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["FACTURE_VENTE"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_base_point_vente."code" AS yvs_base_point_vente_code,
+     yvs_base_point_vente."libelle" AS yvs_base_point_vente_libelle,
+     yvs_base_point_vente."agence" AS yvs_base_point_vente_agence,
+     yvs_com_client."code_client" AS yvs_com_client_code_client,
+     yvs_com_doc_ventes."nom_client" AS yvs_com_client_nom,
+     yvs_com_doc_ventes."statut" AS yvs_com_doc_ventes_statut,
+     yvs_com_doc_ventes."nature" AS yvs_com_doc_ventes_nature,
+     concat(yvs_com_entete_doc_vente."date_entete", ' ',yvs_com_doc_ventes."heure_doc"):: timestamp AS yvs_com_entete_doc_vente_date_entete,
+     yvs_com_doc_ventes."num_doc" AS yvs_com_doc_ventes_num_doc,
+     concat(yvs_com_doc_ventes."date_livraison", ' ',yvs_com_doc_ventes_informations."heure_debut") AS yvs_com_doc_ventes_date_debut,
+     concat(yvs_com_doc_ventes_informations."date_fin", ' ',yvs_com_doc_ventes_informations."heure_fin") AS yvs_com_doc_ventes_date_fin,
+     yvs_base_tiers."adresse" AS yvs_base_tiers_adresse,
+     yvs_dictionnaire."libele" AS yvs_dictionnaire_pays,
+     yvs_base_tiers_telephone."numero" AS yvs_base_tiers_telephone_numero,
+     yvs_base_model_reglement."description" AS yvs_base_model_reglement_description,
+     yvs_agences."id" AS yvs_agences_id,
+     yvs_societes."id" AS yvs_societes_id,
+     yvs_societes."name" AS yvs_societes_name,
+     COALESCE(yvs_societes."email", '---') AS yvs_societes_email,
+     COALESCE(yvs_societes."forme_juridique", '---') AS yvs_societes_forme_juridique,
+     COALESCE(yvs_societes."capital", 0) AS yvs_societes_capital,
+     COALESCE(yvs_societes."site_web", '----') AS yvs_societes_site_web,
+     COALESCE(yvs_societes."numero_contribuable", '----') AS yvs_societes_numero_contribuable,
+     COALESCE(yvs_societes."numero_registre_comerce", '----') AS yvs_societes_numero_registre_comerce,
+     COALESCE(yvs_base_tranche_reglement."interval_jour", 0) AS yvs_base_tranche_reglement_interval_jour,
+     public.get_ttc_vente(yvs_com_doc_ventes."id") as yvs_com_doc_ventes_ca,
+     COALESCE((SELECT sum(t.montant) from public.get_taxe_vente(yvs_com_doc_ventes."id") t), 0) as yvs_com_doc_ventes_taxe,
+     COALESCE((SELECT SUM(m."montant") FROM "public"."yvs_com_cout_sup_doc_vente" m WHERE m."doc_vente" = $P{ID}), 0) AS yvs_com_doc_ventes_penalites,
+     COALESCE((SELECT SUM(public.get_ttc_vente(m."id")) FROM "public"."yvs_com_doc_ventes" m INNER JOIN "public"."yvs_com_entete_doc_vente" e ON m.entete_doc = e.id WHERE m."client" = yvs_com_doc_ventes.client AND m.type_doc = 'FV' AND m.statut = 'V' AND m.statut_regle != 'P' AND m.id != yvs_com_doc_ventes."id" AND e.date_entete < yvs_com_entete_doc_vente."date_entete"), 0) AS yvs_com_doc_ventes_impayes,
+     (select t.numero from public.yvs_base_tiers_document t where t.tiers = yvs_com_client."tiers" AND t.type = 'NUI' LIMIT 1) as yvs_com_client_numero_contribuable,
+     (select t.numero from public.yvs_base_tiers_document t where t.tiers = yvs_com_client."tiers" AND t.type = 'RCC' LIMIT 1) as yvs_com_client_numero_registre_commerce,
+     yvs_print_header."nom" AS yvs_print_header_nom,
+     COALESCE(yvs_print_header."model", 'header_v1') AS yvs_print_header_model,
+     COALESCE(yvs_print_footer."model", 'footer_v1') AS yvs_print_footer_model,
+     COALESCE(yvs_print_facture_vente."view_date_facture", TRUE) AS yvs_print_facture_vente_view_date_facture,
+     COALESCE(yvs_print_facture_vente."view_numero_facture", TRUE) AS yvs_print_facture_vente_view_numero_facture,
+     COALESCE(yvs_print_facture_vente."view_taxe_facture", TRUE) AS yvs_print_facture_vente_view_taxe_facture,
+     COALESCE(yvs_print_facture_vente."view_cout_facture", TRUE) AS yvs_print_facture_vente_view_cout_facture,
+     COALESCE(yvs_print_facture_vente."view_service_facture", TRUE) AS yvs_print_facture_vente_view_service_facture,
+     COALESCE(yvs_print_facture_vente."view_reglement_facture", TRUE) AS yvs_print_facture_vente_view_reglement_facture,
+     COALESCE(yvs_print_facture_vente."view_statut_facture", TRUE) AS yvs_print_facture_vente_view_statut_facture,
+     COALESCE(yvs_print_facture_vente."view_name_vendeur", TRUE) AS yvs_print_facture_vente_view_name_vendeur,
+     COALESCE(yvs_print_facture_vente."view_point_vente", TRUE) AS yvs_print_facture_vente_view_point_vente,
+     COALESCE(yvs_print_facture_vente."view_name_client", TRUE) AS yvs_print_facture_vente_view_name_client,
+     COALESCE(yvs_print_facture_vente."view_phone_client", TRUE) AS yvs_print_facture_vente_view_phone_client,
+     COALESCE(yvs_print_facture_vente."view_adresse_client", TRUE) AS yvs_print_facture_vente_view_adresse_client,
+     COALESCE(yvs_print_facture_vente."view_nui_client", TRUE) AS yvs_print_facture_vente_view_nui_client,
+     COALESCE(yvs_print_facture_vente."view_rcc_client", TRUE) AS yvs_print_facture_vente_view_rcc_client,
+     COALESCE(yvs_print_facture_vente."view_signature_vendeur", TRUE) AS yvs_print_facture_vente_view_signature_vendeur,
+     COALESCE(yvs_print_facture_vente."view_signature_caissier", TRUE) AS yvs_print_facture_vente_view_signature_caissier,
+     COALESCE(yvs_print_facture_vente."view_signature_client", TRUE) AS yvs_print_facture_vente_view_signature_client,
+     COALESCE(yvs_print_facture_vente."view_image_payer", TRUE) AS yvs_print_facture_vente_view_image_payer,
+     COALESCE(yvs_print_facture_vente."view_image_livrer", TRUE) AS yvs_print_facture_vente_view_image_livrer
+
+FROM     "public"."yvs_base_point_vente" yvs_base_point_vente
+     INNER JOIN "public"."yvs_com_creneau_point" yvs_com_creneau_point ON yvs_base_point_vente."id" = yvs_com_creneau_point."point"
+     INNER JOIN "public"."yvs_com_creneau_horaire_users" yvs_com_creneau_horaire_users ON yvs_com_creneau_point."id" = yvs_com_creneau_horaire_users."creneau_point"
+     INNER JOIN "public"."yvs_com_entete_doc_vente" yvs_com_entete_doc_vente ON yvs_com_creneau_horaire_users."id" = yvs_com_entete_doc_vente."creneau"
+     INNER JOIN "public"."yvs_users" yvs_users ON yvs_com_creneau_horaire_users."users" = yvs_users."id"
+     INNER JOIN "public"."yvs_com_doc_ventes" yvs_com_doc_ventes ON yvs_com_entete_doc_vente."id" = yvs_com_doc_ventes."entete_doc"
+     LEFT JOIN "public"."yvs_com_doc_ventes_informations" yvs_com_doc_ventes_informations ON yvs_com_doc_ventes."id" = yvs_com_doc_ventes_informations."facture"
+     INNER JOIN "public"."yvs_com_client" yvs_com_client ON yvs_com_doc_ventes."client" = yvs_com_client."id"
+     INNER JOIN "public"."yvs_base_tiers" yvs_base_tiers ON yvs_com_client."tiers" = yvs_base_tiers."id"
+     LEFT JOIN "public"."yvs_base_tiers_telephone" yvs_base_tiers_telephone ON yvs_base_tiers."id" = yvs_base_tiers_telephone."tiers"
+     INNER JOIN "public"."yvs_agences" yvs_agences ON yvs_agences."id" = yvs_base_point_vente."agence"
+     INNER JOIN "public"."yvs_societes" yvs_societes ON yvs_societes."id" = yvs_agences."societe"
+     INNER JOIN "public"."yvs_dictionnaire" yvs_dictionnaire ON yvs_dictionnaire."id" = yvs_base_tiers."pays"
+     LEFT JOIN "public"."yvs_base_model_reglement" yvs_base_model_reglement ON yvs_com_doc_ventes."model_reglement" = yvs_base_model_reglement."id"
+     LEFT JOIN "public"."yvs_base_tranche_reglement" yvs_base_tranche_reglement ON yvs_com_doc_ventes."model_reglement" = yvs_base_tranche_reglement."model"
+     LEFT JOIN "public"."yvs_print_facture_vente" yvs_print_facture_vente ON (yvs_agences."societe" = yvs_print_facture_vente."societe" AND ((TRIM(COALESCE($P{MODEL}, '')) != '' AND yvs_print_facture_vente."nom" = $P{MODEL}) OR (TRIM(COALESCE($P{MODEL}, '')) = '' AND yvs_print_facture_vente."defaut" IS TRUE)))
+     LEFT JOIN "public"."yvs_print_header" yvs_print_header ON yvs_print_header."id" = yvs_print_facture_vente."header"
+     LEFT JOIN "public"."yvs_print_footer" yvs_print_footer ON yvs_print_footer."id" = yvs_print_facture_vente."footer"
+WHERE
+     yvs_com_doc_ventes."id" = $P{ID}
+ORDER BY yvs_base_tiers_telephone."principal" DESC
+LIMIT 1]]>
+	</queryString>
+	<field name="yvs_base_point_vente_code" class="java.lang.String"/>
+	<field name="yvs_base_point_vente_libelle" class="java.lang.String"/>
+	<field name="yvs_base_point_vente_agence" class="java.lang.Long"/>
+	<field name="yvs_com_client_code_client" class="java.lang.String"/>
+	<field name="yvs_com_client_nom" class="java.lang.String"/>
+	<field name="yvs_com_doc_ventes_statut" class="java.lang.String"/>
+	<field name="yvs_com_doc_ventes_nature" class="java.lang.String"/>
+	<field name="yvs_com_entete_doc_vente_date_entete" class="java.sql.Timestamp"/>
+	<field name="yvs_com_doc_ventes_num_doc" class="java.lang.String"/>
+	<field name="yvs_com_doc_ventes_date_debut" class="java.lang.String"/>
+	<field name="yvs_com_doc_ventes_date_fin" class="java.lang.String"/>
+	<field name="yvs_base_tiers_adresse" class="java.lang.String"/>
+	<field name="yvs_dictionnaire_pays" class="java.lang.String"/>
+	<field name="yvs_base_tiers_telephone_numero" class="java.lang.String"/>
+	<field name="yvs_base_model_reglement_description" class="java.lang.String"/>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<field name="yvs_societes_id" class="java.lang.Integer"/>
+	<field name="yvs_societes_name" class="java.lang.String"/>
+	<field name="yvs_societes_email" class="java.lang.String"/>
+	<field name="yvs_societes_forme_juridique" class="java.lang.String"/>
+	<field name="yvs_societes_capital" class="java.lang.Double"/>
+	<field name="yvs_societes_site_web" class="java.lang.String"/>
+	<field name="yvs_societes_numero_contribuable" class="java.lang.String"/>
+	<field name="yvs_societes_numero_registre_comerce" class="java.lang.String"/>
+	<field name="yvs_base_tranche_reglement_interval_jour" class="java.lang.Integer"/>
+	<field name="yvs_com_doc_ventes_ca" class="java.lang.Double"/>
+	<field name="yvs_com_doc_ventes_taxe" class="java.lang.Double"/>
+	<field name="yvs_com_doc_ventes_penalites" class="java.lang.Double"/>
+	<field name="yvs_com_doc_ventes_impayes" class="java.lang.Double"/>
+	<field name="yvs_com_client_numero_contribuable" class="java.lang.String"/>
+	<field name="yvs_com_client_numero_registre_commerce" class="java.lang.String"/>
+	<field name="yvs_print_header_nom" class="java.lang.String"/>
+	<field name="yvs_print_header_model" class="java.lang.String"/>
+	<field name="yvs_print_footer_model" class="java.lang.String"/>
+	<field name="yvs_print_facture_vente_view_date_facture" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_numero_facture" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_taxe_facture" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_cout_facture" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_service_facture" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_reglement_facture" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_statut_facture" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_name_vendeur" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_point_vente" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_name_client" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_phone_client" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_adresse_client" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_nui_client" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_rcc_client" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_signature_vendeur" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_signature_caissier" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_signature_client" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_image_payer" class="java.lang.Boolean"/>
+	<field name="yvs_print_facture_vente_view_image_livrer" class="java.lang.Boolean"/>
+	<variable name="MTANT_HT" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{yvs_com_doc_ventes_ca} - $F{yvs_com_doc_ventes_taxe}]]></variableExpression>
+	</variable>
+	<variable name="MTANT_TOTAL" class="java.lang.Double">
+		<variableExpression><![CDATA[$F{yvs_com_doc_ventes_ca} + $F{yvs_com_doc_ventes_penalites} + $F{yvs_com_doc_ventes_impayes}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="158" splitType="Stretch">
+			<image scaleImage="FillFrame">
+				<reportElement x="11" y="10" width="35" height="35" uuid="8179caad-519c-4b22-91f8-35767605f7b1"/>
+				<imageExpression><![CDATA[$P{LOGO}]]></imageExpression>
+			</image>
+			<textField>
+				<reportElement x="46" y="10" width="485" height="35" forecolor="#000099" uuid="484b3d81-9198-43ce-9110-27212c96ae02"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="18"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_societes_name}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement x="10" y="72" width="275" height="85" forecolor="#FFFFFF" backcolor="#E4E8EB" uuid="91b5e100-98cf-4e4b-8afe-8953290bf948"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="17" y="81" width="125" height="15" forecolor="#003366" uuid="2729ea0c-a07c-4ada-a617-62370eca238c"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Réference de la facture : ]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="142" y="81" width="140" height="15" forecolor="#042465" uuid="dc34fd68-4040-43aa-b7f9-d8b02ba0329a"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_num_doc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="142" y="99" width="140" height="15" forecolor="#042465" uuid="6bbe9254-d23d-476a-ae0b-daf3cf7a2d25"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_nature}.equals("VENTE")?"VENTE DE PRODUIT":"VENTE DE SERVICE"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="17" y="99" width="125" height="15" forecolor="#003366" uuid="d88848de-5687-4f3f-9586-f162590e2541"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Type de facture : ]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="142" y="117" width="140" height="15" forecolor="#042465" uuid="349a7a80-f08d-4fe7-8e0f-7470401c2b2a"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_entete_doc_vente_date_entete}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="17" y="117" width="125" height="15" forecolor="#003366" uuid="9a221bca-3796-4a05-82d6-dba5d798f790"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Date de la facture : ]]></text>
+			</staticText>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement x="142" y="135" width="140" height="15" forecolor="#042465" uuid="bf2affaf-33a5-48a6-baf4-4dc423a8e5a7"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_client_code_client}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="17" y="135" width="125" height="15" forecolor="#003366" uuid="acb9a53c-5ab4-4873-b4ba-7d2860dc8c0e"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Code du client : ]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="312" y="81" width="243" height="77" uuid="79c1f062-b2af-460f-96be-a25b3c9ebf81"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_com_client_numero_contribuable">
+					<subreportParameterExpression><![CDATA[$F{yvs_com_client_numero_contribuable}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_print_facture_vente_view_rcc_client">
+					<subreportParameterExpression><![CDATA[$F{yvs_print_facture_vente_view_rcc_client}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_print_facture_vente_view_phone_client">
+					<subreportParameterExpression><![CDATA[$F{yvs_print_facture_vente_view_phone_client}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_print_facture_vente_view_name_client">
+					<subreportParameterExpression><![CDATA[$F{yvs_print_facture_vente_view_name_client}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_print_facture_vente_view_adresse_client">
+					<subreportParameterExpression><![CDATA[$F{yvs_print_facture_vente_view_adresse_client}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_base_tiers_adresse">
+					<subreportParameterExpression><![CDATA[$F{yvs_base_tiers_adresse}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_base_tiers_telephone_numero">
+					<subreportParameterExpression><![CDATA[$F{yvs_base_tiers_telephone_numero}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_print_facture_vente_view_nui_client">
+					<subreportParameterExpression><![CDATA[$F{yvs_print_facture_vente_view_nui_client}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_com_client_numero_registre_commerce">
+					<subreportParameterExpression><![CDATA[$F{yvs_com_client_numero_registre_commerce}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="yvs_com_client_nom">
+					<subreportParameterExpression><![CDATA[$F{yvs_com_client_nom}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "facture_vente_v2_part_client.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="372" splitType="Stretch">
+			<textField>
+				<reportElement mode="Opaque" x="11" y="4" width="320" height="25" forecolor="#042465" backcolor="#E4E8EB" uuid="65ee3899-f613-4205-876f-d568d9ecc084"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Facture N°"+$F{yvs_com_doc_ventes_num_doc}+" du "+ new SimpleDateFormat("dd MMMM YYYY").format($F{yvs_com_entete_doc_vente_date_entete})]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement x="341" y="4" width="191" height="135" forecolor="#FFFFFF" backcolor="#E4E8EB" uuid="2a7f1704-db6b-4be4-8116-b127971834bf"/>
+			</rectangle>
+			<staticText>
+				<reportElement x="349" y="9" width="166" height="15" forecolor="#042465" uuid="e14630ff-5450-4245-a9d8-c20b2c007944"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Information de paiement]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="349" y="29" width="175" height="110" forecolor="#003366" uuid="3538884f-2b26-4aa5-80e4-a3b6b25cbe84"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_base_model_reglement_description}.replace("@", $F{yvs_base_tranche_reglement_interval_jour}+" jour(s)")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="11" y="29" width="171" height="25" forecolor="#003366" uuid="016087e3-2a59-4be3-b263-588989fba757"/>
+				<box leftPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Total de la facture HT]]></text>
+			</staticText>
+			<textField pattern="#,##0 Fcfa" isBlankWhenNull="true">
+				<reportElement x="182" y="29" width="149" height="25" forecolor="#003366" uuid="846ee77c-7b72-47eb-9b2d-7c135d7fa502"/>
+				<box rightPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{MTANT_HT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0 Fcfa" isBlankWhenNull="true">
+				<reportElement x="182" y="54" width="149" height="25" forecolor="#003366" uuid="4bb5ec74-e44a-430e-9ba9-14473e8836ac"/>
+				<box rightPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_taxe}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="11" y="54" width="171" height="25" forecolor="#003366" uuid="993550d4-b170-4e8a-adb7-bffb00197ffd"/>
+				<box leftPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Total taxes]]></text>
+			</staticText>
+			<textField pattern="#,##0 Fcfa" isBlankWhenNull="true">
+				<reportElement x="182" y="79" width="149" height="25" forecolor="#042465" uuid="b6333ff4-270d-40b8-907f-5c5c115e323d"/>
+				<box rightPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000066"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_ca}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="11" y="79" width="171" height="25" forecolor="#042465" uuid="a5855063-2f45-4c26-81e7-33641257ff61"/>
+				<box leftPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000066"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total de la facture TTC]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="17" y="143" width="514" height="20" forecolor="#042465" uuid="cfb8e91d-0136-4e68-8cc2-7a5bb47dab66"/>
+				<box leftPadding="0"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_nature}.equals("VENTE")?"Contenus":"Services"]]></textFieldExpression>
+			</textField>
+			<componentElement>
+				<reportElement key="table" style="table" stretchType="RelativeToTallestObject" x="17" y="163" width="514" height="79" uuid="ca44b248-8b53-405c-90cd-7fed12163725"/>
+				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
+					<datasetRun subDataset="Dataset" uuid="895e29eb-ae79-4c3f-a5b2-f60a32b88739">
+						<datasetParameter name="ID">
+							<datasetParameterExpression><![CDATA[$P{ID}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:columnGroup width="440" uuid="f562aedf-930e-4d4c-8158-1676ca7e1bad">
+						<jr:tableFooter style="table_TH" height="25" rowSpan="1">
+							<staticText>
+								<reportElement x="0" y="0" width="440" height="25" forecolor="#042465" uuid="2f093250-cade-4507-9404-a3cc04b0ed95"/>
+								<box rightPadding="10"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Sous total]]></text>
+							</staticText>
+						</jr:tableFooter>
+						<jr:column width="180" uuid="211c461b-f77f-4be5-b243-0bcfb0409583">
+							<jr:columnHeader style="table_CH" height="25" rowSpan="1">
+								<staticText>
+									<reportElement mode="Transparent" x="0" y="0" width="180" height="25" forecolor="#042465" backcolor="#FFFFFF" uuid="e023608e-b877-4936-b9eb-4be490c0ab2a"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[Désignation]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="180" height="20" forecolor="#003366" uuid="77c05f0d-a21b-48df-bee9-f0a115852434"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_base_articles_designation}]]></textFieldExpression>
+								</textField>
+								<textField>
+									<reportElement x="0" y="20" width="180" height="0" forecolor="#003366" uuid="0da8f24a-3389-43b4-94c9-1a1a1b0fa01c"/>
+									<box leftPadding="5"/>
+									<textElement verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_com_contenu_doc_vente_commentaire}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="80" uuid="13e1b408-3440-4b89-ba0b-6742de3304cc">
+							<jr:columnHeader style="table_CH" height="25" rowSpan="1">
+								<staticText>
+									<reportElement mode="Transparent" x="0" y="0" width="80" height="25" forecolor="#042465" backcolor="#FFFFFF" uuid="f32ff4c4-b2a6-4c74-a5b7-bd830d9aa318"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[Reference]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="80" height="20" forecolor="#003366" uuid="a5d2e57a-7d06-4695-aaf4-7c897ffb09b5"/>
+									<box leftPadding="0"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_base_articles_ref_art}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="60" uuid="0e8d504c-d20e-4576-b7f6-c51f8f244c90">
+							<jr:columnHeader style="table_CH" height="25" rowSpan="1">
+								<staticText>
+									<reportElement mode="Transparent" x="0" y="0" width="60" height="25" forecolor="#042465" backcolor="#FFFFFF" uuid="ec39ce01-8071-4dae-a451-210b60636202"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[Quantitée]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="60" height="20" forecolor="#003366" uuid="45088bc5-d9e6-477d-983c-14fb56c13b38"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_com_contenu_doc_vente_quantite}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="70" uuid="dbc8d3bf-48d5-49ea-a753-c2dc12b6b0e1">
+							<jr:columnHeader style="table_CH" height="25" rowSpan="1">
+								<staticText>
+									<reportElement mode="Transparent" x="0" y="0" width="70" height="25" forecolor="#042465" backcolor="#FFFFFF" uuid="cc0ee8ae-4998-4e56-9554-4291cfdeaf85"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[Prix unitaire]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="70" height="20" forecolor="#003366" uuid="2bda40d2-6712-4c8b-8946-a13a20e24b95"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_com_contenu_doc_vente_prix}]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+						<jr:column width="50" uuid="ffa9cba8-b30a-4b1a-96ea-646dd31cd016">
+							<jr:columnHeader style="table_CH" height="25" rowSpan="1">
+								<staticText>
+									<reportElement mode="Transparent" x="0" y="0" width="50" height="25" forecolor="#042465" backcolor="#FFFFFF" uuid="672b511c-7e61-48c6-bca8-1b5ad7ed602b"/>
+									<textElement textAlignment="Center" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="9" isBold="true"/>
+									</textElement>
+									<text><![CDATA[Remise]]></text>
+								</staticText>
+							</jr:columnHeader>
+							<jr:detailCell style="table_TD" height="20" rowSpan="1">
+								<textField pattern="#,##0" isBlankWhenNull="true">
+									<reportElement x="0" y="0" width="50" height="20" forecolor="#003366" uuid="b04ed1e4-df4e-4af6-aff5-6d7d26e65a34"/>
+									<box rightPadding="5"/>
+									<textElement textAlignment="Right" verticalAlignment="Middle">
+										<font fontName="DejaVu Sans" size="8"/>
+									</textElement>
+									<textFieldExpression><![CDATA[$F{yvs_com_contenu_doc_vente_remise}!=0.0?$F{yvs_com_contenu_doc_vente_remise}:null]]></textFieldExpression>
+								</textField>
+							</jr:detailCell>
+						</jr:column>
+					</jr:columnGroup>
+					<jr:column width="75" uuid="31fd0673-a59d-4555-a7a0-c894a9cf76c3">
+						<jr:tableFooter style="table_TH" height="25" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="75" height="25" forecolor="#042465" uuid="75b2c8d8-7a33-4473-be97-d83355a1e676"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{TOTAL}]]></textFieldExpression>
+							</textField>
+						</jr:tableFooter>
+						<jr:columnHeader style="table_CH" height="25" rowSpan="1">
+							<staticText>
+								<reportElement mode="Transparent" x="0" y="0" width="75" height="25" forecolor="#042465" backcolor="#FFFFFF" uuid="8c273194-51fa-4870-846a-49d26f77de16"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="9" isBold="true"/>
+								</textElement>
+								<text><![CDATA[Prix HT]]></text>
+							</staticText>
+						</jr:columnHeader>
+						<jr:detailCell style="table_TD" height="20" rowSpan="1">
+							<textField pattern="#,##0" isBlankWhenNull="true">
+								<reportElement x="0" y="0" width="75" height="20" forecolor="#003366" uuid="c7c4554f-bd74-4935-ab2b-6d40ccc4789f"/>
+								<box rightPadding="5"/>
+								<textElement textAlignment="Right" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="8"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{yvs_com_contenu_doc_vente_ht}]]></textFieldExpression>
+							</textField>
+						</jr:detailCell>
+					</jr:column>
+				</jr:table>
+			</componentElement>
+			<staticText>
+				<reportElement x="275" y="343" width="114" height="25" forecolor="#042465" uuid="86b76f1d-f944-481e-86e0-3e2890a6ba3d"/>
+				<box leftPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000066"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total TTC]]></text>
+			</staticText>
+			<textField pattern="#,##0 Fcfa" isBlankWhenNull="true">
+				<reportElement x="389" y="318" width="143" height="25" forecolor="#003366" uuid="98b01ed2-12c1-41cf-981f-7f5cb2209d60"/>
+				<box rightPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_taxe}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0 Fcfa" isBlankWhenNull="true">
+				<reportElement x="389" y="293" width="143" height="25" forecolor="#003366" uuid="943548bd-3bfe-4b21-930c-02f893cfcbfd"/>
+				<box rightPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{MTANT_HT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0 Fcfa" isBlankWhenNull="true">
+				<reportElement x="389" y="343" width="143" height="25" forecolor="#042465" uuid="21797466-c2d2-4903-abf4-975e43ac680e"/>
+				<box rightPadding="5">
+					<bottomPen lineWidth="1.0" lineStyle="Double" lineColor="#000066"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{MTANT_TOTAL}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="275" y="293" width="114" height="25" forecolor="#003366" uuid="20c0addf-2add-4552-85da-6a46cd6bb6d3"/>
+				<box leftPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Total HT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="275" y="318" width="114" height="25" forecolor="#003366" uuid="25da4916-ad90-4e4a-84d4-5082945005a2"/>
+				<box leftPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Taxes]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="274" y="242" width="114" height="25" forecolor="#003366" uuid="7f69bd75-9cc0-449b-bf08-b7a631d08f4e"/>
+				<box leftPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Pénalités]]></text>
+			</staticText>
+			<textField pattern="#,##0 Fcfa" isBlankWhenNull="true">
+				<reportElement x="388" y="242" width="143" height="25" forecolor="#003366" uuid="4cfdcc4a-93d4-48fb-8341-c9df27da9538"/>
+				<box rightPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_penalites}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="274" y="267" width="114" height="25" forecolor="#003366" uuid="aedda5cc-5903-4db5-95a6-cac919a9819f"/>
+				<box leftPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<text><![CDATA[Impayés]]></text>
+			</staticText>
+			<textField pattern="#,##0 Fcfa" isBlankWhenNull="true">
+				<reportElement x="388" y="267" width="143" height="25" forecolor="#003366" uuid="5cd7c4bf-5fa4-4572-8923-571c0afcfea0"/>
+				<box rightPadding="5">
+					<bottomPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yvs_com_doc_ventes_impayes}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="50">
+			<subreport>
+				<reportElement x="0" y="0" width="555" height="50" uuid="3edb10b8-06f5-4631-8d1e-fdf3f27ee9cb"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_SOCIETE">
+					<subreportParameterExpression><![CDATA[$F{yvs_societes_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="MODEL">
+					<subreportParameterExpression><![CDATA[$F{yvs_print_footer_model}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PAGE_CURRENT">
+					<subreportParameterExpression><![CDATA[$V{PAGE_NUMBER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="FORE_COLOR">
+					<subreportParameterExpression><![CDATA["#003366"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PAGE_NUMBER">
+					<subreportParameterExpression><![CDATA[$V{PAGE_COUNT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_AGENCE">
+					<subreportParameterExpression><![CDATA[$F{yvs_agences_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "footer_v1_paysage.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="86" splitType="Stretch">
+			<staticText>
+				<reportElement x="10" y="5" width="526" height="15" forecolor="#042465" uuid="0ce6df63-5859-4b90-a84c-80453fcc6276"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Nos coordonnées de paiement]]></text>
+			</staticText>
+			<componentElement>
+				<reportElement x="10" y="20" width="525" height="15" uuid="0f0f8184-43e7-422c-b487-eb83123ad541"/>
+				<jr:list xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd" printOrder="Vertical">
+					<datasetRun subDataset="DatasetComptes" uuid="e2708e62-e1df-4db2-ab8f-07f8a7837e01">
+						<datasetParameter name="SOCIETE">
+							<datasetParameterExpression><![CDATA[$F{yvs_societes_id}]]></datasetParameterExpression>
+						</datasetParameter>
+						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					</datasetRun>
+					<jr:listContents height="15" width="525">
+						<textField>
+							<reportElement x="0" y="0" width="486" height="15" forecolor="#003366" uuid="ddea63bc-ebac-423e-947a-97fbdececbbb"/>
+							<textElement verticalAlignment="Middle">
+								<font fontName="DejaVu Sans" size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA["* "+$F{yvs_base_mode_reglement_designation}+" : "+($F{yvs_base_mode_reglement_type}.equals("ESPECE")?$F{yvs_base_mode_reglement_telephone}:
+    ($F{yvs_base_mode_reglement_code_banque}+" / "+$F{yvs_base_mode_reglement_code_guichet}+" / "+$F{yvs_base_mode_reglement_numero}+" / "+$F{yvs_base_mode_reglement_cle}))]]></textFieldExpression>
+						</textField>
+					</jr:listContents>
+				</jr:list>
+			</componentElement>
+			<subreport>
+				<reportElement positionType="Float" x="0" y="35" width="555" height="50" uuid="e1ca8b37-bcfd-4cf5-91c0-425c5289e7f5"/>
+				<subreportParameter name="TITRE_DOC">
+					<subreportParameterExpression><![CDATA[$P{TITRE_DOC}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SOCIETE">
+					<subreportParameterExpression><![CDATA[$F{yvs_societes_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "4signatures.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</summary>
+</jasperReport>

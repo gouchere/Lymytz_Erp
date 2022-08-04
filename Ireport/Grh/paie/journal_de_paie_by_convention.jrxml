@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="journal_de_paie_by_convention" language="groovy" pageWidth="555" pageHeight="802" columnWidth="515" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true" uuid="57ac1140-3123-494a-8811-0d1072857f0e">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<subDataset name="livre_paie" uuid="43945116-c7bc-44bc-a752-8187df70e912">
+		<parameter name="HEADER" class="java.lang.String" isForPrompting="false">
+			<parameterDescription><![CDATA[]]></parameterDescription>
+			<defaultValueExpression><![CDATA["115"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="ID_AGENCE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["2315"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="ID_SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[select y.*
+from grh_et_journal_paie_by_convention($P{ID_SOCIETE}, $P{HEADER}, $P{ID_AGENCE}) y order by y.categorie, y.echellon]]>
+		</queryString>
+		<field name="regle" class="java.lang.Long"/>
+		<field name="numero" class="java.lang.Integer"/>
+		<field name="libelle" class="java.lang.String"/>
+		<field name="groupe" class="java.lang.Long">
+			<fieldDescription><![CDATA[]]></fieldDescription>
+		</field>
+		<field name="element" class="java.lang.Long"/>
+		<field name="categorie" class="java.lang.String"/>
+		<field name="echellon" class="java.lang.String"/>
+		<field name="montant" class="java.lang.Double"/>
+		<field name="rang" class="java.lang.Integer"/>
+		<field name="is_group" class="java.lang.Boolean"/>
+		<field name="is_total" class="java.lang.Boolean"/>
+	</subDataset>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["Dowes Mbella"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_HEADER" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["115"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_AGENCE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["2315"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ID_SOCIETE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("25/06/2017")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("26/05/2017")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="MULTIPLE" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_grh_categorie_professionelle."id" AS yvs_grh_categorie_professionelle_id,
+     yvs_grh_categorie_professionelle."categorie" AS yvs_grh_categorie_professionelle_categorie,
+     yvs_societes."code_abreviation" AS yvs_societes_code_abreviation,
+     yvs_societes."name" AS yvs_societes_name
+FROM
+     "public"."yvs_societes" yvs_societes
+INNER JOIN "public"."yvs_grh_categorie_professionelle" yvs_grh_categorie_professionelle ON yvs_societes."id" = yvs_grh_categorie_professionelle."societe"
+WHERE
+yvs_societes."id" = $P{ID_SOCIETE}
+ORDER BY
+yvs_grh_categorie_professionelle."degre"]]>
+	</queryString>
+	<field name="yvs_grh_categorie_professionelle_id" class="java.lang.Integer"/>
+	<field name="yvs_grh_categorie_professionelle_categorie" class="java.lang.String"/>
+	<field name="yvs_societes_code_abreviation" class="java.lang.String"/>
+	<field name="yvs_societes_name" class="java.lang.String"/>
+	<pageHeader>
+		<band height="58">
+			<rectangle>
+				<reportElement x="0" y="1" width="515" height="40" backcolor="#F0F0F0" uuid="9fc8a0d4-6a8e-488a-9dbb-5fc9ddd55601"/>
+				<graphicElement>
+					<pen lineColor="#999999"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="0" y="13" width="515" height="16" uuid="139f7958-d965-47b0-8fb6-171dfe2a583d"/>
+				<textElement textAlignment="Center">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[JOURNAL DE PAIE PAR CATEGORIE]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="417" y="2" width="68" height="12" uuid="836becee-1513-4543-ae11-fe8c4388f38a"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+"/"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="487" y="2" width="28" height="12" uuid="f73919e1-35d3-49d6-8ad9-bda69fb37618"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy HH.mm.ss">
+				<reportElement x="0" y="1" width="349" height="12" uuid="b9642e09-0d92-4c12-b6eb-f5811ecf9645"/>
+				<box leftPadding="5"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date du jour : "+new SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date())+" à "+new SimpleDateFormat("HH:mm:ss").format(new java.util.Date())]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="241" y="29" width="274" height="12" uuid="ac3c2739-70d0-4740-b412-bf7439da59f2"/>
+				<box rightPadding="5"/>
+				<textElement textAlignment="Right">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Période du "+new SimpleDateFormat("dd/MM/yyyy").format($P{DATE_DEBUT})+" à "+new SimpleDateFormat("dd/MM/yyyy").format($P{DATE_FIN})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="41" width="515" height="16" uuid="6b2d73b1-0917-4c85-9033-660e26372d0e"/>
+				<box leftPadding="5">
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Société : "+$F{yvs_societes_code_abreviation}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="38">
+			<subreport>
+				<reportElement positionType="Float" x="0" y="0" width="515" height="38" isRemoveLineWhenBlank="true" uuid="17c5537f-d86b-4645-b753-345bb5d66ec0"/>
+				<subreportParameter name="ID_SOCIETE">
+					<subreportParameterExpression><![CDATA[$P{ID_SOCIETE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_HEADER">
+					<subreportParameterExpression><![CDATA[$P{ID_HEADER}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ID_AGENCE">
+					<subreportParameterExpression><![CDATA[$P{ID_AGENCE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="CATEGORIE">
+					<subreportParameterExpression><![CDATA[$F{yvs_grh_categorie_professionelle_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "journal_de_paie_by_convention_sub.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="19">
+			<staticText>
+				<reportElement x="0" y="4" width="113" height="15" uuid="96f78870-235a-45e3-a96f-f6eeaef73eec"/>
+				<textElement>
+					<font size="9"/>
+				</textElement>
+				<text><![CDATA[copyrigth Lymytz 2014]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="349" y="4" width="66" height="15" uuid="0efddcfb-a70d-4fc7-a801-504bda87f73f"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[Imprimé par :]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="415" y="4" width="100" height="15" uuid="f629b17d-968d-4680-ae56-3d350764c7d6"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{AUTEUR}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="subBulletin_duree_conge" language="groovy" pageWidth="80" pageHeight="80" columnWidth="80" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="e0388cfa-e893-4628-82a8-faa711f89b11">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="idEmp" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateJour" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="date_debut" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dateBulletin" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select SUM(c.date_fin - c.date_debut), conge_jour_restant($P{idEmp},$P{dateBulletin}) FROM yvs_conge_emps c INNER JOIN yvs_employes e ON e.id=c.employe
+			      WHERE  e.id=$P{idEmp} AND (c.type_conge='Annuelle' OR c.effet='CONGE ANNUEL') AND c.date_fin BETWEEN $P{date_debut} AND '31-12-2015' AND c.statut='V']]>
+	</queryString>
+	<field name="sum" class="java.lang.Long"/>
+	<field name="conge_jour_restant" class="java.lang.Double"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="50">
+			<textField>
+				<reportElement x="0" y="4" width="80" height="20" uuid="fb12254d-9d72-4f48-b5ee-0811e0c28d41"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{sum}==null)?0:$F{sum}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="13" width="80" height="23" uuid="2d504b83-e5dc-455e-82c3-200adafe1496"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{conge_jour_restant}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="dashboard" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="ee3e5a05-dc50-4ffe-a9c9-5e274809df89">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[(new Boolean($V{numero}.substring(2,$V{numero}.length()).equals("")))]]></conditionExpression>
+			<style backcolor="#CCCCCC"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[(new Boolean($V{numero}.substring(2,$V{numero}.length()).equals("TOTAL")))]]></conditionExpression>
+			<style backcolor="#E0E0E0"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[!(new Boolean($V{numero}.substring(2,$V{numero}.length()).equals("TOTAL")))]]></conditionExpression>
+			<style backcolor="#EAEAEA"/>
+		</conditionalStyle>
+	</style>
+	<style name="Crosstab Data Text_1" hAlign="Center">
+		<box>
+			<topPen lineWidth="0.25" lineStyle="Solid"/>
+			<leftPen lineWidth="0.25" lineStyle="Solid"/>
+			<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+			<rightPen lineWidth="0.25" lineStyle="Solid"/>
+		</box>
+	</style>
+	<style name="Crosstab Data Text_2" hAlign="Center">
+		<box>
+			<topPen lineWidth="0.25"/>
+		</box>
+	</style>
+	<style name="Crosstab Data Text_3" hAlign="Center">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[(new Boolean($V{numero}.substring(2,$V{numero}.length()).equals("")))]]></conditionExpression>
+			<style backcolor="#CCCCCC"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[(new Boolean($V{numero}.substring(2,$V{numero}.length()).equals("TOTAL")))]]></conditionExpression>
+			<style backcolor="#E0E0E0"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[!(new Boolean($V{numero}.substring(2,$V{numero}.length()).equals("TOTAL")))]]></conditionExpression>
+			<style/>
+		</conditionalStyle>
+	</style>
+	<subDataset name="Dataset" uuid="ec93dc7c-88e7-4f1d-9920-5f09164359a4">
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["R"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="PERIODE" class="java.lang.String">
+			<defaultValueExpression><![CDATA["A"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="COMPTE_DEBUT" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["10000"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="COMPTE_FIN" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["90000"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2297]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/12/2020")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/01/2020")]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+     numero,
+     entete,
+     valeur as intitule,
+     montant,
+     num_classe,
+     is_head,
+     is_produit,
+     is_charge,
+     is_total
+FROM
+     public.compta_et_dashboard($P{AGENCE}, $P{SOCIETE}, $P{COMPTE_DEBUT} ,$P{COMPTE_FIN} ,$P{DATE_DEBUT}, $P{DATE_FIN}, $P{TYPE}, $P{PERIODE}) t
+ORDER BY
+     num_classe,
+     numero]]>
+		</queryString>
+		<field name="numero" class="java.lang.String"/>
+		<field name="entete" class="java.lang.String"/>
+		<field name="intitule" class="java.lang.String"/>
+		<field name="montant" class="java.lang.Double"/>
+		<field name="num_classe" class="java.lang.String"/>
+		<field name="is_head" class="java.lang.Boolean"/>
+		<field name="is_produit" class="java.lang.Boolean"/>
+		<field name="is_charge" class="java.lang.Boolean"/>
+		<field name="is_total" class="java.lang.Boolean"/>
+		<variable name="SUM_MONTANT" class="java.lang.Double" resetType="Group" resetGroup="GROUP_CLASSE" calculation="Sum">
+			<initialValueExpression><![CDATA[$F{montant}]]></initialValueExpression>
+		</variable>
+		<group name="GROUP_CLASSE">
+			<groupExpression><![CDATA[$F{num_classe}]]></groupExpression>
+		</group>
+	</subDataset>
+	<parameter name="TYPE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["R"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["A"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPTE_DEBUT" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["100000000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COMPTE_FIN" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["899200000"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["DOWES MBELLA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IMG_LOGO" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/12/2020")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/01/2020")]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     exercices."id" AS exercices_id,
+     exercices."reference" AS exercices_codeexercice,
+     exercices."cloturer" AS exercices_cloturer,
+     exercices."date_debut" AS exercices_datedebut,
+     exercices."date_fin" AS exercices_datefin,
+     exercices."actif" AS exercices_usable
+FROM
+     "public"."yvs_base_exercice" exercices
+WHERE
+     $P{DATE_DEBUT} BETWEEN exercices."date_debut" AND exercices."date_fin"
+     AND exercices."actif" is TRUE
+LIMIT 1]]>
+	</queryString>
+	<field name="exercices_id" class="java.lang.Long"/>
+	<field name="exercices_codeexercice" class="java.lang.String"/>
+	<field name="exercices_cloturer" class="java.lang.Boolean"/>
+	<field name="exercices_datedebut" class="java.sql.Date"/>
+	<field name="exercices_datefin" class="java.sql.Date"/>
+	<field name="exercices_usable" class="java.lang.Boolean"/>
+	<variable name="intitule" class="java.lang.String"/>
+	<title>
+		<band height="79" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="802" height="79" uuid="aeaf50ea-a3be-4091-b665-e194f2196a24"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA["TABLEAU DE BORD PERIODIQUE ANNUEL"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{IMG_LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$P{AGENCE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="22" splitType="Stretch">
+			<textField>
+				<reportElement x="253" y="0" width="242" height="20" uuid="ddb2d49d-edbe-4ee5-a4a5-c766f290537d"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Du Compte N° "+$P{COMPTE_DEBUT}+" au "+$P{COMPTE_FIN}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="520" y="0" width="283" height="20" uuid="f2e97f10-6424-47b9-bbd2-c929de1f425c"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="12" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Du "+new SimpleDateFormat("dd/MM/yyyy").format($P{DATE_DEBUT})+" Au "+new SimpleDateFormat("dd/MM/yyyy").format($P{DATE_FIN})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="191" height="20" uuid="fe5d3f50-e8ff-43a4-b793-1c7f953ec8cc"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Edition "+($P{TYPE}=="R"?"Résultat":($P{TYPE}=="P"?"Produit":($P{TYPE}=="C"?"Charge":($P{TYPE}=="B"?"Bilan":"Balance"))))+" : "+new SimpleDateFormat("yyyy").format($P{DATE_DEBUT})]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="125" splitType="Stretch">
+			<crosstab columnBreakOffset="1000">
+				<reportElement x="0" y="0" width="802" height="125" uuid="79b30ccd-b442-483b-8b3c-fc4eb139698b"/>
+				<crosstabDataset>
+					<dataset>
+						<datasetRun subDataset="Dataset" uuid="9cd4df6f-7459-4b5d-a54d-eb92abe21e86">
+							<datasetParameter name="TYPE">
+								<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="PERIODE">
+								<datasetParameterExpression><![CDATA[$P{PERIODE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="DATE_DEBUT">
+								<datasetParameterExpression><![CDATA[$P{DATE_DEBUT}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="COMPTE_DEBUT">
+								<datasetParameterExpression><![CDATA[$P{COMPTE_DEBUT}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="COMPTE_FIN">
+								<datasetParameterExpression><![CDATA[$P{COMPTE_FIN}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="AGENCE">
+								<datasetParameterExpression><![CDATA[$P{AGENCE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="SOCIETE">
+								<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="DATE_FIN">
+								<datasetParameterExpression><![CDATA[$P{DATE_FIN}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+				</crosstabDataset>
+				<crosstabHeaderCell>
+					<cellContents backcolor="#DADADA" mode="Opaque">
+						<staticText>
+							<reportElement style="Crosstab Data Text_1" x="0" y="0" width="59" height="17" uuid="de3bfa1a-42f2-47a8-9280-c3196df48ece"/>
+							<textElement verticalAlignment="Middle">
+								<font size="8" isBold="true"/>
+							</textElement>
+							<text><![CDATA[NUMERO]]></text>
+						</staticText>
+						<staticText>
+							<reportElement style="Crosstab Data Text_1" x="59" y="0" width="199" height="17" uuid="50730334-8e6d-4249-9770-0166afe429d2"/>
+							<textElement verticalAlignment="Middle">
+								<font size="8" isBold="true"/>
+							</textElement>
+							<text><![CDATA[LIBELLE]]></text>
+						</staticText>
+					</cellContents>
+				</crosstabHeaderCell>
+				<rowGroup name="numero" width="59" totalPosition="End">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{num_classe}+"_"+$F{numero}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents mode="Opaque" style="Crosstab Data Text">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineWidth="0.25"/>
+								<leftPen lineWidth="0.25"/>
+								<bottomPen lineWidth="0.25"/>
+								<rightPen lineWidth="0.25"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="59" height="12" uuid="e9a4bdbf-f46a-44a7-bc91-10bf2fe30960"/>
+								<textElement verticalAlignment="Middle">
+									<font size="7" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{numero}.substring(2,$V{numero}.length())]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents backcolor="#CCCCCC" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineWidth="0.25"/>
+								<leftPen lineWidth="0.25"/>
+								<bottomPen lineWidth="0.25"/>
+								<rightPen lineWidth="0.25"/>
+							</box>
+						</cellContents>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<rowGroup name="intitule" width="199">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{intitule}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents mode="Opaque" style="Crosstab Data Text">
+							<box>
+								<topPen lineWidth="0.25"/>
+								<leftPen lineWidth="0.25"/>
+								<bottomPen lineWidth="0.25"/>
+								<rightPen lineWidth="0.25"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="4" y="0" width="195" height="12" uuid="941f4409-b052-4ab3-adb6-15f732164558"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font size="7" isBold="false"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{intitule}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="entete" height="17" totalPosition="End">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{entete}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#DADADA" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineWidth="0.25"/>
+								<leftPen lineWidth="0.25"/>
+								<bottomPen lineWidth="0.25"/>
+								<rightPen lineWidth="0.25"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" x="0" y="0" width="181" height="16" uuid="261334a8-e95a-4047-9413-5dda59f0b59d"/>
+								<textElement verticalAlignment="Middle">
+									<font size="8" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{entete}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents backcolor="#CCCCCC" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+								<topPen lineWidth="0.25"/>
+								<leftPen lineWidth="0.25"/>
+								<bottomPen lineWidth="0.25"/>
+								<rightPen lineWidth="0.25"/>
+							</box>
+							<staticText>
+								<reportElement x="0" y="0" width="173" height="16" uuid="a248eb10-8494-430f-8c2c-f7ed6ad095b4"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font size="8" isBold="true"/>
+								</textElement>
+								<text><![CDATA[SOLDE]]></text>
+							</staticText>
+						</cellContents>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="montantMeasure" class="java.lang.Double" calculation="Sum">
+					<measureExpression><![CDATA[$F{montant}]]></measureExpression>
+				</measure>
+				<crosstabCell width="181" height="13">
+					<cellContents mode="Opaque" style="Crosstab Data Text_3">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<topPen lineWidth="0.25"/>
+							<leftPen lineWidth="0.25"/>
+							<bottomPen lineWidth="0.25"/>
+							<rightPen lineWidth="0.25"/>
+						</box>
+						<textField pattern="#,##0 D;#,##0 C" isBlankWhenNull="true">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="176" height="12" uuid="f1303f9a-3b1d-410c-bb4d-06d661833f7e"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font size="7"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{montantMeasure}!=0.0?$V{montantMeasure}:null]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="181" height="0" rowTotalGroup="numero">
+					<cellContents backcolor="#CCCCCC" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<topPen lineWidth="0.25"/>
+							<leftPen lineWidth="0.25"/>
+							<bottomPen lineWidth="0.25"/>
+							<rightPen lineWidth="0.25"/>
+						</box>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="173" height="13" columnTotalGroup="entete">
+					<cellContents backcolor="#CCCCCC" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<topPen lineWidth="0.25"/>
+							<leftPen lineWidth="0.25"/>
+							<bottomPen lineWidth="0.25"/>
+							<rightPen lineWidth="0.25"/>
+						</box>
+						<textField pattern="#,##0 D;#,##0 C" isBlankWhenNull="true">
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="168" height="12" uuid="95576bb5-f81d-47f0-8217-8e8185458596"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font size="7" isBold="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{montantMeasure}!=0.0?$V{montantMeasure}:null]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="173" height="0" rowTotalGroup="numero" columnTotalGroup="entete">
+					<cellContents backcolor="#CCCCCC" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							<topPen lineWidth="0.25"/>
+							<leftPen lineWidth="0.25"/>
+							<bottomPen lineWidth="0.25"/>
+							<rightPen lineWidth="0.25"/>
+						</box>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="intitule">
+					<cellContents/>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="intitule" columnTotalGroup="entete">
+					<cellContents/>
+				</crosstabCell>
+			</crosstab>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="22" splitType="Stretch">
+			<textField evaluationTime="Report">
+				<reportElement x="422" y="0" width="40" height="20" uuid="6db0f9c2-7e35-41c3-9c76-83ef49c56f52"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="342" y="0" width="80" height="20" uuid="0271e33a-67bf-44ab-a385-a2bade443905"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+"/"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

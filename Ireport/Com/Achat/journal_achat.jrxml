@@ -1,0 +1,914 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="journal_achat" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="f5d62acb-5d96-468a-9d95-9325a430829b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center">
+		<box>
+			<topPen lineWidth="0.25"/>
+			<leftPen lineWidth="0.25"/>
+			<bottomPen lineWidth="0.25"/>
+			<rightPen lineWidth="0.25"/>
+		</box>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{classe}.equals("Z_C.A"))]]></conditionExpression>
+			<style backcolor="#9999FF"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{classe}.equals("Z_VERS.ATT"))]]></conditionExpression>
+			<style backcolor="#99FF99"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{vendeur}.equals("Z_CMDE.SERVI"))]]></conditionExpression>
+			<style backcolor="#FFFFCC"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{vendeur}.equals("Z_TOTAUX."))]]></conditionExpression>
+			<style backcolor="#CCFFFF"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[!(new Boolean($V{vendeur}.equals("Z_TOTAUX.")) || new Boolean($V{vendeur}.equals("Z_CMDE.SERVI")))]]></conditionExpression>
+			<style backcolor="#CCCCCC"/>
+		</conditionalStyle>
+	</style>
+	<style name="Crosstab Data Text_1" hAlign="Center">
+		<box>
+			<topPen lineWidth="0.25"/>
+			<leftPen lineWidth="0.25"/>
+			<bottomPen lineWidth="0.25"/>
+			<rightPen lineWidth="0.25"/>
+		</box>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{classe}.equals("Z_C.A"))]]></conditionExpression>
+			<style backcolor="#9999FF"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{classe}.equals("Z_VERS.ATT"))]]></conditionExpression>
+			<style backcolor="#99FF99"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{vendeur}.equals("Z_CMDE.SERVI"))]]></conditionExpression>
+			<style backcolor="#FFFFCC"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean($V{vendeur}.equals("Z_TOTAUX."))]]></conditionExpression>
+			<style backcolor="#CCFFFF"/>
+		</conditionalStyle>
+	</style>
+	<subDataset name="Dataset" uuid="c85f2194-4d68-49b4-a60e-954db2763b8d">
+		<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/03/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/03/2019")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["M"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="GROUP" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["D"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+	id ,
+	code,
+	nom ,
+	classe ,
+	reference ,
+	montant ,
+	is_classe ,
+	is_vendeur ,
+	rang
+FROM com_et_journal_achat($P{SOCIETE}, $P{AGENCE}, $P{DATE_DEBUT}, $P{DATE_FIN}, $P{TYPE}, $P{PERIODE}, $P{GROUP})
+
+ORDER BY
+     is_vendeur desc,
+     code,
+     rang,
+     is_classe desc,
+     classe]]>
+		</queryString>
+		<field name="id" class="java.lang.Long"/>
+		<field name="code" class="java.lang.String"/>
+		<field name="nom" class="java.lang.String"/>
+		<field name="classe" class="java.lang.Long"/>
+		<field name="reference" class="java.lang.String"/>
+		<field name="montant" class="java.lang.Double"/>
+		<field name="is_classe" class="java.lang.Boolean"/>
+		<field name="is_vendeur" class="java.lang.Boolean"/>
+		<field name="rang" class="java.lang.Integer"/>
+	</subDataset>
+	<subDataset name="Legende1" uuid="9f8d6ce4-3742-4f20-8433-129b79f3ba5d">
+		<parameter name="DATE_DEBUT" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA[C]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+	legende,
+	valeur,
+	designation
+FROM
+	base_legende_classe_statistique($P{SOCIETE}, 0, 6, SUBSTRING($P{TYPE}, 0, 1))]]>
+		</queryString>
+		<field name="legende" class="java.lang.String"/>
+		<field name="valeur" class="java.lang.String"/>
+		<field name="designation" class="java.lang.String"/>
+	</subDataset>
+	<subDataset name="Legende2" uuid="377278e6-0f59-484c-bdcd-7736d623f0a2">
+		<parameter name="DATE_DEBUT" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+	legende,
+	valeur,
+	designation
+FROM
+	base_legende_classe_statistique($P{SOCIETE}, 6, 7, SUBSTRING($P{TYPE}, 0, 1))]]>
+		</queryString>
+		<field name="legende" class="java.lang.String"/>
+		<field name="valeur" class="java.lang.String"/>
+		<field name="designation" class="java.lang.String"/>
+	</subDataset>
+	<subDataset name="Legende3" uuid="3cebc78d-f7d0-4620-acb0-127ecc6df698">
+		<parameter name="DATE_DEBUT" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+	legende,
+	valeur,
+	designation
+FROM
+	base_legende_classe_statistique($P{SOCIETE}, 13, 7, SUBSTRING($P{TYPE}, 0, 1))]]>
+		</queryString>
+		<field name="legende" class="java.lang.String"/>
+		<field name="valeur" class="java.lang.String"/>
+		<field name="designation" class="java.lang.String"/>
+	</subDataset>
+	<subDataset name="Legende4" uuid="b7c3f71f-2c56-41bd-8f42-b678ac95aa25">
+		<parameter name="DATE_DEBUT" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+	legende,
+	valeur,
+	designation
+FROM
+	base_legende_classe_statistique($P{SOCIETE}, 20, 7, SUBSTRING($P{TYPE}, 0, 1))]]>
+		</queryString>
+		<field name="legende" class="java.lang.String"/>
+		<field name="valeur" class="java.lang.String"/>
+		<field name="designation" class="java.lang.String"/>
+	</subDataset>
+	<subDataset name="Legende5" uuid="594e6095-4b51-455c-a12a-1125148e18a7">
+		<parameter name="DATE_DEBUT" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="DATE_FIN" class="java.util.Date">
+			<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/05/2016")]]></defaultValueExpression>
+		</parameter>
+		<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2308]]></defaultValueExpression>
+		</parameter>
+		<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+			<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+		</parameter>
+		<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+			<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+		</parameter>
+		<queryString>
+			<![CDATA[SELECT
+	legende,
+	valeur,
+	designation
+FROM
+	base_legende_classe_statistique($P{SOCIETE}, 27, 7, SUBSTRING($P{TYPE}, 0, 1))]]>
+		</queryString>
+		<field name="legende" class="java.lang.String"/>
+		<field name="valeur" class="java.lang.String"/>
+		<field name="designation" class="java.lang.String"/>
+	</subDataset>
+	<parameter name="AUTEUR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["DOWES MBELLA"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="LOGO" class="java.lang.String"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D:\\Projets\\LYMYTZ_ERP_LOCAL\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/03/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/03/2019")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SOCIETE" class="java.lang.Integer" isForPrompting="false">
+		<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+	</parameter>
+	<parameter name="TYPE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["C"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["M"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="GROUP" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["D"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+     yvs_agences."id" AS yvs_agences_id,
+     yvs_agences."designation" AS yvs_agences_designation,
+     yvs_agences."societe" AS yvs_agences_societe
+FROM
+     "public"."yvs_agences" yvs_agences
+WHERE
+     yvs_agences."id" = $P{AGENCE}]]>
+	</queryString>
+	<field name="yvs_agences_id" class="java.lang.Long"/>
+	<field name="yvs_agences_designation" class="java.lang.String"/>
+	<field name="yvs_agences_societe" class="java.lang.Integer"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="71">
+			<subreport>
+				<reportElement x="0" y="0" width="802" height="51" uuid="24b0a1dd-eda3-4652-a658-40c05c0bf2f4"/>
+				<subreportParameter name="TITLE_RAPPORT">
+					<subreportParameterExpression><![CDATA["JOURNAL D'ACHAT"]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="NAME_AUTEUR">
+					<subreportParameterExpression><![CDATA[$P{AUTEUR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="LOGO">
+					<subreportParameterExpression><![CDATA[$P{LOGO}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="idAgence">
+					<subreportParameterExpression><![CDATA[$F{yvs_agences_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "header_rapport_paysage.jasper"]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement positionType="Float" x="509" y="51" width="293" height="20" uuid="b8f37f9a-f1ac-41fa-8b8b-cdeee457a0bf"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Période du "+new SimpleDateFormat("dd MMM yyyy").format($P{DATE_DEBUT})+" Au "+new SimpleDateFormat("dd MMM yyyy").format($P{DATE_FIN})]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="70">
+			<crosstab columnBreakOffset="1000">
+				<reportElement x="0" y="0" width="802" height="69" uuid="b3ee6588-e109-4553-bd74-8a3fa40d99ff"/>
+				<crosstabDataset>
+					<dataset>
+						<datasetRun subDataset="Dataset" uuid="9a72c7b0-88bc-4151-8c30-5b953818ef3b">
+							<datasetParameter name="DATE_DEBUT">
+								<datasetParameterExpression><![CDATA[$P{DATE_DEBUT}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="DATE_FIN">
+								<datasetParameterExpression><![CDATA[$P{DATE_FIN}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="AGENCE">
+								<datasetParameterExpression><![CDATA[$P{AGENCE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="SOCIETE">
+								<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="TYPE">
+								<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="PERIODE">
+								<datasetParameterExpression><![CDATA[$P{PERIODE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="GROUP">
+								<datasetParameterExpression><![CDATA[$P{GROUP}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+				</crosstabDataset>
+				<rowGroup name="vendeur" width="70">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[($F{code}.equals("TOTAUX")?"Z_":($F{code}.equals("CMDE.SERVI")?"Z_":"A_"))+$F{code}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents mode="Opaque" style="Crosstab Data Text">
+							<textField>
+								<reportElement x="5" y="0" width="65" height="25" uuid="10303e16-f79c-4812-9fc4-41b2051c775a"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="7" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{vendeur}.substring(2,$V{vendeur}.length())]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="classe" height="30">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[($F{classe} >= 0.0 ? "A_"+$F{classe}:"Z_"+$F{reference})]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents mode="Opaque" style="Crosstab Data Text">
+							<textField>
+								<reportElement x="0" y="0" width="51" height="30" uuid="388514c7-df57-477f-bde4-20ee8bcde363"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="6" isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{classe}.substring(2,$V{classe}.length())]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents/>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="montantMeasure" class="java.lang.Double">
+					<measureExpression><![CDATA[$F{montant}]]></measureExpression>
+				</measure>
+				<crosstabCell width="51" height="25">
+					<cellContents mode="Opaque" style="Crosstab Data Text_1">
+						<textField pattern="#,##0;-#,##0" isBlankWhenNull="true">
+							<reportElement x="0" y="0" width="51" height="25" uuid="79355e23-94fa-4996-8c6e-07193c9e0d77"/>
+							<box leftPadding="1" rightPadding="3"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font fontName="DejaVu Sans" size="7"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{montantMeasure}!=0.0?$V{montantMeasure}:null]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="vendeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="b1e66e4c-2a07-4b2b-ae13-a7c1e79e76d2"/>
+							<textFieldExpression><![CDATA[$V{montantMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" columnTotalGroup="classe">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="aeebbd62-d55e-4d89-95c2-c655b8c0fcec"/>
+							<textFieldExpression><![CDATA[$V{montantMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="vendeur" columnTotalGroup="classe">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="c910b52d-2677-445e-9035-f569db4aa08d"/>
+							<textFieldExpression><![CDATA[$V{montantMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="208">
+			<textField>
+				<reportElement positionType="FixRelativeToBottom" x="434" y="189" width="80" height="18" uuid="a0d982e3-6be7-4260-8442-d49b67237574"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" /"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement positionType="FixRelativeToBottom" x="513" y="189" width="40" height="18" uuid="55a3e8ae-d551-409b-901b-6b442ef12d01"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="192" width="206" height="15" uuid="ac37e5ac-80cc-4623-97ae-664e0c0e67eb"/>
+				<text><![CDATA[copyrigth (c) 2014-2017 Lymytz]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2" y="4" width="100" height="20" uuid="ce3ef565-fe7c-4037-a75f-8f40f1f6bdee"/>
+				<textElement verticalAlignment="Middle"/>
+				<text><![CDATA[LEGENDE]]></text>
+			</staticText>
+			<crosstab>
+				<reportElement x="0" y="24" width="802" height="29" uuid="2bc02ffd-c882-4977-b7a3-f0b04a158a20"/>
+				<crosstabDataset>
+					<dataset>
+						<datasetRun subDataset="Legende1" uuid="2e56ca01-235e-42dc-8725-9a320a84b75e">
+							<datasetParameter name="SOCIETE">
+								<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="TYPE">
+								<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+				</crosstabDataset>
+				<rowGroup name="legende" width="0">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{legende}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="0" height="15" uuid="c38ca8ba-38c4-4b52-a635-62e724549a8d"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{legende}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="valeur" height="15">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{valeur}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="100" height="15" uuid="a49ecdc3-2694-47f1-a77c-7abf87c4ced6"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{valeur}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents/>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="designationMeasure" class="java.lang.String" calculation="First">
+					<measureExpression><![CDATA[$F{designation}]]></measureExpression>
+				</measure>
+				<crosstabCell width="100" height="15">
+					<cellContents>
+						<textField>
+							<reportElement x="0" y="0" width="100" height="15" uuid="8de249c0-e5f5-47d5-8970-d63585ac3514"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle">
+								<font size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="legende">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="5e1f54dc-efc2-4fa2-9689-c652ac01a6b8"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="410de1cb-8d66-4326-b327-e0d008cbd817"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="legende" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="5173b63e-8820-40f0-a276-7b8a1140a55a"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+			<crosstab>
+				<reportElement x="1" y="58" width="802" height="29" uuid="6592dc1a-1653-4d19-9957-11de45d0862d"/>
+				<crosstabDataset>
+					<dataset>
+						<datasetRun subDataset="Legende2" uuid="f8cd3736-4b07-4ab1-8afc-4cc48fec05a8">
+							<datasetParameter name="SOCIETE">
+								<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="TYPE">
+								<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+				</crosstabDataset>
+				<rowGroup name="legende" width="0">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{legende}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="0" height="15" uuid="be968e89-6774-4572-b8ac-a8401e2caff7"/>
+								<box leftPadding="5"/>
+								<textElement verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{legende}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="valeur" height="15">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{valeur}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="100" height="15" uuid="cb7ad333-e3bf-424d-b884-f809b55b60e7"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{valeur}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents/>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="designationMeasure" class="java.lang.String" calculation="First">
+					<measureExpression><![CDATA[$F{designation}]]></measureExpression>
+				</measure>
+				<crosstabCell width="100" height="15">
+					<cellContents>
+						<textField>
+							<reportElement x="0" y="0" width="100" height="15" uuid="b815b7a0-b8c5-4e95-bfd4-fc857cb3550c"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle">
+								<font size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="legende">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="58bbf019-70df-4bba-a6c7-8ad6f41261b9"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="3f66707c-74de-4f65-bfa8-a982ad5e40c4"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="legende" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="de74a9a9-be2a-4a07-b27b-b6b610687cf8"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+			<crosstab>
+				<reportElement x="0" y="92" width="802" height="29" uuid="6add7e8e-8a6a-4f1f-b87a-37d6bedd5fa2"/>
+				<crosstabDataset>
+					<dataset>
+						<datasetRun subDataset="Legende3" uuid="81cd323d-5a80-4078-9af7-9217b10dcbe7">
+							<datasetParameter name="SOCIETE">
+								<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="TYPE">
+								<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+				</crosstabDataset>
+				<rowGroup name="legende" width="0">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{legende}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="0" height="15" uuid="05fc3bfe-ad62-48ff-9bb5-480214bf5c66"/>
+								<textFieldExpression><![CDATA[$V{legende}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="valeur" height="15">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{valeur}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="100" height="15" uuid="d8ca60f5-2093-46bb-bfdb-d7585e8ad740"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{valeur}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents/>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="designationMeasure" class="java.lang.String" calculation="First">
+					<measureExpression><![CDATA[$F{designation}]]></measureExpression>
+				</measure>
+				<crosstabCell width="100" height="25">
+					<cellContents>
+						<textField>
+							<reportElement x="0" y="0" width="100" height="15" uuid="99ff0bfc-a628-481a-9bda-03203b186e27"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle">
+								<font size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="legende">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="8d5bad09-0550-4701-a1cb-0dc24ea1ab39"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="2fe351f4-2842-42ed-aaa3-859775006418"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="legende" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="73dc3279-d1cf-49c3-b0b0-780c6e2eccfe"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+			<crosstab>
+				<reportElement x="0" y="126" width="802" height="29" uuid="f5ad6433-b955-4678-bdb3-d5b418664bed"/>
+				<crosstabDataset>
+					<dataset>
+						<datasetRun subDataset="Legende4" uuid="a08cf068-a388-41b7-9d89-81e2f1a65d97">
+							<datasetParameter name="SOCIETE">
+								<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="TYPE">
+								<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+				</crosstabDataset>
+				<rowGroup name="legende" width="0">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{legende}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="0" height="16" uuid="938f408e-9bbc-4057-8a20-29d3c49aaa4b"/>
+								<textFieldExpression><![CDATA[$V{legende}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="valeur" height="16">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{valeur}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="100" height="15" uuid="e93f981a-106b-4679-a1dc-13a63ad9da9f"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{valeur}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents/>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="designationMeasure" class="java.lang.String" calculation="First">
+					<measureExpression><![CDATA[$F{designation}]]></measureExpression>
+				</measure>
+				<crosstabCell width="100" height="16">
+					<cellContents>
+						<textField>
+							<reportElement x="0" y="0" width="100" height="15" uuid="d4d920b3-d3d6-46d5-a49a-30f8107e2ea8"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle">
+								<font size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="legende">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="6312d2cb-4791-4b24-921d-7b8e84d8fb67"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="ac0c2bd7-7a3a-43d8-bcc5-cd054ed4b676"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="legende" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="505be9d6-16e5-4772-a4cb-ad2a17de2105"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+			<crosstab>
+				<reportElement x="0" y="160" width="802" height="29" uuid="aa0a817f-d3ae-4793-935a-f33db2893e2b"/>
+				<crosstabDataset>
+					<dataset>
+						<datasetRun subDataset="Legende5" uuid="213e8c8c-c7fb-4899-bca7-fbe1127197ab">
+							<datasetParameter name="SOCIETE">
+								<datasetParameterExpression><![CDATA[$P{SOCIETE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<datasetParameter name="TYPE">
+								<datasetParameterExpression><![CDATA[$P{TYPE}]]></datasetParameterExpression>
+							</datasetParameter>
+							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+						</datasetRun>
+					</dataset>
+				</crosstabDataset>
+				<rowGroup name="legende" width="0">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{legende}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="0" height="15" uuid="bdd79df2-6989-4578-b427-2171932dc5c2"/>
+								<textFieldExpression><![CDATA[$V{legende}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="valeur" height="16">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{valeur}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<textField>
+								<reportElement x="0" y="0" width="100" height="15" uuid="9e388449-ede3-40b3-9669-28b2e22beacf"/>
+								<textElement textAlignment="Center" verticalAlignment="Middle">
+									<font isBold="true"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{valeur}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents/>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="designationMeasure" class="java.lang.String" calculation="First">
+					<measureExpression><![CDATA[$F{designation}]]></measureExpression>
+				</measure>
+				<crosstabCell width="100" height="15">
+					<cellContents>
+						<textField>
+							<reportElement x="0" y="0" width="100" height="15" uuid="4eca8bcd-7eb9-4c68-801a-8751a03a3910"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle">
+								<font size="8"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="legende">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="c1f10a99-f65d-4407-93ef-39763907bd90"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="a974c525-c223-44b6-a324-09ce945d8226"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="legende" columnTotalGroup="valeur">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<textField>
+							<reportElement x="0" y="0" width="50" height="25" uuid="694d0d67-7e91-4b3e-8c58-ebfde09c4749"/>
+							<textFieldExpression><![CDATA[$V{designationMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+		</band>
+	</pageFooter>
+</jasperReport>
