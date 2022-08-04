@@ -1,1 +1,0 @@
-yvs.produits.ajustement.Lineaire
