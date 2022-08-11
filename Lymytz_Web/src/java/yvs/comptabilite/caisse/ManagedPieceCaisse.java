@@ -1660,6 +1660,12 @@ public class ManagedPieceCaisse extends Managed<PieceTresorerie, YvsComptaMouvem
 
     private void loadPieceOnView(YvsComptaMouvementCaisse mvt) {
         if (mvt != null) {
+            ManagedCaisses service = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
+            if (service != null) {
+                if (!service.getCaisses().contains(mvt.getCaisse())) {
+                    service.getCaisses().add(0, mvt.getCaisse());
+                }
+            }
 //            pieceCaisse = new PieceTresorerie();
             pieceCaisse.setBonProvisoire(null);
             pieceCaisse.setCaisse(UtilCompta.buildSimpleBeanCaisse(mvt.getCaisse()));
@@ -1740,7 +1746,6 @@ public class ManagedPieceCaisse extends Managed<PieceTresorerie, YvsComptaMouvem
                     //récupère la piece doc divers
                     YvsComptaCaissePieceDivers pd = (YvsComptaCaissePieceDivers) dao.loadOneByNameQueries("YvsComptaCaissePieceDivers.findById", new String[]{"id"}, new Object[]{mvt.getIdExterne()});
                     if (pd != null ? pd.getId() > 0 : false) {
-                        System.err.println(" Ce cas.....2 ");
                         pieceCaisse.setDocDivers(UtilCompta.buildSimpleBeanDocCaisse(pd.getDocDivers()));
                         pieceCaisse.setStatutExterne(String.valueOf(pd.getDocDivers().getStatutDoc()));
                         //cherche les autres pièces de ce document                    
@@ -2322,6 +2327,14 @@ public class ManagedPieceCaisse extends Managed<PieceTresorerie, YvsComptaMouvem
     }
 
     public void addParamCaisse(Long id, boolean viewAll) {
+        if (id == -1) {
+            ManagedCaisses service = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
+            if (service != null) {
+                service.loadAll(true, 0);
+                update("chmp_caisse_piece_divers");
+            }
+            return;
+        }
         ParametreRequete pr = new ParametreRequete("y.caisse", "caisse", (id != null) ? ((id > 0) ? new YvsBaseCaisse(id) : null) : null);
         pr.setOperation("=");
         pr.setPredicat("AND");

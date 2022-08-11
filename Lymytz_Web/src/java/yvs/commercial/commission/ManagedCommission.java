@@ -1418,7 +1418,7 @@ public class ManagedCommission extends ManagedCommercial<FacteurTaux, YvsComFact
     public void deleteBeanCommission() {
         try {
             if (selectCommission != null) {
-                if (!selectCommission.getStatut().equals(Constantes.ETAT_ATTENTE)) {
+                if (!selectCommission.getStatut().equals(Constantes.ETAT_EDITABLE)) {
                     getErrorMessage("La commission n'est pas dans un état éditable !");
                     return;
                 }

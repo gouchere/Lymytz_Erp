@@ -95,6 +95,7 @@ import yvs.grh.bean.ManagedTypeCout;
 import yvs.grh.bean.TypeCout;
 import yvs.grh.presence.TrancheHoraire;
 import static yvs.init.Initialisation.FILE_SEPARATOR;
+import yvs.parametrage.entrepot.Depots;
 import yvs.util.Constantes;
 import yvs.util.PaginatorResult;
 import yvs.util.ParametreRequete;
@@ -5699,6 +5700,10 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
         } catch (Exception ex) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public double getPuv(DocAchat d, YvsComContenuDocAchat c) {
+        return dao.getPuv(c.getArticle().getId(), 0, 0, 0, d.getDepotReception().getId(), 0, d.getDateDoc(), c.getConditionnement().getId());
     }
 
     public void buildToReceive() {
