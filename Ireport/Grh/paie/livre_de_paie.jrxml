@@ -26,12 +26,15 @@
 		<parameter name="PROPERTY_IGNORE_WIDTH" class="java.lang.Boolean" isForPrompting="false">
 			<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
 		</parameter>
+		<parameter name="BROUILLON" class="java.lang.Boolean" isForPrompting="false">
+			<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+		</parameter>
 		<queryString>
 			<![CDATA[select
 	y.*,
 	concat('[','',concat(e.matricule, '] ', concat(e.nom, ' ', e.prenom))) as intitule,
 	g.libelle
-from grh_et_livre_paie($P{ID_SOCIETE}, $P{HEADER}, $P{ID_AGENCE}, '', 'E') y
+from grh_et_livre_paie($P{ID_SOCIETE}, $P{HEADER}, $P{ID_AGENCE}, '', 'E', $P{BROUILLON}) y
 inner join yvs_grh_employes e on e.id =  y.element
 left join yvs_stat_grh_groupe_element g on y.groupe = g.id
 where y.is_group is false
@@ -83,6 +86,10 @@ order by y.is_total, y.groupe, y.is_group, y.rang]]>
 	<parameter name="PROPERTY_IGNORE_WIDTH" class="java.lang.Boolean" isForPrompting="false">
 		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
 	</parameter>
+	<parameter name="BROUILLON" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IMG_BROUILLON" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[SELECT
      yvs_agences."abbreviation" AS yvs_agences_abbreviation,
@@ -102,6 +109,16 @@ LIMIT 1]]>
 	<field name="yvs_agences_codeagence" class="java.lang.String"/>
 	<field name="yvs_societes_code_abreviation" class="java.lang.String"/>
 	<field name="yvs_societes_name" class="java.lang.String"/>
+	<background>
+		<band height="762">
+			<image>
+				<reportElement mode="Transparent" x="0" y="0" width="515" height="762" uuid="3033d028-35a8-4291-8702-f80fb1f49039">
+					<printWhenExpression><![CDATA[$P{BROUILLON}]]></printWhenExpression>
+				</reportElement>
+				<imageExpression><![CDATA[$P{IMG_BROUILLON}]]></imageExpression>
+			</image>
+		</band>
+	</background>
 	<pageHeader>
 		<band height="58">
 			<rectangle>
@@ -186,6 +203,9 @@ LIMIT 1]]>
 							<datasetParameter name="ID_SOCIETE">
 								<datasetParameterExpression><![CDATA[$P{ID_SOCIETE}]]></datasetParameterExpression>
 							</datasetParameter>
+							<datasetParameter name="BROUILLON">
+								<datasetParameterExpression><![CDATA[$P{BROUILLON}]]></datasetParameterExpression>
+							</datasetParameter>
 							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 						</datasetRun>
 					</dataset>
@@ -231,7 +251,7 @@ LIMIT 1]]>
 						<bucketExpression><![CDATA[$F{numero}]]></bucketExpression>
 					</bucket>
 					<crosstabRowHeader>
-						<cellContents backcolor="#F0F8FF" mode="Opaque">
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
 							<box>
 								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 								<topPen lineWidth="0.0"/>
@@ -260,7 +280,7 @@ LIMIT 1]]>
 						<bucketExpression><![CDATA[$F{libelle}]]></bucketExpression>
 					</bucket>
 					<crosstabRowHeader>
-						<cellContents backcolor="#F0F8FF" mode="Opaque">
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
 							<box>
 								<topPen lineWidth="0.0"/>
 								<leftPen lineWidth="0.5"/>

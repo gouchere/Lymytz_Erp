@@ -17,10 +17,13 @@
 		<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
 			<defaultValueExpression><![CDATA["M"]]></defaultValueExpression>
 		</parameter>
+		<parameter name="BROUILLON" class="java.lang.Boolean" isForPrompting="false">
+			<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+		</parameter>
 		<queryString>
 			<![CDATA[select
  y.*, g.libelle as libelle_group
-from grh_et_fiche_individuel($P{ID_EMPLOYE}, $P{DATE_DEBUT}, $P{DATE_FIN}, $P{PERIODE}) y
+from grh_et_fiche_individuel($P{ID_EMPLOYE}, $P{DATE_DEBUT}, $P{DATE_FIN}, $P{PERIODE}, $P{BROUILLON}) y
 left join yvs_stat_grh_groupe_element g on y.groupe = g.id]]>
 		</queryString>
 		<field name="element" class="java.lang.Long"/>
@@ -48,6 +51,10 @@ left join yvs_stat_grh_groupe_element g on y.groupe = g.id]]>
 	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["M"]]></defaultValueExpression>
 	</parameter>
+	<parameter name="BROUILLON" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IMG_BROUILLON" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[SELECT
      yvs_agences."designation" AS yvs_agences_designation,
@@ -68,6 +75,16 @@ WHERE
 	<field name="yvs_grh_employes_prenom" class="java.lang.String"/>
 	<field name="yvs_societes_name" class="java.lang.String"/>
 	<field name="yvs_grh_employes_civilite" class="java.lang.String"/>
+	<background>
+		<band height="802">
+			<image>
+				<reportElement mode="Transparent" x="0" y="0" width="555" height="802" uuid="aab4853e-dd03-44b9-8db4-63a3c54c8c27">
+					<printWhenExpression><![CDATA[$P{BROUILLON}]]></printWhenExpression>
+				</reportElement>
+				<imageExpression><![CDATA[$P{IMG_BROUILLON}]]></imageExpression>
+			</image>
+		</band>
+	</background>
 	<pageHeader>
 		<band height="86" splitType="Stretch">
 			<staticText>
@@ -180,6 +197,9 @@ WHERE
 							<datasetParameter name="PERIODE">
 								<datasetParameterExpression><![CDATA[$P{PERIODE}]]></datasetParameterExpression>
 							</datasetParameter>
+							<datasetParameter name="BROUILLON">
+								<datasetParameterExpression><![CDATA[$P{BROUILLON}]]></datasetParameterExpression>
+							</datasetParameter>
 							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 						</datasetRun>
 					</dataset>
@@ -225,7 +245,7 @@ WHERE
 						<bucketExpression><![CDATA[$F{numero}]]></bucketExpression>
 					</bucket>
 					<crosstabRowHeader>
-						<cellContents backcolor="#F0F8FF" mode="Opaque">
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
 							<box>
 								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 							</box>
@@ -259,7 +279,7 @@ WHERE
 						<bucketExpression><![CDATA[$F{libelle}]]></bucketExpression>
 					</bucket>
 					<crosstabRowHeader>
-						<cellContents backcolor="#F0F8FF" mode="Opaque">
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
 							<box>
 								<topPen lineWidth="0.5"/>
 								<leftPen lineWidth="0.5"/>

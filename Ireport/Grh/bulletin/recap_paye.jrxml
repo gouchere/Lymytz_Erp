@@ -28,7 +28,7 @@
 			<pen lineWidth="1.0" lineColor="#000000"/>
 		</box>
 	</style>
-	<style name="table 1_TH" mode="Opaque" backcolor="#F0F8FF">
+	<style name="table 1_TH" mode="Transparent" backcolor="#F0F8FF">
 		<box>
 			<pen lineWidth="0.5" lineColor="#000000"/>
 		</box>
@@ -38,7 +38,7 @@
 			<pen lineWidth="0.5" lineColor="#000000"/>
 		</box>
 	</style>
-	<style name="table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+	<style name="table 1_TD" mode="Transparent" backcolor="#FFFFFF">
 		<box>
 			<pen lineWidth="0.5" lineColor="#000000"/>
 		</box>
@@ -49,6 +49,9 @@
 		</parameter>
 		<parameter name="ID_AGENCE" class="java.lang.String" isForPrompting="false">
 			<defaultValueExpression><![CDATA["2308,2312"]]></defaultValueExpression>
+		</parameter>
+		<parameter name="BROUILLON" class="java.lang.Boolean" isForPrompting="false">
+			<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
 		</parameter>
 		<queryString>
 			<![CDATA[SELECT
@@ -67,7 +70,8 @@ FROM
      INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
      INNER JOIN "public"."yvs_grh_poste_de_travail" yvs_grh_poste_de_travail ON yvs_grh_employes."poste_actif" = yvs_grh_poste_de_travail."id"
 WHERE yvs_grh_bulletins."entete"=$P{HEADER} AND yvs_grh_element_salaire."visible_bulletin" IS true AND
-(yvs_grh_detail_bulletin."montant_payer" >0 or yvs_grh_detail_bulletin."retenu_salariale" >0 or yvs_grh_detail_bulletin."montant_employeur">0 ) and yvs_grh_detail_bulletin."now_visible" is true and yvs_grh_bulletins."statut" IN ('V', 'P')
+(yvs_grh_detail_bulletin."montant_payer" >0 or yvs_grh_detail_bulletin."retenu_salariale" >0 or yvs_grh_detail_bulletin."montant_employeur">0 ) and yvs_grh_detail_bulletin."now_visible" is true
+AND (($P{BROUILLON} IS FALSE AND yvs_grh_bulletins.statut IN ('V', 'P')) OR ($P{BROUILLON} IS TRUE AND yvs_grh_bulletins.statut IS NOT NULL))
 AND yvs_grh_header_bulletin."agence"::character varying IN (select val from regexp_split_to_table($P{ID_AGENCE},',') val)
 GROUP BY yvs_grh_employes."matricule", yvs_grh_bulletins."contrat", yvs_grh_employes."nom", yvs_grh_employes."prenom",yvs_grh_poste_de_travail."intitule",yvs_grh_bulletins."entete"
 ORDER BY yvs_grh_employes."matricule",  yvs_grh_employes."nom" asc]]>
@@ -93,7 +97,7 @@ ORDER BY yvs_grh_employes."matricule",  yvs_grh_employes."nom" asc]]>
 		</group>
 	</subDataset>
 	<parameter name="HEADER" class="java.lang.Long">
-		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[138]]></defaultValueExpression>
 	</parameter>
 	<parameter name="NAME_AUTEUR" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["GOUCHERE Yves"]]></defaultValueExpression>
@@ -102,7 +106,7 @@ ORDER BY yvs_grh_employes."matricule",  yvs_grh_employes."nom" asc]]>
 		<defaultValueExpression><![CDATA["Récapitulatif Paye"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="ID_AGENCE" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["2308,2312"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
 	</parameter>
 	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["Mai 2017"]]></defaultValueExpression>
@@ -113,6 +117,10 @@ ORDER BY yvs_grh_employes."matricule",  yvs_grh_employes."nom" asc]]>
 	<parameter name="AGENCE" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["BAFOUSSAM"]]></defaultValueExpression>
 	</parameter>
+	<parameter name="BROUILLON" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IMG_BROUILLON" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[SELECT
      yvs_grh_poste_de_travail."intitule" AS yvs_grh_poste_de_travail_intitule,
@@ -139,7 +147,14 @@ LIMIT 1]]>
 	<field name="yvs_grh_employes_prenom" class="java.lang.String"/>
 	<field name="salaire" class="java.lang.Double"/>
 	<background>
-		<band splitType="Stretch"/>
+		<band height="802" splitType="Stretch">
+			<image>
+				<reportElement mode="Transparent" x="0" y="0" width="555" height="802" uuid="8a876f5d-7147-4de0-af19-df173a8c3943">
+					<printWhenExpression><![CDATA[$P{BROUILLON}]]></printWhenExpression>
+				</reportElement>
+				<imageExpression><![CDATA[$P{IMG_BROUILLON}]]></imageExpression>
+			</image>
+		</band>
 	</background>
 	<title>
 		<band height="76" splitType="Stretch">
@@ -223,14 +238,17 @@ LIMIT 1]]>
 	<detail>
 		<band height="144">
 			<componentElement>
-				<reportElement key="table 1" style="table 1" x="0" y="0" width="555" height="144" isRemoveLineWhenBlank="true" uuid="c445dcc0-1d37-4bb2-a6a2-b0068a89ed26"/>
+				<reportElement key="table 1" style="table 1" mode="Transparent" x="0" y="0" width="555" height="144" isRemoveLineWhenBlank="true" uuid="c445dcc0-1d37-4bb2-a6a2-b0068a89ed26"/>
 				<jr:table xmlns:jr="http://jasperreports.sourceforge.net/jasperreports/components" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports/components http://jasperreports.sourceforge.net/xsd/components.xsd">
-					<datasetRun subDataset="ds_recap_paye" uuid="b831f671-bd2c-423b-9687-51a4026291a2">
+					<datasetRun subDataset="ds_recap_paye" uuid="8c1dfdd9-f2f9-42b4-94b6-928fbd7ef66a">
 						<datasetParameter name="HEADER">
 							<datasetParameterExpression><![CDATA[$P{HEADER}]]></datasetParameterExpression>
 						</datasetParameter>
 						<datasetParameter name="ID_AGENCE">
 							<datasetParameterExpression><![CDATA[$P{ID_AGENCE}]]></datasetParameterExpression>
+						</datasetParameter>
+						<datasetParameter name="BROUILLON">
+							<datasetParameterExpression><![CDATA[$P{BROUILLON}]]></datasetParameterExpression>
 						</datasetParameter>
 						<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 					</datasetRun>
@@ -253,7 +271,7 @@ LIMIT 1]]>
 						</jr:columnHeader>
 						<jr:detailCell style="table 1_TD" height="21" rowSpan="1">
 							<textField>
-								<reportElement x="0" y="0" width="170" height="20" uuid="21b24a18-4e17-4bf0-89b4-0e556a583dd1"/>
+								<reportElement mode="Transparent" x="0" y="0" width="170" height="20" uuid="21b24a18-4e17-4bf0-89b4-0e556a583dd1"/>
 								<box leftPadding="4"/>
 								<textFieldExpression><![CDATA[$F{yvs_grh_employes_nom}+" "+$F{yvs_grh_employes_prenom}]]></textFieldExpression>
 							</textField>

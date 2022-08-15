@@ -32,6 +32,10 @@
 	<parameter name="AGENCES" class="java.lang.String" isForPrompting="false">
 		<defaultValueExpression><![CDATA["2308,2312"]]></defaultValueExpression>
 	</parameter>
+	<parameter name="BROUILLON" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IMG_BROUILLON" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[SELECT
      SUM(yvs_grh_detail_bulletin."montant_payer"),
@@ -52,9 +56,7 @@ WHERE
  AND yvs_grh_header_bulletin."agence"::character varying IN (select val from regexp_split_to_table($P{AGENCES},',') val)
 GROUP BY
      yvs_stat_grh_element_dipe_libelle,
-     yvs_grh_ordre_calcul_salaire."societe"
-
-	 ]]>
+     yvs_grh_ordre_calcul_salaire."societe"]]>
 	</queryString>
 	<field name="sum" class="java.lang.Double"/>
 	<field name="yvs_stat_grh_element_dipe_libelle" class="java.lang.String"/>
@@ -64,7 +66,14 @@ GROUP BY
 	</variable>
 	<variable name="totalDipe" class="java.lang.Double" calculation="System"/>
 	<background>
-		<band splitType="Stretch"/>
+		<band height="802" splitType="Stretch">
+			<image>
+				<reportElement mode="Transparent" x="0" y="0" width="555" height="802" uuid="319613c3-8af3-47a3-9a90-c845c40dfbad">
+					<printWhenExpression><![CDATA[$P{BROUILLON}]]></printWhenExpression>
+				</reportElement>
+				<imageExpression><![CDATA[$P{IMG_BROUILLON}]]></imageExpression>
+			</image>
+		</band>
 	</background>
 	<title>
 		<band height="172" splitType="Stretch">

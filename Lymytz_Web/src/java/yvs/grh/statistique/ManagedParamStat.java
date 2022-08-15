@@ -73,6 +73,7 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
 //    private String rapportG;
     private boolean etatAnnuel = false;
     private boolean oneEmploye = false;
+    private boolean brouillon = false;
     private String etatTresor = "DIPE_IRPP";
     private String etatGen = "RECAP";
     private String etatLivreP = "LP";
@@ -165,6 +166,14 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
         etatsRh.add(new Options("Situation MO", "GEN_SMO"));
         etatsRh.add(new Options("Récapitulatif Paie", "RECAP"));
 
+    }
+
+    public boolean isBrouillon() {
+        return brouillon;
+    }
+
+    public void setBrouillon(boolean brouillon) {
+        this.brouillon = brouillon;
     }
 
     public String getCodeEltSearch() {
@@ -1147,6 +1156,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
             tel = currentAgence.getSociete().getTel();
         }
         Map<String, Object> param_ = new HashMap<>();
+        String path = SUBREPORT_DIR(true);
+        param_.put("BROUILLON", brouillon);
+        param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
         param_.put("SOCIETE", currentAgence.getSociete().getName());
         param_.put("ID_SOCIETE", currentAgence.getSociete().getId());
         param_.put("AGENCES", ids);
@@ -1210,6 +1222,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
         }
         param_.put("HEADER", header);
         param_.put("PERIODE", periode);
+        String path = SUBREPORT_DIR(true);
+        param_.put("BROUILLON", brouillon);
+        param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
         if (Util.asString(titre)) {
             param_.put("TITRE", titre);
         }
@@ -1289,6 +1304,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
         }
         param_.put("HEADER", (int) periode);
         param_.put("ANNUEL", etatAnnuel);
+        String path = SUBREPORT_DIR(true);
+        param_.put("BROUILLON", brouillon);
+        param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
         if (etatAnnuel) {
             param_.put("PERIODE", "Annuel");
         } else {
@@ -1309,6 +1327,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
                 param_.put("DATE_DEBUT", y.getDateDebut());
                 param_.put("DATE_FIN", p.getFinMois());
                 param_.put("PERIODE", "M");
+                String path = SUBREPORT_DIR(true);
+                param_.put("BROUILLON", brouillon);
+                param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
                 if (oneEmploye) {
                     param_.put("ID_EMPLOYE", (int) emp1);
                 } else {
@@ -1409,6 +1430,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
                 }
                 YvsGrhEmployes e1 = new YvsGrhEmployes(emp1);
                 YvsGrhEmployes e2 = new YvsGrhEmployes(emp2);
+                String path = SUBREPORT_DIR(true);
+                param_.put("BROUILLON", brouillon);
+                param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
                 param_.put("matricule1", (employes.contains(e1)) ? employes.get(employes.indexOf(e1)).getMatricule() : "");
                 param_.put("matricule2", (employes.contains(e2)) ? employes.get(employes.indexOf(e2)).getMatricule() : "");
                 param_.put("auteur", currentUser.getUsers().getNomUsers());
@@ -1452,6 +1476,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
                     param_.put("ID_AGENCE", idAgence + "");
                     param_.put("MULTIPLE", false);
                 }
+                String path = SUBREPORT_DIR(true);
+                param_.put("BROUILLON", brouillon);
+                param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
                 param_.put("ID_SOCIETE", currentAgence.getSociete().getId().intValue());
                 param_.put("DATE_FIN", p.getFinMois());
                 if (etatAnnuel) {
@@ -1489,6 +1516,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
             }
             param_.put("MULTIPLE", false);
         }
+        String path = SUBREPORT_DIR(true);
+        param_.put("BROUILLON", brouillon);
+        param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
         param_.put("NAME_AUTEUR", currentUser.getUsers().getNomUsers());
         param_.put("SOCIETE", currentAgence.getSociete().getName());
         int idx = periodes.indexOf(new YvsGrhOrdreCalculSalaire(periode));
@@ -1518,6 +1548,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
             param_.put("ID_AGENCE", idAgence + "");
             param_.put("MULTIPLE", false);
         }
+        String path = SUBREPORT_DIR(true);
+        param_.put("BROUILLON", brouillon);
+        param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
         param_.put("HEADER", periode + "");
         param_.put("DATE_DEBUT", periodes.get(periodes.indexOf(new YvsGrhOrdreCalculSalaire(periode))).getDebutMois());
         param_.put("DATE_FIN", periodes.get(periodes.indexOf(new YvsGrhOrdreCalculSalaire(periode))).getFinMois());
@@ -1543,6 +1576,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
             param_.put("ID_AGENCE", idAgence + "");
             param_.put("MULTIPLE", false);
         }
+        String path = SUBREPORT_DIR(true);
+        param_.put("BROUILLON", brouillon);
+        param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
         param_.put("ID_HEADER", (int) periode);
         param_.put("ID_SOCIETE", currentAgence.getSociete().getId().intValue());
         param_.put("PERIODE", periodes.get(periodes.indexOf(new YvsGrhOrdreCalculSalaire(periode))).getReference());
@@ -1568,6 +1604,9 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
         }
         param_.put("AUTEUR", currentUser.getUsers().getNomUsers());
         param_.put("ID_HEADER", (int) periode);
+        String path = SUBREPORT_DIR(true);
+        param_.put("BROUILLON", brouillon);
+        param_.put("IMG_BROUILLON", path + FILE_SEPARATOR + "icones" + FILE_SEPARATOR + "brouillon.png");
         param_.put("ID_SOCIETE", currentAgence.getSociete().getId().intValue());
         YvsGrhOrdreCalculSalaire header = periodes.get(periodes.indexOf(new YvsGrhOrdreCalculSalaire(periode)));
         param_.put("DATE_DEBUT", header.getDateDebutTraitement());
@@ -1620,15 +1659,15 @@ public class ManagedParamStat extends Managed<ParametrageStat, YvsBaseCaisse> im
 
     public void searchElement() {
         if (codeEltSearch != null ? !codeEltSearch.trim().isEmpty() : false) {
-            List<YvsGrhElementSalaire> l=new ArrayList<>();
-            for(YvsGrhElementSalaire e:allElements){
-                if(e.getCode().toUpperCase().contains(codeEltSearch.trim().toUpperCase()) || e.getNom().toUpperCase().contains(codeEltSearch.toUpperCase())){
+            List<YvsGrhElementSalaire> l = new ArrayList<>();
+            for (YvsGrhElementSalaire e : allElements) {
+                if (e.getCode().toUpperCase().contains(codeEltSearch.trim().toUpperCase()) || e.getNom().toUpperCase().contains(codeEltSearch.toUpperCase())) {
                     l.add(e);
                 }
             }
             sourceElts.clear();
             sourceElts.addAll(l);
-        }else{
+        } else {
             sourceElts.clear();
             sourceElts.addAll(allElements);
         }

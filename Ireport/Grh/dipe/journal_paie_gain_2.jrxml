@@ -14,8 +14,11 @@
 		<parameter name="ID_SOCIETE" class="java.lang.Integer" isForPrompting="false">
 			<defaultValueExpression><![CDATA[2297]]></defaultValueExpression>
 		</parameter>
+		<parameter name="BROUILLON" class="java.lang.Boolean" isForPrompting="false">
+			<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+		</parameter>
 		<queryString>
-			<![CDATA[select * from grh_et_journal_paye_gain($P{ID_SOCIETE}, $P{ID_AGENCE}, $P{ID_HEADER})]]>
+			<![CDATA[select * from grh_et_journal_paye_gain($P{ID_SOCIETE}, $P{ID_AGENCE}, $P{ID_HEADER}, $P{BROUILLON})]]>
 		</queryString>
 		<field name="employe" class="java.lang.Long"/>
 		<field name="matricule" class="java.lang.String"/>
@@ -40,6 +43,10 @@
 	<parameter name="MULTIPLE" class="java.lang.Boolean" isForPrompting="false">
 		<defaultValueExpression><![CDATA[true]]></defaultValueExpression>
 	</parameter>
+	<parameter name="BROUILLON" class="java.lang.Boolean" isForPrompting="false">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="IMG_BROUILLON" class="java.lang.String"/>
 	<queryString>
 		<![CDATA[SELECT
      yvs_agences."designation" AS yvs_agences_designation,
@@ -64,6 +71,16 @@ OR ($P{MULTIPLE} is true AND yvs_societes."id" = $P{ID_SOCIETE})]]>
 	<field name="yvs_societes_tel" class="java.lang.String"/>
 	<field name="yvs_agence_ville" class="java.lang.String"/>
 	<field name="yvs_societe_ville" class="java.lang.String"/>
+	<background>
+		<band height="802">
+			<image>
+				<reportElement mode="Transparent" x="0" y="0" width="555" height="802" uuid="42a2d4bf-1e98-4e03-acfb-8cacf01d3d95">
+					<printWhenExpression><![CDATA[$P{BROUILLON}]]></printWhenExpression>
+				</reportElement>
+				<imageExpression><![CDATA[$P{IMG_BROUILLON}]]></imageExpression>
+			</image>
+		</band>
+	</background>
 	<title>
 		<band height="70">
 			<textField>
@@ -128,6 +145,9 @@ OR ($P{MULTIPLE} is true AND yvs_societes."id" = $P{ID_SOCIETE})]]>
 				<crosstabDataset>
 					<dataset>
 						<datasetRun subDataset="New Dataset" uuid="242263cc-980b-4015-ade8-64666e33ec75">
+							<datasetParameter name="BROUILLON">
+								<datasetParameterExpression><![CDATA[$P{BROUILLON}]]></datasetParameterExpression>
+							</datasetParameter>
 							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 						</datasetRun>
 					</dataset>
@@ -137,7 +157,7 @@ OR ($P{MULTIPLE} is true AND yvs_societes."id" = $P{ID_SOCIETE})]]>
 						<bucketExpression><![CDATA[$F{matricule}]]></bucketExpression>
 					</bucket>
 					<crosstabRowHeader>
-						<cellContents backcolor="#F0F8FF" mode="Opaque">
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
 							<box>
 								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 							</box>
@@ -165,7 +185,7 @@ OR ($P{MULTIPLE} is true AND yvs_societes."id" = $P{ID_SOCIETE})]]>
 						<bucketExpression><![CDATA[$F{employe}]]></bucketExpression>
 					</bucket>
 					<crosstabRowHeader>
-						<cellContents backcolor="#F0F8FF" mode="Opaque">
+						<cellContents backcolor="#F0F8FF" mode="Transparent">
 							<box>
 								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
 							</box>
