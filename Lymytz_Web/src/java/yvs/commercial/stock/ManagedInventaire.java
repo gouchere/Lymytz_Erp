@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
 import lymytz.navigue.Navigations;
 import org.primefaces.event.CellEditEvent;
@@ -536,6 +537,10 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
     public void init() {
         if (currentParam == null) {
             currentParam = (YvsComParametre) dao.loadOneByNameQueries("YvsComParametre.findAll", new String[]{"societe"}, new Object[]{currentAgence.getSociete()});
+            FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("paramCom", currentParam);
+        }
+        if (paramCommercial == null) {
+            paramCommercial = currentParam;
         }
     }
 

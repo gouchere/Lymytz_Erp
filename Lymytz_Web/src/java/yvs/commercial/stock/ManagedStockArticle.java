@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
@@ -722,6 +723,10 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
         }
         if (currentParam == null) {
             currentParam = (YvsComParametre) dao.loadOneByNameQueries("YvsComParametre.findAll", new String[]{"societe"}, new Object[]{currentAgence.getSociete()});
+            FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("paramCom", currentParam);
+        }
+        if (paramCommercial == null) {
+            paramCommercial = currentParam;
         }
         if (mouvementStock.getDepot().getId() < 1) {
             mouvementStock.setDepot(UtilCom.buildSimpleBeanDepot(currentDepot));
