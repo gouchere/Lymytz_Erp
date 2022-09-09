@@ -3136,7 +3136,11 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public void loadInitProd(String page) {
         if (page.equals("SUIVI")) {
-            dateDebut = yvs.dao.salaire.service.Constantes.givePrevOrNextDate(new Date(), -paramProduction.getLimiteVuOf());
+            if (paramProduction != null) {
+                dateDebut = yvs.dao.salaire.service.Constantes.givePrevOrNextDate(new Date(), -paramProduction.getLimiteVuOf());
+            }else{
+                dateDebut=new Date(); 
+            }
             dateFin = new Date();
             date_ = true;
             addParamDate_only(true);

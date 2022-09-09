@@ -33,6 +33,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdGammeSite.findAll", query = "SELECT y FROM YvsProdGammeSite y WHERE y.site.agence.societe = :societe"),
     @NamedQuery(name = "YvsProdGammeSite.findById", query = "SELECT y FROM YvsProdGammeSite y WHERE y.id = :id"),
     @NamedQuery(name = "YvsProdGammeSite.findOne", query = "SELECT y FROM YvsProdGammeSite y WHERE y.gamme = :gamme AND y.site = :site"),
+    @NamedQuery(name = "YvsProdGammeSite.findCOne", query = "SELECT y FROM YvsProdGammeSite y WHERE y.gamme = :gamme AND y.site = :site"),
     @NamedQuery(name = "YvsProdGammeSite.findByGamme", query = "SELECT y FROM YvsProdGammeSite y WHERE y.gamme = :gamme"),
     @NamedQuery(name = "YvsProdGammeSite.findBySite", query = "SELECT y FROM YvsProdGammeSite y WHERE y.site = :site"),
     @NamedQuery(name = "YvsProdGammeSite.findOneGammeBySite", query = "SELECT y.gamme FROM YvsProdGammeSite y WHERE y.site = :site AND y.gamme.article=:article AND y.gamme.actif=true ORDER BY y.gamme.principal DESC"),

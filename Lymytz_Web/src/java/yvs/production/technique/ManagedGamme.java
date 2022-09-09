@@ -2141,7 +2141,8 @@ public class ManagedGamme extends Managed<GammeArticle, YvsProdGammeArticle> imp
             bean.setDateUpdate(new Date());
             bean.setGamme(gammes.get(i));
             bean.setSite(site);
-            NB = (Long) dao.loadObjectByNameQueries("YvsProdNomenclatureSite.findCOne", new String[]{"nomenclature", "site"}, new Object[]{gammes.get(i), site});
+            NB = (Long) dao.loadObjectByNameQueries("YvsProdGammeSite.findCOne", new String[]{"gamme", "site"}, 
+                                                                            new Object[]{gammes.get(i), site});
             if (!Util.asLong(NB)) {
                 dao.save(bean);
             }
