@@ -39,6 +39,7 @@
                         <f:selectItems value="#{managedNiveauAcces.listNiveauAcces}" var="niv" itemValue="#{niv.id}" itemLabel="#{niv.designation}" 
                                        noSelectionValue="#{niv.id gt selectedNiveau.id}"/>
                     </h:selectOneMenu>
+                    <p:selectBooleanCheckbox value="#{managedNiveauAcces.reinitialiseCopy}" itemLabel="Reinitialiser les droits du niveau ?" style="float: right; margin-top: 5px"/>
                 </h:panelGrid>
                 <f:facet name="footer">
                     <p:commandButton icon='ui-icon-copy' value="Copier" style="float: right" oncomplete="dlgCopyAccesFromNiveau.hide()"
@@ -196,10 +197,22 @@
                             <span>#{lab.LDB_PNA_description}</span>
                             <p:inputTextarea value="#{niveauAcces.description}" rows="3" style="width: 98%"/>
                             <span>#{lab.LDB_PNA_faire_heriter_droit_niveau} </span>
-                            <h:selectOneMenu value="#{managedNiveauAcces.parent.id}" disabled="#{niveauAcces.id gt 0}" style="min-width: 120px">
-                                <f:selectItem itemLabel="" itemValue="0"/>
-                                <f:selectItems value="#{managedNiveauAcces.listNiveauAcces}" var="nivp" itemLabel="#{nivp.designation}" itemValue="#{nivp.id}"/>
-                            </h:selectOneMenu>
+                            <h:panelGroup>
+                                <h:selectOneMenu value="#{managedNiveauAcces.parent.id}" disabled="#{niveauAcces.id gt 0}" style="min-width: 120px; width: 98%"
+                                                  valueChangeListener="#{managedNiveauAcces.chooseNiveauParent}">
+                                    <f:selectItem itemLabel="" itemValue="0"/>
+                                    <f:selectItems value="#{managedNiveauAcces.listNiveauAcces}" var="nivp" itemLabel="#{nivp.designation}" itemValue="#{nivp.id}"/>
+                                    <p:ajax event="valueChange"/>
+                                </h:selectOneMenu><br/>
+                                <p:outputPanel id="parent-niveau" styleClass="parent-niveau" autoUpdate="true">
+                                    <c:forEach items="#{managedNiveauAcces.parentNiveauAcces}" var="item">
+                                        <div class="item-parent-niveau">
+                                            <span class="value">#{item.designation}</span>
+                                            <p:commandLink styleClass="action" value="X" actionListener="#{managedNiveauAcces.removeNiveauParent(item)}"/>
+                                        </div>
+                                    </c:forEach>
+                                </p:outputPanel>
+                            </h:panelGroup>
                             <f:facet name="footer">
                                 <p:commandButton icon="ui-icon-plus" value="Ajouter" style="float: left;background: white!important" id="data_users_niveau"
                                                  actionListener="#{managedNiveauAcces.loadUsers()}" oncomplete="dlgAddUsers.show()"/>

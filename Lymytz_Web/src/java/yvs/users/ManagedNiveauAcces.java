@@ -52,13 +52,13 @@ public class ManagedNiveauAcces extends Managed<NiveauAcces, YvsNiveauAcces> imp
     private NiveauAcces niveau = new NiveauAcces();
     private NiveauAcces parent = new NiveauAcces();
     private YvsNiveauAcces selectedNiveau;
-    private List<YvsNiveauAcces> listNiveauAcces, listSelectNiveauAcces;
+    private List<YvsNiveauAcces> listNiveauAcces, listSelectNiveauAcces, parentNiveauAcces;
     private List<YvsUsers> usersList;
 
     private Modules module = new Modules();
     private PageModule pageModule = new PageModule();
     private RessourcesPage ressourcePage = new RessourcesPage();
-    private boolean updateNiveau, updateModule, updatePage, updateRessource;
+    private boolean updateNiveau, updateModule, updatePage, updateRessource, reinitialiseCopy = true;
     private List<YvsModule> listModules;
     private List<YvsPageModule> listPages;
     private List<YvsResourcePageGroup> groupes;
@@ -89,12 +89,29 @@ public class ManagedNiveauAcces extends Managed<NiveauAcces, YvsNiveauAcces> imp
         groupes = new ArrayList<>();
         listNiveauAcces = new ArrayList<>();
         listSelectNiveauAcces = new ArrayList<>();
+        parentNiveauAcces = new ArrayList<>();
         fusionnesBy = new ArrayList<>();
         autorisations = new ArrayList<>();
         autorisationsSave = new ArrayList<>();
         listPages = new ArrayList<>();
         listModules = new ArrayList<>();
         usersList = new ArrayList<>();
+    }
+
+    public boolean isReinitialiseCopy() {
+        return reinitialiseCopy;
+    }
+
+    public void setReinitialiseCopy(boolean reinitialiseCopy) {
+        this.reinitialiseCopy = reinitialiseCopy;
+    }
+
+    public List<YvsNiveauAcces> getParentNiveauAcces() {
+        return parentNiveauAcces;
+    }
+
+    public void setParentNiveauAcces(List<YvsNiveauAcces> parentNiveauAcces) {
+        this.parentNiveauAcces = parentNiveauAcces;
     }
 
     public long getNiveauCopy() {
@@ -621,6 +638,7 @@ public class ManagedNiveauAcces extends Managed<NiveauAcces, YvsNiveauAcces> imp
             nv.setAuthor(currentUser);
             dao.delete(nv);
             listNiveauAcces.remove(nv);
+            parentNiveauAcces.remove(nv);
             succes();
         } catch (Exception ex) {
             log.log(Level.SEVERE, null, ex);
@@ -778,50 +796,118 @@ public class ManagedNiveauAcces extends Managed<NiveauAcces, YvsNiveauAcces> imp
     }
 
     private void copyDroit(YvsNiveauAcces entity) {
+        try {
+            if (parentNiveauAcces != null ? !parentNiveauAcces.isEmpty() : false) {
+                for (YvsNiveauAcces n : parentNiveauAcces) {
+                    copyDroitOne(n, entity);
+                }
+                parentNiveauAcces.clear();
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(ManagedNiveauAcces.class.getName()).log(Level.SEVERE, null, ex);
+            getErrorMessage("Action impossible!!!");
+        }
+    }
+
+    private void copyDroitOne(YvsNiveauAcces source, YvsNiveauAcces cible) {
+        try {
+            if (source != null ? source.getId() > 0 : false) {
+                if (cible != null ? cible.getId() > 0 : false) {
+                    List<YvsAutorisationModule> lm = dao.loadNameQueries("YvsAutorisationModule.findByNiveauAcces", new String[]{"niveauAcces"}, new Object[]{source});
+                    if (lm != null ? !lm.isEmpty() : false) {
+                        YvsAutorisationModule y;
+                        for (YvsAutorisationModule a : lm) {
+                            y = (YvsAutorisationModule) dao.loadOneByNameQueries("YvsAutorisationModule.findByModuleNiveau", new String[]{"module", "niveau"}, new Object[]{a.getModule(), cible});
+                            if (y != null ? y.getId() > 0 : false) {
+                                if (a.getAcces()) {
+                                    y.setAcces(a.getAcces());
+                                    dao.update(y);
+                                }
+                            } else {
+                                y = new YvsAutorisationModule();
+                                y.setAcces(a.getAcces());
+                                y.setModule(a.getModule());
+                                y.setNiveauAcces(cible);
+                                y.setDateUpdate(new Date());
+                                y.setAuthor(currentUser);
+                                y.setId(null);
+                                dao.save(y);
+                            }
+                        }
+                    }
+                    List<YvsAutorisationPageModule> lp = dao.loadNameQueries("YvsAutorisationPageModule.findByNiveauAcces", new String[]{"niveauAcces"}, new Object[]{source});
+                    if (lp != null ? !lp.isEmpty() : false) {
+                        YvsAutorisationPageModule y;
+                        for (YvsAutorisationPageModule a : lp) {
+                            y = (YvsAutorisationPageModule) dao.loadOneByNameQueries("YvsAutorisationPageModule.findByPageNiveau", new String[]{"page", "niveau"}, new Object[]{a.getPageModule(), cible});
+                            if (y != null ? y.getId() > 0 : false) {
+                                if (a.getAcces()) {
+                                    y.setAcces(a.getAcces());
+                                    dao.update(y);
+                                }
+                            } else {
+                                y = new YvsAutorisationPageModule();
+                                y.setAcces(a.getAcces());
+                                y.setPageModule(a.getPageModule());
+                                y.setNiveauAcces(cible);
+                                y.setDateUpdate(new Date());
+                                y.setAuthor(currentUser);
+                                y.setId(null);
+                                dao.save(y);
+                            }
+                        }
+                    }
+                    List<YvsAutorisationRessourcesPage> lr = dao.loadNameQueries("YvsAutorisationRessourcesPage.findByNiveauAcces", new String[]{"niveauAcces"}, new Object[]{source});
+                    if (lr != null ? !lr.isEmpty() : false) {
+                        YvsAutorisationRessourcesPage y;
+                        for (YvsAutorisationRessourcesPage a : lr) {
+                            y = (YvsAutorisationRessourcesPage) dao.loadOneByNameQueries("YvsAutorisationRessourcesPage.findByRessourceNiveau", new String[]{"ressource", "niveau"}, new Object[]{a.getRessourcePage(), cible});
+                            if (y != null ? y.getId() > 0 : false) {
+                                if (a.getAcces()) {
+                                    y.setAcces(a.getAcces());
+                                    dao.update(y);
+                                }
+                            } else {
+                                y = new YvsAutorisationRessourcesPage();
+                                y.setAcces(a.getAcces());
+                                y.setRessourcePage(a.getRessourcePage());
+                                y.setNiveauAcces(cible);
+                                y.setDateUpdate(new Date());
+                                y.setAuthor(currentUser);
+                                y.setId(null);
+                                dao.save(y);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(ManagedNiveauAcces.class.getName()).log(Level.SEVERE, null, ex);
+            getErrorMessage("Action impossible!!!");
+        }
+    }
+
+    private void copyDroit_OLD(YvsNiveauAcces entity) {
         if (parent != null ? parent.getId() > 0 : false) {
-            List<YvsAutorisationModule> lm = dao.loadNameQueries("YvsAutorisationModule.findByNiveauAcces", new String[]{"niveauAcces"}, new Object[]{new YvsNiveauAcces(parent.getId())});
-            if (lm != null ? !lm.isEmpty() : false) {
-                YvsAutorisationModule y;
-                for (YvsAutorisationModule a : lm) {
-                    y = new YvsAutorisationModule();
-                    y.setAcces(a.getAcces());
-                    y.setModule(a.getModule());
-                    y.setNiveauAcces(entity);
-                    y.setDateUpdate(new Date());
-                    y.setAuthor(currentUser);
-                    y.setId(null);
-                    dao.save(y);
-                }
-            }
-            List<YvsAutorisationPageModule> lp = dao.loadNameQueries("YvsAutorisationPageModule.findByNiveauAcces", new String[]{"niveauAcces"}, new Object[]{new YvsNiveauAcces(parent.getId())});
-            if (lp != null ? !lp.isEmpty() : false) {
-                YvsAutorisationPageModule y;
-                for (YvsAutorisationPageModule a : lp) {
-                    y = new YvsAutorisationPageModule();
-                    y.setAcces(a.getAcces());
-                    y.setPageModule(a.getPageModule());
-                    y.setNiveauAcces(entity);
-                    y.setDateUpdate(new Date());
-                    y.setAuthor(currentUser);
-                    y.setId(null);
-                    dao.save(y);
-                }
-            }
-            List<YvsAutorisationRessourcesPage> lr = dao.loadNameQueries("YvsAutorisationRessourcesPage.findByNiveauAcces", new String[]{"niveauAcces"}, new Object[]{new YvsNiveauAcces(parent.getId())});
-            if (lr != null ? !lr.isEmpty() : false) {
-                YvsAutorisationRessourcesPage y;
-                for (YvsAutorisationRessourcesPage a : lr) {
-                    y = new YvsAutorisationRessourcesPage();
-                    y.setAcces(a.getAcces());
-                    y.setRessourcePage(a.getRessourcePage());
-                    y.setNiveauAcces(entity);
-                    y.setDateUpdate(new Date());
-                    y.setAuthor(currentUser);
-                    y.setId(null);
-                    dao.save(y);
+            copyDroitOne(new YvsNiveauAcces(parent.getId()), entity);
+        }
+    }
+
+    public void chooseNiveauParent(ValueChangeEvent ev) {
+        if (ev != null ? ev.getNewValue() != null : false) {
+            Long id = (Long) ev.getNewValue();
+            int index = listNiveauAcces.indexOf(new YvsNiveauAcces(id));
+            if (index > -1) {
+                YvsNiveauAcces y = listNiveauAcces.get(index);
+                if (!parentNiveauAcces.contains(y)) {
+                    parentNiveauAcces.add(y);
                 }
             }
         }
+    }
+
+    public void removeNiveauParent(YvsNiveauAcces y) {
+        parentNiveauAcces.remove(y);
     }
 
     @Override
@@ -1077,6 +1163,7 @@ public class ManagedNiveauAcces extends Managed<NiveauAcces, YvsNiveauAcces> imp
                             Long id = Long.valueOf(i);
                             if (id > 0 ? !id.equals(newValue) : false) {
                                 listNiveauAcces.remove(new YvsNiveauAcces(id));
+                                parentNiveauAcces.remove(new YvsNiveauAcces(id));
                             }
                         }
                     }
@@ -1564,20 +1651,23 @@ public class ManagedNiveauAcces extends Managed<NiveauAcces, YvsNiveauAcces> imp
                 getErrorMessage("Vous devez choisir un niveau source different du niveau cible");
                 return;
             }
-            String query = "DELETE FROM yvs_autorisation_module WHERE niveau_acces = ?";
-            dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1)});
-            query = "DELETE FROM yvs_autorisation_page_module WHERE niveau_acces = ?";
-            dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1)});
-            query = "DELETE FROM yvs_autorisation_ressources_page WHERE niveau_acces = ?";
-            dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1)});
+            if (reinitialiseCopy) {
+                String query = "DELETE FROM yvs_autorisation_module WHERE niveau_acces = ?";
+                dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1)});
+                query = "DELETE FROM yvs_autorisation_page_module WHERE niveau_acces = ?";
+                dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1)});
+                query = "DELETE FROM yvs_autorisation_ressources_page WHERE niveau_acces = ?";
+                dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1)});
 
-            query = "INSERT INTO yvs_autorisation_module (niveau_acces, module, acces, author) SELECT ?, y.module, y.acces, ? FROM yvs_autorisation_module y WHERE y.niveau_acces = ?";
-            dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1), new Options(currentUser.getId(), 2), new Options(niveauCopy, 3)});
-            query = "INSERT INTO yvs_autorisation_page_module (niveau_acces, page_module, acces, author) SELECT ?, y.page_module, y.acces, ? FROM yvs_autorisation_page_module y WHERE y.niveau_acces = ?";
-            dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1), new Options(currentUser.getId(), 2), new Options(niveauCopy, 3)});
-            query = "INSERT INTO yvs_autorisation_ressources_page (niveau_acces, ressource_page, acces, author) SELECT ?, y.ressource_page, y.acces, ? FROM yvs_autorisation_ressources_page y WHERE y.niveau_acces = ?";
-            dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1), new Options(currentUser.getId(), 2), new Options(niveauCopy, 3)});
-
+                query = "INSERT INTO yvs_autorisation_module (niveau_acces, module, acces, author) SELECT ?, y.module, y.acces, ? FROM yvs_autorisation_module y WHERE y.niveau_acces = ?";
+                dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1), new Options(currentUser.getId(), 2), new Options(niveauCopy, 3)});
+                query = "INSERT INTO yvs_autorisation_page_module (niveau_acces, page_module, acces, author) SELECT ?, y.page_module, y.acces, ? FROM yvs_autorisation_page_module y WHERE y.niveau_acces = ?";
+                dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1), new Options(currentUser.getId(), 2), new Options(niveauCopy, 3)});
+                query = "INSERT INTO yvs_autorisation_ressources_page (niveau_acces, ressource_page, acces, author) SELECT ?, y.ressource_page, y.acces, ? FROM yvs_autorisation_ressources_page y WHERE y.niveau_acces = ?";
+                dao.requeteLibre(query, new Options[]{new Options(selectedNiveau.getId(), 1), new Options(currentUser.getId(), 2), new Options(niveauCopy, 3)});
+            } else {
+                copyDroitOne(new YvsNiveauAcces(niveauCopy), selectedNiveau);
+            }
             succes();
         } catch (Exception ex) {
             getErrorMessage("Action impossible!!!");
