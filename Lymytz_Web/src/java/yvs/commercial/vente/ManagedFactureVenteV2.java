@@ -159,7 +159,7 @@ import yvs.util.enume.Nombre;
 @ManagedBean
 @SessionScoped
 public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDocVentes> implements Serializable {
-
+    
     private YvsComEnteteDocVente selectEntete;
 //    private EnteteDocVente entete = new EnteteDocVente();
 
@@ -175,7 +175,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
     private YvsComContenuDocVenteEtat selectEtat;
     private ContenuDocVenteEtat etat = new ContenuDocVenteEtat();
     private YvsComContenuDocVente selectContenuRetour = new YvsComContenuDocVente();
-
+    
     private List<YvsComContenuDocVente> contenus_bcv, all_contenus, contenusRequireLot, selectContenus;
     private YvsComContenuDocVente selectContenu;
     private ContenuDocVente contenu = new ContenuDocVente();
@@ -186,28 +186,28 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
     private long remiseContenu;
     private double montant_rabais, montant_rabais_total, montant_remise, taux_remise;
     private String commentaire, numSerie;
-
+    
     private CommercialVente commercial = new CommercialVente();
     private YvsComCommercialVente selectCommercial;
-
+    
     private CoutSupDoc cout = new CoutSupDoc();
     private YvsComCoutSupDocVente selectCout;
-
+    
     private List<YvsGrhTrancheHoraire> tranches;
     private TrancheHoraire trancheChange = new TrancheHoraire();
     private List<YvsBaseTaxes> taxes;
-
+    
     private List<YvsUsers> caissiers;
     private PieceTresorerie reglement = new PieceTresorerie(), avance = new PieceTresorerie();
     private YvsComptaCaissePieceVente selectReglement;
     private YvsComTaxeContenuVente selectedTaxe;
     private boolean checkAvance, onEncaisement;
     private boolean newMensualite;
-
+    
     private RemiseDocVente remise = new RemiseDocVente();
     private List<YvsComRemiseDocVente> remisesFacture;
     private YvsComRemiseDocVente selectRemiseFacture;
-
+    
     private String tabIds_contenu, tabIds_cout, tabIds_mensualite, tabIds_remise, tabIds_commercial;
     private boolean correct = false, selectArt, isBon, listArt;
     private Date dateClean = new Date();
@@ -235,18 +235,18 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
     private List<YvsBaseDepots> depotsLivraison;
     private List<YvsUsers> vendeurs;
     private List<YvsDictionnaire> lieux;
-
+    
     private String motifEtape;
     YvsWorkflowValidFactureVente etape;
     private boolean lastEtape;
-
+    
     @ManagedProperty(value = "#{composantsEditable}")
     private ComposantsEditable modelFormEditable;
     @ManagedProperty(value = "#{composantsVisible}")
     private ComposantsVisible modelFormCompVisible;
     @ManagedProperty(value = "#{composantsObligatoire}")
     private ComposantsObligatoire modelFormCompOblig;
-
+    
     private boolean displayId, displayCodeClient;
     private boolean changeNumdocAuto = true;
     private boolean displayDetailClient = false, displayDetailReglement = false;
@@ -255,13 +255,13 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
     protected String statutLotBL = Constantes.ETAT_VALIDE, statutLotPiece = Constantes.ETAT_REGLE, statutLotFV = Constantes.ETAT_VALIDE, natureVente = Constantes.VENTE, natureSearch;
     private String page = "V2";
     private List<String> statuts;
-
+    
     private boolean listing, memoriserDeleteContenu = false;
     private boolean loadOnlyDepotPoint = true;
-
+    
     private String model = "facture_vente_v1";
     private boolean withHeader = true;
-
+    
     public ManagedFactureVenteV2() {
         contenus_bcv = new ArrayList<>();
         taxes = new ArrayList<>();
@@ -279,1112 +279,1112 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         selectContenus = new ArrayList<>();
         natureVente = Constantes.VENTE;
     }
-
+    
     public boolean isCancelReglement() {
         return cancelReglement;
     }
-
+    
     public void setCancelReglement(boolean cancelReglement) {
         this.cancelReglement = cancelReglement;
     }
-
+    
     public List<YvsComDocVentes> getSelections() {
         return selections;
     }
-
+    
     public void setSelections(List<YvsComDocVentes> selections) {
         this.selections = selections;
     }
-
+    
     public String getModel() {
         return model;
     }
-
+    
     public void setModel(String model) {
         this.model = model;
     }
-
+    
     public boolean isWithHeader() {
         return withHeader;
     }
-
+    
     public void setWithHeader(boolean withHeader) {
         this.withHeader = withHeader;
     }
-
+    
     public YvsBaseArticlePack getPack() {
         return pack;
     }
-
+    
     public void setPack(YvsBaseArticlePack pack) {
         this.pack = pack;
     }
-
+    
     public YvsComClient getDefaultClient() {
         return defaultClient;
     }
-
+    
     public void setDefaultClient(YvsComClient defaultClient) {
         this.defaultClient = defaultClient;
     }
-
+    
     public YvsComContenuDocVenteEtat getSelectEtat() {
         return selectEtat;
     }
-
+    
     public void setSelectEtat(YvsComContenuDocVenteEtat selectEtat) {
         this.selectEtat = selectEtat;
     }
-
+    
     public ContenuDocVenteEtat getEtat() {
         return etat;
     }
-
+    
     public void setEtat(ContenuDocVenteEtat etat) {
         this.etat = etat;
     }
-
+    
     public YvsComContenuDocVente getSelectContenuRetour() {
         return selectContenuRetour;
     }
-
+    
     public void setSelectContenuRetour(YvsComContenuDocVente selectContenuRetour) {
         this.selectContenuRetour = selectContenuRetour;
     }
-
+    
     public boolean isValueContinueWithOutStock() {
         return valueContinueWithOutStock;
     }
-
+    
     public void setValueContinueWithOutStock(boolean valueContinueWithOutStock) {
         this.valueContinueWithOutStock = valueContinueWithOutStock;
     }
-
+    
     public YvsComTaxeContenuVente getSelectedTaxe() {
         return selectedTaxe;
     }
-
+    
     public void setSelectedTaxe(YvsComTaxeContenuVente selectedTaxe) {
         this.selectedTaxe = selectedTaxe;
     }
-
+    
     public boolean isMemoriseActionCompta() {
         return memoriseActionCompta;
     }
-
+    
     public void setMemoriseActionCompta(boolean memoriseActionCompta) {
         this.memoriseActionCompta = memoriseActionCompta;
     }
-
+    
     public YvsComDocVentes getRetour() {
         return retour;
     }
-
+    
     public void setRetour(YvsComDocVentes retour) {
         this.retour = retour;
     }
-
+    
     public boolean isMajPrixContenu() {
         return majPrixContenu;
     }
-
+    
     public void setMajPrixContenu(boolean majPrixContenu) {
         this.majPrixContenu = majPrixContenu;
     }
-
+    
     public List<YvsComContenuDocVente> getSelectContenus() {
         return selectContenus;
     }
-
+    
     public void setSelectContenus(List<YvsComContenuDocVente> selectContenus) {
         this.selectContenus = selectContenus;
     }
-
+    
     public boolean isMemoriserDeleteContenu() {
         return memoriserDeleteContenu;
     }
-
+    
     public void setMemoriserDeleteContenu(boolean memoriserDeleteContenu) {
         this.memoriserDeleteContenu = memoriserDeleteContenu;
     }
-
+    
     public long getAgence() {
         return agence;
     }
-
+    
     public void setAgence(long agence) {
         this.agence = agence;
     }
-
+    
     public List<YvsComContenuDocVente> getContenusRequireLot() {
         return contenusRequireLot;
     }
-
+    
     public void setContenusRequireLot(List<YvsComContenuDocVente> contenusRequireLot) {
         this.contenusRequireLot = contenusRequireLot;
     }
-
+    
     public String getEgaliteDepot() {
         return egaliteDepot;
     }
-
+    
     public void setEgaliteDepot(String egaliteDepot) {
         this.egaliteDepot = egaliteDepot;
     }
-
+    
     public boolean isDisplayDetailReglement() {
         return displayDetailReglement;
     }
-
+    
     public void setDisplayDetailReglement(boolean displayDetailReglement) {
         this.displayDetailReglement = displayDetailReglement;
     }
-
+    
     public boolean isDisplayAuteurContenu() {
         return displayAuteurContenu;
     }
-
+    
     public void setDisplayAuteurContenu(boolean displayAuteurContenu) {
         this.displayAuteurContenu = displayAuteurContenu;
     }
-
+    
     public boolean isDisplayDepotContenu() {
         return displayDepotContenu;
     }
-
+    
     public void setDisplayDepotContenu(boolean displayDepotContenu) {
         this.displayDepotContenu = displayDepotContenu;
     }
-
+    
     public String getNatureSearch() {
         return natureSearch;
     }
-
+    
     public void setNatureSearch(String natureSearch) {
         this.natureSearch = natureSearch;
     }
-
+    
     public String getIdsContenu() {
         return idsContenu;
     }
-
+    
     public void setIdsContenu(String idsContenu) {
         this.idsContenu = idsContenu;
     }
-
+    
     public boolean isValidAndClear() {
         return validAndClear;
     }
-
+    
     public void setValidAndClear(boolean validAndClear) {
         this.validAndClear = validAndClear;
     }
-
+    
     public boolean isNeedConfirmation() {
         return needConfirmation;
     }
-
+    
     public void setNeedConfirmation(boolean needConfirmation) {
         this.needConfirmation = needConfirmation;
     }
-
+    
     public boolean isRemise_is_taux() {
         return remise_is_taux;
     }
-
+    
     public void setRemise_is_taux(boolean remise_is_taux) {
         this.remise_is_taux = remise_is_taux;
     }
-
+    
     public String getNatureVente() {
         return natureVente;
     }
-
+    
     public void setNatureVente(String natureVente) {
         this.natureVente = natureVente;
     }
-
+    
     public int getHeightFacture() {
         return heightFacture;
     }
-
+    
     public void setHeightFacture(int heightFacture) {
         this.heightFacture = heightFacture;
     }
-
+    
     public long getNbrComptaSearch() {
         return nbrComptaSearch;
     }
-
+    
     public void setNbrComptaSearch(long nbrComptaSearch) {
         this.nbrComptaSearch = nbrComptaSearch;
     }
-
+    
     public Date getDateClean() {
         return dateClean;
     }
-
+    
     public void setDateClean(Date dateClean) {
         this.dateClean = dateClean;
     }
-
+    
     public boolean isChangeNumeroWhenChangeDate() {
         return changeNumeroWhenChangeDate;
     }
-
+    
     public void setChangeNumeroWhenChangeDate(boolean changeNumeroWhenChangeDate) {
         this.changeNumeroWhenChangeDate = changeNumeroWhenChangeDate;
     }
-
+    
     public TrancheHoraire getTrancheChange() {
         return trancheChange;
     }
-
+    
     public void setTrancheChange(TrancheHoraire trancheChange) {
         this.trancheChange = trancheChange;
     }
-
+    
     public long getNbreFacture() {
         return nbreFacture;
     }
-
+    
     public void setNbreFacture(long nbreFacture) {
         this.nbreFacture = nbreFacture;
     }
-
+    
     public boolean isVenteDirecte() {
         return venteDirecte;
     }
-
+    
     public void setVenteDirecte(boolean venteDirecte) {
         this.venteDirecte = venteDirecte;
     }
-
+    
     public String getTypeSearch() {
         return typeSearch;
     }
-
+    
     public void setTypeSearch(String typeSearch) {
         this.typeSearch = typeSearch;
     }
-
+    
     public boolean isRememberChoixWithOutStock() {
         return rememberChoixWithOutStock;
     }
-
+    
     public void setRememberChoixWithOutStock(boolean rememberChoixWithOutStock) {
         this.rememberChoixWithOutStock = rememberChoixWithOutStock;
     }
-
+    
     public List<YvsUsers> getCaissiers() {
         return caissiers;
     }
-
+    
     public void setCaissiers(List<YvsUsers> caissiers) {
         this.caissiers = caissiers;
     }
-
+    
     public Boolean getAutoLivreSearch() {
         return autoLivreSearch;
     }
-
+    
     public void setAutoLivreSearch(Boolean autoLivreSearch) {
         this.autoLivreSearch = autoLivreSearch;
     }
-
+    
     public YvsComDocVentes getDocLie() {
         return docLie;
     }
-
+    
     public void setDocLie(YvsComDocVentes docLie) {
         this.docLie = docLie;
     }
-
+    
     public String getArticleContenu() {
         return articleContenu;
     }
-
+    
     public void setArticleContenu(String articleContenu) {
         this.articleContenu = articleContenu;
     }
-
+    
     public String getEgaliteStatutLContenu() {
         return egaliteStatutLContenu;
     }
-
+    
     public void setEgaliteStatutLContenu(String egaliteStatutLContenu) {
         this.egaliteStatutLContenu = egaliteStatutLContenu;
     }
-
+    
     public String getStatutLivreContenu() {
         return statutLivreContenu;
     }
-
+    
     public void setStatutLivreContenu(String statutLivreContenu) {
         this.statutLivreContenu = statutLivreContenu;
     }
-
+    
     public Boolean getWithTiersSearch() {
         return withTiersSearch;
     }
-
+    
     public void setWithTiersSearch(Boolean withTiersSearch) {
         this.withTiersSearch = withTiersSearch;
     }
-
+    
     public Boolean getComptaSearch() {
         return comptaSearch;
     }
-
+    
     public void setComptaSearch(Boolean comptaSearch) {
         this.comptaSearch = comptaSearch;
     }
-
+    
     public boolean isLastEtape() {
         return lastEtape;
     }
-
+    
     public void setLastEtape(boolean lastEtape) {
         this.lastEtape = lastEtape;
     }
-
+    
     public String getMotifEtape() {
         return motifEtape;
     }
-
+    
     public void setMotifEtape(String motifEtape) {
         this.motifEtape = motifEtape;
     }
-
+    
     public List<String> getStatuts() {
         return statuts;
     }
-
+    
     public void setStatuts(List<String> statuts) {
         this.statuts = statuts;
     }
-
+    
     public boolean isLotBL() {
         return lotBL;
     }
-
+    
     public void setLotBL(boolean lotBL) {
         this.lotBL = lotBL;
     }
-
+    
     public boolean isLotFV() {
         return lotFV;
     }
-
+    
     public void setLotFV(boolean lotFV) {
         this.lotFV = lotFV;
     }
-
+    
     public boolean isLotPiece() {
         return lotPiece;
     }
-
+    
     public void setLotPiece(boolean lotPiece) {
         this.lotPiece = lotPiece;
     }
-
+    
     public String getStatutLotBL() {
         return statutLotBL;
     }
-
+    
     public void setStatutLotBL(String statutLotBL) {
         this.statutLotBL = statutLotBL;
     }
-
+    
     public String getStatutLotFV() {
         return statutLotFV;
     }
-
+    
     public void setStatutLotFV(String statutLotFV) {
         this.statutLotFV = statutLotFV;
     }
-
+    
     public String getStatutLotPiece() {
         return statutLotPiece;
     }
-
+    
     public void setStatutLotPiece(String statutLotPiece) {
         this.statutLotPiece = statutLotPiece;
     }
-
+    
     public boolean isToValideLoad() {
         return toValideLoad;
     }
-
+    
     public void setToValideLoad(boolean toValideLoad) {
         this.toValideLoad = toValideLoad;
     }
-
+    
     public String getEgaliteStatutL() {
         return egaliteStatutL;
     }
-
+    
     public void setEgaliteStatutL(String egaliteStatutL) {
         this.egaliteStatutL = egaliteStatutL;
     }
-
+    
     public String getOperateuClt() {
         return operateuClt;
     }
-
+    
     public void setOperateuClt(String operateuClt) {
         this.operateuClt = operateuClt;
     }
-
+    
     public String getOperateurVend() {
         return operateurVend;
     }
-
+    
     public void setOperateurVend(String operateurVend) {
         this.operateurVend = operateurVend;
     }
-
+    
     public String getOperateurRef() {
         return operateurRef;
     }
-
+    
     public void setOperateurRef(String operateurRef) {
         this.operateurRef = operateurRef;
     }
-
+    
     public String getEgaliteStatutR() {
         return egaliteStatutR;
     }
-
+    
     public void setEgaliteStatutR(String egaliteStatutR) {
         this.egaliteStatutR = egaliteStatutR;
     }
-
+    
     public String getEgaliteStatut() {
         return egaliteStatut;
     }
-
+    
     public void setEgaliteStatut(String egaliteStatut) {
         this.egaliteStatut = egaliteStatut;
     }
-
+    
     public List<YvsComContenuDocVente> getAll_contenus() {
         return all_contenus;
     }
-
+    
     public void setAll_contenus(List<YvsComContenuDocVente> all_contenus) {
         this.all_contenus = all_contenus;
     }
-
+    
     public String getVendeurF() {
         return vendeurF;
     }
-
+    
     public void setVendeurF(String vendeurF) {
         this.vendeurF = vendeurF;
     }
-
+    
     public boolean isDateContenu() {
         return dateContenu;
     }
-
+    
     public void setDateContenu(boolean dateContenu) {
         this.dateContenu = dateContenu;
     }
-
+    
     public Date getDateDebutContenu() {
         return dateDebutContenu;
     }
-
+    
     public void setDateDebutContenu(Date dateDebutContenu) {
         this.dateDebutContenu = dateDebutContenu;
     }
-
+    
     public Date getDateFinContenu() {
         return dateFinContenu;
     }
-
+    
     public void setDateFinContenu(Date dateFinContenu) {
         this.dateFinContenu = dateFinContenu;
     }
-
+    
     public String getStatutContenu() {
         return statutContenu;
     }
-
+    
     public void setStatutContenu(String statutContenu) {
         this.statutContenu = statutContenu;
     }
-
+    
     public String getReference() {
         return reference;
     }
-
+    
     public void setReference(String reference) {
         this.reference = reference;
     }
-
+    
     public String getArticle() {
         return article;
     }
-
+    
     public void setArticle(String article) {
         this.article = article;
     }
-
+    
     public String getPointvente() {
         return pointvente;
     }
-
+    
     public void setPointvente(String pointvente) {
         this.pointvente = pointvente;
     }
-
+    
     public String getClientF() {
         return clientF;
     }
-
+    
     public void setClientF(String clientF) {
         this.clientF = clientF;
     }
-
+    
     public boolean isIsBonus() {
         return isBonus;
     }
-
+    
     public void setIsBonus(boolean isBonus) {
         this.isBonus = isBonus;
     }
-
+    
     public PaginatorResult<YvsComContenuDocVente> getP_contenu() {
         return p_contenu;
     }
-
+    
     public void setP_contenu(PaginatorResult<YvsComContenuDocVente> p_contenu) {
         this.p_contenu = p_contenu;
     }
-
+    
     public ContenuDocVente getBonus() {
         return bonus;
     }
-
+    
     public void setBonus(ContenuDocVente bonus) {
         this.bonus = bonus;
     }
-
+    
     public boolean isDisplayId() {
         return displayId;
     }
-
+    
     public void setDisplayId(boolean displayId) {
         this.displayId = displayId;
     }
-
+    
     public boolean isDisplayCodeClient() {
         return displayCodeClient;
     }
-
+    
     public void setDisplayCodeClient(boolean displayCodeClient) {
         this.displayCodeClient = displayCodeClient;
     }
-
+    
     public Date getDateEntete() {
         return dateEntete;
     }
-
+    
     public void setDateEntete(Date dateEntete) {
         this.dateEntete = dateEntete;
     }
-
+    
     public long getRemiseContenu() {
         return remiseContenu;
     }
-
+    
     public void setRemiseContenu(long remiseContenu) {
         this.remiseContenu = remiseContenu;
     }
-
+    
     public String getTabIds_commercial() {
         return tabIds_commercial;
     }
-
+    
     public void setTabIds_commercial(String tabIds_commercial) {
         this.tabIds_commercial = tabIds_commercial;
     }
-
+    
     public CommercialVente getCommercial() {
         return commercial;
     }
-
+    
     public void setCommercial(CommercialVente commercial) {
         this.commercial = commercial;
     }
-
+    
     public YvsComCommercialVente getSelectCommercial() {
         return selectCommercial;
     }
-
+    
     public void setSelectCommercial(YvsComCommercialVente selectCommercial) {
         this.selectCommercial = selectCommercial;
     }
-
+    
     public ComposantsEditable getModelFormEditable() {
         return modelFormEditable;
     }
-
+    
     public void setModelFormEditable(ComposantsEditable modelFormEditable) {
         this.modelFormEditable = modelFormEditable;
     }
-
+    
     public ComposantsVisible getModelFormCompVisible() {
         return modelFormCompVisible;
     }
-
+    
     public void setModelFormCompVisible(ComposantsVisible modelFormCompVisible) {
         this.modelFormCompVisible = modelFormCompVisible;
     }
-
+    
     public ComposantsObligatoire getModelFormCompOblig() {
         return modelFormCompOblig;
     }
-
+    
     public void setModelFormCompOblig(ComposantsObligatoire modelFormCompOblig) {
         this.modelFormCompOblig = modelFormCompOblig;
     }
-
+    
     public Date getDateLivraison() {
         return dateLivraison;
     }
-
+    
     public void setDateLivraison(Date dateLivraison) {
         this.dateLivraison = dateLivraison;
     }
-
+    
     public String getStatutLivraison() {
         return statutLivraison;
     }
-
+    
     public void setStatutLivraison(String statutLivraison) {
         this.statutLivraison = statutLivraison;
     }
-
+    
     public boolean isInitForm() {
         return initForm;
     }
-
+    
     public void setInitForm(boolean initForm) {
         this.initForm = initForm;
     }
-
+    
     public YvsWorkflowValidFactureVente getCurrentEtape() {
         return currentEtape;
     }
-
+    
     public void setCurrentEtape(YvsWorkflowValidFactureVente currentEtape) {
         this.currentEtape = currentEtape;
     }
-
+    
     public boolean isFirst() {
         return _first;
     }
-
+    
     public void setFirst(boolean _first) {
         this._first = _first;
     }
-
+    
     public double getMontant_rabais_total() {
         return montant_rabais_total;
     }
-
+    
     public void setMontant_rabais_total(double montant_rabais_total) {
         this.montant_rabais_total = montant_rabais_total;
     }
-
+    
     public String getTabIds_cout() {
         return tabIds_cout;
     }
-
+    
     public void setTabIds_cout(String tabIds_cout) {
         this.tabIds_cout = tabIds_cout;
     }
-
+    
     public CoutSupDoc getCout() {
         return cout;
     }
-
+    
     public void setCout(CoutSupDoc cout) {
         this.cout = cout;
     }
-
+    
     public YvsComCoutSupDocVente getSelectCout() {
         return selectCout;
     }
-
+    
     public void setSelectCout(YvsComCoutSupDocVente selectCout) {
         this.selectCout = selectCout;
     }
-
+    
     public String getNumBon() {
         return numBon;
     }
-
+    
     public void setNumBon(String numBon) {
         this.numBon = numBon;
     }
-
+    
     public long getBon() {
         return bon;
     }
-
+    
     public void setBon(long bon) {
         this.bon = bon;
     }
-
+    
     public double getTaux_remise() {
         return taux_remise;
     }
-
+    
     public void setTaux_remise(double taux_remise) {
         this.taux_remise = taux_remise;
     }
-
+    
     public List<YvsBaseDepots> getDepotsLivraison() {
         return depotsLivraison;
     }
-
+    
     public void setDepotsLivraison(List<YvsBaseDepots> depotsLivraison) {
         this.depotsLivraison = depotsLivraison;
     }
-
+    
     public List<YvsBaseTaxes> getTaxes() {
         return taxes;
     }
-
+    
     public void setTaxes(List<YvsBaseTaxes> taxes) {
         this.taxes = taxes;
     }
-
+    
     public PieceTresorerie getReglement() {
         return reglement;
     }
-
+    
     public void setReglement(PieceTresorerie reglement) {
         this.reglement = reglement;
     }
-
+    
     public PieceTresorerie getAvance() {
         return avance;
     }
-
+    
     public void setAvance(PieceTresorerie avance) {
         this.avance = avance;
     }
-
+    
     public YvsComptaCaissePieceVente getSelectReglement() {
         return selectReglement;
     }
-
+    
     public void setSelectReglement(YvsComptaCaissePieceVente selectReglement) {
         this.selectReglement = selectReglement;
     }
-
+    
     public boolean isOnEncaisement() {
         return onEncaisement;
     }
-
+    
     public void setOnEncaisement(boolean onEncaisement) {
         this.onEncaisement = onEncaisement;
     }
-
+    
     public double getMontant_remise() {
         return montant_remise;
     }
-
+    
     public void setMontant_remise(double montant_remise) {
         this.montant_remise = montant_remise;
     }
-
+    
     public double getMontant_rabais() {
         return montant_rabais;
     }
-
+    
     public void setMontant_rabais(double montant_rabais) {
         this.montant_rabais = montant_rabais;
     }
-
+    
     public boolean isOn_rabais() {
         return on_rabais;
     }
-
+    
     public void setOn_rabais(boolean on_rabais) {
         this.on_rabais = on_rabais;
     }
-
+    
     public boolean isNewMensualite() {
         return newMensualite;
     }
-
+    
     public void setNewMensualite(boolean newMensualite) {
         this.newMensualite = newMensualite;
     }
-
+    
     public boolean isListArt() {
         return listArt;
     }
-
+    
     public void setListArt(boolean listArt) {
         this.listArt = listArt;
     }
-
+    
     public String getCommentaire() {
         return commentaire;
     }
-
+    
     public void setCommentaire(String commentaire) {
         this.commentaire = commentaire;
     }
-
+    
     public String getNumSerie() {
         return numSerie;
     }
-
+    
     public void setNumSerie(String numSerie) {
         this.numSerie = numSerie;
     }
-
+    
     public boolean isCheckAvance() {
         return checkAvance;
     }
-
+    
     public void setCheckAvance(boolean checkAvance) {
         this.checkAvance = checkAvance;
     }
-
+    
     public boolean isIsBon() {
         return isBon;
     }
-
+    
     public void setIsBon(boolean isBon) {
         this.isBon = isBon;
     }
-
+    
     public List<YvsComContenuDocVente> getContenus_bcv() {
         return contenus_bcv;
     }
-
+    
     public void setContenus_bcv(List<YvsComContenuDocVente> contenus_bcv) {
         this.contenus_bcv = contenus_bcv;
     }
-
+    
     public List<YvsComDocVentes> getDocuments() {
         return documents;
     }
-
+    
     public void setDocuments(List<YvsComDocVentes> documents) {
         this.documents = documents;
     }
-
+    
     public YvsComContenuDocVente getSelectContenu() {
         return selectContenu;
     }
-
+    
     public void setSelectContenu(YvsComContenuDocVente selectContenu) {
         this.selectContenu = selectContenu;
     }
-
+    
     public List<YvsGrhTrancheHoraire> getTranches() {
         return tranches;
     }
-
+    
     public void setTranches(List<YvsGrhTrancheHoraire> tranches) {
         this.tranches = tranches;
     }
-
+    
     public boolean isSelectArt() {
         return selectArt;
     }
-
+    
     public void setSelectArt(boolean selectArt) {
         this.selectArt = selectArt;
     }
-
+    
     public boolean isParamDate() {
         return paramDate;
     }
-
+    
     public void setParamDate(boolean paramDate) {
         this.paramDate = paramDate;
     }
-
+    
     public Date getDateDebut() {
         return dateDebut;
     }
-
+    
     public void setDateDebut(Date dateDebut) {
         this.dateDebut = dateDebut;
     }
-
+    
     public Date getDateFin() {
         return dateFin;
     }
-
+    
     public void setDateFin(Date dateFin) {
         this.dateFin = dateFin;
     }
-
+    
     public String getStatut() {
         return statut;
     }
-
+    
     public void setStatut(String statut) {
         this.statut = statut;
     }
-
+    
     public RemiseDocVente getRemise() {
         return remise;
     }
-
+    
     public void setRemise(RemiseDocVente remise) {
         this.remise = remise;
     }
-
+    
     public List<YvsComRemiseDocVente> getRemisesFacture() {
         return remisesFacture;
     }
-
+    
     public void setRemisesFacture(List<YvsComRemiseDocVente> remisesFacture) {
         this.remisesFacture = remisesFacture;
     }
-
+    
     public YvsComRemiseDocVente getSelectRemiseFacture() {
         return selectRemiseFacture;
     }
-
+    
     public void setSelectRemiseFacture(YvsComRemiseDocVente selectRemiseFacture) {
         this.selectRemiseFacture = selectRemiseFacture;
     }
-
+    
     public String getTabIds_remise() {
         return tabIds_remise;
     }
-
+    
     public void setTabIds_remise(String tabIds_remise) {
         this.tabIds_remise = tabIds_remise;
     }
-
+    
     public String getTabIds_mensualite() {
         return tabIds_mensualite;
     }
-
+    
     public void setTabIds_mensualite(String tabIds_mensualite) {
         this.tabIds_mensualite = tabIds_mensualite;
     }
-
+    
     public DocVente getDocVente() {
         return docVente;
     }
-
+    
     public void setDocVente(DocVente docVente) {
         this.docVente = docVente;
     }
-
+    
     public ContenuDocVente getContenu() {
         return contenu;
     }
-
+    
     public void setContenu(ContenuDocVente contenu) {
         this.contenu = contenu;
     }
-
+    
     public String getTabIds_contenu() {
         return tabIds_contenu;
     }
-
+    
     public void setTabIds_contenu(String tabIds_contenu) {
         this.tabIds_contenu = tabIds_contenu;
     }
-
+    
     public boolean getCorrect() {
         return correct;
     }
-
+    
     public void setCorrect(boolean correct) {
         this.correct = correct;
     }
-
+    
     public YvsComEnteteDocVente getSelectEntete() {
         return selectEntete;
     }
-
+    
     public void setSelectEntete(YvsComEnteteDocVente selectEntete) {
         this.selectEntete = selectEntete;
     }
-
+    
     public YvsComDocVentes getSelectDoc() {
         return selectDoc;
     }
-
+    
     public void setSelectDoc(YvsComDocVentes selectDoc) {
         this.selectDoc = selectDoc;
         setDateEntete(selectDoc.getEnteteDoc().getDateEntete());
     }
-
+    
     public boolean isDisplayDetailClient() {
         return displayDetailClient;
     }
-
+    
     public void setDisplayDetailClient(boolean displayDetailClient) {
         this.displayDetailClient = displayDetailClient;
     }
-
+    
     public List<YvsUsers> getVendeurs() {
         return vendeurs;
     }
-
+    
     public void setVendeurs(List<YvsUsers> vendeurs) {
         this.vendeurs = vendeurs;
     }
-
+    
     public boolean isChangeNumdocAuto() {
         return changeNumdocAuto;
     }
-
+    
     public void setChangeNumdocAuto(boolean changeNumdocAuto) {
         this.changeNumdocAuto = changeNumdocAuto;
     }
-
+    
     public List<YvsDictionnaire> getLieux() {
         return lieux;
     }
-
+    
     public void setLieux(List<YvsDictionnaire> lieux) {
         this.lieux = lieux;
     }
-
+    
     public boolean isListing() {
         return listing;
     }
-
+    
     public void setListing(boolean listing) {
         this.listing = listing;
     }
-
+    
     public boolean isLoadOnlyDepotPoint() {
         return loadOnlyDepotPoint;
     }
-
+    
     public void setLoadOnlyDepotPoint(boolean loadOnlyDepotPoint) {
         this.loadOnlyDepotPoint = loadOnlyDepotPoint;
     }
-
+    
     public void initView(boolean venteDirecte) {
         initView(venteDirecte, Constantes.VENTE);
     }
-
+    
     public void initView(boolean venteDirecte, String natureVente) {
         initView(venteDirecte, natureVente, "V2");
     }
-
+    
     public void initView(boolean venteDirecte, String natureVente, String page) {
         this.page = page;
         this.natureVente = natureVente;
@@ -1394,6 +1394,9 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         setClientDefaut(); //(Ok)
         this.venteDirecte = venteDirecte;
         initView();
+        if (docVente != null ? docVente.getId() < 1 : false && currentParamVente != null) {
+            docVente.setLivraisonAuto(currentParamVente.getLivraisonAuto());
+        }
         if (venteDirecte) {
             if (natureVente != null ? !natureVente.trim().isEmpty() : false) {
                 champ = new String[]{"vendeur", "typeDoc", "nature"};
@@ -1405,7 +1408,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         lieux = dao.loadNameQueries("YvsDictionnaire.findSecteurs", new String[]{}, new Object[]{});
     }
-
+    
     @Override
     public void loadAll() {
         initView(false);
@@ -1413,10 +1416,10 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         if (isWarning != null ? isWarning : false) {
             loadByWarning();
         } else {
-
+            
         }
     }
-
+    
     public void collapseContenu() {
         if (isWarning ? (modelWarning != null ? modelWarning.equals("LOWER_MARGIN") : false) : false) {
             openDlgFactures(true);
@@ -1424,7 +1427,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         loadInfosWarning(true);
     }
-
+    
     private void loadByWarning() {
         if (modelWarning != null ? modelWarning.equals("LOWER_MARGIN") : false) {
             idsContenu = idsSearch;
@@ -1437,11 +1440,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void load(Boolean livraison) {
-
+        
     }
-
+    
     public void initView() {
         loadInfosWarning(false);
         if (((docVente != null) ? (docVente.getClient().getId() < 1 && docVente.getCategorieComptable().getId() < 1) : true)) {
@@ -1453,7 +1456,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             docVente.setNature(natureVente != null ? !natureVente.trim().isEmpty() ? natureVente : Constantes.VENTE : Constantes.VENTE);
             numSearch_ = "";
             docVente.setEnteteDoc(new EnteteDocVente());
-
+            
         }
         if (docVente.getEnteteDoc().getCrenauHoraire() != null ? docVente.getEnteteDoc().getCrenauHoraire().getId_() < 1 : true) {
             if (currentPlanning != null ? !currentPlanning.isEmpty() : false) {
@@ -1496,7 +1499,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             reglement.setCaisse(UtilCompta.buildSimpleBeanCaisse(y));
             loadCaissiers(y);
         }
-
+        
         if (docVente.getEnteteDoc() != null ? docVente.getEnteteDoc().getId() > 0 : false) {
             ManagedPointVente w = (ManagedPointVente) giveManagedBean(ManagedPointVente.class);
             if (w != null) {
@@ -1523,12 +1526,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             agence_ = currentAgence.getId();
         }
     }
-
+    
     public void gotoPagePaginatorContenu() {
         p_contenu.gotoPage(p_contenu.getPage());
         loadContenus(true, true);
     }
-
+    
     public void choosePaginatorContenu(ValueChangeEvent ev) {
         if ((ev != null) ? ev.getNewValue() != null : false) {
             long v;
@@ -1541,7 +1544,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadContenus(true, true);
         }
     }
-
+    
     public void loadContenus(boolean avance, boolean init) {
         ParametreRequete p;
         switch (buildDocByDroit(Constantes.TYPE_FV)) {
@@ -1585,14 +1588,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 p_contenu.addParam(p);
                 break;
         }
-
+        
         p_contenu.addParam(new ParametreRequete("y.docVente.typeDoc", "typeDoc", Constantes.TYPE_FV, "=", "AND"));
         String orderBy = "y.docVente.enteteDoc.dateEntete DESC, y.docVente.numDoc";
         all_contenus = p_contenu.executeDynamicQuery("YvsComContenuDocVente", orderBy, avance, init, dao);
         update("data_contenu_fv");
     }
     boolean initForm = true;
-
+    
     private boolean initDroit() {
         if (currentAgence != null ? currentAgence.getSociete() != null ? currentAgence.getSociete().getId() < 1 : true : true) {
             all_contenus.clear();
@@ -1652,13 +1655,13 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     public void addParamNonComptabiliser() {
         paginator.addParam(new ParametreRequete("CO.id", "idCompta", "X", " IS NULL", "AND"));
         loadAllFacture(true);
     }
     private String pre = "y.";
-
+    
     public void loadAllFacture(boolean avance) {
         boolean init = initDroit();
         if (!init) {
@@ -1730,11 +1733,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void parcoursInAllResult(boolean avancer) {
         parcoursInAllResult(avancer, true);
     }
-
+    
     public void parcoursInAllResult(boolean avancer, boolean complet) {
         setOffset((avancer) ? (getOffset() + 1) : (getOffset() - 1));
         if (getOffset() < 0 || getOffset() >= (paginator.getNbPage() * getNbMax())) {
@@ -1745,7 +1748,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             onSelectObject(re.get(0), complet);
         }
     }
-
+    
     public void loadFactureNonLivre(boolean avance, boolean init) {
         if (_first) {
             clearParams();
@@ -1758,7 +1761,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         initForm = init;
         loadAllFacture(avance);
     }
-
+    
     public void loadContenusNonLivre(boolean load) {
         egaliteStatutLContenu = "=";
         statutLivreContenu = Constantes.ETAT_ATTENTE;
@@ -1767,14 +1770,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadContenus(true, true);
         }
     }
-
+    
     public void loadContenusNonLivre(boolean avance, boolean init) {
         egaliteStatutLContenu = "=";
         statutLivreContenu = Constantes.ETAT_ATTENTE;
         paginator.addParam(new ParametreRequete("y.docVente.statutLivre", "statutLivre", Constantes.ETAT_LIVRE, "!=", "AND"));
         loadContenus(avance, init);
     }
-
+    
     public void loadFactureNonRegle(boolean avance, boolean init) {
         if (_first) {
             clearParams();
@@ -1785,7 +1788,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         initForm = init;
         loadAllFacture(avance);
     }
-
+    
     public void loadFactureRegle(boolean avance, boolean init) {
         if (_first) {
             clearParams();
@@ -1796,7 +1799,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         initForm = init;
         loadAllFacture(avance);
     }
-
+    
     public void loadFactureStatut(String statut) {
         if (_first) {
             clearParams();
@@ -1807,7 +1810,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         initForm = true;
         loadAllFacture(true);
     }
-
+    
     public void loadFactureTypeStatut(String type, String statut) {
         if (_first) {
             clearParams();
@@ -1818,7 +1821,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         paginator.addParam(new ParametreRequete("y.statut", "statut", statut, "=", "AND"));
         addParamType();
     }
-
+    
     public void loadFactureType(String typeDoc) {
         if (_first) {
             clearParams();
@@ -1827,12 +1830,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         typeSearch = typeDoc;
         addParamType();
     }
-
+    
     public void clearParams(String statut) {
         _first = true;
         loadFactureStatut(statut);
     }
-
+    
     public void clearParams() {
         codeClient_ = null;
         entete_ = 0;
@@ -1863,7 +1866,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         addParamAgence();
         update("blog_entete_facture_vente");
     }
-
+    
     public int colonneContenu() {
         ComposantsVisible w = (ComposantsVisible) giveManagedBean(ComposantsVisible.class);
         int colonne = 5;
@@ -1880,7 +1883,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return colonne;
     }
-
+    
     private void loadOthersDetailDoc(YvsComDocVentes y) {
         loadRemise(y);
 //        loadTaxesVente(y);
@@ -1898,7 +1901,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("data_livraison_facture_vente");
         update("blog_commercial_vente");
     }
-
+    
     private void loadRemise(YvsComDocVentes y) {
         nameQueri = "YvsComRemiseDocVente.findByDocVente";
         champ = new String[]{"docVente"};
@@ -1910,7 +1913,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_remise_vente");
     }
-
+    
     public void loadTaxesVente(YvsComDocVentes y) {
         taxes.clear();
         List<Object[]> l = dao.getTaxeVente(y.getId());
@@ -1923,7 +1926,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_taxes_facture_vente");
     }
-
+    
     public void loadTaxesVente(YvsComContenuDocVente y) {
         contenu.setName(y.getArticle().getDesignation());
         contenu.setTaxes(new ArrayList<YvsComTaxeContenuVente>());
@@ -1949,7 +1952,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("tbl_data_taxes");
     }
-
+    
     protected List<YvsComContenuDocVente> loadContenusStay(YvsComDocVentes y, String type) {
         List<YvsComContenuDocVente> list = new ArrayList<>();
         y.setInt_(false);
@@ -1975,7 +1978,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return list;
     }
-
+    
     public List<YvsComContenuDocVente> loadContenusStayForRetour(YvsComDocVentes y) {
         List<YvsComContenuDocVente> list = new ArrayList<>();
         y.setInt_(false);
@@ -2004,15 +2007,15 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return list;
     }
-
+    
     public void loadDepotByPointById(long id) {
         loadDepotByPoint(new YvsBasePointVente(id));
     }
-
+    
     public void loadDepotByPoint(YvsBasePointVente y) {
         loadDepotByPoint(null, y);
     }
-
+    
     public void loadDepotByPoint(String code, YvsBasePointVente y) {
         PaginatorResult<YvsBaseDepots> p_depot = new PaginatorResult<>();
         p_depot.addParam(new ParametreRequete("y.pointVente.agence.societe", "societe", currentAgence.getSociete(), "=", "AND"));
@@ -2080,7 +2083,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_tranche_fv");
     }
-
+    
     public YvsComptaCaissePieceDivers buildPieceTresorerie(PieceTresorerie y) {
         YvsComptaCaissePieceDivers p = new YvsComptaCaissePieceDivers();
         if (y != null) {
@@ -2093,7 +2096,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return p;
     }
-
+    
     public YvsComRemiseDocVente buildRemiseDocVente(RemiseDocVente y) {
         YvsComRemiseDocVente r = new YvsComRemiseDocVente();
         if (y != null) {
@@ -2108,7 +2111,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return r;
     }
-
+    
     public YvsComRemise buildRemise(Remise y) {
         YvsComRemise r = new YvsComRemise();
         if (y != null) {
@@ -2125,7 +2128,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return r;
     }
-
+    
     public YvsComGrilleRemise buildGrilleRemise(GrilleRabais y) {
         YvsComGrilleRemise r = new YvsComGrilleRemise();
         if (y != null) {
@@ -2141,7 +2144,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return r;
     }
-
+    
     public YvsComCoutSupDocVente buildCoutSupDocVente(CoutSupDoc y) {
         YvsComCoutSupDocVente c = new YvsComCoutSupDocVente();
         if (y != null) {
@@ -2167,19 +2170,19 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return c;
     }
-
+    
     @Override
     public DocVente recopieView() {
         docVente.setEnteteDoc(docVente.getId() > 0 ? docVente.getEnteteDoc() : docVente.getEnteteDoc());
         return docVente;
     }
-
+    
     public EnteteDocVente recopieViewEntete() {
         docVente.getEnteteDoc().setUsers(docVente.getEnteteDoc().getId() > 0 ? docVente.getEnteteDoc().getUsers() : docVente.getEnteteDoc().getUsers());
         docVente.getEnteteDoc().setDateUpdate(new Date());
         return docVente.getEnteteDoc();
     }
-
+    
     public YvsBaseCategorieClient getDefautCategorie() {
         YvsBaseCategorieClient c = new YvsBaseCategorieClient();
         c.setDescription("Catégorie Par Défaut");
@@ -2189,7 +2192,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         c.setDefaut(true);
         return c;
     }
-
+    
     public CommercialVente recopieViewCommercial(DocVente facture) {
         if (commercial != null) {
             commercial.setDateUpdate(new Date());
@@ -2197,13 +2200,13 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return commercial;
     }
-
+    
     public RemiseDocVente recopieViewRemise() {
         remise.setDocVente(docVente);
         remise.setNew_(true);
         return remise;
     }
-
+    
     public PieceTresorerie recopieViewPiece() {
         if (reglement != null) {
             if (reglement.getMode() != null ? reglement.getMode().getId() > 0 : false) {
@@ -2243,7 +2246,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return reglement;
     }
-
+    
     public CoutSupDoc recopieViewCoutSupDoc() {
         if (cout != null) {
             cout.setDoc(cout.isUpdate() ? cout.getDoc() : docVente.getId());
@@ -2251,7 +2254,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return cout;
     }
-
+    
     public void resetView(YvsComDocVentes y) {
         if (y != null ? y.getId() > 0 : false) {
             int idx = getDocuments().indexOf(y);
@@ -2264,12 +2267,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     @Override
     public boolean controleFiche(DocVente bean) {
         return controleFiche(bean, true);
     }
-
+    
     private boolean controleFiche(DocVenteInformation bean) {
         if (bean == null) {
             getErrorMessage("L'élément ne peut pas etre null");
@@ -2289,7 +2292,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     public boolean controleFiche(DocVente bean, boolean acces) {
         if (!_controleFiche_(bean, acces)) {
             return false;
@@ -2387,10 +2390,10 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         if (!verifyDateVente(selectEntete.getDateEntete(), bean.isUpdate())) {
             return false;
         }
-
+        
         return true;
     }
-
+    
     private boolean _controleFiche_(DocVente bean, boolean acces) {
         if (bean == null) {
             getErrorMessage("Vous devez selectionner un document");
@@ -2452,7 +2455,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
 //        }
         return true;
     }
-
+    
     private boolean _controleFiche_(YvsComDocVentes bean) {
         if (bean == null) {
             getErrorMessage("vous devez selectionner un document");
@@ -2476,7 +2479,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return hasDroitUpdateFacture(bean);
     }
-
+    
     public boolean controleFiche(CommercialVente bean, boolean responsable, boolean msg) {
         if ((bean.getFacture() != null) ? bean.getFacture().getId() < 1 : true) {
             if (msg) {
@@ -2505,7 +2508,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         if (bean.getId() < 1 && responsable) { //pas encore affecté
             bean.setResponsable(true);
         }
-
+        
         YvsComCommercialVente y = (YvsComCommercialVente) dao.loadOneByNameQueries("YvsComCommercialVente.findByFactureCommercial", new String[]{"facture", "commercial"}, new Object[]{new YvsComDocVentes(docVente.getId()), new YvsComComerciale(bean.getCommercial().getId())});
         if (y != null ? !y.getId().equals(bean.getId()) : false) {
             if (msg) {
@@ -2532,7 +2535,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     public boolean controleFicheContenu(ContenuDocVente bean, boolean continuSave) {
         if (bean.getDocVente() != null ? !bean.getDocVente().isUpdate() : true) {
             if (isService ? !saveNewService() : !_saveNew(true)) {
@@ -2590,7 +2593,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return _controleFiche_(bean.getDocVente(), true);
     }
-
+    
     public boolean controleFicheClient(Client bean) {
         if ((bean.getTiers() != null) ? bean.getTiers().getId() < 1 : true) {
             getErrorMessage("Vous devez specifier le tiers");
@@ -2598,7 +2601,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     public boolean controleFicheTiers(Tiers bean) {
         if (bean.getNom() == null || bean.getNom().equals("")) {
             getErrorMessage("Vous devez entrer le nom");
@@ -2606,7 +2609,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     public boolean controleFicheRemise(RemiseDocVente bean) {
         if (!bean.getDocVente().isUpdate()) {
             getErrorMessage("Vous devez d'abord enregistrer le document");
@@ -2628,7 +2631,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     public boolean controleFicheRemise_(Remise bean) {
         if (bean.getReference() == null || bean.getReference().trim().equals("")) {
             getErrorMessage("vous devez entrer la reference");
@@ -2636,7 +2639,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     public boolean controleFicheCout(CoutSupDoc bean) {
         if (bean.getDoc() < 1) {
             if (!_saveNew(true)) {
@@ -2652,7 +2655,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Vous devez entrer un montant");
             return false;
         }
-
+        
         if (docVente != null) {
             if (docVente.getId() <= 0) {
                 getErrorMessage("Vous devez selectionner un document");
@@ -2668,7 +2671,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     @Override
     public void populateView(DocVente bean) {
         cloneObject(docVente, bean);
@@ -2725,7 +2728,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("value_ttc_facture");
         update("value_reste_a_payer_facture");
     }
-
+    
     public void populateViewEntete(EnteteDocVente bean, boolean complet) {
         cloneObject(docVente.getEnteteDoc(), bean);
 //        if (complet) {
@@ -2733,7 +2736,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
 //        }
         docVente.getEnteteDoc().setTranche(bean.getTranchePoint());
     }
-
+    
     public void populateViewContenu(ContenuDocVente bean) {
         if (docVente.getDepot() != null ? docVente.getDepot().getId() > 0 : false) {
             bean.getArticle().setStock(dao.stocks(bean.getArticle().getId(), 0, docVente.getDepot().getId(), 0, 0, docVente.getEnteteDoc().getDateEntete(), bean.getConditionnement().getId(), bean.getLot().getId()));
@@ -2758,22 +2761,22 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         if (page.equals("V3")) {
             update("desc_article_facture_vente");
         } else {
-
+            
         }
     }
-
+    
     public void populateViewRemise(RemiseDocVente bean) {
         cloneObject(remise, bean);
     }
-
+    
     public void populateView(CommercialVente bean) {
         cloneObject(commercial, bean);
     }
-
+    
     public void populateViewCout(CoutSupDoc bean) {
         cloneObject(cout, bean);
     }
-
+    
     @Override
     public void resetFiche() {
         EnteteDocVente e = docVente.getEnteteDoc();
@@ -2826,14 +2829,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("blog_btn_action_facture");
         }
     }
-
+    
     public void resetFiche(boolean validAndClear) {
         this.validAndClear = validAndClear;
         if (validAndClear) {
             resetFiche();
         }
     }
-
+    
     public void resetFicheEntete() {
         if (!autoriser("fv_update_header")) {
             openNotAcces();
@@ -2865,7 +2868,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("data_facture_vente");
         update("blog_form_facture_vente");
     }
-
+    
     public void resetSubFiche() {
         resetFicheRemise();
         resetFicheContenu();
@@ -2883,18 +2886,18 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("data_livraison_facture_vente");
         update("blog_commercial_vente");
     }
-
+    
     public void resetFicheContenu() {
         contenu = new ContenuDocVente();
         contenu.setQuantite(1);
         bonus = new ContenuDocVente();
         pack = new YvsBaseArticlePack();
-
+        
         selectContenu = new YvsComContenuDocVente();
         selectArt = false;
         listArt = false;
         on_rabais = false;
-
+        
         tabIds_contenu = "";
         if (page.equals("V3")) {
             update("form_contenu_facture_vente");
@@ -2903,7 +2906,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("tabview_facture_vente:form_contenu_facture_vente");
         }
     }
-
+    
     public void resetFicheReglement(boolean save) {
         reglement = new PieceTresorerie();
         reglement.setMode(UtilCompta.buildBeanModeReglement(modeEspece()));
@@ -2922,17 +2925,17 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         selectReglement = new YvsComptaCaissePieceVente();
     }
-
+    
     public void resetFicheRemise() {
         resetFiche(remise);
         remise.setRemise(new Remise());
         tabIds_remise = "";
     }
-
+    
     public void resetFicheCommercial() {
         commercial = new CommercialVente();
     }
-
+    
     public void resetFicheCout() {
         resetFiche(cout);
         cout.setType(new TypeCout());
@@ -2945,12 +2948,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("tabview_facture_vente:blog_form_cout_facture_vente");
         }
     }
-
+    
     @Override
     public boolean saveNew() {
         return saveNew(false);
     }
-
+    
     public boolean saveNew(boolean controle) {
         if (!controle) {
             if (selectDoc != null ? selectDoc.getId() > 0 : false) {
@@ -2969,7 +2972,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean _saveNew(boolean acces) {
         try {
             if (!Util.asString(docVente.getTypeDoc())) {
@@ -3024,7 +3027,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                                     ContenuDocVente c = UtilCom.buildBeanContenuDocVente(docVente.getContenusSave().get(i));
                                     c.setUpdate(false);
                                     findPrixArticle(c, true, false);
-
+                                    
                                     YvsComContenuDocVente cc = UtilCom.buildContenuDocVente(c, currentUser);
                                     dao.update(cc);
                                     int index = docVente.getContenusSave().indexOf(cc);
@@ -3072,12 +3075,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             return false;
         }
     }
-
+    
     public boolean saveNewService() {
         return saveNewService(false);
-
+        
     }
-
+    
     public boolean saveNewService(boolean controle) {
         if (!controle) {
             if (selectDoc != null ? selectDoc.getId() > 0 : false) {
@@ -3125,11 +3128,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public void saveNewContenu(boolean continuSave) {
         saveNewContenu(continuSave, false);
     }
-
+    
     public void saveNewContenu(boolean continuSave, boolean isService) {
         boolean reset = pack != null ? pack.getContenus() != null ? pack.getContenus().isEmpty() : true : true;
         boolean succes = saveNewContenu(contenu, selectContenu, continuSave, isService, reset);
@@ -3175,7 +3178,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             resetFicheContenu();
         }
     }
-
+    
     public boolean saveNewContenu(ContenuDocVente contenu, YvsComContenuDocVente selectContenu, boolean continuSave, boolean isService, boolean reset) {
         this.isService = isService;
         try {
@@ -3234,7 +3237,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean saveNewEtat() {
         //To change body of generated methods, choose Tools | Templates.$
         try {
@@ -3293,7 +3296,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public void saveNewRetour() {
         try {
             if (retour != null) {
@@ -3334,7 +3337,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     if (retour.getId() > 0 ? retour.getId().equals(getSelectDoc().getId()) : true) {
                         List<YvsComContenuDocVente> contenus = new ArrayList<>(retour.getContenus());
                         retour.getContenus().clear();
-
+                        
                         retour.setId(null);
                         retour = (YvsComDocVentes) dao.save1(retour);
                         for (int i = 0; i < contenus.size(); i++) {
@@ -3342,7 +3345,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                             if (c.getQuantite() > 0) {
                                 List<YvsComContenuDocVenteEtat> etats = new ArrayList<>(c.getEtats());
                                 c.getEtats().clear();
-
+                                
                                 c.setId(null);
                                 c.setDateSave(new Date());
                                 c.setDateUpdate(new Date());
@@ -3371,7 +3374,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             log.log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void deleteBeanEtat(YvsComContenuDocVenteEtat y, boolean delete) {
         selectEtat = y;
         if (delete) {
@@ -3388,7 +3391,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void loadOnViewEtat(SelectEvent ev) {
         try {
             if (ev != null ? ev.getObject() != null : false) {
@@ -3399,7 +3402,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             log.log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void unLoadOnViewEtat(UnselectEvent ev) {
         try {
             etat = new ContenuDocVenteEtat();
@@ -3408,7 +3411,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             log.log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void loadOnViewRetour(SelectEvent ev) {
         try {
             if (ev != null ? ev.getObject() != null : false) {
@@ -3419,7 +3422,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             log.log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void unLoadOnViewRetour(UnselectEvent ev) {
         try {
             retour = new YvsComDocVentes();
@@ -3428,7 +3431,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             log.log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void deleteContenuRetour(YvsComContenuDocVente y, boolean delete) {
         if (y != null) {
             if (!retour.getStatut().equals(Constantes.ETAT_EDITABLE)) {
@@ -3448,7 +3451,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void changeQuantite(CellEditEvent ev) {
         int idx = ev.getRowIndex();
         Double oldValue = (Double) ev.getOldValue();
@@ -3461,7 +3464,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     private long returnCategorie(DocVente docVente, YvsComDocVentes selectDoc) {
         long categorie = 0;
         if (selectDoc != null ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
@@ -3475,16 +3478,16 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return categorie;
     }
-
+    
     public void saveAllTaxe(YvsComContenuDocVente y) {
         saveAllTaxe(y, docVente, selectDoc);
     }
-
+    
     public void saveAllTaxe(YvsComContenuDocVente y, DocVente docVente, YvsComDocVentes selectDoc) {
         long categorie = returnCategorie(docVente, selectDoc);
         saveAllTaxe(y, docVente, selectDoc, categorie, true);
     }
-
+    
     public boolean saveNewEntete() {
         ManagedVente w = (ManagedVente) giveManagedBean(ManagedVente.class);
         if (w != null) {
@@ -3510,7 +3513,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("save_entete_facture_vente");
         return false;
     }
-
+    
     public void updateEntete() {
         if (!autoriser("fv_update_header")) {
             openNotAcces();
@@ -3527,7 +3530,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             updateEntete(selectDoc, true);
         }
     }
-
+    
     public void updateEntete(YvsComDocVentes y, boolean msg) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3579,7 +3582,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void saveDefautClient() {
         try {
             ManagedClient s = (ManagedClient) giveManagedBean(ManagedClient.class);
@@ -3596,7 +3599,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Lymytz Error >>>", ex);
         }
     }
-
+    
     public void saveNewRemise() {
         try {
             if (!autoriser("fv_apply_rem_all")) {
@@ -3630,7 +3633,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error  : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void saveNewCommercial(CommercialVente bean, boolean responsable, boolean msg) {
         try {
             if (controleFiche(bean, responsable, msg)) {
@@ -3693,11 +3696,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error  : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void saveNewCommercial() {
         saveNewCommercial(recopieViewCommercial(docVente), true, true);
     }
-
+    
     public void saveCurrentCommercial(boolean msg) {
         if (selectDoc != null ? selectDoc.getId() < 1 : true) {
             if (msg) {
@@ -3756,7 +3759,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void saveNewCout() {
         try {
             CoutSupDoc bean = recopieViewCoutSupDoc();
@@ -3775,7 +3778,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     YvsComCoutSupDocVente c = docVente.getCouts().get(docVente.getCouts().indexOf(selectCout));
                     docVente.getCouts().set(idx, selectCout);
                     docVente.setMontantCS(docVente.getMontantCS() + montant + (c.getTypeCout().getAugmentation() ? -c.getMontant() : 0));
-
+                    
                 } else {
                     docVente.getCouts().add(0, selectCout);
                     docVente.setMontantCS(docVente.getMontantCS() + montant);
@@ -3800,7 +3803,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error  : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void saveNewReglement(boolean deletePhase) {
         boolean update = reglement.getId() > 0;
         try {
@@ -3820,7 +3823,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                         return;
                     }
                 }
-
+                
                 YvsComptaCaissePieceVente piec = UtilCompta.buildTresoreriVente(bean, currentUser);
                 //si on est en cr&ation, il vaut mieu que le statut de départ soit 'W'
                 if (bean.getId() < 1 ? (selectReglement != null ? !selectReglement.getStatutPiece().equals(Constantes.STATUT_DOC_PAYER) : true) : true) {
@@ -3893,7 +3896,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Lymytz Error...", ex);
         }
     }
-
+    
     public void saveNewAllMensualite() {
         try {
             ManagedReglementVente m = (ManagedReglementVente) giveManagedBean(ManagedReglementVente.class);
@@ -3929,11 +3932,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             log.log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void genereMensualite() {
         if ((docVente != null) ? docVente.getId() > 0 : false) {
             docVente.getReglements().clear();
-
+            
             if ((docVente.getModeReglement() != null) ? docVente.getModeReglement().getId() > 0 : false) {
                 ManagedReglementVente m = (ManagedReglementVente) giveManagedBean(ManagedReglementVente.class);
                 if (m != null) {
@@ -3962,14 +3965,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Vous devez au préalable enregistrer la facture");
         }
     }
-
+    
     public void addCommentaireContenu(YvsComContenuDocVente y) {
         on_rabais = false;
         selectContenu = y;
         commentaire = y.getCommentaire();
         update("txt_commentaire_contenu_facture_vente");
     }
-
+    
     public void addCommentaireContenu() {
         if (!on_rabais) {
             if (selectContenu != null ? selectContenu.getId() > 0 : false) {
@@ -4004,13 +4007,13 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             saveNewContenu(true);
         }
     }
-
+    
     public void addNumSerieContenu(YvsComContenuDocVente y) {
         selectContenu = y;
         numSerie = y.getNumSerie();
         update("txt_num_serie_contenu_facture_vente");
     }
-
+    
     public void addNumSerieContenu() {
         if (selectContenu != null ? selectContenu.getId() > 0 : false) {
             selectContenu.setNumSerie(numSerie);
@@ -4029,14 +4032,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Vous devez selectionner un contenu");
         }
     }
-
+    
     public void addRabaisContenu(YvsComContenuDocVente y) {
         selectContenu = y;
         montant_rabais = y.getRabais();
         commentaire = y.getCommentaire();
         update("txt_rabais_contenu_facture_vente");
     }
-
+    
     public void addRabaisContenu() {
         if (!autoriser("fv_apply_rabais")) {
             openNotAcces();
@@ -4085,7 +4088,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Vous devez selectionner un contenu");
         }
     }
-
+    
     public void addRemiseContenu(YvsComContenuDocVente y) {
         ManagedRemise w = (ManagedRemise) giveManagedBean(ManagedRemise.class);
         if (w != null) {
@@ -4097,7 +4100,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         taux_remise = y.getTauxRemise();
         update("txt_remise_contenu_facture_vente");
     }
-
+    
     public void addRemiseContenu() {
         if (docVente.getStatutRegle().equals(Constantes.ETAT_REGLE)) {
             getErrorMessage("Impossible d'appliquer une remise sur une facture déjà Réglé !");
@@ -4121,7 +4124,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 }
             }
         }
-
+        
         if (docVente.isPropagerRemise()) {
             if (remiseContenu > 0) {
                 if (m != null && y != null) {
@@ -4172,7 +4175,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Vous devez selectionner un contenu");
         }
     }
-
+    
     public void addBonusContenu(YvsComContenuDocVente y) {
         bonus = UtilCom.buildBeanContenuDocVente(y);
         if (bonus.getArticleBonus() != null ? bonus.getArticleBonus().getId() < 1 : true) {
@@ -4185,7 +4188,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         searchArticle(true);
         update("txt_bonus_contenu_facture_vente");
     }
-
+    
     public void addBonusContenu() {
         if (!autoriser("fv_apply_remise")) {
             openNotAcces();
@@ -4221,7 +4224,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Vous devez selectionner un contenu");
         }
     }
-
+    
     @Override
     public void deleteBean() {
         try {
@@ -4239,7 +4242,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                         continue;
                     }
                     dao.delete(bean);
-
+                    
                     if (bean.getId().equals(docVente.getId())) {
                         resetFiche();
                         update("blog_form_facture_vente");
@@ -4259,11 +4262,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void deleteBean_(YvsComDocVentes y) {
         selectDoc = y;
     }
-
+    
     public void deleteBean_() {
         try {
             if (!autoriser("fv_delete_doc")) {
@@ -4294,7 +4297,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void deleteBeanContenu() {
         try {
             if ((tabIds_contenu != null) ? !tabIds_contenu.equals("") : false) {
@@ -4332,7 +4335,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void deleteBeanArticles(boolean execute) {
         if (execute || memoriserDeleteContenu) {
             if (selectContenus != null ? !selectContenus.isEmpty() : false) {
@@ -4352,11 +4355,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             openDialog("dlgConfirmDeleteArticles");
         }
     }
-
+    
     public void deleteBeanContenu_(YvsComContenuDocVente y) {
         selectContenu = y;
     }
-
+    
     public void deleteBeanContenu_() {
         try {
             if (selectContenu != null) {
@@ -4389,7 +4392,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void activeValidationMultiple(YvsComDocVentes dv) {
         selectDoc = dv;
         if (dv.getStatut().equals(Constantes.ETAT_EDITABLE)) {
@@ -4412,7 +4415,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Le document selectionné n'est plus editable !");
         }
     }
-
+    
     public void deleteBeanRemise() {
         try {
             if (!_controleFiche_(selectDoc)) {
@@ -4440,11 +4443,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void deleteBeanRemise_(YvsComRemiseDocVente y) {
         selectRemiseFacture = y;
     }
-
+    
     public void deleteBeanRemise_() {
         try {
             if (!_controleFiche_(selectDoc)) {
@@ -4455,7 +4458,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 selectRemiseFacture.setDateUpdate(new Date());
                 dao.delete(selectRemiseFacture);
                 remisesFacture.remove(selectRemiseFacture);
-
+                
                 succes();
                 resetFicheRemise();
                 update("chp_fv_net_a_payer");
@@ -4468,15 +4471,15 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void deleteBeanCommercial() {
-
+        
     }
-
+    
     public void deleteBeanCommercial_(YvsComCommercialVente y) {
         selectCommercial = y;
     }
-
+    
     public void deleteBeanCommercial_() {
         try {
             if (selectDoc.getStatut().equals(Constantes.ETAT_VALIDE) && (!autoriser("fv_save_doc"))) {
@@ -4526,7 +4529,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void deleteBeanReglement() {
         try {
             if ((tabIds_mensualite != null) ? !tabIds_mensualite.equals("") : false) {
@@ -4554,11 +4557,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void deleteBeanReglement_(YvsComptaCaissePieceVente y) {
         selectReglement = y;
     }
-
+    
     public void deleteBeanReglement_() {
         try {
             if (selectReglement != null) {
@@ -4591,7 +4594,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void deleteBeanCout() {
         try {
             if ((tabIds_cout != null) ? !tabIds_cout.equals("") : false) {
@@ -4623,11 +4626,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void deleteBeanCout_(YvsComCoutSupDocVente y) {
         selectCout = y;
     }
-
+    
     public void deleteBeanCout_() {
         try {
             if (selectCout != null) {
@@ -4654,7 +4657,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     @Override
     public void onSelectDistant(YvsComDocVentes y) {
         if (y != null ? y.getId() > 0 : false) {
@@ -4671,7 +4674,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
     public void onSelectObject(YvsComDocVentes y) {
         onSelectObject(y, true);
     }
-
+    
     public void displayDetailsClient() {
         if (selectDoc != null ? selectDoc.getClient() != null : false) {
             ManagedClient w = (ManagedClient) giveManagedBean(ManagedClient.class);
@@ -4682,7 +4685,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             displayDetailClient = true;
         }
     }
-
+    
     public void onSelectObject(YvsComDocVentes y, boolean complet) {
         y.setContenus(dao.loadNameQueries("YvsComContenuDocVente.findByFacture", new String[]{"docVente"}, new Object[]{y}));
 //        if (l != null ? !l.isEmpty() : false) {
@@ -4753,7 +4756,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         displayDetailClient = false;
     }
-
+    
     public void onSelectDistantObject(YvsComDocVentes y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedBonVente s = (ManagedBonVente) giveManagedBean(ManagedBonVente.class);
@@ -4762,7 +4765,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onSelectDistantHeader(YvsComDocVentes y) {
         if (!autoriser("fv_super_update_header")) {
             openNotAcces();
@@ -4779,7 +4782,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onSelectDistantReglement(YvsComptaCaissePieceVente y) {
         if (y != null ? y.getId() > 0 : false) {
             switch (y.getModel().getTypeReglement()) {
@@ -4819,7 +4822,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onLoadFactureAchat(YvsComDocAchats y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedFactureAchat s = (ManagedFactureAchat) giveManagedBean(ManagedFactureAchat.class);
@@ -4828,11 +4831,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void deleteBeanLie(YvsComDocVentes y) {
         docLie = y;
     }
-
+    
     public void deleteBeanLie() {
         if (docLie != null ? docLie.getId() > 0 : false) {
             boolean correct = false;
@@ -4876,7 +4879,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onSelectDistantLivraison(YvsComDocVentes y) {
         if (y != null ? y.getId() > 0 : false) {
             switch (y.getTypeDoc()) {
@@ -4909,7 +4912,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onValideDistantLivraisonByForce() {
         if (distant != null ? distant.getId() > 0 : false) {
             switch (distant.getTypeDoc()) {
@@ -4933,7 +4936,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 case Constantes.TYPE_BRV: {
                     ManagedBonAvoirVente s = (ManagedBonAvoirVente) giveManagedBean(ManagedBonAvoirVente.class);
                     if (s != null) {
-
+                        
                     }
                     break;
                 }
@@ -4941,7 +4944,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
     }
     YvsComDocVentes distant;
-
+    
     public void onValideDistantLivraison(YvsComDocVentes y) {
         distant = y;
         if (y != null ? y.getId() > 0 : false) {
@@ -4982,7 +4985,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onRefuserDistantLivraison(YvsComDocVentes y) {
         if (y != null ? y.getId() > 0 : false) {
             switch (y.getTypeDoc()) {
@@ -5033,7 +5036,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onAnnulerDistantLivraisonByForce() {
         if (distant != null ? distant.getId() > 0 : false) {
             switch (distant.getTypeDoc()) {
@@ -5057,14 +5060,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 case Constantes.TYPE_FAV: {
                     ManagedBonAvoirVente s = (ManagedBonAvoirVente) giveManagedBean(ManagedBonAvoirVente.class);
                     if (s != null) {
-
+                        
                     }
                     break;
                 }
             }
         }
     }
-
+    
     public void onAnnulerDistantLivraison(YvsComDocVentes y) {
         distant = y;
         if (y != null ? y.getId() > 0 : false) {
@@ -5119,11 +5122,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onPrintDistant(YvsComDocVentes y) {
         onPrintDistant(y, true);
     }
-
+    
     public void onPrintDistant(YvsComDocVentes y, boolean withHeader) {
         if (y != null ? y.getId() > 0 : false) {
             switch (y.getTypeDoc()) {
@@ -5145,15 +5148,15 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void selectDocs(YvsComDocVentes doc) {
         if (doc != null ? doc.getId() > 0 : false) {
             selectDoc = doc;
             notes = selectDoc.getNotes();
-
+            
         }
     }
-
+    
     @Override
     public void loadOnView(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
@@ -5164,30 +5167,30 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 YvsComDocVentes y = (YvsComDocVentes) ev.getObject();
                 onSelectObject(y);
             }
-
+            
         }
     }
-
+    
     public void loadOnViewSimple(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComDocVentes y = (YvsComDocVentes) ev.getObject();
             onSelectObject(y, false);
         }
     }
-
+    
     public void loadOnViewContent(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComContenuDocVente y = (YvsComContenuDocVente) ev.getObject();
             onSelectObject(y.getDocVente());
         }
     }
-
+    
     @Override
     public void unLoadOnView(UnselectEvent ev) {
         resetFiche();
         update("blog_form_facture_vente");
     }
-
+    
     public void loadOnViewContenu(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComContenuDocVente bean = (YvsComContenuDocVente) ev.getObject();
@@ -5202,11 +5205,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void unLoadOnViewContenu(UnselectEvent ev) {
         resetFicheContenu();
     }
-
+    
     public void loadOnViewMensualite(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             selectReglement = (YvsComptaCaissePieceVente) ev.getObject();
@@ -5218,12 +5221,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("blog_form_mensualite_facture_vente");
         }
     }
-
+    
     public void unLoadOnViewMensualite(UnselectEvent ev) {
         resetFicheReglement(false);
         update("blog_form_mensualite_facture_vente");
     }
-
+    
     public void loadOnViewRemise(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComRemiseDocVente bean = (YvsComRemiseDocVente) ev.getObject();
@@ -5231,34 +5234,34 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("form_remise_vente");
         }
     }
-
+    
     public void unLoadOnViewRemise(UnselectEvent ev) {
         resetFicheRemise();
         update("form_remise_vente");
     }
-
+    
     public void loadOnViewCommercialVente(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComCommercialVente y = (YvsComCommercialVente) ev.getObject();
             populateView(UtilCom.buildBeanCommercialVente(y));
         }
     }
-
+    
     public void unLoadOnViewCommercialVente(UnselectEvent ev) {
         resetFicheCommercial();
     }
-
+    
     public void loadOnViewCout(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComCoutSupDocVente bean = (YvsComCoutSupDocVente) ev.getObject();
             populateViewCout(UtilCom.buildBeanCoutSupDocVente(bean));
         }
     }
-
+    
     public void unLoadOnViewCout(UnselectEvent ev) {
         resetFicheCout();
     }
-
+    
     public void loadOnViewCommercial(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComComerciale bean = (YvsComComerciale) ev.getObject();
@@ -5267,7 +5270,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("select_commercial_vente");
         }
     }
-
+    
     public void loadOnViewArticle(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsBaseArticles bean = (YvsBaseArticles) ev.getObject();
@@ -5280,7 +5283,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void loadOnViewConditionnement(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsBaseConditionnement bean = (YvsBaseConditionnement) ev.getObject();
@@ -5293,7 +5296,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void loadOnViewArticlePack(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             pack = (YvsBaseArticlePack) ev.getObject();
@@ -5309,7 +5312,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void loadOnViewArticleBon(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             selectArt = true;
@@ -5326,7 +5329,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 ContenuDocVente c = UtilCom.buildBeanContenuDocVente(bean);
                 c.getArticle().setStock(dao.stocks(bean.getArticle().getId(), 0, 0, 0, 0, docVente.getEnteteDoc().getDateEntete(), bean.getConditionnement().getId(), bean.getLot().getId()));
                 c.getArticle().setPua(dao.getPua(bean.getArticle().getId(), 0));
-
+                
                 c.setDocVente(null);
                 c.setUpdate(false);
                 c.setParent(new ContenuDocVente(bean.getId()));
@@ -5340,7 +5343,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void loadOnViewClient(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComClient y = (YvsComClient) ev.getObject();
@@ -5349,7 +5352,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("txt_zone_client");
         }
     }
-
+    
     public void loadOnViewCategorie(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsBaseCategorieComptable y = (YvsBaseCategorieComptable) ev.getObject();
@@ -5361,7 +5364,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void loadOnViewPointVente(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsBasePointVente y = (YvsBasePointVente) ev.getObject();
@@ -5370,7 +5373,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("save_entete_facture_vente");
         }
     }
-
+    
     public void loadOnViewDepot(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsBaseDepots y = (YvsBaseDepots) ev.getObject();
@@ -5378,7 +5381,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("blog_depot_livraison_fv");
         }
     }
-
+    
     public void loadOnViewModel(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsBaseModelReglement y = (YvsBaseModelReglement) ev.getObject();
@@ -5386,7 +5389,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("select_model_facture_vente");
         }
     }
-
+    
     public void loadOnViewBon(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComDocVentes bean = (YvsComDocVentes) ev.getObject();
@@ -5394,7 +5397,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             onSelectBon(bean);
         }
     }
-
+    
     public void loadOnViewModelPrint(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsPrintFactureVente bean = (YvsPrintFactureVente) ev.getObject();
@@ -5406,7 +5409,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public YvsComDocVentes genererRetour(YvsComDocVentes facture, boolean message) {
         YvsComDocVentes retour = new YvsComDocVentes();
         try {
@@ -5422,7 +5425,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 }
                 return retour;
             }
-
+            
             if (facture.getEnteteDoc() == null) {
                 if (message) {
                     getErrorMessage("La facture n'a pas de journal de vente");
@@ -5458,7 +5461,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return retour;
     }
-
+    
     public boolean annulerRetour(YvsComDocVentes entity) {
         try {
             if (entity != null ? entity.getId() > 0 : false) {
@@ -5491,7 +5494,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean refuserRetour(YvsComDocVentes entity) {
         try {
             if (entity != null ? entity.getId() > 0 : false) {
@@ -5524,7 +5527,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean validerRetour(YvsComDocVentes entity) {
         try {
             if (entity != null ? entity.getId() > 0 : false) {
@@ -5557,7 +5560,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public void onSelectBon(YvsComDocVentes y) {
         ManagedBonVente m = (ManagedBonVente) giveManagedBean(ManagedBonVente.class);
         if (m != null) {
@@ -5577,7 +5580,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     long id = y.getId();
                     String state = y.getStatutLivre();
                     String num = y.getNumDoc();
-
+                    
                     YvsComDocVentes d = y;
                     d.setHeureDoc(new Date());
                     d.setDateLivraison(new Date());
@@ -5614,7 +5617,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Cette commande n'a pas de contenu");
         }
     }
-
+    
     public void loadOnViewZone(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsDictionnaire bean = (YvsDictionnaire) ev.getObject();
@@ -5629,7 +5632,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             chooseVille();
         }
     }
-
+    
     public void chooseBon() {
         if (bon > 0) {
             ManagedBonVente m = (ManagedBonVente) giveManagedBean(ManagedBonVente.class);
@@ -5647,7 +5650,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void chooseConditionnement(boolean isBonus) {
         pack = new YvsBaseArticlePack();
         if (!isBonus) {
@@ -5681,7 +5684,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void loadInfosArticle(Articles art) {
         selectArt = true;
         if ((contenu.getConditionnement() != null) ? contenu.getConditionnement().getId() <= 0 : true) {
@@ -5739,11 +5742,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             contenu.setRabais(rabais);
         }
     }
-
+    
     public ContenuDocVente findPrixArticle(ContenuDocVente c, boolean findPrix) {
         return findPrixArticle(c, findPrix, true);
     }
-
+    
     public ContenuDocVente findPrixArticle(ContenuDocVente c, boolean findPrix, boolean findStock) {
         if (!isBon) {
             if ((docVente.getClient() != null) ? docVente.getClient().getId() > 0 : false) {
@@ -5802,13 +5805,13 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return c;
     }
-
+    
     private void applyTotal(ContenuDocVente c) {
         double prix = c.getPrix() - c.getRabais();
         double total = c.getQuantite() * prix;
         c.setPrixTotal((total - c.getRemise()) + (c.getArticle().isPuvTtc() ? 0 : c.getTaxe()));
     }
-
+    
     public void continueWithOutStock(boolean valueContinueWithOutStock) {
         if (rememberChoixWithOutStock) {
             this.valueContinueWithOutStock = valueContinueWithOutStock;
@@ -5817,7 +5820,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             resetFicheContenu();
         }
     }
-
+    
     public void chooseArticle(Articles art) {
         if ((art != null) ? art.getId() > 0 : false) {
             List<YvsBaseConditionnement> unites = dao.loadNameQueries("YvsBaseConditionnement.findByActifArticle", new String[]{"article"}, new Object[]{new YvsBaseArticles(art.getId())});
@@ -5852,10 +5855,10 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         if (page.equals("V3")) {
             update("desc_article_facture_vente");
         } else {
-
+            
         }
     }
-
+    
     private void chooseConditionnement(Conditionnement c) {
         if (c != null ? c.getId() > 0 : false) {
             chooseArticle(c.getArticle());
@@ -5863,13 +5866,13 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             chooseConditionnement(false);
         }
     }
-
+    
     boolean isBonus, isService;
-
+    
     public void searchArticle(boolean isBonus) {
         searchArticle(isBonus, false);
     }
-
+    
     public void searchArticle(boolean isBonus, boolean isService) {
         this.isBonus = isBonus;
         this.isService = isService;
@@ -5927,7 +5930,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void initArticles(boolean isBonus) {
         this.isBonus = isBonus;
         listArt = false;
@@ -5942,11 +5945,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_articles_facture_vente");
     }
-
+    
     public void openDlgFactures(boolean listing) {
         openDlgFactures(listing, Constantes.VENTE);
     }
-
+    
     public void openDlgFactures(boolean listing, String natureVente) {
         this.natureVente = natureVente;
         //choisir les documents à charger
@@ -5956,7 +5959,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
 //        initForm = true;
 //        loadAllFacture(true);
     }
-
+    
     public void openDocumentLies() {
         docVente.setDocuments(dao.loadNameQueries("YvsComDocVentes.findByParent", new String[]{"documentLie"}, new Object[]{selectDoc}));
         if (selectDoc.getDocumentLie() != null ? selectDoc.getDocumentLie().getId() > 0 : false) {
@@ -5964,7 +5967,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_livraison_facture_vente");
     }
-
+    
     public void openDlgReglement() {
         if (docVente.getEnteteDoc() != null ? docVente.getEnteteDoc().getCrenauHoraire() != null ? docVente.getEnteteDoc().getCrenauHoraire().getPersonnel() != null : false : false) {
             loadCaisseFromVendeur(new YvsUsers(docVente.getEnteteDoc().getCrenauHoraire().getPersonnel().getId()));
@@ -5977,22 +5980,22 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("form_mensualite_facture_vente");
         update("select_model_mens_facture_vente");
     }
-
+    
     public void openDlgLivraison() {
         docVente.setDocuments(dao.loadNameQueries("YvsComDocVentes.findBLVByParent", new String[]{"documentLie"}, new Object[]{selectDoc}));
         update("data_livraison_facture_vente");
     }
-
+    
     public void openDlgDocument() {
         docVente.setDocuments(dao.loadNameQueries("YvsComDocVentes.findNotBLVByParent", new String[]{"documentLie"}, new Object[]{selectDoc}));
         update("data_livraison_facture_vente");
     }
-
+    
     public void openDlgCommerciaux() {
         docVente.setCommerciaux(dao.loadNameQueries("YvsComCommercialVente.findByFacture", new String[]{"facture"}, new Object[]{selectDoc}));
         update("blog_commercial_vente");
     }
-
+    
     public void openDlgCoutS() {
         ManagedTypeCout w = (ManagedTypeCout) giveManagedBean(ManagedTypeCout.class);
         if (w != null) {
@@ -6001,7 +6004,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         docVente.setCouts(dao.loadNameQueries("YvsComCoutSupDocVente.findByDocVente", new String[]{"docVente"}, new Object[]{selectDoc}));
         update("blog_form_cout_facture_vente");
     }
-
+    
     public void searchPointVente() {
         String num = docVente.getEnteteDoc().getPoint().getLibelle();
         docVente.getEnteteDoc().getPoint().setId(0);
@@ -6020,7 +6023,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void searchDepot() {
         String num = docVente.getDepot().getDesignation();
         docVente.getDepot().setId(0);
@@ -6037,7 +6040,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             docVente.getDepot().setError(false);
         }
     }
-
+    
     public void searchClient() {
         String num = docVente.getClient().getNom();
         docVente.getClient().setId(0);
@@ -6056,7 +6059,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void initClients() {
         ManagedClient m = (ManagedClient) giveManagedBean(ManagedClient.class);
         if (m != null) {
@@ -6064,7 +6067,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_client_facture_vente");
     }
-
+    
     public void searchCategorie() {
         String num = docVente.getCategorieComptable().getDesignation();
         docVente.getCategorieComptable().setId(0);
@@ -6082,7 +6085,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void initCategories() {
         ManagedCatCompt m = (ManagedCatCompt) giveManagedBean(ManagedCatCompt.class);
         if (m != null) {
@@ -6090,7 +6093,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_categorie_vente_facture_vente");
     }
-
+    
     public void searchModelReglement() {
         String num = docVente.getModeReglement().getDesignation();
         docVente.getModeReglement().setId(0);
@@ -6108,7 +6111,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void initModelReglements() {
         ManagedModeReglement m = (ManagedModeReglement) giveManagedBean(ManagedModeReglement.class);
         if (m != null) {
@@ -6116,7 +6119,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_model_reglement_facture_vente");
     }
-
+    
     public void searchCommercial() {
         String num = commercial.getCommercial().getCode();
         commercial.getCommercial().setId(0);
@@ -6137,7 +6140,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("txt_commercial_vente");
         update("tabview_facture_vente:select_commercial_vente");
     }
-
+    
     public void initCommerciaux() {
         ManagedCommerciaux m = (ManagedCommerciaux) giveManagedBean(ManagedCommerciaux.class);
         if (m != null) {
@@ -6145,7 +6148,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_commerciaux_facture_vente");
     }
-
+    
     public void initFacture(DocVente a, Client c) {
         if (a == null) {
             a = new DocVente();
@@ -6160,12 +6163,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         a.setList(true);
     }
-
+    
     public void init(boolean next) {
         initForm = false;
         loadAllFacture(next);
     }
-
+    
     public void definedResponsable(YvsComCommercialVente y) {
         if (selectDoc.getStatut().equals(Constantes.ETAT_VALIDE) && (!autoriser("fv_save_doc"))) {
             getErrorMessage("La facture sélectionnée est déjà validé!");
@@ -6212,7 +6215,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     query = "update yvs_com_doc_ventes set tiers = ? where id = ?";
                 }
                 dao.requeteLibre(query, param);
-
+                
                 selectDoc.setTiers(tiers != null ? tiers : new YvsComClient());
                 docVente.setTiers(tiers != null ? new Client(tiers.getId()) : new Client());
             }
@@ -6223,20 +6226,20 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("data_commercial_vente");
         }
     }
-
+    
     public void gotoPagePaginator() {
         paginator.gotoPage((int) imax);
         initForm = true;
         loadAllFacture(true);
     }
-
+    
     @Override
     public void choosePaginator(ValueChangeEvent ev) {
         imax = (long) ev.getNewValue();
         initForm = true;
         loadAllFacture(true);
     }
-
+    
     public void chooseCloturer(ValueChangeEvent ev) {
         cloturer_ = ((Boolean) ev.getNewValue());
         ParametreRequete p = new ParametreRequete("y.cloturer", "cloturer", cloturer_);
@@ -6246,7 +6249,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         initForm = true;
         loadAllFacture(true);
     }
-
+    
     public void chooseStatut(ValueChangeEvent ev) {
         String statut = ((String) ev.getNewValue());
         if (statut != null ? statut.trim().equals("Z") : false) {
@@ -6266,7 +6269,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             addParamStatut();
         }
     }
-
+    
     public void chooseStatuts() {
         ParametreRequete p = new ParametreRequete(pre + "statut", "statut", null);
         if (statuts != null ? !statuts.isEmpty() : false) {
@@ -6285,11 +6288,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         loadAllFacture(true);
     }
-
+    
     public void addParamStatut() {
         addParamStatut(true);
     }
-
+    
     public void addParamStatut(boolean load) {
         ParametreRequete p;
         if (statut != null ? statut.trim().length() > 0 : false) {
@@ -6306,7 +6309,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void addParamToValide() {
         ParametreRequete p = new ParametreRequete("(" + pre + "etapeValide+1)", "etape", null, "IN", "AND");
         if (toValideLoad) {
@@ -6322,12 +6325,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void chooseStatutRegle(ValueChangeEvent ev) {
         statutRegle_ = ((String) ev.getNewValue());
         addParamStatutRegle();
     }
-
+    
     private void addParamStatutDoc() {
         ParametreRequete p;
         if (statutRegle_ != null ? statutRegle_.trim().length() > 0 : false) {
@@ -6338,7 +6341,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         paginator.addParam(p);
     }
-
+    
     public void addParamStatutRegle() {
         addParamStatutDoc();
         initForm = true;
@@ -6346,12 +6349,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void chooseStatutLivre(ValueChangeEvent ev) {
         statutLivre_ = ((String) ev.getNewValue());
         addParamStatutLivre();
     }
-
+    
     public void addParamStatutLivre() {
         ParametreRequete p;
         if (statutLivre_ != null ? statutLivre_.trim().length() > 0 : false) {
@@ -6366,7 +6369,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void addParamAutoLivre() {
         ParametreRequete p = new ParametreRequete(pre + "livraisonAuto", "livraisonAuto", null);
         if (autoLivreSearch != null) {
@@ -6379,7 +6382,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void chooseDateSearch() {
         ParametreRequete p;
         if (date_) {
@@ -6415,18 +6418,18 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("blog_form_facture_vente");
         }
     }
-
+    
     @Override
     public void _chooseSociete() {
         super._chooseSociete();
     }
-
+    
     @Override
     public void _chooseAgence() {
         super._loadPoint();
         addParamAgence();
     }
-
+    
     public void addParamAgence() {
         ParametreRequete p;
         if (agence_ > 0) {
@@ -6443,7 +6446,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     @Override
     public void _chooseDepot() {
         super._chooseDepot();
@@ -6462,7 +6465,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     @Override
     public void _choosePoint() {
         super._choosePoint();
@@ -6481,7 +6484,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void _chooseTranche() {
         ParametreRequete p;
         if (tranche_ > 0) {
@@ -6508,7 +6511,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("_select_entete_facture_vente");
     }
-
+    
     public void changeOperateurVendeur(ValueChangeEvent ev) {
         if (ev != null) {
             operateurVend = (String) ev.getNewValue();
@@ -6533,7 +6536,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
 //        }
         update("_select_entete_facture_vente");
     }
-
+    
     public void addParamVendeur(boolean code) {
         String predicat = (operateurVend.trim().equals("LIKE")) ? "OR" : "AND";
         ParametreRequete p;
@@ -6557,7 +6560,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         paginator.addParam(p);
         p_contenu.addParam(p);
     }
-
+    
     public void addParamDate() {
         ParametreRequete p = new ParametreRequete(pre + "enteteDoc.dateEntete", "dateEntete", dateDebut_);
         p.setOperation("=");
@@ -6565,7 +6568,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         paginator.addParam(p);
     }
-
+    
     public void addParamDates() {
         ParametreRequete p = new ParametreRequete("y.dateUpdate", "dateUpdate", null);
         if (date_up) {
@@ -6576,14 +6579,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void changeOperateurClient(ValueChangeEvent ev) {
         if (ev != null) {
             operateuClt = (String) ev.getNewValue();
             addParamVendeur(true);
         }
     }
-
+    
     public void searchByClient() {
         String predicat = (operateuClt.trim().equals("LIKE")) ? "OR" : "AND";
         ParametreRequete p;
@@ -6602,7 +6605,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void searchByRepr() {
         ParametreRequete p;
         if (otherSearch_ != null ? otherSearch_.trim().length() > 0 : false) {
@@ -6619,7 +6622,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void _chooseStatut(ValueChangeEvent ev) {
         this.statut = ((String) ev.getNewValue());
         ParametreRequete p;
@@ -6636,7 +6639,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("_select_entete_facture_vente");
     }
-
+    
     public void chooseCommande() {
         ParametreRequete p;
         if (numBon != null ? numBon.trim().length() > 0 : false) {
@@ -6651,20 +6654,20 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void _chooseDateSearch(ValueChangeEvent ev) {
         paramDate = (Boolean) ev.getNewValue();
         addParaDate(paramDate);
     }
-
+    
     public void addParamDate1(SelectEvent ev) {
         addParaDate(paramDate);
     }
-
+    
     public void addParamDate2() {
         addParaDate(paramDate);
     }
-
+    
     private void addParaDate(boolean b) {
         ParametreRequete p = new ParametreRequete(pre + "enteteDoc.dateEntete", "dateEntete", null, " BETWEEN ", "AND");
         if (b) {
@@ -6681,9 +6684,9 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         if (searchAutomatique) {
             loadAllFacture(true);
         }
-
+        
     }
-
+    
     public void addParamNature() {
         ParametreRequete p = new ParametreRequete(pre + "nature", "nature", null, " LIKE ", "AND");
         if (natureSearch != null ? natureSearch.trim().length() > 0 : false) {
@@ -6696,7 +6699,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     private void loadCaissiers(YvsBaseCaisse y) {
         caissiers.clear();
         ManagedCaisses w = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
@@ -6714,7 +6717,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("chmp_caissier_reglement_fv");
         update("tabview_facture_vente:chmp_caissier_reglement_fv");
     }
-
+    
     public void chooseCaisses(ValueChangeEvent ev) {
         if (ev.getNewValue() != null) {
             // trouve les caisses parent d'une caisse données
@@ -6746,7 +6749,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("tabview_facture_vente:chmp_caissier_reglement_fv");
         }
     }
-
+    
     public void chooseCategorie() {
         if ((docVente.getCategorieComptable() != null) ? docVente.getCategorieComptable().getId() > 0 : false) {
             ManagedCatCompt m = (ManagedCatCompt) giveManagedBean(ManagedCatCompt.class);
@@ -6762,7 +6765,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         chooseCategorie(docVente.getCategorieComptable());
     }
-
+    
     public void chooseCategorie(CategorieComptable d) {
         docVente.setCategorieComptable(d);
         if (selectDoc != null ? selectDoc.getId() > 0 : false) {
@@ -6782,7 +6785,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("value_reste_a_payer_facture");
         update("select_categorie_comptable_facture_vente");
     }
-
+    
     public void chooseClient(Client d) {
         if ((d != null) ? d.getId() > 0 : false) {
             if (!venteDirecte) {
@@ -6845,14 +6848,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("select_model_facture_vente");
         }
     }
-
+    
     public void openTochangeNumero(YvsComDocVentes doc) {
         this.selectDoc = (doc);
         this.selectDoc.setOldReference(doc.getNumDoc());
         openDialog("dlgChangeNumDoc");
         update("form_num_doc");
     }
-
+    
     public void changeNumero() {
         if (isChangeNumdocAuto()) {
             ManagedVente w = (ManagedVente) giveManagedBean(ManagedVente.class);
@@ -6876,7 +6879,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_facture_vente");
     }
-
+    
     public void reBuildNumero() {
         if (selections != null ? !selections.isEmpty() : false) {
             ManagedVente w = (ManagedVente) giveManagedBean(ManagedVente.class);
@@ -6895,7 +6898,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             selections.clear();
         }
     }
-
+    
     public void definedTiersVente() {
         if (selections != null ? !selections.isEmpty() : false) {
             for (YvsComDocVentes current : selections) {
@@ -6905,7 +6908,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             selections.clear();
         }
     }
-
+    
     public void definedTiers(YvsComDocVentes y, boolean succes) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -6971,7 +6974,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Facture... Maj tiers", ex);
         }
     }
-
+    
     public void genererFicheEntree() {
         if (selections != null ? !selections.isEmpty() : false) {
             for (YvsComDocVentes current : selections) {
@@ -6981,7 +6984,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             selections.clear();
         }
     }
-
+    
     public void genererFicheEntree(YvsComDocVentes y, boolean msg) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -7026,7 +7029,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 docStock.setStatut(Constantes.ETAT_VALIDE);
                 docStock.setTypeDoc(Constantes.TYPE_ES);
                 docStock.setValiderBy(currentUser.getUsers());
-
+                
                 docStock = (YvsComDocStocks) dao.save1(docStock);
                 if (docStock != null ? docStock.getId() > 0 : false) {
                     YvsComContenuDocStock contenu;
@@ -7065,7 +7068,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("ManagedFactureVente (genererFicheEntree)", ex);
         }
     }
-
+    
     public void chooseVille() {
         docVente.setAdresse(new Dictionnaire());
         ManagedDico m = (ManagedDico) giveManagedBean("Mdico");
@@ -7081,7 +7084,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void chooseAdresse() {
         ManagedDico m = (ManagedDico) giveManagedBean("Mdico");
         if (m != null) {
@@ -7096,7 +7099,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void chooseDate() {
         if (!autoriser("fv_update_header")) {
             docVente.getEnteteDoc().setDateEntete(new Date());
@@ -7106,7 +7109,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         selectEntete = new YvsComEnteteDocVente();
 //        loadCurrentEntete();
     }
-
+    
     public void chooseTranche() {
         selectEntete = new YvsComEnteteDocVente();
         if (docVente.getEnteteDoc().getTranche() != null ? docVente.getEnteteDoc().getTranche().getId() > 0 : false) {
@@ -7119,7 +7122,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void chooseTrancheDepot() {
         if (docVente.getTranche() != null ? docVente.getTranche().getId() > 0 : false) {
             int idx = tranches.indexOf(new YvsGrhTrancheHoraire(docVente.getTranche().getId()));
@@ -7130,14 +7133,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void chooseVendeur(ValueChangeEvent ev) {
         if (ev.getNewValue() != null) {
             long idVendeur = (long) ev.getNewValue();
             chooseVendeurBill(new YvsUsers(idVendeur));
         }
     }
-
+    
     private void chooseVendeurBill(YvsUsers vendeur) {
         if (vendeur != null ? vendeur.getId() > 0 : false) {
             docVente.getEnteteDoc().getCrenauHoraire().getPersonnel().setId(vendeur.getId());
@@ -7152,7 +7155,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadCaisseFromVendeur(vendeur);
         }
     }
-
+    
     private void loadCaisseFromVendeur(YvsUsers vendeur) {
         ManagedCaisses service = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
         if (service != null) {
@@ -7171,7 +7174,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void choosePoint_(ValueChangeEvent ev) {
         if (ev.getNewValue() != null) {
             long id = (long) ev.getNewValue();
@@ -7198,7 +7201,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void choosePointById(long id) {
         if (id > 0) {
             docVente.getEnteteDoc().getPoint().setId(id);
@@ -7212,7 +7215,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void choosePoint(YvsBasePointVente y) {
         selectEntete = new YvsComEnteteDocVente();
         docVente.getEnteteDoc().getPoint().getListTranche().clear();
@@ -7261,7 +7264,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public boolean chooseDepot(Depots depot, Date date) {
         docVente.setTranche(new TrancheHoraire());
         if (depot != null ? depot.getId() > 0 : false) {
@@ -7282,7 +7285,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public void chooseDepot() {
         docVente.setTranche(new TrancheHoraire());
         if (docVente.getDepot() != null ? docVente.getDepot().getId() > 0 : false) {
@@ -7292,7 +7295,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void chooseDepot(YvsBaseDepots y) {
         docVente.setTranche(new TrancheHoraire());
         if (y != null) {
@@ -7315,7 +7318,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("select_tranche_livraison_fv");
         }
     }
-
+    
     public void choosePointLivraison() {
         ManagedPointLivraison w = (ManagedPointLivraison) giveManagedBean(ManagedPointLivraison.class);
         if (w != null) {
@@ -7327,11 +7330,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void chooseCategorieClt() {
         update("select_categorie_client");
     }
-
+    
     public void chooseRemise() {
         if ((remise.getRemise() != null)) {
             if (remise.getRemise().getId() > 0) {
@@ -7347,7 +7350,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void chooseRemiseContenu() {
         montant_remise = 0;
         if (remiseContenu > 0) {
@@ -7371,7 +7374,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void initInfosContenu(YvsComContenuDocVente y) {
         selectContenu = y;
         if (selectContenu != null ? selectContenu.getId() > 0 : false) {
@@ -7399,19 +7402,19 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("blog_form_infos_contenu");
         }
     }
-
+    
     public void initFactureVente() {
         if ((selectDoc != null) ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
             update("blog_form_infos_contenu");
         }
     }
-
+    
     public void setTotalReste(double montant) {
         docVente.setMontantCS(docVente.getMontantCS() + montant);
         docVente.setMontantResteApayer(docVente.getMontantResteApayer() - montant);
         update("blog_form_montant_doc");
     }
-
+    
     public void setClientDefaut() {
         if ((docVente.getClient() != null ? docVente.getClient().getId() < 1 : true) && defaultClient == null) {
             defaultClient = currentClientDefault();
@@ -7432,7 +7435,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void setCommercialDefaut() {
         if (commercial.getCommercial() != null ? commercial.getCommercial().getId() < 1 : true) {
             YvsComComerciale c = (YvsComComerciale) dao.loadOneByNameQueries("YvsComComerciale.findDefaut", new String[]{"societe"}, new Object[]{currentAgence.getSociete()});
@@ -7442,7 +7445,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("select_commercial_vente");
         }
     }
-
+    
     public void onArticleSelect(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsBaseArticles t_ = (YvsBaseArticles) ev.getObject();
@@ -7459,7 +7462,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             resetFicheContenu();
         }
     }
-
+    
     public void onClientSelect(SelectEvent ev) {
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComClient t_ = (YvsComClient) ev.getObject();
@@ -7468,7 +7471,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             cloneObject(docVente.getCategorieComptable(), t.getCategorieComptable());
         }
     }
-
+    
     public void onTauxCommercialBlur() {
         double ca = docVente.getMontantNetAPayer();
         if (ca != 0) {
@@ -7476,7 +7479,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             commercial.setMontant(montant);
         }
     }
-
+    
     public void onMontantCommercialBlur() {
         double ca = docVente.getMontantNetAPayer();
         if (ca != 0) {
@@ -7484,7 +7487,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             commercial.setTaux(taux);
         }
     }
-
+    
     public void onPrixBlur() {
         if (!isBon) {
             if ((docVente.getClient() != null) ? docVente.getClient().getId() > 0 : false) {
@@ -7494,7 +7497,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onQuantiteBlur() {
         findPrixArticle(contenu, true);
         //cherche le bonus
@@ -7519,7 +7522,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             contenu.setQuantiteBonus(0);
         }
     }
-
+    
     public void onRemiseBlur(boolean taux) {
         double total = selectContenu.getQuantite() * (selectContenu.getPrix() - selectContenu.getRabais());
         if (taux) {
@@ -7533,7 +7536,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             taux_remise = (montant_remise * 100) / total;
         }
     }
-
+    
     public void onRabaisBlur(boolean total) {
         if (total) {
             montant_rabais = montant_rabais_total / selectContenu.getQuantite();
@@ -7541,11 +7544,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             montant_rabais_total = montant_rabais * selectContenu.getQuantite();
         }
     }
-
+    
     YvsComptaCaissePieceVente piece;
     String source;
     boolean emission;
-
+    
     public void openConfirmPaiement(YvsComptaCaissePieceVente pc, String source, boolean emission) {
         this.piece = pc;
         this.source = source;
@@ -7563,7 +7566,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void openConfirmPaiement() {
         ManagedReglementVente service = (ManagedReglementVente) giveManagedBean(ManagedReglementVente.class);
         if (service != null) {
@@ -7574,11 +7577,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void openDlgToConfirmSuspend(YvsComDocVentes y) {
         selectDoc = y;
         populateView(UtilCom.buildBeanDocVente(y));
-
+        
         if (y.getTypeDoc().equals(Constantes.TYPE_BCV)) {
             ManagedBonVente w = (ManagedBonVente) giveManagedBean(ManagedBonVente.class
             );
@@ -7591,7 +7594,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             openDialog("dlgSuspendFact");
         }
     }
-
+    
     public void lettrer(YvsComDocVentes y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
@@ -7611,7 +7614,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void lettrerCaisse(YvsComptaCaissePieceVente y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
@@ -7631,11 +7634,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public boolean annulerOrder(boolean continueSave) {
         return annulerOrder(selectDoc, docVente, continueSave);
     }
-
+    
     public boolean controlToAnnulerOrder(YvsComDocVentes selectDoc, DocVente docVente, boolean continueSave) {
         try {
             if (selectDoc != null ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
@@ -7669,7 +7672,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean annulerOrder(YvsComDocVentes selectDoc, DocVente docVente, boolean continueSave) {
         if (selectDoc != null ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
             if (!controlToAnnulerOrder(selectDoc, docVente, continueSave)) {
@@ -7692,11 +7695,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public void annulerOrder_() {
         annulerOrderForce(selectDoc, docVente);
     }
-
+    
     public void annulerOrderForce(YvsComDocVentes selectDoc, DocVente docVente) {
         try {
             if (selectDoc != null ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
@@ -7711,7 +7714,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Lymytz Error >>>", ex);
         }
     }
-
+    
     public void _annulerOrder_() {
         try {
             if (selectDoc != null ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
@@ -7726,11 +7729,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Lymytz Error >>>", ex);
         }
     }
-
+    
     public boolean refuserOrder(boolean force, boolean passe) {
         return refuserOrder(selectDoc, docVente, force, passe);
     }
-
+    
     public boolean refuserOrder(YvsComDocVentes selectDoc, DocVente docVente, boolean force, boolean passe) {
         try {
             if (selectDoc != null ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
@@ -7752,7 +7755,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public void cancelOrder(boolean force, boolean passe) {
         try {
             if (selectDoc != null ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
@@ -7770,7 +7773,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Lymytz Error >>>", ex);
         }
     }
-
+    
     public void validerFacture(boolean force) {
         if (selectDoc.getTypeDoc().equals(Constantes.TYPE_FV)) {
             if (checkAvance && !force) {
@@ -7791,7 +7794,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void validerOrderAll() {
         try {
             if (!autoriser("fv_valide_doc")) {
@@ -7817,7 +7820,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public boolean validerOrderOne(YvsComDocVentes entity, boolean succes) {
         if (!entity.getStatut().equals(Constantes.ETAT_VALIDE)) {
             DocVente bean = UtilCom.buildBeanDocVente(entity);
@@ -7846,7 +7849,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean controleValidation(DocVente docVente, YvsComDocVentes selectDoc) {
         if (selectDoc == null) {
             getErrorMessage("Vous devez selectionner la facture");
@@ -7900,25 +7903,25 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
 //        }
         return true;
     }
-
+    
     public boolean validerOrder() {
         return validerOrder(docVente, selectDoc, true, true);
     }
-
+    
     public boolean validerOrder(YvsComDocVentes selectDoc) {
         DocVente docVente = UtilCom.buildBeanDocVente(selectDoc);
         setMontantTotalDoc(docVente, selectDoc);
         return validerOrder(docVente, selectDoc, true, true);
     }
-
+    
     public boolean validerOrder(DocVente docVente, YvsComDocVentes selectDoc) {
         return validerOrder(docVente, selectDoc, true, true);
     }
-
+    
     public boolean validerOrder(DocVente docVente, YvsComDocVentes selectDoc, boolean msg, boolean succes) {
         return validerOrder(docVente, selectDoc, msg, succes, false);
     }
-
+    
     public boolean validerOrder(DocVente docVente, YvsComDocVentes selectDoc, boolean msg, boolean succes, boolean byList) {
         if (!autoriser("fv_valide_doc")) {
             openNotAcces();
@@ -8086,7 +8089,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return result;
     }
-
+    
     public boolean generatedEcheancierReg(YvsComDocVentes y, boolean addList) {
         if (y != null) {
             ManagedVente m = (ManagedVente) giveManagedBean(ManagedVente.class);
@@ -8106,7 +8109,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     public void genereLivraison() {
         try {
             if (selections != null ? !selections.isEmpty() : false) {
@@ -8126,23 +8129,23 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Génération impossible!");
         }
     }
-
+    
     public void transmisOrderByForce() {
         transmisOrder(true);
     }
-
+    
     public void transmisOrder() {
         transmisOrder(false);
     }
-
+    
     public String getNotes() {
         return notes;
     }
-
+    
     public void setNotes(String notes) {
         this.notes = notes;
     }
-
+    
     public void addNote() {
         try {
             if (notes != null ? !notes.isEmpty() : false) {
@@ -8153,12 +8156,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             } else {
                 System.err.println("Null");
             }
-
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
+    
     public void transmisOrder(boolean force) {
         selectDoc.setDepotLivrer(UtilProd.buildBeanDepot(docVente.getDepot()));
         selectDoc.setTrancheLivrer(UtilGrh.buildTrancheHoraire(docVente.getTranche(), currentUser));
@@ -8201,7 +8204,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("tabview_facture_vente:form_mensualite_facture_vente");
         }
     }
-
+    
     private boolean controlContentForTransmis(YvsComContenuDocVente c, YvsBaseDepots depot, Date dateLivraison, String statut, boolean message) {
         champ = new String[]{"article", "depot"};
         val = new Object[]{c.getArticle(), depot};
@@ -8230,9 +8233,9 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     Boolean exist_inventaire;
-
+    
     public void transmisOrder(YvsComDocVentes facture, Date dateLivraison, String statut, boolean message, boolean force) {
         String query = "SELECT action FROM yvs_com_doc_ventes WHERE id = ?";
         String action = (String) dao.loadObjectBySqlQuery(query, new Options[]{new Options(facture.getId(), 1)});
@@ -8391,7 +8394,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                             a.setRemise(0.0);
                             a.setRistourne(0.0);
                             a.setTaxe(0.0);
-
+                            
                             if (!controlContentForTransmis(a, depot, dateLivraison, statut, message)) {
                                 query = "UPDATE yvs_com_doc_ventes SET action = null WHERE id = ?";
                                 dao.requeteLibre(query, new Options[]{new Options(facture.getId(), 1)});
@@ -8460,7 +8463,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                             }
                             distant.setDocumentLie(facture);
                             boolean livrer;
-
+                            
                             if (statut.equals(Constantes.ETAT_VALIDE)) {
                                 ManagedLivraisonVente service = (ManagedLivraisonVente) giveManagedBean(ManagedLivraisonVente.class);
                                 if (service != null) {
@@ -8537,12 +8540,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         query = "UPDATE yvs_com_doc_ventes SET action = null WHERE id = ?";
         dao.requeteLibre(query, new Options[]{new Options(facture.getId(), 1)});
     }
-
+    
     public void cloturer(YvsComDocVentes y) {
         selectDoc = y;
         update("id_confirm_close_fv");
     }
-
+    
     public void cloturer() {
         if (selectDoc == null) {
             return;
@@ -8559,7 +8562,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("data_facture_vente");
         }
     }
-
+    
     public boolean changeStatut(String etat) {
         if (changeStatut_(etat, docVente, selectDoc)) {
             succes();
@@ -8578,11 +8581,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean changeStatut_(String etat, YvsComDocVentes entity) {
         return changeStatut_(etat, UtilCom.buildBeanDocVente(entity), entity);
     }
-
+    
     public boolean changeStatut(String etat, DocVente bean, YvsComDocVentes entity) {
         if (changeStatut_(etat, bean, entity)) {
             succes();
@@ -8616,7 +8619,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         update("infos_document_facture_vente");
         update("grp_btn_etat_facture_vente");
     }
-
+    
     public boolean changeStatut_(String etat, DocVente bean, YvsComDocVentes entity) {
         if (!etat.equals("")) {
             if (entity.getCloturer()) {
@@ -8666,7 +8669,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean isConsigner(YvsComDocVentes y) {
         //se parcours mise sur le fait que le contenu de la facture est toujours très concis
         if (y.getContenus() != null) {
@@ -8678,7 +8681,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public void consigner(YvsComDocVentes y) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -8727,17 +8730,17 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 succes();
             }
         } catch (Exception ex) {
-
+            
         }
     }
-
+    
     public void consignerContent(YvsComContenuDocVente y) {
         try {
             if (y != null ? y.getId() > 0 : false) {
                 if (y.getDocVente().getCloturer()) {
                     getErrorMessage("Ce document est vérouillé");
                     return;
-
+                    
                 }
                 ManagedReservation mr = (ManagedReservation) giveManagedBean(ManagedReservation.class
                 );
@@ -8787,28 +8790,32 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                         }
                     }
                 }
-
+                
                 succes();
             }
         } catch (Exception ex) {
-
+            
         }
     }
-
+    
     public void print(YvsComDocVentes y) {
         print(y, true);
     }
-
+    
     public void print(YvsComDocVentes y, boolean withHeader) {
         print(y, null, withHeader);
     }
-
+    
     public void print(YvsComDocVentes y, String model, boolean withHeader) {
         try {
             if (currentParamVente == null) {
                 currentParamVente = (YvsComParametreVente) dao.loadOneByNameQueries("YvsComParametreVente.findByAgence", new String[]{"agence"}, new Object[]{currentAgence});
             }
             if (y != null ? y.getId() > 0 : false) {
+                if (currentParamVente != null ? (currentParamVente.getPrintDocumentWhenValide() && !y.getStatut().equals(Constantes.ETAT_VALIDE)) : false) {
+                    getErrorMessage("Le document doit être validé pour pouvoir être téléchargé");
+                    return;
+                }
                 Double ca = dao.loadCaVente(y.getId());
                 Map<String, Object> param = new HashMap<>();
                 String path = FacesContext.getCurrentInstance().getExternalContext().getRealPath(FILE_SEPARATOR + "WEB-INF" + FILE_SEPARATOR + "report");
@@ -8833,7 +8840,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             java.util.logging.Logger.getLogger(ManagedFactureVente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void print_OLD(YvsComDocVentes y, boolean withHeader) {
         try {
             if (currentParamVente == null) {
@@ -8868,7 +8875,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             java.util.logging.Logger.getLogger(ManagedFactureVente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void printTicket(YvsComDocVentes y) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -8892,7 +8899,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             java.util.logging.Logger.getLogger(ManagedFactureVente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void printSource(YvsComDocVentes y) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -8917,7 +8924,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             java.util.logging.Logger.getLogger(ManagedFactureVente.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void printListing() {
         Map<String, Object> param = new HashMap<>();
         param.put("AUTEUR", currentUser.getUsers().getNomUsers());
@@ -8933,21 +8940,21 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         param.put("SUBREPORT_DIR", FacesContext.getCurrentInstance().getExternalContext().getRealPath(FILE_SEPARATOR + "WEB-INF" + FILE_SEPARATOR + "report") + FILE_SEPARATOR);
         executeReport("listing_facture_vente", param);
     }
-
+    
     public void openPrintDialog() {
         if (Util.asString(docVente.getPrintPath())) {
             openDialog("dlgPrint");
             update("media-print");
         }
     }
-
+    
     public void changeOperateurRef(ValueChangeEvent ev) {
         if (ev != null) {
             operateurRef = (String) ev.getNewValue();
             addParamVendeur(true);
         }
     }
-
+    
     private void addParamNumDoc() {
         ParametreRequete p;
         String predicat = (operateurRef.trim().equals("LIKE")) ? "OR" : "AND";
@@ -8962,7 +8969,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         paginator.addParam(p);
     }
-
+    
     public void searchByNum() {
         addParamNumDoc();
         initForm = true;
@@ -8976,14 +8983,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             execute("collapseList('facture_vente')");
         }
     }
-
+    
     public void addParamIds() {
         addParamIds(true);
         if (searchAutomatique) {
             loadAllFacture(true);
         }
     }
-
+    
     public void addParamComptabilised() {
         ParametreRequete p = new ParametreRequete("coalesce(y.comptabilise, false)", "comptabilise", comptaSearch, "=", "AND");
         if (comptaSearch != null) {
@@ -9006,7 +9013,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void addParamWithTiers() {
         ParametreRequete p = new ParametreRequete("y.tiers", "withTiers", null, "IN", "AND");
         if (withTiersSearch != null) {
@@ -9018,11 +9025,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             loadAllFacture(true);
         }
     }
-
+    
     public void addParamType() {
         addParamType(true);
     }
-
+    
     public void addParamType(boolean load) {
         ParametreRequete p;
         if (Util.asString(typeSearch)) {
@@ -9041,7 +9048,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void addParamDepotLivraison() {
         try {
             ParametreRequete p = new ParametreRequete("y.id", "out_in_depot", null, "IN", "AND");
@@ -9101,7 +9108,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("(addParamDepotLivraison) : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void comptabiliseByDate(Date dateDebut, Date dateFin) {
         ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
         if (w != null) {
@@ -9120,7 +9127,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void findFactureByNumAndNotRegle() {
         addParamNumDoc();
         statutRegle_ = Constantes.ETAT_REGLE;
@@ -9129,7 +9136,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         initForm = true;
         loadAllFacture(true);
     }
-
+    
     public DocVente searchFacture(String num, Client c, boolean open) {
         DocVente a = new DocVente();
         a.setNumDoc(num);
@@ -9154,7 +9161,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return a;
     }
-
+    
     private DocVente chechFactureResult(boolean open) {
         DocVente a = new DocVente();
         if (documents != null ? !documents.isEmpty() : false) {
@@ -9171,12 +9178,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return a;
     }
-
+    
     public void removeDoublon(YvsComDocVentes y) {
         selectDoc = y;
         removeDoublon();
     }
-
+    
     public void removeDoublon() {
         if ((selectDoc != null) ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
             if (!selectDoc.getStatut().equals(Constantes.ETAT_EDITABLE)) {
@@ -9187,12 +9194,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             succes();
         }
     }
-
+    
     public void maintenanceComptable() {
         try {
             String query = "SELECT y.facture AS count FROM yvs_compta_content_journal_facture_vente y GROUP BY y.facture HAVING (COUNT(y.piece)) > 1";
             List<Long> ids = dao.loadListBySqlQuery(query, new Options[]{});
-
+            
             if (ids != null ? !ids.isEmpty() : false) {
                 ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
                 );
@@ -9207,7 +9214,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     + "	INNER JOIN yvs_compta_journaux j ON p.journal = j.id INNER JOIN yvs_com_doc_ventes d ON y.ref_externe = d.id"
                     + " WHERE y.table_externe = 'DOC_VENTE' AND j.agence = ? AND d.type_doc != 'FV'";
             ids = dao.loadListBySqlQuery(query, new Options[]{new Options(currentAgence.getId(), 1)});
-
+            
             if (ids != null ? !ids.isEmpty() : false) {
                 ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
                 );
@@ -9223,7 +9230,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("ManagedFactureVente (maintenanceComptable)", ex);
         }
     }
-
+    
     @Override
     public void cleanEnteteVente() {
         ManagedVente m = (ManagedVente) giveManagedBean(ManagedVente.class);
@@ -9231,7 +9238,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             m.cleanEnteteVente();
         }
     }
-
+    
     @Override
     public void cleanVente() {
         if (!autoriser("fv_clean")) {
@@ -9242,7 +9249,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         initForm = true;
         loadAllFacture(true);
     }
-
+    
     public void cleanVenteByDate() {
         if (!autoriser("fv_clean")) {
             openNotAcces();
@@ -9252,7 +9259,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         initForm = true;
         loadAllFacture(true);
     }
-
+    
     public void recalculPr() {
         if (!autoriser("recalcul_pr")) {
             openNotAcces();
@@ -9266,19 +9273,19 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         dao.callFonction(query, new Options[]{new Options(currentAgence.getId(), 1), new Options(dateDebut, 2), new Options(dateFin, 3)});
         succes();
     }
-
+    
     public void equilibreByDate() {
         dao.getEquilibreVente(currentAgence.getSociete().getId(), dateDebut, dateFin);
     }
-
+    
     public void equilibre() {
         equilibre(selectDoc);
     }
-
+    
     public void equilibre(YvsComDocVentes selectDoc) {
         equilibre(selectDoc, true);
     }
-
+    
     public void equilibreAll() {
         try {
             if (selections != null ? !selections.isEmpty() : false) {
@@ -9292,7 +9299,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void equilibre(YvsComDocVentes selectDoc, boolean msg) {
         if ((selectDoc != null) ? (selectDoc.getId() != null ? selectDoc.getId() > 0 : false) : false) {
             if (selectDoc.getTypeDoc().equals(Constantes.TYPE_FV)) {
@@ -9318,7 +9325,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void maintenance(YvsComDocVentes dv) {
         try {
             dv.setAction(null);
@@ -9331,7 +9338,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-
+    
     public void maintenance() {
         String query = "SELECT y.id FROM yvs_com_doc_ventes y INNER JOIN yvs_com_entete_doc_vente e ON y.entete_doc = e.id INNER JOIN yvs_com_creneau_horaire_users c ON e.creneau = c.id INNER JOIN yvs_users u ON c.users = u.id INNER JOIN yvs_agences a ON u.agence = a.id"
                 + " WHERE a.societe = ? AND y.type_doc = 'FV' AND y.statut = 'V' AND y.livraison_auto IS TRUE AND y.id NOT IN (SELECT d.document_lie FROM yvs_com_doc_ventes d WHERE d.type_doc = 'BLV' AND d.document_lie = y.id)";
@@ -9347,7 +9354,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_facture_vente");
     }
-
+    
     public void traitementLot() {
         try {
             if (!selections.isEmpty()) {
@@ -9462,7 +9469,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_facture_vente");
     }
-
+    
     public void gotoViewBl(YvsComDocVentes dv) {
         if (dv != null) {
             ManagedLivraisonVente service = (ManagedLivraisonVente) giveManagedBean(ManagedLivraisonVente.class
@@ -9477,7 +9484,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void gotoViewReglementsVente(YvsComDocVentes dv) {
         if (dv != null) {
             ManagedReglementVente service = (ManagedReglementVente) giveManagedBean(ManagedReglementVente.class
@@ -9492,12 +9499,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     @Override
     public void updateBean() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     public void setMontantEntete(DocVente bean) {
         if (docVente.getEnteteDoc() != null ? docVente.getEnteteDoc().getId() > 0 : false) {
             docVente.getEnteteDoc().setMontantRemise(0);
@@ -9511,11 +9518,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             docVente.getEnteteDoc().setMontantAvance(0);
             docVente.getEnteteDoc().setMontantTaxeR(0);
             docVente.getEnteteDoc().setAvanceCommande(0);
-
+            
             List<YvsComDocVentes> l = dao.loadNameQueries("YvsComDocVentes.findByTypeDocEntete", new String[]{"entete", "typeDoc", "societe"}, new Object[]{new YvsComEnteteDocVente(docVente.getEnteteDoc().getId()), Constantes.TYPE_FV, currentAgence.getSociete()});
             for (YvsComDocVentes d : l) {
                 setMontantTotalDoc(d, d.getContenus(), currentAgence.getSociete().getId(), null, null, dao);
-
+                
                 docVente.getEnteteDoc().setMontantRemise(docVente.getEnteteDoc().getMontantRemise() + d.getMontantRemise());
                 docVente.getEnteteDoc().setMontantTaxe(docVente.getEnteteDoc().getMontantTaxe() + d.getMontantTaxe());
                 docVente.getEnteteDoc().setMontantRistourne(docVente.getEnteteDoc().getMontantRistourne() + d.getMontantRistourne());
@@ -9545,7 +9552,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             setMontantTotalDoc(bean, bean.getContenus(), currentAgence.getSociete().getId(), null, null, dao);
         }
     }
-
+    
     public Date echeance(YvsComDocVentes y) {
         if (y != null ? y.getId() != null : false) {
             champ = new String[]{"facture", "etat"};
@@ -9558,21 +9565,21 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return new Date();
     }
-
+    
     public double chiffreAffaire(YvsComDocVentes y) {
         if (y != null ? y.getId() != null : false) {
             return dao.loadCaVente(y.getId());
         }
         return 0;
     }
-
+    
     public double netAPayer(YvsComDocVentes y) {
         if (y != null ? y.getId() != null : false) {
             return dao.loadNetAPayerVente(y.getId());
         }
         return 0;
     }
-
+    
     public void saveZone() {
         ManagedDico a = (ManagedDico) giveManagedBean("Mdico");
         if (a != null) {
@@ -9583,7 +9590,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             a.resetFiche();
         }
     }
-
+    
     public void findZone() {
         ManagedDico a = (ManagedDico) giveManagedBean("Mdico");
         docVente.getAdresse().setError(true);
@@ -9601,7 +9608,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void initZones() {
         ManagedDico a = (ManagedDico) giveManagedBean("Mdico");
         if (a != null) {
@@ -9609,13 +9616,13 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("data_zone_fv");
         }
     }
-
+    
     public void initCreateClient() {
         ManagedDico a = (ManagedDico) giveManagedBean("Mdico");
         if (a != null) {
             a.loadPays();
             update("pays_client_facture_vente");
-
+            
         }
         ManagedClient s = (ManagedClient) giveManagedBean(ManagedClient.class);
         if (s != null) {
@@ -9628,13 +9635,13 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
      DEBUT WORKFLOW
      */
     private YvsWorkflowValidFactureVente currentEtape;
-
+    
     public List<YvsWorkflowEtapeValidation> getAllEtapeValidation() {
         champ = new String[]{"titre", "societe"};
         val = new Object[]{Constantes.DOCUMENT_FACTURE_VENTE, currentAgence.getSociete()};
         return dao.loadNameQueries("YvsWorkflowEtapeValidation.findByTitreModel", champ, val);
     }
-
+    
     public List<YvsWorkflowValidFactureVente> saveEtapesValidation(YvsComDocVentes m, List<YvsWorkflowEtapeValidation> model) {
         //charge les étape de vailidation
         List<YvsWorkflowValidFactureVente> re = new ArrayList<>();
@@ -9661,11 +9668,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return ordonneEtapes(re);
     }
-
+    
     private List<YvsWorkflowValidFactureVente> ordonneEtapes(List<YvsWorkflowValidFactureVente> l) {
         return YvsWorkflowValidFactureVente.ordonneEtapes(l);
     }
-
+    
     public boolean validFirstEtapeFacture(long facture, YvsUsersAgence users) {
         if (facture > 0) {
             YvsComDocVentes y = (YvsComDocVentes) dao.loadOneByNameQueries("YvsComDocVentes.findById", new String[]{"id"}, new Object[]{facture});
@@ -9680,19 +9687,19 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean validEtapeFacture(YvsComDocVentes current, DocVente vente, YvsUsersAgence users, YvsWorkflowValidFactureVente etape) {
         return validEtapeFacture(current, vente, users, etape, dao);
     }
-
+    
     public boolean validEtapeFacture(YvsComDocVentes current, DocVente vente, YvsUsersAgence users, YvsWorkflowValidFactureVente etape, boolean byList) {
         return validEtapeFacture(current, vente, users, etape, dao, byList);
     }
-
+    
     public boolean validEtapeFacture(YvsComDocVentes current, DocVente vente, YvsUsersAgence users, YvsWorkflowValidFactureVente etape, DaoInterfaceLocal dao) {
         return validEtapeFacture(current, vente, users, etape, dao, false);
     }
-
+    
     public boolean validEtapeFacture(YvsComDocVentes current, DocVente vente, YvsUsersAgence users, YvsWorkflowValidFactureVente etape, DaoInterfaceLocal dao, boolean byList) {
         if (etape != null) {
             if (!asDroitValideEtape(etape.getEtape(), users.getUsers())) {
@@ -9750,7 +9757,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                             current.getEtapesValidations().get(idx + 1).setEtapeActive(true);
                         }
                         dao.update(etape);
-
+                        
                         vente.setStatut(Constantes.ETAT_ENCOURS);
                         current.setStatut(Constantes.ETAT_ENCOURS);
                         current.setDateUpdate(new Date());
@@ -9784,7 +9791,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean annulEtapeFacture(YvsComDocVentes current, DocVente vente, YvsUsersAgence users, YvsWorkflowValidFactureVente etape, boolean lastEtape, String motif) {
         if (!asDroitValideEtape(etape.getEtape(), users.getUsers())) {
             openNotAcces();
@@ -9830,11 +9837,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 etape.setEtapeActive(true);
                 etape.setMotif(motif);
                 dao.update(etape);
-
+                
                 current.setEtapeValide(current.getEtapeValide() - 1);
                 current.setStatut(current.getEtapeValide() < 1 ? Constantes.ETAT_EDITABLE : Constantes.ETAT_ENCOURS);
                 dao.update(current);
-
+                
                 vente.setStatut(current.getStatut());
                 vente.setEtapeValide(current.getEtapeValide());
                 if (documents != null ? documents.contains(current) : false) {
@@ -9861,7 +9868,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     private boolean headerChange(YvsComDocVentes d) {
         if (d.getClient().getId() != docVente.getClient().getId()) {
             return true;
@@ -9889,7 +9896,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean validEtapeFacture(YvsWorkflowValidFactureVente etape) {
         //Modifier la facture si des élément ont changés
         int idx = documents.indexOf(selectDoc);
@@ -9901,12 +9908,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public void motifEtapeFacture(String motifEtape, boolean lastEtape) {
         this.motifEtape = motifEtape;
         this.lastEtape = lastEtape;
     }
-
+    
     public void annulEtapeFacture(YvsWorkflowValidFactureVente etape, boolean lastEtape) {
         this.etape = etape;
         this.lastEtape = lastEtape;
@@ -9919,11 +9926,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         openDialog("dglMotifCancelEtape");
     }
-
+    
     public boolean annulEtapeFacture() {
         return annulEtapeFacture(selectDoc, docVente, currentUser, etape, lastEtape, motifEtape);
     }
-
+    
     public void cancelEtapeFacture(boolean force, boolean suspend) {
         if (docVente.getTypeDoc().equals(Constantes.TYPE_BCV)) {
             ManagedBonVente w = (ManagedBonVente) giveManagedBean(ManagedBonVente.class);
@@ -9943,11 +9950,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             cancelEtapeFacture(force, suspend, false);
         }
     }
-
+    
     public void cancelEtapeFacture(boolean force, boolean suspend, boolean passe) {
         cancelEtapeFacture(selectDoc, docVente, force, suspend, passe);
     }
-
+    
     public void cancelEtapeFacture(YvsComDocVentes selectDoc, DocVente docVente, boolean force, boolean suspend, boolean passe) {
         //vérifie le droit
         if (!autoriser("fv_cancel_doc_valid") && selectDoc.getStatut().equals(Constantes.ETAT_VALIDE)) {
@@ -10075,7 +10082,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
     /*
      FIN WORKFLOW
      */
-
+    
     public void initChangeTrancheFacture() {
         ManagedTypeCreneau w = (ManagedTypeCreneau) giveManagedBean(ManagedTypeCreneau.class);
         if (w != null) {
@@ -10083,7 +10090,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data-list_tranches_fv");
     }
-
+    
     public void changeTrancheFacture() {
         try {
             if (!selections.isEmpty()) {
@@ -10102,7 +10109,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("ManagedFactureVente (changeTrancheFacture)", ex);
         }
     }
-
+    
     public void changeDepotContenu() {
         ManagedLivraisonVente m = (ManagedLivraisonVente) giveManagedBean(ManagedLivraisonVente.class);
         if (m != null) {
@@ -10147,7 +10154,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void activeLivraisonAuto(YvsComDocVentes bean) {
         if (bean != null) {
             if (bean.getStatut().equals(Constantes.ETAT_VALIDE)) {
@@ -10171,7 +10178,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("data_facture_vente");
         }
     }
-
+    
     public void addParamReference() {
         ParametreRequete p = new ParametreRequete(pre + "numDoc", "reference", null);
         if (reference != null ? reference.trim().length() > 0 : false) {
@@ -10183,7 +10190,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         loadAllFacture(true);
     }
-
+    
     public void addParamStatuts() {
         ParametreRequete p = new ParametreRequete(pre + "statut", "statut", null);
         if (statutContenu != null ? statutContenu.trim().length() > 0 : false) {
@@ -10193,7 +10200,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         loadAllFacture(true);
     }
-
+    
     public void addParamArticle() {
         ParametreRequete p = new ParametreRequete("y.article.refArt", "article", null);
         if (article != null ? article.trim().length() > 0 : false) {
@@ -10204,7 +10211,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         loadContenus(true, true);
     }
-
+    
     public void addParamIdsContenus() {
         ParametreRequete p = new ParametreRequete("y.id", "ids_warning", null, "IN", "AND");
         if (Util.asString(idsContenu)) {
@@ -10217,7 +10224,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         loadContenus(true, true);
     }
-
+    
     public void addParamPoint() {
         ParametreRequete p = new ParametreRequete("y.docVente.enteteDoc.creneau.creneauPoint.point.code", "point", null);
         if (pointvente != null ? pointvente.trim().length() > 0 : false) {
@@ -10228,7 +10235,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         loadContenus(true, true);
     }
-
+    
     public void addParamClient() {
         ParametreRequete p = new ParametreRequete("y.docVente.client", "client", null);
         if (clientF != null ? clientF.trim().length() > 0 : false) {
@@ -10243,7 +10250,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         loadContenus(true, true);
     }
-
+    
     public void addParamVendeur() {
         ParametreRequete p = new ParametreRequete("y.docVente.enteteDoc.creneau.users.codeUsers", "vendeur", null);
         if (vendeurF != null ? vendeurF.trim().length() > 0 : false) {
@@ -10254,11 +10261,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         loadContenus(true, true);
     }
-
+    
     public void addParamDateContenu(SelectEvent ev) {
         findByDateContenu();
     }
-
+    
     public void findByDateContenu() {
         ParametreRequete p = new ParametreRequete("y.docVente.enteteDoc.dateEntete", "date", null, "BETWEEN", "AND");
         if (dateContenu) {
@@ -10272,7 +10279,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         p_contenu.addParam(p);
         loadContenus(true, true);
     }
-
+    
     public void findContenusByArticle() {
         docVente.getContenus().clear();
         if (Util.asString(articleContenu)) {
@@ -10285,7 +10292,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             docVente.getContenus().addAll(docVente.getContenusSave());
         }
     }
-
+    
     public void findContenusErrorComptabilite() {
         YvsBaseArticleCategorieComptable y;
         for (YvsComContenuDocVente c : docVente.getContenus()) {
@@ -10311,7 +10318,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("tabview_facture_vente:data_contenu_facture_vente");
         }
     }
-
+    
     public void findAllContenusErrorComptabilite() {
         YvsBaseArticleCategorieComptable y;
         for (YvsComContenuDocVente c : all_contenus) {
@@ -10333,7 +10340,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_contenu_fv");
     }
-
+    
     public void noChangeCategorie() {
         if (selectDoc != null ? selectDoc.getId() > 0 : false) {
             CategorieComptable d = UtilCom.buildBeanCategorieComptable(selectDoc.getCategorieComptable());
@@ -10341,7 +10348,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             update("select_categorie_comptable_facture_vente");
         }
     }
-
+    
     public void updatePrixArticle() {
         if (selectDoc != null ? selectDoc.getId() > 0 : false) {
             long newCategorie = docVente.getCategorieComptable() != null ? docVente.getCategorieComptable().getId() : 0;
@@ -10377,11 +10384,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void verifyComptabilised(Boolean comptabilised) {
         initForm = true;
         loadAllFacture(true);
-
+        
         if (comptabilised != null) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
             );
@@ -10399,30 +10406,30 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("data_facture_vente");
     }
-
+    
     public void canLivrer() {
         for (YvsComContenuDocVente c : docVente.getContenus()) {
             c.setMessageError(controleStock(c.getArticle().getId(), c.getConditionnement().getId(), c.getDocVente().getDepotLivrer().getId(), 0L, c.getQuantite(), 0, "INSERT", "S", c.getDocVente().getEnteteDoc().getDateEntete(), (c.getLot() != null ? c.getLot().getId() : 0)));
         }
         docVente.setError(true);
     }
-
+    
     private List<YvsComptaPiecesComptable> contentCompta = new ArrayList<>();
-
+    
     public List<YvsComptaPiecesComptable> getContentCompta() {
         return contentCompta;
     }
-
+    
     public void setContentCompta(List<YvsComptaPiecesComptable> contentCompta) {
         this.contentCompta = contentCompta;
     }
-
+    
     public void displayPieceComptableFacture() {
         if (docVente != null ? docVente.getId() > 0 : false) {
             String query = "SELECT p.id,p.num_piece,p.date_piece,c.id,c.num_piece,c.compte_general, c.compte_tiers, c.table_tiers,c.debit, c.credit "
                     + "FROM yvs_compta_content_journal_facture_vente cf INNER JOIN yvs_compta_pieces_comptable p ON p.id=cf.piece LEFT JOIN yvs_compta_content_journal c ON c.piece=p.id "
                     + "WHERE cf.facture=? ORDER BY p.id";
-
+            
             List<Object[]> result = dao.loadListBySqlQuery(query, new Options[]{new Options(docVente.getId(), 1)});
             long idPiece = 0;
             YvsComptaPiecesComptable pc = null;
@@ -10462,14 +10469,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     private String numCompte(Long id) {
         if (id != null) {
             return (String) dao.loadObjectByNameQueries("YvsBasePlanComptable.findNumeroById", new String[]{"id"}, new Object[]{id});
         }
         return null;
     }
-
+    
     public boolean isComptabiliseBean(DocVente y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -10480,7 +10487,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public boolean isComptabilise(YvsComDocVentes y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -10491,7 +10498,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return false;
     }
-
+    
     public void applyOrRemoveTaxe(YvsComTaxeContenuVente taxe) {
         selectedTaxe = taxe;
         if (taxe != null) {
@@ -10518,7 +10525,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getErrorMessage("Aucune taxe n'a été selectionné !");
         }
     }
-
+    
     public double applyNewTaxe(YvsComTaxeContenuVente c, YvsBaseTaxes t, YvsComDocVentes doc) {
         Double taxe = 0d;
         Double prixU = 0d;
@@ -10536,7 +10543,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     taxe += t.getTaux();
                     //PU HT
                     prixU = c.getContenu().getPrix() / (1 + (taxe / 100));
-
+                    
                 } else {
                     prixU = c.getContenu().getPrix();
                 }
@@ -10569,7 +10576,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return taxe;
     }
-
+    
     public void beginLivraison() {
         ManagedLivraisonVente w = (ManagedLivraisonVente) giveManagedBean(ManagedLivraisonVente.class);
         if (w != null) {
@@ -10577,7 +10584,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             w.beginLivraison(selectDoc, null, true);
         }
     }
-
+    
     public void confirmDeleteTaxe() {
         if (selectedTaxe != null) {
             if (hasDroitUpdateFacture(selectDoc)) {
@@ -10629,7 +10636,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public boolean hasDroitUpdateFacture(YvsComDocVentes doc) {
         if (doc == null) {
             getErrorMessage("Impossible de modifier, ", "La facture n'est pas enregistré");
@@ -10669,7 +10676,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         return true;
     }
-
+    
     public void uncomptabiliseFacture() {
         ManagedSaisiePiece service = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
         if (service != null) {
@@ -10679,7 +10686,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getInfoMessage("Action terminée avec succès");
         }
     }
-
+    
     public void comptabiliseFacture() {
         ManagedSaisiePiece service = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
         if (service != null) {
@@ -10689,7 +10696,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getInfoMessage("Action terminée avec succès");
         }
     }
-
+    
     public void buildToSend() {
         try {
             if ((docVente.getDocumentLie() != null ? docVente.getDocumentLie().getId() > 0 : false) || docVente.getTypeDoc().equals(Constantes.TYPE_BCV)) {
@@ -10735,7 +10742,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void onChangeDateLivraison() {
         try {
             ManagedLotReception w = (ManagedLotReception) giveManagedBean(ManagedLotReception.class);
@@ -10754,7 +10761,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public void onRowLotEdit(RowEditEvent ev) {
         if (ev != null) {
             YvsComLotReception y = (YvsComLotReception) ev.getObject();
@@ -10763,7 +10770,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
-
+    
     public void onBlurQuantiteeLot(YvsComContenuDocVente contenu, YvsComLotReception y) {
         try {
             double quantite = y.getQuantitee();
@@ -10789,14 +10796,14 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             getException("onBlurQuantiteeLot", ex);
         }
     }
-
+    
     public double getMontantTotal(YvsComDocVentes y) {
         if (y != null ? y.getId() > 0 : false) {
             return setMontantTotalDoc(y, y.getContenus(), null, null);
         }
         return 0;
     }
-
+    
     public void displayContent(YvsComDocVentes y) {
         y.setContenus(dao.loadNameQueries("YvsComContenuDocVente.findByDocVente", new String[]{"docVente"}, new Object[]{y}));
         for (YvsComContenuDocVente c : y.getContenus()) {
@@ -10806,5 +10813,5 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         }
         update("dt_row_ex_" + y.getId());
     }
-
+    
 }

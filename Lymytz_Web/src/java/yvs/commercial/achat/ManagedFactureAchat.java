@@ -115,8 +115,6 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
     private YvsComDocAchats selectDoc, docLie;
 //    public boolean date_up;
 
-    private YvsComParametreAchat currentParamAchat;
-
     private List<YvsComContenuDocAchat> contenusBon, all_contenus, contenusRequireLot, selectContenus;
     private YvsComContenuDocAchat selectContenu;
     private ContenuDocAchat contenu = new ContenuDocAchat();
@@ -4653,7 +4651,7 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
                 param.put("LOGO", returnLogo());
                 path = SUBREPORT_DIR(withHeader);
                 param.put("SUBREPORT_DIR", SUBREPORT_DIR(withHeader));
-                System.err.println("Chemin... " + SUBREPORT_DIR(withHeader));
+
                 if (y.getStatut().equals(Constantes.ETAT_VALIDE)) {
 //                    param.put("TITRE_DOC", Constantes.DOCUMENT_FACTURE_ACHAT);
                     executeReport("facture_achat", param);
@@ -5765,6 +5763,24 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
             }
             y.setCharger(true);
             setMontantTotalDoc(y, y.getContenus(), currentAgence.getSociete().getId(), null, null, dao);
+        }
+    }
+
+    public void chooseCaissePiece() {
+        ManagedCaisses w = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
+        if (w != null) {
+            if (reglement.getCaisse() != null) {
+                long id = reglement.getCaisse().getId();
+                if (id == -1) {
+                    w.loadAll(true, 0);
+                } else {
+                    int idx = w.getCaisses().indexOf(new YvsBaseCaisse(id));
+                    if (idx >= 0) {
+                        YvsBaseCaisse y = w.getCaisses().get(idx);
+                        reglement.setCaisse(new Caisses(y.getId(), y.getCode(), y.getIntitule()));
+                    }
+                }
+            }
         }
     }
 }

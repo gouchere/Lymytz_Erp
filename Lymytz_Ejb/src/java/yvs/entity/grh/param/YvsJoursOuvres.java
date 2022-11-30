@@ -12,7 +12,8 @@ import java.util.Comparator;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
-import javax.persistence.Entity; import javax.persistence.FetchType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -52,7 +53,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsJoursOuvres.findByHeureFinPause", query = "SELECT y FROM YvsJoursOuvres y WHERE y.heureFinPause = :heureFinPause"),
     @NamedQuery(name = "YvsJoursOuvres.findByActif", query = "SELECT y FROM YvsJoursOuvres y WHERE y.actif = :actif")})
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class YvsJoursOuvres implements Serializable , Comparator<YvsJoursOuvres> {
+public class YvsJoursOuvres implements Serializable, Comparator<YvsJoursOuvres> {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -97,7 +98,7 @@ public class YvsJoursOuvres implements Serializable , Comparator<YvsJoursOuvres>
     private Double dureeTravail;
     @Column(name = "duree_repos")
     private Double dureeRepos;
-    
+
     @JoinColumn(name = "calendrier", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsCalendrier calendrier;
@@ -152,7 +153,7 @@ public class YvsJoursOuvres implements Serializable , Comparator<YvsJoursOuvres>
     }
 
     public Long getId() {
-        return id;
+        return id != null ? id : 0;
     }
 
     public void setId(Long id) {
@@ -279,7 +280,7 @@ public class YvsJoursOuvres implements Serializable , Comparator<YvsJoursOuvres>
     }
 
     public Double getDureeTravail() {
-        return dureeTravail!=null?dureeTravail:0;
+        return dureeTravail != null ? dureeTravail : 0;
     }
 
     public void setDureeTravail(Double dureeTravail) {
@@ -338,12 +339,11 @@ public class YvsJoursOuvres implements Serializable , Comparator<YvsJoursOuvres>
     public String toString() {
         return "yvs.entity.grh.param.YvsJoursOuvres[ id=" + id + " ]";
     }
-    
-    
+
     @Override
     public int compare(YvsJoursOuvres o1, YvsJoursOuvres o2) {
         if (o1 != null && o2 != null) {
-           return o1.getOrdre().compareTo(o2.getOrdre());
+            return o1.getOrdre().compareTo(o2.getOrdre());
         } else if (o1 != null) {
             return 1;
         } else {

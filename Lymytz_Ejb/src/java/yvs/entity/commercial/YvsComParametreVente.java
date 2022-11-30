@@ -61,6 +61,10 @@ public class YvsComParametreVente extends YvsEntity implements Serializable {
     private Date dateSave;
     @Column(name = "comptabilisation_auto")
     private Boolean comptabilisationAuto;
+    @Column(name = "print_document_when_valide")
+    private Boolean printDocumentWhenValide;
+    @Column(name = "livraison_auto")
+    private Boolean livraisonAuto;
     @Column(name = "paie_without_valide")
     private Boolean paieWithoutValide;
     @Size(max = 2147483647)
@@ -106,6 +110,14 @@ public class YvsComParametreVente extends YvsEntity implements Serializable {
         this.id = id;
     }
 
+    public Boolean getPrintDocumentWhenValide() {
+        return printDocumentWhenValide != null ? printDocumentWhenValide : false;
+    }
+
+    public void setPrintDocumentWhenValide(Boolean printDocumentWhenValide) {
+        this.printDocumentWhenValide = printDocumentWhenValide;
+    }
+
     public Date getDateUpdate() {
         return dateUpdate;
     }
@@ -144,6 +156,14 @@ public class YvsComParametreVente extends YvsEntity implements Serializable {
 
     public void setComptabilisationAuto(Boolean comptabilisationAuto) {
         this.comptabilisationAuto = comptabilisationAuto;
+    }
+
+    public Boolean getLivraisonAuto() {
+        return livraisonAuto != null ? livraisonAuto : false;
+    }
+
+    public void setLivraisonAuto(Boolean livraisonAuto) {
+        this.livraisonAuto = livraisonAuto;
     }
 
     public Boolean getGenererFactureAuto() {

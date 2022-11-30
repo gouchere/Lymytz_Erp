@@ -43,7 +43,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdFluxComposant.findSumByComposantStatut", query = "SELECT SUM((y.quantite * y.tauxComposant)/100) FROM YvsProdFluxComposant y WHERE y.composant = :composant AND y.operation.statutOp = :statut"),
     @NamedQuery(name = "YvsProdFluxComposant.findByComposant", query = "SELECT y FROM YvsProdFluxComposant y WHERE y.composant = :composant"),
     @NamedQuery(name = "YvsProdFluxComposant.findByOpération", query = "SELECT y FROM YvsProdFluxComposant y JOIN FETCH y.composant JOIN FETCH y.composant.article JOIN FETCH y.composant.unite.unite WHERE y.operation = :operation ORDER BY y.composant.ordre"),
-    @NamedQuery(name = "YvsProdFluxComposant.findOne", query = "SELECT y FROM YvsProdFluxComposant y WHERE y.operation = :operation AND y.composant=:composant"),
+    @NamedQuery(name = "YvsProdFluxComposant.findOne", query = "SELECT y FROM YvsProdFluxComposant y JOIN FETCH y.operation JOIN FETCH y.composant JOIN FETCH y.composant.article JOIN FETCH y.composant.unite JOIN FETCH y.composant.unite.unite WHERE y.operation = :operation AND y.composant=:composant"),
     @NamedQuery(name = "YvsProdFluxComposant.findByOrdre", query = "SELECT y FROM YvsProdFluxComposant y JOIN FETCH y.operation JOIN FETCH y.composant JOIN FETCH y.composant.article JOIN FETCH y.composant.unite JOIN FETCH y.composant.unite.unite "
             + " WHERE y.operation.ordreFabrication=:ordre"),
     @NamedQuery(name = "YvsProdFluxComposant.findByIdOf", query = "SELECT y FROM YvsProdFluxComposant y WHERE y.operation.ordreFabrication = :ordre OR y.composant.ordreFabrication=:ordre"),

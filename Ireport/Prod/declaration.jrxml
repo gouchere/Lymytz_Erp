@@ -45,7 +45,7 @@
 			<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 		</parameter>
 		<queryString>
-			<![CDATA[select d.id, d.cout_production,d.quantite, d.date_declaration, d.doc_stock,
+			<![CDATA[select d.id, d.cout_production,d.quantite, COALESCE(d.date_declaration, sp.date_session) as date_declaration, d.doc_stock,
 a.ref_art, a.designation, t.titre,a.categorie, u.reference
 FROM yvs_prod_declaration_production d
 INNER JOIN yvs_prod_ordre_fabrication o ON o.id=d.ordre
@@ -62,7 +62,7 @@ WHERE
     ag.societe = $P{SOCIETE}
 AND ((COALESCE($P{ID_AGENCE},0)>0 AND ag.id = $P{ID_AGENCE}) OR (COALESCE($P{ID_AGENCE},0)<1 AND d.id IS NOT NULL))
 AND ((COALESCE($P{CATEGORIE},'')!='' AND a."categorie" = $P{CATEGORIE}) OR (COALESCE($P{CATEGORIE},'')='' AND d.id IS NOT NULL))
-AND d.date_declaration BETWEEN $P{DATE_DEBUT} AND $P{DATE_FIN}
+AND COALESCE(d.date_declaration, sp.date_session) BETWEEN $P{DATE_DEBUT} AND $P{DATE_FIN}
 AND d.statut='V'
 ORDER BY
    d.date_declaration DESC,
@@ -90,7 +90,7 @@ ORDER BY
 	<parameter name="TITLE_RAPPORT" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="LOGO" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["D:\\Projets\\LYMYTZ_ERP_LOCAL\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA["D:\\Projets\\ERP\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="CATEGORIE" class="java.lang.String">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>

@@ -43,6 +43,7 @@ import yvs.entity.base.YvsBaseDepots;
 import yvs.entity.base.YvsBaseFournisseur;
 import yvs.entity.base.YvsBaseTypeDocCategorie;
 import yvs.entity.commercial.YvsComParametre;
+import yvs.entity.commercial.YvsComParametreAchat;
 import yvs.entity.commercial.achat.YvsComContenuDocAchat;
 import yvs.entity.commercial.achat.YvsComDocAchats;
 import yvs.entity.commercial.achat.YvsComLotReception;
@@ -420,6 +421,9 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
         }
         if (currentParam == null) {
             currentParam = (YvsComParametre) dao.loadOneByNameQueries("YvsComParametre.findAll", new String[]{"societe"}, new Object[]{currentAgence.getSociete()});
+        }
+        if (currentParamAchat == null) {
+            currentParamAchat = (YvsComParametreAchat) dao.loadOneByNameQueries("YvsComParametreAchat.findByAgence", new String[]{"agence"}, new Object[]{currentAgence});
         }
         update("txt_indice_num_search");
     }
@@ -2435,7 +2439,14 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
 
     public void print(YvsComDocAchats y, boolean withHeader) {
         try {
+            if (currentParamAchat != null ? currentParamAchat.getId() < 1 : true) {
+                currentParamAchat = (YvsComParametreAchat) dao.loadOneByNameQueries("YvsComParametreAchat.findByAgence", new String[]{"agence"}, new Object[]{currentAgence});
+            }
             if (y != null ? y.getId() > 0 : false) {
+                if (currentParamAchat != null ? (currentParamAchat.getPrintDocumentWhenValide() && !y.getStatut().equals(Constantes.ETAT_VALIDE)) : false) {
+                    getErrorMessage("Le document doit être validé pour pouvoir être téléchargé");
+                    return;
+                }
                 Map<String, Object> param = new HashMap<>();
                 param.put("ID", y.getId().intValue());
                 param.put("AUTEUR", currentUser.getUsers().getNomUsers());

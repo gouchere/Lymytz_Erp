@@ -4916,16 +4916,13 @@ public class ServiceComptabilite extends GenericService {
                             return result.alreadyComptabilise();
                         }
                         result = majComptaVente(y, contenus);
-                        if (result != null ? result.isResult() : false) {
-                            YvsComptaPiecesComptable p = (YvsComptaPiecesComptable) result.getData();
-                            boolean reponse = (p != null ? (p.getId() != null ? p.getId() > 0 : false) : false);
-                            if (result != null) {
-                                result.setResult(reponse);
-                            }
-                            y.setComptabilised(reponse);
-                            y.setComptabilise(reponse);
-                            return result;
+                        YvsComptaPiecesComptable p = ((YvsComptaPiecesComptable) (result != null ? result.isResult() ? result.getData() : null : null));
+                        boolean reponse = (p != null ? (p.getId() != null ? p.getId() > 0 : false) : false);
+                        if (result != null) {
+                            result.setResult(reponse);
                         }
+                        y.setComptabilised(reponse);
+                        y.setComptabilise(reponse);
                     } else {
                         return result.documentNotValide();
                     }

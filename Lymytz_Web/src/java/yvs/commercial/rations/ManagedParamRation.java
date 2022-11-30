@@ -474,11 +474,6 @@ public class ManagedParamRation extends Managed<ParamRations, YvsComParamRation>
                 } else {
                     List<YvsBaseConditionnement> unites = dao.loadNameQueries("YvsBaseConditionnement.findByActifArticle", new String[]{"article"}, new Object[]{new YvsBaseArticles(y.getId())});
                     y.setConditionnements(unites);
-                    if (update) {
-                        article.setArticle(y);
-                    } else {
-                        paramRation.setArticle(y);
-                    }
                     if (y.getConditionnements() != null ? !y.getConditionnements().isEmpty() : false) {
                         YvsBaseConditionnement c = y.getConditionnements().get(0);
                         if (update) {
@@ -486,6 +481,11 @@ public class ManagedParamRation extends Managed<ParamRations, YvsComParamRation>
                         } else {
                             paramRation.setConditionement(UtilProd.buildBeanConditionnement(c));
                         }
+                    }
+                    if (update) {
+                        article.setArticle(y);
+                    } else {
+                        paramRation.setArticle(y);
                     }
                     update("zone_obj_cible_art");
                 }

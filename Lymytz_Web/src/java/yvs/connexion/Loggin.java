@@ -74,10 +74,10 @@ import yvs.util.UtilitaireGenerique;
 @ManagedBean
 @SessionScoped
 public class Loggin implements Serializable {
-    
+
     @EJB
     public DaoInterfaceLocal dao;
-    
+
     private String login, password, passwordAdmin;
     private YvsAgences agence = new YvsAgences();
     private List<YvsAgences> listAgences;
@@ -89,7 +89,7 @@ public class Loggin implements Serializable {
 //    public boolean correctInt_;
     private boolean connecter, lookPassword;
     private String lastPage, lastModule, lastTitre;
-    
+
     YvsUsersAgence currentUser;
     YvsNiveauAcces currentNiveau;
     YvsBaseDepots currentDepot;
@@ -102,13 +102,13 @@ public class Loggin implements Serializable {
     YvsMutMutuelle currentMutuelle;
     YvsBaseExercice currentExo;
     YvsBaseParametre paramBase;
-    
+
     private YvsUsers userConnect;
     private int dureeMessage = 9000;
     private String adresseMac, adresseIp;
     private boolean smallNavigation = false;
     private List<YvsModule> modulesActif = new ArrayList<YvsModule>();
-    
+
     public Loggin() {
         listAgences = new ArrayList<>();
         listSociete = new ArrayList<>();
@@ -133,155 +133,155 @@ public class Loggin implements Serializable {
 //            Logger.getLogger(ManagedStockArticle.class.getName()).log(Level.SEVERE, null, ex);
 //        }
     }
-    
+
     public String getPasswordAdmin() {
         return passwordAdmin;
     }
-    
+
     public void setPasswordAdmin(String passwordAdmin) {
         this.passwordAdmin = passwordAdmin;
     }
-    
+
     public String getLastPage() {
         return lastPage;
     }
-    
+
     public void setLastPage(String lastPage) {
         this.lastPage = lastPage;
     }
-    
+
     public String getLastModule() {
         return lastModule;
     }
-    
+
     public void setLastModule(String lastModule) {
         this.lastModule = lastModule;
     }
-    
+
     public String getLastTitre() {
         return lastTitre;
     }
-    
+
     public void setLastTitre(String lastTitre) {
         this.lastTitre = lastTitre;
     }
-    
+
     public YvsUsers getUserConnect() {
         return userConnect;
     }
-    
+
     public void setUserConnect(YvsUsers userConnect) {
         this.userConnect = userConnect;
     }
-    
+
     public List<YvsUsersFavoris> getFAVORIS() {
         return FAVORIS;
     }
-    
+
     public void setFAVORIS(List<YvsUsersFavoris> FAVORIS) {
         this.FAVORIS = FAVORIS;
     }
-    
+
     public boolean isLookPassword() {
         return lookPassword;
     }
-    
+
     public void setLookPassword(boolean lookPassword) {
         this.lookPassword = lookPassword;
     }
-    
+
     public String getAdresseIp() {
         return adresseIp;
     }
-    
+
     public void setAdresseIp(String adresseIp) {
         this.adresseIp = adresseIp;
     }
-    
+
     public String getAdresseMac() {
         return adresseMac;
     }
-    
+
     public void setAdresseMac(String adresseMac) {
         this.adresseMac = adresseMac;
     }
-    
+
     public int getDureeMessage() {
         return dureeMessage;
     }
-    
+
     public void setDureeMessage(int dureeMessage) {
         this.dureeMessage = dureeMessage;
     }
-    
+
     public boolean isSuperAdmin() {
         return superAdmin;
     }
-    
+
     public void setSuperAdmin(boolean superAdmin) {
         this.superAdmin = superAdmin;
     }
-    
+
     public void setDisplaySociete(boolean displaySociete) {
         this.displaySociete = displaySociete;
     }
-    
+
     public boolean isDisplaySociete() {
         return displaySociete;
     }
-    
+
     public YvsSocietes getSociete() {
         return societe;
     }
-    
+
     public void setSociete(YvsSocietes societe) {
         this.societe = societe;
     }
-    
+
     public void setListSociete(List<YvsSocietes> listSociete) {
         this.listSociete = listSociete;
     }
-    
+
     public List<YvsSocietes> getListSociete() {
         return listSociete;
     }
-    
+
     public boolean isDisplayAgence() {
         return displayAgence;
     }
-    
+
     public void setConnecter(boolean connecter) {
         this.connecter = connecter;
     }
-    
+
     public boolean isConnecter() {
         return connecter;
     }
-    
+
     public void setDisplayAgence(boolean displayAgence) {
         this.displayAgence = displayAgence;
     }
-    
+
     public String getLogin() {
         return login;
     }
-    
+
     public void setLogin(String login) {
         this.login = login;
     }
-    
+
     public String getPassword() {
         return password;
     }
-    
+
     public void setPassword(String password) {
         this.password = password;
     }
-    
+
     public YvsAgences getAgence() {
         return agence;
     }
-    
+
     public void setAgence(YvsAgences agence) {
         this.agence = agence;
     }
@@ -292,11 +292,11 @@ public class Loggin implements Serializable {
     private void getMessage1(String message) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));
     }
-    
+
     public List<YvsAgences> getListAgences() {
         return listAgences;
     }
-    
+
     public void setListAgences(List<YvsAgences> listAgences) {
         this.listAgences = listAgences;
     }
@@ -309,35 +309,35 @@ public class Loggin implements Serializable {
     private AccesRessource accesRessource;
     @ManagedProperty(value = "#{acces}")
     private Acces acces;
-    
+
     public Acces getAcces() {
         return acces;
     }
-    
+
     public void setAcces(Acces acces) {
         this.acces = acces;
     }
-    
+
     public AccesModule getAccesModule() {
         return accesModule;
     }
-    
+
     public void setAccesModule(AccesModule accesModule) {
         this.accesModule = accesModule;
     }
-    
+
     public AccesPage getAccesPage() {
         return accesPage;
     }
-    
+
     public void setAccesPage(AccesPage accesPage) {
         this.accesPage = accesPage;
     }
-    
+
     public AccesRessource getAccesRessource() {
         return accesRessource;
     }
-    
+
     public void setAccesRessource(AccesRessource accesRessource) {
         this.accesRessource = accesRessource;
     }
@@ -368,7 +368,7 @@ public class Loggin implements Serializable {
         Object[] val = new Object[]{new YvsSocietes(idSociete), users};
         listAgences = dao.loadNameQueries("YvsUsersAgence.findAgenceActionByUsersSociete", chp, val);
     }
-    
+
     public List<Object[]> countWorkFlowToValid() {
         if (currentUser != null) {
             if (currentUser.getUsers().getNiveauAcces() != null) {
@@ -378,7 +378,7 @@ public class Loggin implements Serializable {
         }
         return new ArrayList<>();
     }
-    
+
     public List<Object[]> countWarningToValid() {
         if (currentUser != null) {
             if (currentUser.getUsers().getNiveauAcces() != null) {
@@ -442,7 +442,7 @@ public class Loggin implements Serializable {
                         paramBase = (YvsBaseParametre) dao.loadOneByNameQueries("YvsBaseParametre.findAll", new String[]{"societe"}, new Object[]{currentScte});
                     }
                     FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("paramBase", paramBase);
-                    
+
                 }
                 boolean correct = false;
                 champ = new String[]{"users", "dateDebut", "dateFin"};
@@ -545,7 +545,7 @@ public class Loggin implements Serializable {
                     FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("creneauEquipe", lec.get(0));
                 }
                 FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("isWarning", false);
-                
+
                 dao.loadInfos(currentScte, currentAgence, currentUser, currentDepot, currentPoint, currentExo);
                 loadFavorisUsers();
             }
@@ -556,17 +556,17 @@ public class Loggin implements Serializable {
         }
         return true;
     }
-    
+
     public void redirectToConnexion() {
         redirectTohome();
-        
+
     }
-    
+
     public String redirectToConnexion1() {
         ((HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true)).invalidate();
         return "deconnect";
     }
-    
+
     public YvsAutorisationModule buildYvsAutorisationModule(YvsNiveauAcces niv, YvsModule mod) {
         YvsAutorisationModule a = new YvsAutorisationModule();
         if (niv != null && mod != null) {
@@ -576,7 +576,7 @@ public class Loggin implements Serializable {
         }
         return a;
     }
-    
+
     public YvsAutorisationPageModule buildYvsAutorisationPageModule(YvsNiveauAcces niv, YvsPageModule pag) {
         YvsAutorisationPageModule a = new YvsAutorisationPageModule();
         if (niv != null && pag != null) {
@@ -586,7 +586,7 @@ public class Loggin implements Serializable {
         }
         return a;
     }
-    
+
     public YvsAutorisationRessourcesPage buildYvsAutorisationRessourcesPage(YvsNiveauAcces niv, YvsRessourcesPage ress) {
         YvsAutorisationRessourcesPage a = new YvsAutorisationRessourcesPage();
         if (niv != null && ress != null) {
@@ -596,7 +596,7 @@ public class Loggin implements Serializable {
         }
         return a;
     }
-    
+
     public YvsNiveauAcces buildYvsNiveauAcces() {
         YvsNiveauAcces n = new YvsNiveauAcces();
         n.setActif(true);
@@ -623,7 +623,7 @@ public class Loggin implements Serializable {
         }
         return n;
     }
-    
+
     public YvsNiveauAcces clonneNiveauAcces(YvsUsers users, YvsSocietes scte) {
         YvsNiveauAcces nivo = null;
         if (users != null ? users.getNiveauxAcces() != null : false) {
@@ -671,7 +671,7 @@ public class Loggin implements Serializable {
         }
         return nivo;
     }
-    
+
     public void verifieParam() {
         if (setCorrectIn()) {// les paramètres de connexion sont correcte. (loggin et mot de passe
             //si le compte n'est pas super admin, il doit avoir une société et un )
@@ -680,7 +680,7 @@ public class Loggin implements Serializable {
             Initialisation.USERISSUPERADMIN = superAdmin;
             displaySociete = true;
             setConnecter(true);
-            
+
             HttpSession session = ((HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true));
             SessionManager.addSession(session.getId(), session);
         } else {
@@ -690,7 +690,7 @@ public class Loggin implements Serializable {
             getMessage1("Paramètre de connexion invalide !");
         }
     }
-    
+
     public void verifieParamSimple() {
         if (currentUser != null) {
             String mdp = currentUser.getUsers().getCodeUsers().concat(currentUser.getUsers().getAleaMdp()).concat(this.password);
@@ -820,18 +820,18 @@ public class Loggin implements Serializable {
         }
         return correct;
     }
-    
+
     private YvsNiveauAcces findNivo(YvsUsers u, YvsSocietes scte) {
         if (u.getNiveauxAcces() != null) {
             for (YvsNiveauUsers nu : u.getNiveauxAcces()) {
-                if (nu.getIdNiveau().getSociete().equals(scte)) {
+                if (nu.getIdNiveau() != null ? nu.getIdNiveau().getSociete() != null ? nu.getIdNiveau().getSociete().equals(scte) : false : false) {
                     return nu.getIdNiveau();
                 }
             }
         }
         return null;
     }
-    
+
     public void chooseSociete(ValueChangeEvent ev) {
         if (ev.getNewValue() != null) {
             long id = (long) ev.getNewValue();
@@ -839,7 +839,7 @@ public class Loggin implements Serializable {
             chooseSociete();
         }
     }
-    
+
     public void chooseSociete() {
         if (societe != null ? societe.getId() > 0 && currentUser.getConnecte() : false) {
             societe = listSociete.get(listSociete.indexOf(new YvsSocietes(societe.getId())));
@@ -865,7 +865,7 @@ public class Loggin implements Serializable {
         }
         RequestContext.getCurrentInstance().update("panel_user_login_03");
     }
-    
+
     public void chooseAgence(ValueChangeEvent ev) {
         if (ev.getNewValue() != null) {
             long id = (long) ev.getNewValue();
@@ -889,7 +889,7 @@ public class Loggin implements Serializable {
             }
         }
     }
-    
+
     public void callLoadAcces(YvsUsers user) {
         if (currentUser == null && (user != null ? !user.getConnecte() : false)) {
             userConnect = user;
@@ -899,7 +899,7 @@ public class Loggin implements Serializable {
             loadInfoDeBase(agence.getId());
         }
     }
-    
+
     public boolean loadAcces() {
         if ((userConnect != null && societe != null) ? userConnect.getId() > 0 && societe.getId() > 0 : false) {
             userConnect.setNiveauAcces(findNivo(userConnect, new YvsSocietes(societe.getId())));
@@ -920,7 +920,7 @@ public class Loggin implements Serializable {
         }
         return true;
     }
-    
+
     public void loadAcces(YvsUsers user) {
         if (user != null) {
             if (user.getNiveauAcces() != null) {
@@ -936,7 +936,7 @@ public class Loggin implements Serializable {
             }
         }
     }
-    
+
     public void loadDroitModule(List<YvsAutorisationModule> ld) {
         //pour chaque élément de la liste, on fait correspondre le droit avec un champ de la classe AccesModule
         try {
@@ -958,7 +958,7 @@ public class Loggin implements Serializable {
             Logger.getLogger(Loggin.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void loadDroitPage(List<YvsAutorisationPageModule> ld) {
         //pour chaque élément de la liste, on fait correspondre le droit avec un champ de la classe AccesModule
         try {
@@ -987,7 +987,7 @@ public class Loggin implements Serializable {
             Logger.getLogger(Loggin.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void loadDroitRessource(List<YvsAutorisationRessourcesPage> ld) {
         //pour chaque élément de la liste, on fait correspondre le droit avec un champ de la classe AccesModule
         try {
@@ -1006,7 +1006,7 @@ public class Loggin implements Serializable {
             Logger.getLogger(Loggin.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void deconnect() {
         login = "";
         password = "";
@@ -1021,7 +1021,7 @@ public class Loggin implements Serializable {
     public Object giveObjectOnView(String id) {
         return (Object) FacesContext.getCurrentInstance().getViewRoot().findComponent(id);
     }
-    
+
     public void controlConnexion() {
         if (!isConnecter()) {
             if (!Initialisation.INITIALISATION) {
@@ -1037,7 +1037,7 @@ public class Loggin implements Serializable {
             action.setRendered(false);
         }
     }
-    
+
     public void load() {
         try {
             HttpSession session = ((HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true));
@@ -1046,7 +1046,7 @@ public class Loggin implements Serializable {
             Logger.getLogger(Loggin.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void redirectTohome() {
         try {
             //effacer le lien de navigation
@@ -1073,7 +1073,7 @@ public class Loggin implements Serializable {
             Logger.getLogger(Loggin.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void redirectToWelcome() {
         try {
             if (USE_PRETTY) {
@@ -1089,7 +1089,7 @@ public class Loggin implements Serializable {
             Logger.getLogger(Initialisation.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private int sessionActive;
 //    private List<UserConnect> usersConnect = new ArrayList<>();
 //
@@ -1097,11 +1097,11 @@ public class Loggin implements Serializable {
     public int getSessionActive() {
         return sessionActive;
     }
-    
+
     public void setSessionActive(int sessionActive) {
         this.sessionActive = sessionActive;
     }
-    
+
     public void saveDataNavigation(String pageVisite) {
         HttpServletRequest req = ((HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest());
         String id = ((HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true)).getId();
@@ -1125,7 +1125,7 @@ public class Loggin implements Serializable {
 //            }
 //        }
     }
-    
+
     private void saveOrUpdateNewUser(YvsUsersAgence user, String adresseMac, String adresseIp, String page, String idSession) {
         try {
             YvsConnection cn = (YvsConnection) dao.loadOneByNameQueries("YvsConnection.findByAuthorAdresse", new String[]{"adresse", "author"}, new Object[]{localhost(adresseIp), user});
@@ -1171,12 +1171,12 @@ public class Loggin implements Serializable {
             Logger.getLogger(Initialisation.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public long countUsersConnect() {
         Long re = (Long) dao.loadObjectByNameQueries("YvsConnection.findNBUser", new String[]{}, new Object[]{});
         return (re != null) ? (re > 0) ? re - 1 : re : 0;
     }
-    
+
     public void onOpenConnected() {
         if (accesPage.isBase_user_()) {
             ManagedUser s = (ManagedUser) giveManagedBean(ManagedUser.class);
@@ -1189,7 +1189,7 @@ public class Loggin implements Serializable {
             }
         }
     }
-    
+
     public Object giveManagedBean(Class classe) {
         String st = classe.getSimpleName();
         String f = st.substring(0, 1);
@@ -1198,7 +1198,7 @@ public class Loggin implements Serializable {
         }
         return null;
     }
-    
+
     public static String localhost(String ip) {
         if (ip != null ? ip.trim().length() > 0 : false) {
             if (ip.equals("0:0:0:0:0:0:0:1")) {
@@ -1207,17 +1207,17 @@ public class Loggin implements Serializable {
         }
         return ip;
     }
-    
+
     public void loadFavorisUsers() {
         FAVORIS = dao.loadNameQueries("YvsUsersFavoris.findByUsers", new String[]{"users"}, new Object[]{currentUser.getUsers()});
     }
-    
+
     public void initPages(String lastTitre, String lastModule, String lastPage) {
         this.lastPage = lastPage;
         this.lastModule = lastModule;
         this.lastTitre = lastTitre;
     }
-    
+
     public YvsUsersFavoris getFavoris(String page) {
 //        YvsUsersFavoris y = (YvsUsersFavoris) dao.loadOneByNameQueries("YvsUsersFavoris.findByPageUsers", new String[]{"page", "users"}, new Object[]{page, currentUser.getUsers()});
 //        if (y != null ? y.getId() > 0 : false) {
@@ -1231,7 +1231,7 @@ public class Loggin implements Serializable {
 //        return null;
         return UtilitaireGenerique.findInListFavoris(FAVORIS, page);
     }
-    
+
     public boolean inToFavoris(String page) {
         YvsUsersFavoris y = UtilitaireGenerique.findInListFavoris(FAVORIS, page);
         if (y != null ? y.getId() > 0 : false) {
@@ -1239,7 +1239,7 @@ public class Loggin implements Serializable {
         }
         return false;
     }
-    
+
     public void addFavoris(String title, String module, String page) {
         YvsUsersFavoris y = getFavoris(page);
         if (y != null ? y.getId() < 1 : true) {
@@ -1253,7 +1253,7 @@ public class Loggin implements Serializable {
         }
         FAVORIS.add(y);
     }
-    
+
     public void removeFavoris(String title, String module, String page) {
         YvsUsersFavoris y = getFavoris(page);
         if (y != null ? y.getId() > 0 : false) {
@@ -1261,7 +1261,7 @@ public class Loggin implements Serializable {
             FAVORIS.remove(y);
         }
     }
-    
+
     public void removeFavoris(YvsUsersFavoris y) {
         if (y != null ? y.getId() > 0 : false) {
             dao.delete(y);
@@ -1269,7 +1269,7 @@ public class Loggin implements Serializable {
         FAVORIS.remove(y);
         RequestContext.getCurrentInstance().update(":main_pincipal:action_favoris");
     }
-    
+
     public void loadOnFavoris(SelectEvent ev) {
         if (ev != null ? ev.getObject() != null : false) {
             YvsUsersFavoris y = (YvsUsersFavoris) ev.getObject();
@@ -1279,17 +1279,17 @@ public class Loggin implements Serializable {
             }
         }
     }
-    
+
     private boolean initSession = false;
-    
+
     public boolean isInitSession() {
         return initSession;
     }
-    
+
     public void setInitSession(boolean initSession) {
         this.initSession = initSession;
     }
-    
+
     public void openInit() {
         if (!initSession) {
             loadAcces();    //charge les accès si l'utilisatur est connecté
@@ -1297,7 +1297,7 @@ public class Loggin implements Serializable {
             initSession = true;
         }
     }
-    
+
     public void createNewWay() {
         if (passwordAdmin != null ? passwordAdmin.trim().length() < 1 : true) {
             getMessage1("Vous devez entrer le mot de passe");
@@ -1313,5 +1313,5 @@ public class Loggin implements Serializable {
             Logger.getLogger(Loggin.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
 }

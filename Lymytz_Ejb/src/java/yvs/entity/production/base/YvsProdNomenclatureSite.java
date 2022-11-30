@@ -37,7 +37,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdNomenclatureSite.findByNomenclature", query = "SELECT y FROM YvsProdNomenclatureSite y WHERE y.nomenclature = :nomenclature"),
     @NamedQuery(name = "YvsProdNomenclatureSite.findBySite", query = "SELECT y FROM YvsProdNomenclatureSite y WHERE y.site = :site"),
     @NamedQuery(name = "YvsProdNomenclatureSite.findNomenclatureBySite", query = "SELECT DISTINCT y.nomenclature FROM YvsProdNomenclatureSite y WHERE y.site = :site"),
-    @NamedQuery(name = "YvsProdNomenclatureSite.findOneNomenclatureBySite", query = "SELECT DISTINCT y.nomenclature FROM YvsProdNomenclatureSite y JOIN FETCH y.nomenclature.article "
+    @NamedQuery(name = "YvsProdNomenclatureSite.findOneNomenclatureBySite", query = "SELECT DISTINCT y.nomenclature FROM YvsProdNomenclatureSite y JOIN FETCH y.nomenclature JOIN FETCH y.nomenclature.article "
             + "JOIN FETCH y.nomenclature.uniteMesure JOIN FETCH y.nomenclature.uniteMesure.unite "
             + "WHERE y.site = :site AND y.nomenclature.article=:article AND y.nomenclature.actif=true AND y.nomenclature.forConditionnement=:for ORDER BY y.nomenclature.principal DESC"),
     @NamedQuery(name = "YvsProdNomenclatureSite.findSiteByGamme", query = "SELECT DISTINCT y.site FROM YvsProdNomenclatureSite y WHERE y.nomenclature = :nomenclature")})

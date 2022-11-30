@@ -16,6 +16,8 @@ import java.util.Map;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
+import javax.faces.convert.Converter;
 import javax.faces.event.ValueChangeEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
@@ -26,6 +28,7 @@ import yvs.base.produits.ManagedUniteMesure;
 import yvs.production.UtilProd;
 import yvs.commercial.UtilCom;
 import yvs.commercial.ManagedCommercial;
+import static yvs.commercial.ManagedCommercial.currentParam;
 import yvs.commercial.achat.DocAchat;
 import yvs.commercial.depot.ManagedDepot;
 import yvs.commercial.vente.DocVente;
@@ -42,6 +45,7 @@ import yvs.entity.commercial.stock.YvsComContenuDocStockReception;
 import yvs.entity.commercial.vente.YvsComContenuDocVente;
 import yvs.entity.grh.presence.YvsGrhTrancheHoraire;
 import yvs.entity.param.YvsAgences;
+import yvs.entity.production.YvsProdParametre;
 import yvs.entity.production.pilotage.YvsProdContenuConditionnement;
 import yvs.entity.production.pilotage.YvsProdDeclarationProduction;
 import yvs.entity.production.pilotage.YvsProdOfSuiviFlux;
@@ -552,6 +556,13 @@ public class ManagedValorisation extends ManagedCommercial<MouvementStock, YvsBa
         }
         if (currentParam == null) {
             currentParam = (YvsComParametre) dao.loadOneByNameQueries("YvsComParametre.findAll", new String[]{"societe"}, new Object[]{currentAgence.getSociete()});
+            FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("paramCom", currentParam);
+        }
+        if (paramProduction == null) {
+            paramProduction = (YvsProdParametre) dao.loadOneByNameQueries("YvsProdParametre.findAll", new String[]{"societe"}, new Object[]{currentAgence.getSociete()});
+        }
+        if (paramCommercial == null) {
+            paramCommercial = currentParam;
         }
         if (agence_ < 1) {
             agence_ = currentAgence.getId();
@@ -2102,5 +2113,14 @@ public class ManagedValorisation extends ManagedCommercial<MouvementStock, YvsBa
         }
         paginator.addParam(p);
         loadAllMouvement(true, true);
+    }
+
+    public Converter getConverterMouv(YvsBaseMouvementStock y) {
+        if (y != null ? y.getDescription() != null : false) {
+            if (y.getDescription().equals("Consommation") || y.getDescription().equals("Production")) {
+                return getCproduction();
+            }
+        }
+        return getConverterStock();
     }
 }

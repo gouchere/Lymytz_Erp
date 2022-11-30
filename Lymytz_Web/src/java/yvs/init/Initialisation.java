@@ -28,7 +28,6 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
-import static org.json.XMLTokener.entity;
 import org.primefaces.event.FlowEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
@@ -83,6 +82,7 @@ public class Initialisation extends Managed implements Serializable {
 
     private String logo;
     public static final String FILE_SEPARATOR = System.getProperty("file.separator");
+    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
     public static final String USER_HOME = System.getProperty("user.home");
 
     public static final String USER_DOWNLOAD = System.getProperty("user.home") + System.getProperty("file.separator") + "Downloads";
@@ -245,8 +245,8 @@ public class Initialisation extends Managed implements Serializable {
             } else {
                 entitySociete = (YvsSocietes) FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get("societ");
                 YvsComptaParametre pCompta = (YvsComptaParametre) dao.loadOneByNameQueries("YvsComptaParametre.findAll", new String[]{"societe"}, new Object[]{entitySociete});
-                YvsComParametre pcom = (YvsComParametre) dao.loadObjectByNameQueries("YvsComParametre.findAll", new String[]{"societe"}, new Object[]{entitySociete});
-                YvsProdParametre pProd = (YvsProdParametre) dao.loadObjectByNameQueries("YvsProdParametre.findAll", new String[]{"societe"}, new Object[]{entitySociete});
+                YvsComParametre pcom = (YvsComParametre) dao.loadOneByNameQueries("YvsComParametre.findAll", new String[]{"societe"}, new Object[]{entitySociete});
+                YvsProdParametre pProd = (YvsProdParametre) dao.loadOneByNameQueries("YvsProdParametre.findAll", new String[]{"societe"}, new Object[]{entitySociete});
                 FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("paramCompta", pCompta);
                 FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("paramCom", pcom);
                 FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("paramProd", pProd);

@@ -170,7 +170,6 @@ import yvs.mutuelle.Parametre;
 import yvs.parametrage.agence.ManagedAgence;
 import yvs.parametrage.entrepot.Depots;
 import yvs.parametrage.report.BeanDate;
-import yvs.service.AbstractEntity;
 import yvs.service.IEntitySax;
 import yvs.stat.ManagedAccueil;
 import yvs.users.Users;
@@ -205,6 +204,7 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     public static DateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy");
     public static DateFormat formatDateReverse = new SimpleDateFormat("yyyy-MM-dd");
     public static DateFormat formatDateTime = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+    public static DateFormat formatDateTimeReverse = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static DateFormat formatDay = new SimpleDateFormat("dd");
     public static DateFormat formatJour = new SimpleDateFormat("EEEE");
     public static DateFormat formatDayM = new SimpleDateFormat("dd-MM");
@@ -6390,5 +6390,30 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
         } catch (Exception ex) {
             Logger.getLogger(Loggin.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public boolean asString(String value) {
+        return value != null ? value.trim().length() > 0 : false;
+    }
+
+    public boolean asBoolean(String value) {
+        try {
+            if (value != null ? value.toLowerCase().equals("true") || value.toLowerCase().equals("false") : false) {
+                return true;
+            }
+        } catch (Exception ex) {
+        }
+        return false;
+    }
+
+    public boolean asNumeric(String value) {
+        try {
+            if (value != null) {
+                Float.valueOf(value);
+                return true;
+            }
+        } catch (Exception ex) {
+        }
+        return false;
     }
 }

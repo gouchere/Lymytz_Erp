@@ -68,6 +68,8 @@ public class YvsComParametreStock extends YvsEntity implements Serializable {
     private Integer jourAnterieur;
     @Column(name = "taille_code_ration")
     private Integer tailleCodeRation;
+    @Column(name = "print_document_when_valide")
+    private Boolean printDocumentWhenValide;
     @JoinColumn(name = "author", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsUsersAgence author;
@@ -88,6 +90,14 @@ public class YvsComParametreStock extends YvsEntity implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Boolean getPrintDocumentWhenValide() {
+        return printDocumentWhenValide != null ? printDocumentWhenValide : false;
+    }
+
+    public void setPrintDocumentWhenValide(Boolean printDocumentWhenValide) {
+        this.printDocumentWhenValide = printDocumentWhenValide;
     }
 
     public Date getDateUpdate() {

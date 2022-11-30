@@ -559,16 +559,23 @@ public class ManagedWorkflow extends Managed<ModelDocuments, YvsWorkflowEtapeVal
     }
 
     public void loadAllNiveauAcces() {
-        champ = new String[]{"societe", "superAdmin"};
-        val = new Object[]{currentAgence.getSociete(), false};
-        listNiveauAcces = dao.loadNameQueries("YvsNiveauAcces.findBySuperAdmin", champ, val);
+        if (currentNiveau != null ? currentNiveau.getSuperAdmin() : false) {
+            champ = new String[]{"societe"};
+            val = new Object[]{currentAgence.getSociete()};
+            nameQueri = "YvsNiveauAcces.findBySociete";
+        } else {
+            champ = new String[]{"societe", "superAdmin"};
+            val = new Object[]{currentAgence.getSociete(), false};
+            nameQueri = "YvsNiveauAcces.findBySuperAdmin";
+        }
+        listNiveauAcces = dao.loadNameQueries(nameQueri, champ, val);
     }
 
     public void choixLineEtape(YvsWorkflowEtapeValidation etape) {
         selectionEtapeValidation = etape;
         List<YvsNiveauAcces> temp = new ArrayList<>(listNiveauAcces);
         for (YvsWorkflowAutorisationValidDoc au : etape.getAutorisations()) {
-            if (listNiveauAcces.contains(au.getNiveauAcces())) {
+            while (temp.contains(au.getNiveauAcces())) {
                 temp.remove(au.getNiveauAcces());
             }
         }

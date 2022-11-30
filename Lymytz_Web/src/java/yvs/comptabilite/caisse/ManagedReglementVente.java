@@ -1182,14 +1182,19 @@ public class ManagedReglementVente extends Managed implements Serializable {
             // trouve les caisses parent d'une caisse données
             ManagedCaisses service = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
             long id = (long) ev.getNewValue();
+
             caissiers.clear();
             pieceAvance.setCaissier(new Users());
-            if (service != null && id > 0) {
-                int idx = service.getCaisses().indexOf(new YvsBaseCaisse(id));
-                if (idx > -1) {
-                    YvsBaseCaisse y = service.getCaisses().get(idx);
-                    pieceAvance.setCaisse(UtilCompta.buildBeanCaisse(y));
-                    loadCaissiers(y);
+            if (service != null) {
+                if (id == -1) {
+                    service.loadAll(true, 0);
+                } else if(id > 0) {
+                    int idx = service.getCaisses().indexOf(new YvsBaseCaisse(id));
+                    if (idx >= 0) {
+                        YvsBaseCaisse y = service.getCaisses().get(idx);
+                        pieceAvance.setCaisse(UtilCompta.buildBeanCaisse(y));
+                        loadCaissiers(y);
+                    }
                 }
             }
             update("chmp_caissier_reglement_pv");

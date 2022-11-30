@@ -193,6 +193,7 @@ public class ManagedParametre extends ManagedCommercial<Parametre, YvsBaseCaisse
             p.setJourAnterieur(y.getJourAnterieur());
             p.setTailleCodeRation(y.getTailleCodeRation());
             p.setActiveRation(y.isActiveRation());
+            p.setPrintDocumentWhenValide(y.isPrintDocumentWhenValide());
             p.setCalculPr(y.isCalculPr());
             p.setAgence(currentAgence);
             p.setDateSave(y.getDateSave());
@@ -213,6 +214,7 @@ public class ManagedParametre extends ManagedCommercial<Parametre, YvsBaseCaisse
             p.setPaieWithoutValide(y.isPaieWithoutValide());
             p.setJourAnterieur(y.getJourAnterieur());
             p.setGenererFactureAuto(y.isGenererFactureAuto());
+            p.setPrintDocumentWhenValide(y.isPrintDocumentWhenValide());
             p.setAgence(currentAgence);
             p.setDateSave(y.getDateSave());
             p.setDateUpdate(new Date());
@@ -240,6 +242,8 @@ public class ManagedParametre extends ManagedCommercial<Parametre, YvsBaseCaisse
             p.setSellLowerPr(y.isSellLowerPr());
             p.setLivreBcvWithoutPaye(y.isLivreBcvWithoutPaye());
             p.setGiveBonusInStatus(y.getGiveBonusInStatus());
+            p.setLivraisonAuto(y.isLivraisonAuto());
+            p.setPrintDocumentWhenValide(y.isPrintDocumentWhenValide());
             p.setAgence(currentAgence);
             p.setDateSave(y.getDateSave());
             p.setDateUpdate(new Date());

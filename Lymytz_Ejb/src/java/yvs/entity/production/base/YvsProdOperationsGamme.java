@@ -44,7 +44,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdOperationsGamme.findById", query = "SELECT y FROM YvsProdOperationsGamme y WHERE y.id = :id"),
     @NamedQuery(name = "YvsProdOperationsGamme.findByReference", query = "SELECT y FROM YvsProdOperationsGamme y WHERE y.codeRef = :reference AND y.gammeArticle.article.famille.societe = :societe"),
     @NamedQuery(name = "YvsProdOperationsGamme.findByDescription", query = "SELECT y FROM YvsProdOperationsGamme y WHERE y.description = :description"),
-    @NamedQuery(name = "YvsProdOperationsGamme.findByGamme", query = "SELECT y FROM YvsProdOperationsGamme y JOIN FETCH y.gammeArticle WHERE y.gammeArticle = :gamme ORDER BY y.numero"),
+    @NamedQuery(name = "YvsProdOperationsGamme.findByGamme", query = "SELECT y FROM YvsProdOperationsGamme y JOIN FETCH y.gammeArticle JOIN FETCH y.gammeArticle.article WHERE y.gammeArticle = :gamme ORDER BY y.numero"),
     @NamedQuery(name = "YvsProdOperationsGamme.findByGammeArt", query = "SELECT y FROM YvsProdOperationsGamme y JOIN FETCH y.gammeArticle JOIN FETCH y.composants "
             + "WHERE y.gammeArticle = :gamme ORDER BY y.numero ASC"),
     @NamedQuery(name = "YvsProdOperationsGamme.findByArticleP", query = "SELECT y FROM YvsProdOperationsGamme y JOIN FETCH y.gammeArticle.article "

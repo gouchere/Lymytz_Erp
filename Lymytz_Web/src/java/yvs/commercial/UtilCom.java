@@ -334,6 +334,7 @@ public class UtilCom {
             p.setJourAnterieur(y.getJourAnterieur());
             p.setGenererFactureAuto(y.getGenererFactureAuto());
             p.setPaieWithoutValide(y.getPaieWithoutValide());
+            p.setPrintDocumentWhenValide(y.getPrintDocumentWhenValide());
             p.setDateSave(y.getDateSave());
             p.setJournal(UtilCompta.buildBeanJournaux(y.getJournal()));
             p.setUpdate(true);
@@ -347,7 +348,9 @@ public class UtilCom {
             p.setId(y.getId());
             p.setComptabilisationAuto(y.getComptabilisationAuto());
             p.setComptabilisationMode(y.getComptabilisationMode());
+            p.setLivraisonAuto(y.getLivraisonAuto());
             p.setJourAnterieur(y.getJourAnterieur());
+            p.setPrintDocumentWhenValide(y.getPrintDocumentWhenValide());
             p.setPaieWithoutValide(y.getPaieWithoutValide());
             p.setNbFicheMax(y.getNbFicheMax());
             p.setGenererFactureAuto(y.getGenererFactureAuto());
@@ -371,6 +374,7 @@ public class UtilCom {
             p.setJourAnterieur(y.getJourAnterieur());
             p.setTailleCodeRation(y.getTailleCodeRation());
             p.setActiveRation(y.getActiveRation());
+            p.setPrintDocumentWhenValide(y.getPrintDocumentWhenValide());
             p.setCalculPr(y.getCalculPr());
             p.setUpdate(true);
             p.setDateSave(y.getDateSave());

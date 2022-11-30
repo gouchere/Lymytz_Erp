@@ -21,6 +21,8 @@ public class ParametreCom implements Serializable {
 
     private long id;
     private boolean comptabilisationAuto;
+    private boolean livraisonAuto;
+    private boolean printDocumentWhenValide;
     private String comptabilisationMode;
     private String modelFactureVente;
     private String giveBonusInStatus;
@@ -50,6 +52,22 @@ public class ParametreCom implements Serializable {
 
     public void setSellLowerPr(boolean sellLowerPr) {
         this.sellLowerPr = sellLowerPr;
+    }
+
+    public boolean isLivraisonAuto() {
+        return livraisonAuto;
+    }
+
+    public void setLivraisonAuto(boolean livraisonAuto) {
+        this.livraisonAuto = livraisonAuto;
+    }
+
+    public boolean isPrintDocumentWhenValide() {
+        return printDocumentWhenValide;
+    }
+
+    public void setPrintDocumentWhenValide(boolean printDocumentWhenValide) {
+        this.printDocumentWhenValide = printDocumentWhenValide;
     }
 
     public boolean isComptabilisationAuto() {

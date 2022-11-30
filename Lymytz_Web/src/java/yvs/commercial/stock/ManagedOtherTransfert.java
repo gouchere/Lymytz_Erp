@@ -94,8 +94,6 @@ public class ManagedOtherTransfert extends ManagedCommercial<DocStock, YvsComDoc
 
     boolean exist_inventaire;
 
-    private YvsComParametreStock currentParamStock;
-
     private String tabIds, tabIds_contenu, egaliteStatut = "!=", valeurBy = "E";
     private Boolean toValideLoad;
     private boolean box, withHeader = true;
@@ -2696,7 +2694,14 @@ public class ManagedOtherTransfert extends ManagedCommercial<DocStock, YvsComDoc
 
     public void print(YvsComDocStocks y, boolean withHeader, boolean entree) {
         try {
+            if (currentParamStock != null ? currentParamStock.getId() < 1 : true) {
+                currentParamStock = (YvsComParametreStock) dao.loadOneByNameQueries("YvsComParametreStock.findByAgence", new String[]{"agence"}, new Object[]{currentAgence});
+            }
             if (y != null ? y.getId() > 0 : false) {
+                if (currentParamStock != null ? (currentParamStock.getPrintDocumentWhenValide() && !y.getStatut().equals(Constantes.ETAT_VALIDE)) : false) {
+                    getErrorMessage("Le document doit être validé pour pouvoir être téléchargé");
+                    return;
+                }
                 Map<String, Object> param = new HashMap<>();
                 param.put("ID", y.getId().intValue());
                 if (entree) {

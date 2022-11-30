@@ -31,7 +31,7 @@ import yvs.entity.users.YvsUsersAgence;
 @NamedQueries({
     @NamedQuery(name = "YvsProdDefaultDepotComposants.findAll", query = "SELECT y FROM YvsProdDefaultDepotComposants y"),
     @NamedQuery(name = "YvsProdDefaultDepotComposants.findOne", query = "SELECT y FROM YvsProdDefaultDepotComposants y WHERE y.site=:site AND y.composant=:composant"),
-    @NamedQuery(name = "YvsProdDefaultDepotComposants.findOneDepot", query = "SELECT y.depotConso FROM YvsProdDefaultDepotComposants y WHERE y.site=:site AND y.composant=:composant"),
+    @NamedQuery(name = "YvsProdDefaultDepotComposants.findOneDepot", query = "SELECT y.depotConso FROM YvsProdDefaultDepotComposants y JOIN FETCH y.depotConso WHERE y.site=:site AND y.composant=:composant"),
     @NamedQuery(name = "YvsProdDefaultDepotComposants.findById", query = "SELECT y FROM YvsProdDefaultDepotComposants y WHERE y.id = :id")})
 public class YvsProdDefaultDepotComposants implements Serializable {
     private static final long serialVersionUID = 1L;

@@ -69,6 +69,8 @@ public class YvsComParametreAchat extends YvsEntity implements Serializable {
     private Boolean paieWithoutValide;
     @Column(name = "jour_anterieur")
     private Integer jourAnterieur;
+    @Column(name = "print_document_when_valide")
+    private Boolean printDocumentWhenValide;
     @JoinColumn(name = "author", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsUsersAgence author;
@@ -92,6 +94,14 @@ public class YvsComParametreAchat extends YvsEntity implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Boolean getPrintDocumentWhenValide() {
+        return printDocumentWhenValide != null ? printDocumentWhenValide : false;
+    }
+
+    public void setPrintDocumentWhenValide(Boolean printDocumentWhenValide) {
+        this.printDocumentWhenValide = printDocumentWhenValide;
     }
 
     public Date getDateUpdate() {

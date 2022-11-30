@@ -86,9 +86,10 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsGrhPresence.findWithRetard", query = "SELECT y.id, y.totalRetard FROM YvsGrhPresence y WHERE y.employe=:employe AND y.dateDebut<=:date AND y.valider=true AND y.totalRetard>0"),
     @NamedQuery(name = "YvsGrhPresence.findByDateAndEmployeValid", query = "SELECT y FROM YvsGrhPresence y WHERE :date BETWEEN y.dateDebut AND y.dateFin AND y.employe = :employe AND y.valider = :valider ORDER BY y.dateDebut, y.heureDebut")})
 public class YvsGrhPresence implements Serializable {
+
     @Column(name = "total_heure_sup")
     private Double totalHeureSup;
-    
+
     private static final long serialVersionUID = 1L;
     @Id
     @SequenceGenerator(sequenceName = "yvs_grh_presence_id_seq", name = "yvs_grh_presence_id_seq_name", allocationSize = 1)
@@ -319,7 +320,7 @@ public class YvsGrhPresence implements Serializable {
     }
 
     public double getTotalHeureSup() {
-        return totalHeureSup;
+        return totalHeureSup != null ? totalHeureSup : 0;
     }
 
     public void setTotalHeureCompensation(Double totalHeureCompensation) {
@@ -386,6 +387,5 @@ public class YvsGrhPresence implements Serializable {
     public String toString() {
         return "yvs.entity.grh.presence.YvsGrhPresence[ id=" + id + " ]";
     }
-
 
 }

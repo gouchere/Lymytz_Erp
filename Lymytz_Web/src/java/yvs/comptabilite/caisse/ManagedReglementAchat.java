@@ -945,12 +945,18 @@ public class ManagedReglementAchat extends Managed implements Serializable {
     }
 
     public void chooseCaisse() {
-        if (pieceAvance.getCaisse() != null ? pieceAvance.getCaisse().getId() > 0 : false) {
+        if (pieceAvance.getCaisse() != null) {
             ManagedCaisses w = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
             if (w != null) {
-                int idx = w.getCaisses().indexOf(new YvsBaseCaisse(pieceAvance.getCaisse().getId()));
-                if (idx > -1) {
-                    pieceAvance.setCaisse(UtilCompta.buildBeanCaisse(w.getCaisses().get(idx)));
+                long id = pieceAvance.getCaisse().getId();
+                if (id == -1) {
+                    w.loadAll(true, 0);
+                } else {
+                    int idx = w.getCaisses().indexOf(new YvsBaseCaisse(id));
+                    if (idx >= 0) {
+                        YvsBaseCaisse y = w.getCaisses().get(idx);
+                    pieceAvance.setCaisse(UtilCompta.buildBeanCaisse(y));
+                    }
                 }
             }
         }

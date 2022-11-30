@@ -1,0 +1,283 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Backup et Restore','modParam', 'smenBackupRestore', true, managedBackupRestore)}
+    </ui:define>  
+    <ui:define name="contents"> 
+        #{managedBackupRestore.doNothing()}
+        <h:form prependId="false">
+            <p:dialog widgetVar="dlgDescription" header="Détails" width="40%" closeOnEscape="true" resizable="false">
+                <p:outputPanel autoUpdate="true" id="value-description">
+                    <h2>#{managedBackupRestore.selectValue.label}</h2>
+                    <p:inputTextarea value="#{managedBackupRestore.selectValue.description}" style="width: 100%" rows="5" readonly="true"/>
+                </p:outputPanel>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog widgetVar="dlgUploadImgXML" width="500" height="100" closeOnEscape="true" dynamic="true" resizable="false">
+                <p:fileUpload sizeLimit="1000000000" mode="advanced" dragDropSupport="true" 
+                              allowTypes="/(\.|\/)(xml|json)$/" fileUploadListener="#{managedBackupRestore.onRestore}"
+                              uploadLabel="#{lab.L_envoyer}" label="#{lab.L_parcourir}" auto="true"
+                              oncomplete="dlgUploadImgXML.hide()"> 
+                </p:fileUpload>
+            </p:dialog>
+        </h:form>
+        <h:form prependId="false" id="body_backup_restore">
+            <div class="part_fix">
+                <h:panelGroup style="float: right">
+                    <p:outputPanel>
+                        <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSub}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                 style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                        <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup()}" ajax="false"/>
+                    </p:outputPanel>
+                    <p:commandButton icon="ui-icon-arrowthickstop-1-s" value="Restauration" type="button" onclick="dlgUploadImgXML.show()"/>
+                </h:panelGroup>
+            </div>
+            <div class="part_scroll">
+                <p:tabView id="tabView_backup_restore">
+                    <p:tab title="#{navigations.getNameModule('modParam')}" rendered="#{accesModule.param_}">    
+                        <p:outputPanel>
+                            <p:dataTable id="data-parametrages" value="#{managedBackupRestore.parametrages}" var="item" rowIndexVar="itemLine" rowKey="#{item.code}"
+                                         selection="#{managedBackupRestore.parametragesSelect}">
+                                <p:ajax event="toggleSelect" global="false"/>
+                                <p:ajax event="rowSelectCheckbox" global="false"/>
+                                <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                <p:column headerText="N°" style="text-align: center; width: 20px">                                
+                                    <h:outputText value="#{itemLine+1}" />
+                                </p:column>                                                        
+                                <p:column headerText="Libelle">
+                                    <span title="Selectionner pour afficher la description">#{item.label}</span>                                                                       
+                                </p:column>    
+                                <p:column style="text-align: center; width: 20px">                                
+                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedBackupRestore.setSelectValue(item)}" global="false" oncomplete="dlgDescription.show()"/>
+                                </p:column>  
+                                <p:column selectionMode="multiple" style="width:20px;text-align:center"/>         
+                            </p:dataTable> 
+                            <p:outputPanel style="float: right; margin-top: 10px">
+                                <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSubParam}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                         style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup('param')}" ajax="false" />
+                            </p:outputPanel>
+                            <div style="clear: right"/>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab title="#{navigations.getNameModule('modDonneBase')}" rendered="#{accesModule.base_}">    
+                        <p:outputPanel>
+                            <p:dataTable id="data-donneesBase" value="#{managedBackupRestore.donneesBase}" var="item" rowIndexVar="itemLine" rowKey="#{item.code}"
+                                         selection="#{managedBackupRestore.donneesBaseSelect}">
+                                <p:ajax event="toggleSelect" global="false"/>
+                                <p:ajax event="rowSelectCheckbox" global="false"/>
+                                <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                <p:column headerText="N°" style="text-align: center; width: 20px">                                
+                                    <h:outputText value="#{itemLine+1}" />
+                                </p:column>                                                        
+                                <p:column headerText="Libelle">
+                                    <span title="Selectionner pour afficher la description">#{item.label}</span>                                                                       
+                                </p:column>    
+                                <p:column style="text-align: center; width: 20px">                                
+                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedBackupRestore.setSelectValue(item)}" global="false" oncomplete="dlgDescription.show()"/>
+                                </p:column>  
+                                <p:column selectionMode="multiple" style="width:20px;text-align:center"/>         
+                            </p:dataTable>
+                            <p:outputPanel style="float: right; margin-top: 10px">
+                                <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSubBase}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                         style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup('base')}" ajax="false" />
+                            </p:outputPanel>
+                            <div style="clear: right"/>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab title="#{navigations.getNameModule('modGescom')}" rendered="#{accesModule.com_}">    
+                        <p:outputPanel>
+                            <p:dataTable id="data-commerciales" value="#{managedBackupRestore.commerciales}" var="item" rowIndexVar="itemLine" rowKey="#{item.code}"
+                                         selection="#{managedBackupRestore.commercialesSelect}">
+                                <p:ajax event="toggleSelect" global="false"/>
+                                <p:ajax event="rowSelectCheckbox" global="false"/>
+                                <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                <p:column headerText="N°" style="text-align: center; width: 20px">                                
+                                    <h:outputText value="#{itemLine+1}" />
+                                </p:column>                                                        
+                                <p:column headerText="Libelle">
+                                    <span title="Selectionner pour afficher la description">#{item.label}</span>                                                                       
+                                </p:column>    
+                                <p:column style="text-align: center; width: 20px">                                
+                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedBackupRestore.setSelectValue(item)}" global="false" oncomplete="dlgDescription.show()"/>
+                                </p:column>  
+                                <p:column selectionMode="multiple" style="width:20px;text-align:center"/>         
+                            </p:dataTable>
+                            <p:outputPanel style="float: right; margin-top: 10px">
+                                <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSubCom}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                         style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup('com')}" ajax="false" />
+                            </p:outputPanel>
+                            <div style="clear: right"/>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab title="#{navigations.getNameModule('modProduction')}" rendered="#{accesModule.prod_}">    
+                        <p:outputPanel>
+                            <p:dataTable id="data-productions" value="#{managedBackupRestore.productions}" var="item" rowIndexVar="itemLine" rowKey="#{item.code}"
+                                         selection="#{managedBackupRestore.productionsSelect}">
+                                <p:ajax event="toggleSelect" global="false"/>
+                                <p:ajax event="rowSelectCheckbox" global="false"/>
+                                <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                <p:column headerText="N°" style="text-align: center; width: 20px">                                
+                                    <h:outputText value="#{itemLine+1}" />
+                                </p:column>                                                        
+                                <p:column headerText="Libelle">
+                                    <span title="Selectionner pour afficher la description">#{item.label}</span>                                                                       
+                                </p:column>    
+                                <p:column style="text-align: center; width: 20px">                                
+                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedBackupRestore.setSelectValue(item)}" global="false" oncomplete="dlgDescription.show()"/>
+                                </p:column>  
+                                <p:column selectionMode="multiple" style="width:20px;text-align:center"/>         
+                            </p:dataTable>
+                            <p:outputPanel style="float: right; margin-top: 10px">
+                                <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSubProd}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                         style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup('prod')}" ajax="false" />
+                            </p:outputPanel>
+                            <div style="clear: right"/>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab title="#{navigations.getNameModule('modCompta')}" rendered="#{accesModule.compta_}">    
+                        <p:outputPanel>
+                            <p:dataTable id="data-comptabilites" value="#{managedBackupRestore.comptabilites}" var="item" rowIndexVar="itemLine" rowKey="#{item.code}"
+                                         selection="#{managedBackupRestore.comptabilitesSelect}">
+                                <p:ajax event="toggleSelect" global="false"/>
+                                <p:ajax event="rowSelectCheckbox" global="false"/>
+                                <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                <p:column headerText="N°" style="text-align: center; width: 20px">                                
+                                    <h:outputText value="#{itemLine+1}" />
+                                </p:column>                                                        
+                                <p:column headerText="Libelle">
+                                    <span title="Selectionner pour afficher la description">#{item.label}</span>                                                                       
+                                </p:column>    
+                                <p:column style="text-align: center; width: 20px">                                
+                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedBackupRestore.setSelectValue(item)}" global="false" oncomplete="dlgDescription.show()"/>
+                                </p:column>  
+                                <p:column selectionMode="multiple" style="width:20px;text-align:center"/>         
+                            </p:dataTable>
+                            <p:outputPanel style="float: right; margin-top: 10px">
+                                <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSubCompta}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                         style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup('compta')}" ajax="false" />
+                            </p:outputPanel>
+                            <div style="clear: right"/>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab title="#{navigations.getNameModule('modRh')}" rendered="#{accesModule.grh_}">    
+                        <p:outputPanel>
+                            <p:dataTable id="data-humaines" value="#{managedBackupRestore.humaines}" var="item" rowIndexVar="itemLine" rowKey="#{item.code}"
+                                         selection="#{managedBackupRestore.humainesSelect}">
+                                <p:ajax event="toggleSelect" global="false"/>
+                                <p:ajax event="rowSelectCheckbox" global="false"/>
+                                <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                <p:column headerText="N°" style="text-align: center; width: 20px">                                
+                                    <h:outputText value="#{itemLine+1}" />
+                                </p:column>                                                        
+                                <p:column headerText="Libelle">
+                                    <span title="Selectionner pour afficher la description">#{item.label}</span>                                                                       
+                                </p:column>    
+                                <p:column style="text-align: center; width: 20px">                                
+                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedBackupRestore.setSelectValue(item)}" global="false" oncomplete="dlgDescription.show()"/>
+                                </p:column>  
+                                <p:column selectionMode="multiple" style="width:20px;text-align:center"/>         
+                            </p:dataTable>
+                            <p:outputPanel style="float: right; margin-top: 10px">
+                                <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSubRh}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                         style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup('rh')}" ajax="false" />
+                            </p:outputPanel>
+                            <div style="clear: right"/>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab title="#{navigations.getNameModule('modCrm')}" rendered="#{accesModule.client_}">    
+                        <p:outputPanel>
+                            <p:dataTable id="data-relations" value="#{managedBackupRestore.relations}" var="item" rowIndexVar="itemLine" rowKey="#{item.code}"
+                                         selection="#{managedBackupRestore.relationsSelect}">
+                                <p:ajax event="toggleSelect" global="false"/>
+                                <p:ajax event="rowSelectCheckbox" global="false"/>
+                                <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                <p:column headerText="N°" style="text-align: center; width: 20px">                                
+                                    <h:outputText value="#{itemLine+1}" />
+                                </p:column>                                                        
+                                <p:column headerText="Libelle">
+                                    <span title="Selectionner pour afficher la description">#{item.label}</span>                                                                       
+                                </p:column>    
+                                <p:column style="text-align: center; width: 20px">                                
+                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedBackupRestore.setSelectValue(item)}" global="false" oncomplete="dlgDescription.show()"/>
+                                </p:column>  
+                                <p:column selectionMode="multiple" style="width:20px;text-align:center"/>         
+                            </p:dataTable>
+                            <p:outputPanel style="float: right; margin-top: 10px">
+                                <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSubCrm}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                         style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup('crm')}" ajax="false" />
+                            </p:outputPanel>
+                            <div style="clear: right"/>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab title="#{navigations.getNameModule('modMutuelle')}" rendered="#{accesModule.mutuel_}">    
+                        <p:outputPanel>
+                            <p:dataTable id="data-mutuelles" value="#{managedBackupRestore.mutuelles}" var="item" rowIndexVar="itemLine" rowKey="#{item.code}"
+                                         selection="#{managedBackupRestore.mutuellesSelect}">
+                                <p:ajax event="toggleSelect" global="false"/>
+                                <p:ajax event="rowSelectCheckbox" global="false"/>
+                                <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                <p:column headerText="N°" style="text-align: center; width: 20px">                                
+                                    <h:outputText value="#{itemLine+1}" />
+                                </p:column>                                                        
+                                <p:column headerText="Libelle">
+                                    <span title="Selectionner pour afficher la description">#{item.label}</span>                                                                       
+                                </p:column>    
+                                <p:column style="text-align: center; width: 20px">                                
+                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedBackupRestore.setSelectValue(item)}" global="false" oncomplete="dlgDescription.show()"/>
+                                </p:column>  
+                                <p:column selectionMode="multiple" style="width:20px;text-align:center"/>         
+                            </p:dataTable>
+                            <p:outputPanel style="float: right; margin-top: 10px">
+                                <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSubMut}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                         style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup('mut')}" ajax="false" />
+                            </p:outputPanel>
+                            <div style="clear: right"/>
+                        </p:outputPanel>
+                    </p:tab>
+                    <p:tab title="#{navigations.getNameModule('modProj')}" rendered="#{accesModule.proj_}">    
+                        <p:outputPanel>
+                            <p:dataTable id="data-projets" value="#{managedBackupRestore.projets}" var="item" rowIndexVar="itemLine" rowKey="#{item.code}"
+                                         selection="#{managedBackupRestore.projetsSelect}">
+                                <p:ajax event="toggleSelect" global="false"/>
+                                <p:ajax event="rowSelectCheckbox" global="false"/>
+                                <p:ajax event="rowUnselectCheckbox" global="false"/>
+                                <p:column headerText="N°" style="text-align: center; width: 20px">                                
+                                    <h:outputText value="#{itemLine+1}" />
+                                </p:column>                                                        
+                                <p:column headerText="Libelle">
+                                    <span title="Selectionner pour afficher la description">#{item.label}</span>                                                                       
+                                </p:column>    
+                                <p:column style="text-align: center; width: 20px">                                
+                                    <p:commandButton icon="ui-icon-search" actionListener="#{managedBackupRestore.setSelectValue(item)}" global="false" oncomplete="dlgDescription.show()"/>
+                                </p:column>  
+                                <p:column selectionMode="multiple" style="width:20px;text-align:center"/>         
+                            </p:dataTable>
+                            <p:outputPanel style="float: right; margin-top: 10px">
+                                <p:selectBooleanCheckbox value="#{managedBackupRestore.backupWithSubProj}" itemLabel="Sauvegarder également les éléments additionnels qui ne sont pas sélectionnés ?"
+                                                         style="float: left; margin-top: 7.5px; margin-right: 5px"/>
+                                <p:commandButton icon="ui-icon-arrowthickstop-1-n" value="Sauvegarde" actionListener="#{managedBackupRestore.onBackup('proj')}" ajax="false" />
+                            </p:outputPanel>
+                            <div style="clear: right"/>
+                        </p:outputPanel>
+                    </p:tab>
+                </p:tabView>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

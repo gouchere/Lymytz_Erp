@@ -5,14 +5,27 @@
  */
 package yvs.production.technique;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.poi.hssf.util.CellRangeAddress;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
@@ -23,13 +36,11 @@ import yvs.base.produits.Conditionnement;
 import yvs.base.produits.ManagedArticles;
 import yvs.base.produits.ManagedUniteMesure;
 import yvs.base.produits.UniteMesure;
-import yvs.production.UtilProd;
 import yvs.dao.Options;
 import yvs.entity.base.YvsBaseCodeAcces;
 import yvs.entity.base.YvsBaseConditionnement;
 import yvs.entity.base.YvsBaseUniteMesure;
 import yvs.entity.production.base.YvsProdComposantNomenclature;
-import yvs.entity.production.base.YvsProdGammeArticle;
 import yvs.entity.production.base.YvsProdNomenclature;
 import yvs.entity.production.base.YvsProdNomenclatureSite;
 import yvs.entity.production.base.YvsProdOperationsGamme;
@@ -37,6 +48,8 @@ import yvs.entity.production.base.YvsProdSiteProduction;
 import yvs.entity.production.pilotage.YvsProdComposantOp;
 import yvs.entity.produits.YvsBaseArticles;
 import yvs.entity.produits.group.YvsBaseFamilleArticle;
+import yvs.init.Initialisation;
+import yvs.production.UtilProd;
 import yvs.util.Constantes;
 import yvs.util.Managed;
 import yvs.util.ParametreRequete;
@@ -2091,6 +2104,66 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         }
         succes();
 
+    }
+
+    public void exporter() {
+        try {
+            XSSFWorkbook workbook = new XSSFWorkbook();
+            XSSFSheet sheet = workbook.createSheet("Liste des nomenclature");
+
+            CellStyle cellStyle = sheet.getWorkbook().createCellStyle();
+            XSSFFont font = sheet.getWorkbook().createFont();
+            font.setBold(true);
+            font.setFontHeightInPoints((short) 12);
+            cellStyle.setFont(font);
+
+            String[] headers = new String[]{"Reference", "Désignation", "Unite", "Quantitée"};
+            int rowCount = 0;
+            Row row = sheet.createRow(rowCount++);
+            Cell cell;
+            for (int i = 0; i < headers.length; i++) {
+                cell = row.createCell(i);
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(headers[i]);
+            }
+            List<YvsProdComposantNomenclature> composants;
+            List<YvsProdNomenclature> list = dao.loadNameQueries("YvsProdNomenclature.findAll", new String[]{"societe"}, new Object[]{currentAgence.getSociete()});
+            for (YvsProdNomenclature item : list) {
+                row = sheet.createRow(rowCount++);
+                sheet.addMergedRegion(new CellRangeAddress(rowCount - 1, rowCount - 1, 0, headers.length - 1));
+                cell = row.createCell(0);
+                cell.setCellStyle(cellStyle);
+                cell.setCellValue(item.getArticle().getDesignation() + "(" + item.getReference() + ")");
+                composants = dao.loadNameQueries("YvsProdComposantNomenclature.findByNomenclature", new String[]{"nomenclature"}, new Object[]{item});
+                for (YvsProdComposantNomenclature component : composants) {
+                    row = sheet.createRow(rowCount++);
+                    row.createCell(0).setCellValue(component.getArticle().getRefArt());
+                    row.createCell(1).setCellValue(component.getArticle().getDesignation());
+                    row.createCell(2).setCellValue(component.getUnite().getUnite().getReference());
+                    row.createCell(3).setCellValue(component.getQuantite());
+                }
+                rowCount++;
+            }
+            String destination = Initialisation.getCheminResource() + "" + Initialisation.FILE_SEPARATOR + "nomenclature.xlsx";
+            try (FileOutputStream outputStream = new FileOutputStream(destination)) {
+                workbook.write(outputStream);
+            }
+            byte[] bytes = Util.read(new File(destination));
+            FacesContext faces = FacesContext.getCurrentInstance();
+            HttpServletResponse response = (HttpServletResponse) faces.getExternalContext().getResponse();
+            response.setContentType("application/vnd.ms-excel");
+            response.addHeader("Content-disposition", "attachment;filename=nomenclature.xlsx");
+            response.setContentLength(bytes.length);
+            try {
+                response.getOutputStream().write(bytes);
+                response.getOutputStream().flush();
+            } catch (IOException ex) {
+                log.log(Level.SEVERE, null, ex);
+            }
+            faces.responseComplete();
+        } catch (IOException ex) {
+            getException("exporter", ex);
+        }
     }
 
 }

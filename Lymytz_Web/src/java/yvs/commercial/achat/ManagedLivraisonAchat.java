@@ -107,8 +107,6 @@ public class ManagedLivraisonAchat extends ManagedCommercial<DocAchat, YvsComDoc
     private Date dateDebutContenu = new Date(), dateFinContenu = new Date();
     private String statutContenu, reference, article, depot, articleContenu, fournisseurF;
 
-    YvsComParametreAchat currentParamAchat;
-
     public ManagedLivraisonAchat() {
         tranches = new ArrayList<>();
         contenus_fa = new ArrayList<>();
@@ -1755,7 +1753,14 @@ public class ManagedLivraisonAchat extends ManagedCommercial<DocAchat, YvsComDoc
 
     public void print(YvsComDocAchats y, boolean withHeader) {
         try {
+            if (currentParamAchat != null ? currentParamAchat.getId() < 1 : true) {
+                currentParamAchat = (YvsComParametreAchat) dao.loadOneByNameQueries("YvsComParametreAchat.findByAgence", new String[]{"agence"}, new Object[]{currentAgence});
+            }
             if (y != null ? y.getId() > 0 : false) {
+                if (currentParamAchat != null ? (currentParamAchat.getPrintDocumentWhenValide() && !y.getStatut().equals(Constantes.ETAT_VALIDE)) : false) {
+                    getErrorMessage("Le document doit être validé pour pouvoir être téléchargé");
+                    return;
+                }
                 Map<String, Object> param = new HashMap<>();
                 param.put("ID", y.getId().intValue());
                 param.put("AUTEUR", currentUser.getUsers().getNomUsers());

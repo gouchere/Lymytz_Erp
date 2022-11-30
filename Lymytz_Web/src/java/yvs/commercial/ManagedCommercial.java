@@ -28,6 +28,7 @@ import yvs.entity.base.YvsBaseDepots;
 import yvs.entity.base.YvsBaseFournisseur;
 import yvs.entity.base.YvsBasePointVente;
 import yvs.entity.commercial.YvsComParametre;
+import yvs.entity.commercial.YvsComParametreAchat;
 import yvs.entity.commercial.YvsComParametreStock;
 import yvs.entity.commercial.YvsComParametreVente;
 import yvs.entity.commercial.achat.YvsComContenuDocAchat;
@@ -87,6 +88,8 @@ public abstract class ManagedCommercial<T extends Serializable, S extends Serial
 
     public static YvsComParametre currentParam;
     public static YvsComParametreVente currentParamVente;
+    public static YvsComParametreAchat currentParamAchat;
+    public static YvsComParametreStock currentParamStock;
 
     @Override
     public abstract boolean controleFiche(T bean);

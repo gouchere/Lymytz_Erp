@@ -1455,11 +1455,13 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
         if ((ev != null) ? ev.getObject() != null : false) {
             YvsComContenuDocVente bean = (YvsComContenuDocVente) ev.getObject();
             cloneObject(contenu_fv, UtilCom.buildBeanContenuDocVente(bean));
-            if (!contenu.isUpdate()) {
-                cloneObject(contenu, contenu_fv);
-            } else {
-                cloneObject(contenu.getArticle(), contenu_fv.getArticle());
-            }
+            cloneObject(contenu, contenu_fv);
+            contenu.setId(-1);
+//            if (!contenu.isUpdate()) {
+//                cloneObject(contenu, contenu_fv);
+//            } else {
+//                cloneObject(contenu.getArticle(), contenu_fv.getArticle());
+//            }
             cloneObject(contenu.getParent(), contenu_fv);
             contenu.setQuantite(bean.getQuantite());
             contenu.setPrix(bean.getPrix());
@@ -1500,7 +1502,7 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
     }
 
     public void unLoadOnViewArticle(UnselectEvent ev) {
-        if (!contenu.isUpdate()) {
+        if (contenu.getId() <= 0) {
             resetFicheArticle();
         } else {
             YvsComContenuDocVente c = contenus.get(contenus.indexOf(new YvsComContenuDocVente(contenu.getId())));
@@ -1707,7 +1709,7 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
             art.setPuv(dao.getPuv(art.getId(), contenu.getQuantite(), contenu.getPrix(), docVente.getClient().getId(), docVente.getEnteteDoc().getDepot().getId(), docVente.getEnteteDoc().getPoint().getId(), docVente.getEnteteDoc().getDateEntete(), contenu.getConditionnement().getId()));
             contenu.setPrixMin(dao.getPuvMin(art.getId(), contenu.getQuantite(), contenu.getPrix(), docVente.getClient().getId(), docVente.getEnteteDoc().getDepot().getId(), docVente.getEnteteDoc().getPoint().getId(), docVente.getEnteteDoc().getDateEntete(), contenu.getConditionnement().getId()));
             art.setPua(dao.getPua(art.getId(), 0));
-            if (!contenu.isUpdate()) {
+            if (contenu.getId() < 1) {
                 contenu.setPrix(art.getPuv());
             }
             YvsBaseDepots depot;
@@ -1737,7 +1739,7 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
 
     public ContenuDocVente findPrixArticle(ContenuDocVente c, boolean findPrix) {
         if ((docVente.getClient() != null) ? docVente.getClient().getId() > 0 : false) {
-            if (!c.isUpdate() ? findPrix : false) {
+            if (c.getId() < 1 ? findPrix : false) {
                 c.setPrix(dao.getPuv(c.getArticle().getId(), c.getQuantite(), c.getPrix(), docVente.getClient().getId(), docVente.getEnteteDoc().getDepot().getId(), docVente.getEnteteDoc().getPoint().getId(), docVente.getEnteteDoc().getDateEntete(), c.getConditionnement().getId()));
             }
             double prix = c.getPrix() - c.getRabais();
@@ -2474,7 +2476,14 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
 
     public void print(YvsComDocVentes y, boolean withHeader) {
         try {
+            if (currentParamVente != null ? currentParamVente.getId() < 1 : true) {
+                currentParamVente = (YvsComParametreVente) dao.loadOneByNameQueries("YvsComParametreVente.findByAgence", new String[]{"agence"}, new Object[]{currentAgence});
+            }
             if (y != null ? y.getId() > 0 : false) {
+                if (currentParamVente != null ? (currentParamVente.getPrintDocumentWhenValide() && !y.getStatut().equals(Constantes.ETAT_VALIDE)) : false) {
+                    getErrorMessage("Le document doit être validé pour pouvoir être téléchargé");
+                    return;
+                }
                 Map<String, Object> param = new HashMap<>();
                 param.put("ID", y.getId().intValue());
                 param.put("AUTEUR", currentUser.getUsers().getNomUsers());

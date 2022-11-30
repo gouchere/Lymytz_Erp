@@ -42,6 +42,10 @@ public class Constantes implements Serializable {
     public static final int MAX_VALUE_PARAM = 1000;
     public static final char DEFAULT_SEPARATOR = ';';
     public static final char DEFAULT_QUOTE = '"';
+
+    public static final String NEW_LINE = ("\\r\\n").replace("\\r", "");
+    public static final String NEW_LINE_END = ("\\r\\n\"").replace("\\r", "");
+
     public static String[] tabMois = new String[]{"Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Decembre"};
     public static int[] tabJour = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30};
     public static final String FIFO = "First Int First Out";

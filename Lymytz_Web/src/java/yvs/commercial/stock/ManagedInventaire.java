@@ -85,8 +85,6 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
 
     private YvsComDocStocksEcart selectEcart;
 
-    private YvsComParametreStock currentParamStock;
-
     private List<YvsBaseArticleDepot> articles;
     private PaginatorResult<YvsComContenuDocStock> p_contenu = new PaginatorResult<>();
     private String artSearch;
@@ -2278,7 +2276,14 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
     }
 
     public void print(YvsComDocStocks y) {
+        if (currentParamStock != null ? currentParamStock.getId() < 1 : true) {
+            currentParamStock = (YvsComParametreStock) dao.loadOneByNameQueries("YvsComParametreStock.findByAgence", new String[]{"agence"}, new Object[]{currentAgence});
+        }
         if (y != null ? y.getId() > 0 : false) {
+            if (currentParamStock != null ? (currentParamStock.getPrintDocumentWhenValide() && !y.getStatut().equals(Constantes.ETAT_VALIDE)) : false) {
+                getErrorMessage("Le document doit être validé pour pouvoir être téléchargé");
+                return;
+            }
             Map<String, Object> param = new HashMap<>();
             param.put("AUTEUR", currentUser.getUsers().getNomUsers());
             param.put("LOGO", returnLogo());
@@ -2327,7 +2332,7 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
         param.put("SOLDE_PRINT", optionPrint);
         param.put("ORDER_BY", orderBy);
         param.put("SUBREPORT_DIR", SUBREPORT_DIR());
-        String report = "inventaire_preparatoire";
+        String report = "inventaire_no_pr";
         if (autoriser("gescom_inventaire_print_with_pr")) {
             report = currentParam != null ? currentParam.getUseLotReception() ? "inventaire_by_lot" : "inventaire" : "inventaire";
         } else {
@@ -2366,11 +2371,11 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
         param.put("SOLDE_PRINT", optionPrint);
         param.put("ORDER_BY", orderBy);
         param.put("SUBREPORT_DIR", SUBREPORT_DIR());
-        String report = "inventaire_preparatoire";
+        String report = "inventaire_preparatoire_no_pr";
         if (autoriser("gescom_inventaire_print_with_pr")) {
             report = currentParam != null ? currentParam.getUseLotReception() ? "inventaire_preparatoire_by_lot" : "inventaire_preparatoire" : "inventaire_preparatoire";
         } else {
-            report = currentParam != null ? currentParam.getUseLotReception() ? "inventaire_preparatoire_no_pr_by_lot" : "inventaire_preparatoire_no_pr" : "inventaire_preparatoire";
+            report = currentParam != null ? currentParam.getUseLotReception() ? "inventaire_preparatoire_no_pr_by_lot" : "inventaire_preparatoire_no_pr" : "inventaire_preparatoire_no_pr";
         }
         executeReport(report, param);
     }
@@ -2950,7 +2955,7 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
                         succes = true;
                     }
                 }
-                if(succes){
+                if (succes) {
                     succes();
                 }
             }

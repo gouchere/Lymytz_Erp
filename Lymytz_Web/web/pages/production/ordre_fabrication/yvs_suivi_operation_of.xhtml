@@ -36,7 +36,7 @@
                 <p:dataTable value="#{managedOrdresF.program.nomenclature.composants}" var="comp_n" rowKey="#{comp_n.id}" rowIndexVar="idx"
                              selectionMode="single"  id="data_composant_nom_of" style="font-size: 0.9em"
                              editable="true" editMode="cell">
-                     <p:ajax event="cellEdit" listener="#{managedOrdresF.changeQuantiteMp}"  />
+                    <p:ajax event="cellEdit" listener="#{managedOrdresF.changeQuantiteMp}"  />
                     <p:column headerText="N°" width="15">
                         <span>#{idx+1}</span>
                     </p:column>
@@ -197,6 +197,8 @@
             <p:dialog header="#{lab.LP_POF_programmation}" widgetVar="dlgProgramOrdre" width="60%" style="max-height: 80%" minHeight="450"
                       position="top" >
                 <p:focus id="defaut-article_program_of" for="txt-article_program_of_2"/>
+                <p:focus id="fcs_quantite_program_of" for="txt-quantite_program_of_2"/>
+                <p:focus id="fcs_btn_add_program_of" for="btn_add_program_of"/>
                 <h:panelGrid id="form-programmation_of" columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
                     <f:facet name="header">
                         <div align="left">
@@ -223,7 +225,7 @@
                         <h:outputText value="#{lab.L_quantite}"/>  
                         <p:commandLink value="Déterminez à partir d'un autre composant" actionListener="#{managedOrdresF.loadComposantsNomenclature()}" />                                             
                         <h:inputText id="txt-article_program_of_2" value="#{managedOrdresF.program.articles.refArt}" style="color: #{pr.articles.error?'red':''}">
-                            <p:ajax event="valueChange" listener="#{managedOrdresF.searchArticleProgram()}" update="form-programmation_of"/>
+                            <p:ajax event="valueChange" listener="#{managedOrdresF.searchArticleProgram()}" update="form-programmation_of fcs_quantite_program_of"/>
                         </h:inputText>
                         <h:selectOneMenu value="#{managedOrdresF.program.nomenclature.id}" style="min-width: 140px">  
                             <f:selectItem itemValue="#{-1}" itemLabel="" noSelectionOption="true" />
@@ -235,16 +237,18 @@
                             <f:selectItems value="#{managedOrdresF.program.articles.gammes}" var="itemGam" itemValue="#{itemGam.id}" itemLabel="#{itemGam.codeRef}" />
                             <p:ajax event="valueChange" listener="#{managedOrdresF.chooseGamme()}"/>
                         </h:selectOneMenu>  
-                        <h:inputText value="#{managedOrdresF.program.quantitePrevu}" style="width: 100px;text-align: center">
+                        <h:inputText id="txt-quantite_program_of_2" value="#{managedOrdresF.program.quantitePrevu}" style="width: 100px;text-align: center">
                             <p:ajax event="valueChange" global="false"/>
                         </h:inputText>                        
                         <p:commandButton icon="ui-icon-plus" actionListener="#{managedOrdresF.addProgram()}" value="#{lab.L_ajouter}"
-                                         update="data-programmation_of form-programmation_of_f" 
-                                         title="#{lab.LP_PSO_ajouter_programme}" />
+                                         update="data-programmation_of form-programmation_of_f defaut-article_program_of" 
+                                         id="btn_add_program_of" title="#{lab.LP_PSO_ajouter_programme}" />
                     </h:panelGrid>                    
                 </h:panelGrid>
                 <p:dataTable id="data-programmation_of" value="#{managedOrdresF.programs}" var="pr" rows="10" paginatorAlwaysVisible="false"
-                             selection="single" rowKey="#{pr.id}">
+                             selection="single" rowKey="#{pr.id}"  paginator="true" rowsPerPageTemplate="5,10,15,20,25,50,100"
+                             paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                             currentPageReportTemplate="{startRecord}-{endRecord} of {totalRecords} records">
                     <p:column style="width:16px">
                         <p:rowToggler />
                     </p:column>
@@ -308,7 +312,8 @@
             <h:form prependId="false" id="formulaire_mainOrdreF" style="width: 100%; overflow-y: hidden"> 
                 <div class="part_fix">
                     <div style="font-size: 0.9em;float: left;width: 30%; ">  
-                        <p:commandButton value="#{lab.LP_PSO_demarer_of.toUpperCase()}" type="button" icon="ui-icon-extlink" onclick="dlgProgramOrdre.show()"/>                                            
+                        <p:commandButton value="#{lab.LP_PSO_demarer_of.toUpperCase()}" type="button" icon="ui-icon-extlink" onclick="dlgProgramOrdre.show()"
+                                         update=":main-programmation_of:defaut-article_program_of"/>                                            
                     </div >  
                     <div style="margin-left: 31%">
                         <p:outputPanel autoUpdate="true" id="of_statut_zone"> 

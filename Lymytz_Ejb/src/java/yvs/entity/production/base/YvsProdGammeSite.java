@@ -36,7 +36,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdGammeSite.findCOne", query = "SELECT y FROM YvsProdGammeSite y WHERE y.gamme = :gamme AND y.site = :site"),
     @NamedQuery(name = "YvsProdGammeSite.findByGamme", query = "SELECT y FROM YvsProdGammeSite y WHERE y.gamme = :gamme"),
     @NamedQuery(name = "YvsProdGammeSite.findBySite", query = "SELECT y FROM YvsProdGammeSite y WHERE y.site = :site"),
-    @NamedQuery(name = "YvsProdGammeSite.findOneGammeBySite", query = "SELECT y.gamme FROM YvsProdGammeSite y WHERE y.site = :site AND y.gamme.article=:article AND y.gamme.actif=true ORDER BY y.gamme.principal DESC"),
+    @NamedQuery(name = "YvsProdGammeSite.findOneGammeBySite", query = "SELECT y.gamme FROM YvsProdGammeSite y JOIN FETCH y.gamme LEFT JOIN FETCH y.gamme.uniteTemps WHERE y.site = :site AND y.gamme.article=:article AND y.gamme.actif=true ORDER BY y.gamme.principal DESC"),
     @NamedQuery(name = "YvsProdGammeSite.findGammeBySite", query = "SELECT DISTINCT y.gamme FROM YvsProdGammeSite y WHERE y.site = :site"),
     @NamedQuery(name = "YvsProdGammeSite.findSiteByGamme", query = "SELECT DISTINCT y.site FROM YvsProdGammeSite y WHERE y.gamme = :gamme")})
 public class YvsProdGammeSite implements Serializable {

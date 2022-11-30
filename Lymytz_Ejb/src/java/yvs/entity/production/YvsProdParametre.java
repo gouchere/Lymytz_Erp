@@ -105,7 +105,7 @@ public class YvsProdParametre implements Serializable {
     }
 
     public Integer getConverter() {
-        return converter;
+        return converter != null ? converter : 0;
     }
 
     public void setConverter(Integer converter) {

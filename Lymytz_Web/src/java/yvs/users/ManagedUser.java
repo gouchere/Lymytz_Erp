@@ -1139,9 +1139,11 @@ public class ManagedUser extends Managed<Users, YvsUsers> implements Serializabl
     }
 
     private YvsNiveauAcces findNiveauAcces(YvsUsers u) {
-        for (YvsNiveauUsers nu : u.getNiveauxAcces()) {
-            if (nu.getIdNiveau().getSociete().equals(currentAgence.getSociete())) {
-                return nu.getIdNiveau();
+        if (u.getNiveauxAcces() != null) {
+            for (YvsNiveauUsers nu : u.getNiveauxAcces()) {
+                if (nu.getIdNiveau() != null ? nu.getIdNiveau().getSociete() != null ? nu.getIdNiveau().getSociete().equals(currentAgence.getSociete()) : false : false) {
+                    return nu.getIdNiveau();
+                }
             }
         }
         return null;

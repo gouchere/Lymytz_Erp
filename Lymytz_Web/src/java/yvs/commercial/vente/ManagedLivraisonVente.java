@@ -2347,7 +2347,14 @@ public class ManagedLivraisonVente extends ManagedCommercial<DocVente, YvsComDoc
 
     public void print(YvsComDocVentes y, boolean withHeader) {
         try {
+            if (currentParamVente != null ? currentParamVente.getId() < 1 : true) {
+                currentParamVente = (YvsComParametreVente) dao.loadOneByNameQueries("YvsComParametreVente.findByAgence", new String[]{"agence"}, new Object[]{currentAgence});
+            }
             if (y != null ? y.getId() > 0 : false) {
+                if (currentParamVente != null ? (currentParamVente.getPrintDocumentWhenValide() && !y.getStatut().equals(Constantes.ETAT_VALIDE)) : false) {
+                    getErrorMessage("Le document doit être validé pour pouvoir être téléchargé");
+                    return;
+                }
                 Map<String, Object> param = new HashMap<>();
                 param.put("ID", y.getId().intValue());
                 param.put("AUTEUR", currentUser.getUsers().getNomUsers());

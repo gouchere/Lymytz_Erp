@@ -82,7 +82,7 @@ begin
 				valeur_ = 0;
 			END IF;
 		else
-			valeur_ = (select grh_get_valeur_element_dipe(regle_, header_, element_));
+			valeur_ = (select grh_get_valeur_element_dipe(element_, header_, service_, brouillon_));
 		end if;	 
 	end if;
 	return COALESCE(valeur_, 0);

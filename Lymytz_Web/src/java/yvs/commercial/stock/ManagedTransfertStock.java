@@ -87,7 +87,6 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
     private List<YvsGrhTypeCout> types;
 
     private List<CategorieComptable> categories;
-    private YvsComParametreStock currentParamStock;
 
 //    private List<YvsBaseDepots> depotsSource;
     private List<YvsBaseDepots> depotsDestination;
@@ -1384,7 +1383,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
                     }
                 }
                 //confirme le droit de transmettre
-                if (!chechAutorisationAction(1)) { 
+                if (!chechAutorisationAction(1)) {
                     return null;
                 }
             }
@@ -3696,7 +3695,14 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
 
     public void print(YvsComDocStocks y, boolean withHeader, boolean entree) {
         try {
+            if (currentParamStock != null ? currentParamStock.getId() < 1 : true) {
+                currentParamStock = (YvsComParametreStock) dao.loadOneByNameQueries("YvsComParametreStock.findByAgence", new String[]{"agence"}, new Object[]{currentAgence});
+            }
             if (y != null ? y.getId() > 0 : false) {
+                if (currentParamStock != null ? (currentParamStock.getPrintDocumentWhenValide() && (!y.getStatut().equals(Constantes.ETAT_VALIDE) && !y.getStatut().equals(Constantes.ETAT_SOUMIS))) : false) {
+                    getErrorMessage("Le document doit être validé pour pouvoir être téléchargé");
+                    return;
+                }
                 Map<String, Object> param = new HashMap<>();
                 param.put("ID", y.getId().intValue());
                 param.put("AUTEUR", currentUser.getUsers().getNomUsers());
