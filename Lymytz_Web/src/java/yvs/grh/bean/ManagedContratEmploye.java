@@ -1009,7 +1009,7 @@ public class ManagedContratEmploye extends Managed<ContratEmploye, YvsGrhContrat
 
     public void pagineResult(boolean avancer) {
         initForm = false;
-        loadAllContrat(true);
+        loadAllContrat(avancer);
     }
 
     public void loadAllCalendrier() {

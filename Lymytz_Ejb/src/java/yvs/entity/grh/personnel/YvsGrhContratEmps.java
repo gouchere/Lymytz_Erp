@@ -5,10 +5,12 @@
  */
 package yvs.entity.grh.personnel;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import yvs.entity.grh.contrat.YvsGrhElementAdditionel;
 import yvs.entity.grh.param.YvsCalendrier;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
@@ -29,6 +31,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+import javax.xml.bind.annotation.XmlTransient;
 import yvs.entity.base.YvsBaseModeReglement;
 import yvs.entity.compta.YvsBaseCaisse;
 import yvs.entity.grh.contrat.YvsGrhContratSuspendu;
@@ -464,6 +467,20 @@ public class YvsGrhContratEmps implements Serializable {
 
     public void setTypeTranche(String typeTranche) {
         this.typeTranche = typeTranche;
+    }
+
+    @XmlTransient
+    @JsonIgnore
+    public boolean isEndEmbauche() {
+        if (!getActif()) {
+            return false;
+        }
+        Calendar begin = Calendar.getInstance();
+        Calendar end = Calendar.getInstance();
+        if (finEssaie != null) {
+            end.setTime(finEssaie);
+        }
+        return end.before(begin);
     }
 
     @Override

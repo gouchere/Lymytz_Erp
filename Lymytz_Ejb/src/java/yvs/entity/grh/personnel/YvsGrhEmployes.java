@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import yvs.dao.services.DateTimeAdapter;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.util.Calendar;
 import yvs.entity.grh.activite.YvsGrhCongeEmps;
 import yvs.entity.grh.activite.YvsContactsEmps;
 import yvs.entity.grh.taches.YvsGrhRegleTache;
@@ -716,6 +717,18 @@ public class YvsGrhEmployes implements Serializable {
 
     public void setAdresse2(String adresse2) {
         this.adresse2 = adresse2;
+    }
+
+    @XmlTransient
+    @JsonIgnore
+    public boolean isEndEmbauche() {
+        if (!getActif()) {
+            return false;
+        }
+        if (contrat != null) {
+            return contrat.isEndEmbauche();
+        }
+        return false;
     }
 
     @XmlTransient
