@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml" 
+                xmlns:h="http://java.sun.com/jsf/html" 
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Check-Up', 'modParam', 'smenCheckUp', true, managedCheckUp)}
+    </ui:define>  
+    <ui:define name="contents">
+        #{managedCheckUp.loadAll()}
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('checkup');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+        </script> 
+        <h:form prependId="false" id="main-checkup">
+            <div class="part_scroll">
+                <div class="yvs_form_checkup" style="margin: auto; background: white;">
+                    <p:dataTable id="table_checkup" value="#{managedCheckUp.result}" var="item" rowKey="#{item.id}" rowIndexVar="idx">
+                        <p:column headerText="N°" width="20" style="text-align: center">
+                            #{idx+1}
+                        </p:column>
+                        <p:column headerText="Auteur" width="200">
+                            <h:outputText value="#{managedCheckUp.getAuteurName(item.author)}"/>
+                        </p:column>
+                        <p:column headerText="Table">
+                            <h:outputText value="#{item.nameTable}"/>
+                            <!--<h:outputText value="#{managedCheckUp.getTableName(item.nameTable)}"/>-->
+                        </p:column>
+                        <p:column headerText="Action" width="100" style="text-align: center">
+                            <h:outputText value="#{item.actionName}"/>
+                        </p:column>
+                        <p:column headerText="Source" width="50" style="text-align: center">
+                            <h:outputText value="#{item.idSource}"/>
+                        </p:column>
+                        <p:column headerText="Date" width="100" style="text-align: center">
+                            <h:outputText value="#{item.dateSave}" converter="DDMMYYYY"/>
+                        </p:column>
+                    </p:dataTable>
+                    <p:outputPanel autoUpdate="true" style="float: right;" layout="block" >
+                        <p:commandButton actionListener="#{managedCheckUp.paginer(false)}"  update="table_checkup" icon="ui-icon-circle-triangle-w" disabled="#{managedCheckUp.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedCheckUp.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedCheckUp.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="valueChange" listener="#{managedCheckUp.gotoPagePaginator()}" update="table_checkup"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedCheckUp.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedCheckUp.paginer(true)}"  update="table_checkup" icon="ui-icon-circle-triangle-e" disabled="#{managedCheckUp.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedCheckUp.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedCheckUp.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedCheckUp.paginations}"/>
+                            <p:ajax event="valueChange"  update="table_checkup"  />
+                        </p:selectOneMenu>
+                    </p:outputPanel> 
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" >
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative" width="20" height="20"
+                            styleClass="img_slide" title="cacher"/>                    
+            <div class="zone_find">
+                <h:panelGrid id="blog_search_checkup" columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="5" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                        <h:panelGroup>
+                            <h:selectBooleanCheckbox value="#{managedCheckUp.dateSearch}" style="float: left;margin-left: 5px">
+                                <p:ajax event="valueChange" listener="#{managedCheckUp.addParamDate()}" update=":main-checkup:table_checkup blog_date_search_checkup"/>
+                            </h:selectBooleanCheckbox>
+                            <h:outputText value="Date" />
+                        </h:panelGroup>
+                        <h:outputText value="Auteur" />
+                        <h:outputText value="Table" />
+                        <h:outputText value="Action" />
+                        <h:outputText value="Source" />
+                        <h:panelGroup id="blog_date_search_checkup">
+                            <p:calendar value="#{managedCheckUp.dateDebutSearch}" disabled="#{!managedCheckUp.dateSearch}" navigator="true" pattern="dd-MM-yyyy" size="10" style="font-size: 0.8em">
+                                <p:ajax event="valueChange" listener="#{managedCheckUp.addParamDate()}" update=":main-checkup:table_checkup"/>
+                            </p:calendar>
+                            <p:spacer width="5px" style="background: black"/>
+                            <p:calendar value="#{managedCheckUp.dateDebutSearch}" disabled="#{!managedCheckUp.dateSearch}" navigator="true" pattern="dd-MM-yyyy" size="10" style="font-size: 0.8em">
+                                <p:ajax event="valueChange" listener="#{managedCheckUp.addParamDate()}" update=":main-checkup:table_checkup"/>
+                            </p:calendar>
+                        </h:panelGroup>
+                        <h:inputText value="#{managedCheckUp.userSearch}">
+                            <p:ajax event="valueChange" listener="#{managedCheckUp.addParamUsers()}" update=":main-checkup:table_checkup"/>
+                        </h:inputText> 
+                        <h:inputText value="#{managedCheckUp.tableSearch}">
+                            <p:ajax event="valueChange" listener="#{managedCheckUp.addParamtable()}" update=":main-checkup:table_checkup"/>
+                        </h:inputText> 
+                        <h:selectOneMenu value="#{managedCheckUp.actionSearch}" style="min-width: 120px">
+                            <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/> 
+                            <f:selectItem itemLabel="INSERTION" itemValue="INSERT"/> 
+                            <f:selectItem itemLabel="MODIFICATION" itemValue="UPDATE"/>
+                            <f:selectItem itemLabel="SUPPRESSION" itemValue="DELETE"/>
+                            <p:ajax event="valueChange" listener="#{managedCheckUp.addParamAction()}" update=":main-checkup:table_checkup"/>
+                        </h:selectOneMenu> 
+                        <pe:inputNumber value="#{managedCheckUp.sourceSearch}" decimalPlaces="0">
+                            <p:ajax event="valueChange" listener="#{managedCheckUp.addParamSource()}" update=":main-checkup:table_checkup"/>
+                        </pe:inputNumber> 
+                    </h:panelGrid>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

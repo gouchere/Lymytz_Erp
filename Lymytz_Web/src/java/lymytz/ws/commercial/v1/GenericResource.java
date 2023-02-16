@@ -394,7 +394,7 @@ public class GenericResource extends lymytz.ws.commercial.GenericResource {
                     entity.setStatut(Constantes.ETAT_EDITABLE);
                     entity.setStatutLivre(Constantes.ETAT_ATTENTE);
                     entity.setStatutRegle(Constantes.ETAT_ATTENTE);
-//Enregistre la facture et son contenu
+                    //Enregistre la facture et son contenu
                     ResultatAction<YvsComDocVentes> result = impl.save(entity);
                     if (result != null ? result.isResult() : false) {
                         entity.setId(result.getIdEntity());
@@ -626,7 +626,10 @@ public class GenericResource extends lymytz.ws.commercial.GenericResource {
             if (impl != null) {
                 dao.setMontantTotalDoc(entity.getVente(), 0);
                 if (entity.getVente().getMontantResteAPlanifier() < entity.getMontant()) {
-                    return null;
+                    String message = (entity.getVente().getMontantResteAPlanifier() > 0 ? "Le montant du reglement est supérieur au reste à planifé sur la facture " + entity.getVente().getNumDoc() : "La facture " + entity.getVente().getNumDoc() + " est déja réglée à sa totalité");
+                    ResultatAction result = new ResultatAction<>(false, entity, 0L, message);
+                    result.setContinu(false);
+                    return result;
                 }
                 ResultatAction result = rebuild(impl.save(entity));
                 if (entity.getId() > 0) {
@@ -1475,7 +1478,7 @@ public class GenericResource extends lymytz.ws.commercial.GenericResource {
                 entity.getContenus().clear();
 
                 ResultatAction<YvsComDocStocks> result = impl.save(entity);
-                if (result != null ? result.isResult() : false) { 
+                if (result != null ? result.isResult() : false) {
                     entity.setId(result.getIdEntity());
                     for (YvsComContenuDocStock c : contenus) {
                         System.err.println(" ...Save contenu....");

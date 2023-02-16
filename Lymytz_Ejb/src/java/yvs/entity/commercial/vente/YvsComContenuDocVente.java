@@ -34,6 +34,7 @@ import yvs.dao.salaire.service.Constantes;
 import yvs.dao.services.DateTimeAdapter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import yvs.annotation.Descriptor;
 import yvs.dao.YvsEntity;
 import yvs.dao.services.DocVenteContenus;
 import yvs.entity.base.YvsBaseConditionnement;
@@ -51,6 +52,7 @@ import yvs.entity.users.YvsUsersAgence;
  */
 @Entity
 @Table(name = "yvs_com_contenu_doc_vente")
+@Descriptor(name = "Contenu Facture de vente")
 @NamedQueries({
     @NamedQuery(name = "YvsComContenuDocVente.findAll", query = "SELECT y FROM YvsComContenuDocVente y WHERE y.docVente.enteteDoc.creneau.creneauPoint.point.agence.societe = :societe"),
     @NamedQuery(name = "YvsComContenuDocVente.findById", query = "SELECT y FROM YvsComContenuDocVente y WHERE y.id = :id"),

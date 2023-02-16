@@ -35,7 +35,7 @@ import yvs.entity.users.YvsUsersAgence;
 @Entity
 @Table(name = "yvs_compta_plan_abonnement")
 @NamedQueries({
-    @NamedQuery(name = "YvsComptaPlanAbonnement.findAll", query = "SELECT y FROM YvsComptaPlanAbonnement y JOIN FETCH y.compte WHERE y.societe=:societe"),
+    @NamedQuery(name = "YvsComptaPlanAbonnement.findAll", query = "SELECT y FROM YvsComptaPlanAbonnement y LEFT JOIN FETCH y.compte WHERE y.societe=:societe"),
     @NamedQuery(name = "YvsComptaPlanAbonnement.findById", query = "SELECT y FROM YvsComptaPlanAbonnement y WHERE y.id = :id"),
     @NamedQuery(name = "YvsComptaPlanAbonnement.findByReferencePlan", query = "SELECT y FROM YvsComptaPlanAbonnement y WHERE y.referencePlan = :referencePlan"),
     @NamedQuery(name = "YvsComptaPlanAbonnement.findByTypeValeur", query = "SELECT y FROM YvsComptaPlanAbonnement y WHERE y.typeValeur = :typeValeur"),
