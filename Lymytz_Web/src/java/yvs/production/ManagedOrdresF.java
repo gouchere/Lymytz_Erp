@@ -3138,8 +3138,8 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         if (page.equals("SUIVI")) {
             if (paramProduction != null) {
                 dateDebut = yvs.dao.salaire.service.Constantes.givePrevOrNextDate(new Date(), -paramProduction.getLimiteVuOf());
-            }else{
-                dateDebut=new Date(); 
+            } else {
+                dateDebut = new Date();
             }
             dateFin = new Date();
             date_ = true;
@@ -5404,15 +5404,15 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         if (of.getQuantitePrevu() <= 0) {
             programs.remove(of);
         }
+        //parcours la nomenclature du produit et ajoute le sous composant...
+        List<YvsProdComposantNomenclature> lc = dao.loadListTableByNameQueries("YvsProdComposantNomenclature.findByNomenclature", new String[]{"nomenclature"}, new Object[]{new YvsProdNomenclature(of.getNomenclature().getId())});
+        List<YvsProdComposantOF> l = calculBesoins(lc, UtilProd.buildBeanNomenclature(of.getNomenclature(), currentUser), of, true);
+        of.setListComposantOf(l);
+        int index = programs.indexOf(of);
+        if (index > -1) {
+            programs.set(index, of);
+        }
         if (of.isGenerateOfSousProduit()) {
-            //parcours la nomenclature du produit et ajoute le sous composant...
-            List<YvsProdComposantNomenclature> lc = dao.loadListTableByNameQueries("YvsProdComposantNomenclature.findByNomenclature", new String[]{"nomenclature"}, new Object[]{new YvsProdNomenclature(of.getNomenclature().getId())});
-            List<YvsProdComposantOF> l = calculBesoins(lc, UtilProd.buildBeanNomenclature(of.getNomenclature(), currentUser), of, true);
-            of.setListComposantOf(l);
-            int index = programs.indexOf(of);
-            if (index > -1) {
-                programs.set(index, of);
-            }
             Long id;
             YvsProdComposantNomenclature cn;
             boolean sousProduit;
