@@ -26,6 +26,7 @@ public class ParametreProd implements Serializable {
     private boolean closeDeclAuto;
     private boolean numCmdeRequis;
     private boolean declarationProportionnel;
+    private boolean declareWhenFinishOf;
     private int limiteVuOf = 1;
     private int limiteCreateOf = 1;
     private String valoriserBy = "V";
@@ -125,6 +126,14 @@ public class ParametreProd implements Serializable {
 
     public void setConverterPF(int converterPF) {
         this.converterPF = converterPF;
+    }
+
+    public boolean isDeclareWhenFinishOf() {
+        return declareWhenFinishOf;
+    }
+
+    public void setDeclareWhenFinishOf(boolean declareWhenFinishOf) {
+        this.declareWhenFinishOf = declareWhenFinishOf;
     }
 
     @Override

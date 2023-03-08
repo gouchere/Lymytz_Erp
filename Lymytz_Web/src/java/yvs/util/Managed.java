@@ -5194,6 +5194,21 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
         return date;
     }
 
+    public Date timestampToDate(Date date, Date time) {
+        try {
+            Calendar c_date = dateToCalendar(date);
+            Calendar c_time = dateToCalendar(time);
+            c_date.set(Calendar.HOUR_OF_DAY, c_time.get(Calendar.HOUR_OF_DAY));
+            c_date.set(Calendar.MINUTE, c_time.get(Calendar.MINUTE));
+            c_date.set(Calendar.SECOND, 0);
+            c_date.set(Calendar.MILLISECOND, 0);
+            return c_date.getTime();
+        } catch (Exception ex) {
+            Logger.getLogger(Managed.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return date;
+    }
+
     public String giveNameSousModule(String module) {
         String re = "";
         switch (module) {

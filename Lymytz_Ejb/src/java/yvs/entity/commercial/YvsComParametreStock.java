@@ -68,6 +68,8 @@ public class YvsComParametreStock extends YvsEntity implements Serializable {
     private Integer jourAnterieur;
     @Column(name = "taille_code_ration")
     private Integer tailleCodeRation;
+    @Column(name = "marge_time_fiche_ration")
+    private Integer margeTimeFicheRation;
     @Column(name = "print_document_when_valide")
     private Boolean printDocumentWhenValide;
     @JoinColumn(name = "author", referencedColumnName = "id")
@@ -138,6 +140,14 @@ public class YvsComParametreStock extends YvsEntity implements Serializable {
 
     public void setJourAnterieur(Integer jourAnterieur) {
         this.jourAnterieur = jourAnterieur;
+    }
+
+    public Integer getMargeTimeFicheRation() {
+        return margeTimeFicheRation != null ? margeTimeFicheRation : 6;
+    }
+
+    public void setMargeTimeFicheRation(Integer margeTimeFicheRation) {
+        this.margeTimeFicheRation = margeTimeFicheRation;
     }
 
     public Integer getTailleCodeRation() {

@@ -34,6 +34,7 @@ public class ParametreCom implements Serializable {
     private int jourAnterieur;
     private int nbFicheMax;
     private int tailleCodeRation;
+    private int margeTimeFicheRation = 6;
     private Date dateSave = new Date();
     private boolean selectActif, update;
     private Journaux journal = new Journaux();
@@ -108,6 +109,14 @@ public class ParametreCom implements Serializable {
 
     public void setGiveBonusInStatus(String giveBonusInStatus) {
         this.giveBonusInStatus = giveBonusInStatus;
+    }
+
+    public int getMargeTimeFicheRation() {
+        return margeTimeFicheRation;
+    }
+
+    public void setMargeTimeFicheRation(int margeTimeFicheRation) {
+        this.margeTimeFicheRation = margeTimeFicheRation;
     }
 
     public int getJourAnterieur() {

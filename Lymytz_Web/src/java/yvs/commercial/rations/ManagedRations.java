@@ -971,6 +971,23 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
             getErrorMessage("Cette date est invalide !");
             return false;
         }
+        Date begin = timestampToDate(selectedDoc.getDateFiche(), selectedDoc.getCreneauHoraire().getTranche().getHeureDebut());
+        Date end = timestampToDate(selectedDoc.getDateFiche(), selectedDoc.getCreneauHoraire().getTranche().getHeureFin());
+        if (end.before(begin)) {
+            Calendar debut = dateToCalendar(end);
+            debut.add(Calendar.DATE, 1);
+            begin = debut.getTime();
+        } else {
+            begin = end;
+        }
+        Calendar debut = dateToCalendar(begin);
+        debut.add(Calendar.HOUR_OF_DAY, currentParamStock.getMargeTimeFicheRation());
+        begin = debut.getTime();
+        if ((begin != null) ? (begin.before(new Date())) : true) {
+            getErrorMessage("Vous ne pouvez plus prendre dans cette fiche! (delai dépassé)");
+            return false;
+        }
+
         if (selectedRation.getPersonnel() != null ? (selectedRation.getPersonnel().getCodeRation() != null
                 ? selectedRation.getPersonnel().getCodeRation().trim().length() < 1 : true) : true) {
             getErrorMessage("Ce personnel n'a pas de code ration !");
@@ -1000,6 +1017,12 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
         if (!ration.getCodeRation().equals(selectedRation.getPersonnel().getCodeRation())) {
             getErrorMessage("Ce code de ration ne correspond pas à celui du tiers spécifier !");
             return false;
+        }
+        if (ration.getArticle().isRequiereLot()) {
+            if ((ration.getLot() != null ? ration.getLot().getId() < 1 : true) && (ration.getLots() != null ? ration.getLots().isEmpty() : true)) {
+                getErrorMessage("Un numéro de lot est requis pour cet article dans le dépôt");
+                return false;
+            }
         }
         if (ration.getArticle().isRequiereLot()) {
             if ((ration.getLot() != null ? ration.getLot().getId() < 1 : true) && (ration.getLots() != null ? ration.getLots().isEmpty() : true)) {

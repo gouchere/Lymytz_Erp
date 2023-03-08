@@ -195,6 +195,7 @@ public class ManagedParametre extends ManagedCommercial<Parametre, YvsBaseCaisse
             p.setActiveRation(y.isActiveRation());
             p.setPrintDocumentWhenValide(y.isPrintDocumentWhenValide());
             p.setCalculPr(y.isCalculPr());
+            p.setMargeTimeFicheRation(y.getMargeTimeFicheRation());
             p.setAgence(currentAgence);
             p.setDateSave(y.getDateSave());
             p.setDateUpdate(new Date());

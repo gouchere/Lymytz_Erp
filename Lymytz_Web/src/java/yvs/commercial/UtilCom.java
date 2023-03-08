@@ -376,6 +376,7 @@ public class UtilCom {
             p.setActiveRation(y.getActiveRation());
             p.setPrintDocumentWhenValide(y.getPrintDocumentWhenValide());
             p.setCalculPr(y.getCalculPr());
+            p.setMargeTimeFicheRation(y.getMargeTimeFicheRation());
             p.setUpdate(true);
             p.setDateSave(y.getDateSave());
         }

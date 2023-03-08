@@ -158,6 +158,7 @@ public class UtilProd {
             p.setLimiteVuOf(y.getLimiteVuOf());
             p.setCloseDeclAuto(y.getCloseDeclAuto());
             p.setDeclarationProportionnel(y.getDeclarationProportionnel());
+            p.setDeclareWhenFinishOf(y.getDeclareWhenFinishOf());
             p.setValoriserBy(y.getValoriserBy());
         }
         return p;
@@ -178,6 +179,7 @@ public class UtilProd {
             p.setCloseDeclAuto(y.isCloseDeclAuto());
             p.setDeclarationProportionnel(y.isDeclarationProportionnel());
             p.setValoriserBy(y.getValoriserBy());
+            p.setDeclareWhenFinishOf(y.isDeclareWhenFinishOf());
 
         }
         return p;

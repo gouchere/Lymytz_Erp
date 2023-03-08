@@ -65,6 +65,8 @@ public class YvsProdParametre implements Serializable {
     private Boolean numCmdeRequis;
     @Column(name = "declaration_continue")
     private Boolean declarationContinue;
+    @Column(name = "declare_when_finish_of")
+    private Boolean declareWhenFinishOf;
     @Column(name = "limite_vu_of")
     private Integer limiteVuOf;
     @Column(name = "limite_create_of")
@@ -206,6 +208,14 @@ public class YvsProdParametre implements Serializable {
 
     public void setConverterPF(Integer converterPF) {
         this.converterPF = converterPF;
+    }
+
+    public Boolean getDeclareWhenFinishOf() {
+        return declareWhenFinishOf != null ? declareWhenFinishOf : false;
+    }
+
+    public void setDeclareWhenFinishOf(Boolean declareWhenFinishOf) {
+        this.declareWhenFinishOf = declareWhenFinishOf;
     }
 
     @Override
