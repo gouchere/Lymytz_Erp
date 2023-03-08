@@ -907,9 +907,13 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public void searchArticleProgram() {
         if (program != null) {
+            program.setNomenclature(new Nomenclature());
+            program.setGamme(new GammeArticle());
             program.getArticles().setDesignation("");
             program.getArticles().setError(true);
             program.getArticles().setId(0);
+            program.getArticles().getNomenclatures().clear();
+            program.getArticles().getGammes().clear();
             String code = program.getArticles().getRefArt();
             if (code != null ? code.trim().length() > 0 : false) {
                 ManagedArticles m = (ManagedArticles) giveManagedBean("Marticle");
@@ -3552,6 +3556,12 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             //si au moins une ligne de consommation n'a pas une quantité sup. à 0, on n'enregistre aucun suivi opération
             for (YvsProdOfSuiviFlux s : l) {
                 if (s.getQuantite() > 0) {
+                    long depot = (s.getComposant().getComposant().getDepotConso() != null) ? s.getComposant().getComposant().getDepotConso().getId() : currentSession.getDepot().getId();
+                    String result = controleStock(s.getComposant().getComposant().getArticle().getId(), s.getComposant().getComposant().getUnite().getId(), depot, 0, s.getQuantite(), 0, "INSERT", "S", currentSession.getDateSession(), 0);
+                    if (result != null) {
+                        getErrorMessage("L'article '" + s.getComposant().getComposant().getArticle().getDesignation() + "' est insuffisant en stock pour effectuer cette action ou pourrait entrainer un stock négatif au " + result + " dans le dépôt " + currentSession.getDepot().getDesignation());
+                        return;
+                    }
                     continue_ = true;
                 }
             }
@@ -3571,7 +3581,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                     if (s.getQuantite() > 0) {
                         suiviFlux.setQuantite(s.getQuantite());
                         selectedFlux = s.getComposant();
-                        re = saveNewSuiviFluxComposant(true, operation);
+                        re = saveNewSuiviFluxComposant(true, operation, false);
                     }
                     s.setQuantite(0d);
                 }
@@ -3677,7 +3687,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public boolean saveNewSuiviFluxComposant(boolean all) {
         if (suiviOperation.getId() > 0) {
-            return saveNewSuiviFluxComposant(all, copyEntitySuiviOperation());
+            return saveNewSuiviFluxComposant(all, copyEntitySuiviOperation(), true);
         } else {
             getErrorMessage("Aucune opération en cour...");
         }
@@ -3704,6 +3714,10 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
     }
 
     public boolean saveNewSuiviFluxComposant(boolean all, YvsProdSuiviOperations operation) {
+        return saveNewSuiviFluxComposant(all, operation, true);
+    }
+    
+    public boolean saveNewSuiviFluxComposant(boolean all, YvsProdSuiviOperations operation, boolean controlStock) {
         if (currentSession != null ? Util.asLong(currentSession.getId()) : false) {
             if (selectedOp != null ? selectedOp.getStatutOp().equals(Constantes.ETAT_ENCOURS) : false) {
                 if (operation != null) {
@@ -3723,7 +3737,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                                 return false;
                             }
                         }
-                        if (selectedFlux.getId() > 0 ? selectedFlux.getSens().equals(Constantes.STOCK_SENS_SORTIE) : true) {
+                        if (controlStock && selectedFlux.getId() > 0 ? selectedFlux.getSens().equals(Constantes.STOCK_SENS_SORTIE) : true) {
                             long depot = (selectedFlux.getComposant().getDepotConso() != null) ? selectedFlux.getComposant().getDepotConso().getId() : currentSession.getDepot().getId();
                             String result = controleStock(selectedFlux.getComposant().getArticle().getId(), selectedFlux.getComposant().getUnite().getId(), depot, 0, suiviFlux.getQuantite(), 0, "INSERT", "S", currentSession.getDateSession(), 0);
                             if (result != null) {

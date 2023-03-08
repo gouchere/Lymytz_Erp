@@ -1358,9 +1358,11 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         updateParametreToSite(false);
         if (siteSearch > 0) {
             p = new ParametreRequete("y.site", "site", new YvsProdSiteProduction(siteSearch), "=", "AND");
-            updateParametreToSite(true);
         }
         paginator.addParam(p);
+        if (siteSearch > 0) {
+            updateParametreToSite(true);
+        }
         loadAll(true, true);
     }
 
@@ -1380,9 +1382,9 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
                 ParametreRequete p = paginator.getParams().get(i);
                 if (!p.getParamNome().equals("site")) {
                     if (bySite) {
-                        p.setAttribut(p.getAttribut().replace("y.", "y.nomenclature."));
+                        p.setAttribut(p.getAttribut() != null ? p.getAttribut().replace("y.", "y.nomenclature.") : "y.nomenclature.site");
                     } else {
-                        p.setAttribut(p.getAttribut().replace("y.nomenclature.", "y."));
+                        p.setAttribut(p.getAttribut() != null ? p.getAttribut().replace("y.nomenclature.", "y.") : "y.site");
                     }
                     paginator.getParams().set(i, p);
                 }
