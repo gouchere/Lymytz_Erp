@@ -127,9 +127,12 @@ public class YvsProdComposantNomenclature implements Serializable {
     private Double pr;
     @Transient
     private Double valeur;
+    @Transient
+    private List<YvsProdComposantNomenclature> subCsomposants;
 
     public YvsProdComposantNomenclature() {
         composants = new ArrayList<>();
+        subCsomposants = new ArrayList<>();
     }
 
     public YvsProdComposantNomenclature(Long id) {
@@ -339,6 +342,14 @@ public class YvsProdComposantNomenclature implements Serializable {
 
     public void setFreeUse(Boolean freeUse) {
         this.freeUse = freeUse;
+    }
+
+    public List<YvsProdComposantNomenclature> getSubCsomposants() {
+        return subCsomposants;
+    }
+
+    public void setSubCsomposants(List<YvsProdComposantNomenclature> subCsomposants) {
+        this.subCsomposants = subCsomposants;
     }
 
     @Override

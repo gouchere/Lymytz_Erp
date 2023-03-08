@@ -1883,7 +1883,8 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
             List<YvsProdComposantNomenclature> l = new ArrayList<>(nomenclature.getComposants());
             for (YvsProdComposantNomenclature c : l) {
                 tempComposant.clear();
-                nomenclature.getComposants().addAll((idx), new ArrayList<>(displaySubComposant(c)));
+//                nomenclature.getComposants().addAll((idx), new ArrayList<>(displaySubComposant(c)));
+                c.setSubCsomposants(new ArrayList<>(displaySubComposant(c)));
                 idx = idx + tempComposant.size() + 1;
             }
         } else {

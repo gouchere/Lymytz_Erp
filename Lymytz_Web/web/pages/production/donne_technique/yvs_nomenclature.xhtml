@@ -739,11 +739,14 @@
                                     <p:dataTable id="data_composant_nomenclature" value="#{nomenclature.composants}" var="comp" rowKey="#{comp.id}" 
                                                  rowIndexVar="yIdx" selectionMode="single" editMode="cell" editable="true">
                                         <p:ajax event="rowSelect" listener="#{managedNomenclature.loadOnViewComposant}" 
-                                                oncomplete="slideZoneDown()"
-                                                update=":main_nomenclature:form_composant_nomenclature"/>
+                                                oncomplete="slideZoneDown()" update=":main_nomenclature:form_composant_nomenclature"/>
                                         <p:ajax event="rowUnselect" global="false" listener="#{managedNomenclature.unLoadOnViewComposant}" oncomplete="slideZoneUp()"
                                                 update=":main_nomenclature:form_composant_nomenclature"/>
                                         <p:ajax event="cellEdit" global="false" listener="#{managedNomenclature.updateComposantNomenclature}"  />
+                                        <p:ajax event="rowToggle" global="false"/> 
+                                        <p:column style="width:16px" >
+                                            <p:rowToggler rendered="#{comp.subCsomposants.size() gt 0}"/>
+                                        </p:column>
                                         <p:column headerText="N°" width="25" styleClass="line_light_#{comp.id lt 0}">
                                             <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{comp.new_}"/>
                                             <span>#{yIdx+1}</span>
@@ -854,6 +857,58 @@
                                             <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_composant_nomenclature" type="button"
                                                              rendered="#{comp.id gt 0}"/>
                                         </p:column> 
+                                        <p:rowExpansion >
+                                            <p:dataTable value="#{comp.subCsomposants}" var="prc" rendered="#{comp.subCsomposants.size() gt 0}">
+                                                <p:column headerText="#{lab.L_article}" width="200" styleClass="line_light_#{prc.id lt 0}">
+                                                    [<span style="font-weight: bold">#{prc.article.refArt}</span>]
+                                                    <span>#{prc.article.designation}</span>
+                                                    <h:outputText title="#{lab.LP_PN_arrondi}" value="#{prc.modeArrondi}" styleClass="style_statut" style="float: right"
+                                                                  rendered="#{prc.id gt 0}"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_unite}" width="50" style="text-align: center" styleClass="line_light_#{prc.id lt 0}">
+                                                    <span title="#{prc.unite.unite.libelle}">#{prc.unite.unite.reference}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_quantite}" width="100" style="text-align: right" styleClass="line_light_#{prc.id lt 0}">                                                
+                                                    <h:outputText value="#{managedNomenclature.giveQuantite(comp)}" converter="#{managedNomenclature.cproduction}" />
+                                                </p:column>
+                                                <p:column headerText="#{lab.LP_PN_taux}" style="text-align: right;" width="90" styleClass="line_light_#{prc.id lt 0}">                                                
+                                                    <h:panelGroup rendered="#{prc.composantLie.id gt 0}" style="float: right; margin-left: 10px">
+                                                        %
+                                                    </h:panelGroup> 
+                                                    <h:outputText rendered="#{prc.composantLie.id gt 0}" value="#{prc.quantite}" converter="#{managedNomenclature.cproduction}" style="float: right"/>
+                                                    <h:outputText rendered="#{prc.composantLie.id le 0}" value="-" style="float: right"/>                                           
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_reference}" width="100" styleClass="line_light_#{prc.id lt 0}">                                                
+                                                    <span title="#{prc.composantLie.article.designation}">#{prc.composantLie.article.refArt}</span>
+                                                </p:column>
+                                                <p:column headerText="Pr" width="100" style="text-align: right;" styleClass="line_light_#{prc.id lt 0}">                                                
+                                                    <h:outputText value="#{prc.pr}" converter="DNS" />
+                                                </p:column>
+                                                <p:column headerText="#{lab.LP_PN_valeur}" width="100" style="text-align: right;" styleClass="line_light_#{prc.id lt 0}">                                                
+                                                    <h:outputText value="#{prc.valeur}" converter="DNS" />
+                                                    <h:graphicImage library="icones" name="favoris.png" width="10" height="10" style="float: right" rendered="#{prc.insideCout and prc.id gt 0}"
+                                                                    title="#{prc.insideCout?'Participe au calcul du coût':'Exclut du calcul des coûts'}"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LP_PN_coefficient}" style="text-align: right;" width="80" styleClass="line_light_#{prc.id lt 0}">
+                                                    <h:outputText value="#{prc.coefficient}" converter="DNS" />
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_type}" style="text-align: center;" width="25" styleClass="line_light_#{prc.id lt 0}">
+                                                    <h:graphicImage library="img/icones" name="#{(prc.type ne constantes.PROD_OP_TYPE_COMPOSANT_NORMAL )?'in.png':'out.png'}"
+                                                                    width="15" height="15" title="#{(prc.type == constantes.PROD_OP_TYPE_COMPOSANT_NORMAL )?'NORMAL':'SOUS-PRODUIT'}"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LP_PN_stock}." style="text-align: center;" width="30" styleClass="line_light_#{prc.id lt 0}">
+                                                    <h:graphicImage library="img" name="#{(prc.stockable)?'vu.png':'vu_non.png'}" width="15" height="15" 
+                                                                    title="#{(prc.stockable)?'Stockable':'Non stockable'}"/>
+                                                </p:column>
+                                                <p:column headerText="Alt." style="text-align: center;" width="35" styleClass="line_light_#{prc.id lt 0}">
+                                                    <h:graphicImage library="icones" name="#{(prc.alternatif)?'alternatif.png':'lock.png'}" width="20" height="20"
+                                                                    title="#{(prc.alternatif)?'Composant alternatif':'Composant obligatoire'}"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_actif}" style="text-align: center;" width="30" styleClass="line_light_#{prc.id lt 0}">
+                                                    <h:graphicImage library="icones" name="#{(prc.actif)?'i_masque.png':'i_masquer_non.png'}" width="20" title="#{(prc.actif)?'Actif':'Désactiver'}"/>
+                                                </p:column>
+                                            </p:dataTable>
+                                        </p:rowExpansion>
                                         <p:column width="20" style="text-align: center" styleClass="line_light_#{comp.id lt 0}">
                                             <f:facet name="header">
                                                 <h:selectBooleanCheckbox styleClass="chek_all_line_composant_nomenclature" value="false"
