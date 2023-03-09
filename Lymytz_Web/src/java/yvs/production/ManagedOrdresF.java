@@ -878,6 +878,14 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         this.displayColFlux = displayColFlux;
     }
 
+    public YvsProdParametre getParamProduction() {
+        return paramProduction;
+    }
+
+    public void setParamProduction(YvsProdParametre paramProduction) {
+        this.paramProduction = paramProduction;
+    }
+
     @Override
     public void loadAll() {
 
@@ -2317,7 +2325,13 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                             update("form_declaration");
                         }
                         closeDialog("dlgEditFlux");
-                        openDialog("dlgDeclaration");
+                        if (paramProduction.getDeclareWhenFinishOf()) {
+                            if (declaration.getQuantite() > 0) {
+                                saveDeclaration(false);
+                            }
+                        } else {
+                            openDialog("dlgDeclaration");
+                        }
                         return true;
                     }
                 }
@@ -2356,6 +2370,20 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             } else {
                 item.setQuantite(fc.getQuantiteResteFlux());
                 item.setQuantitePerdue(fc.getQuantitePerdue());
+            }
+            if (paramProduction.getDeclareWhenFinishOf()) {
+                if (!fc.getSens().equals(Constantes.STOCK_SENS_NEUTRE)) {
+                    item.setQuantite(fc.getQuantite() * qteADeclare / ordre.getQuantitePrevu());
+                } else {
+                    // récupère la quantité généré à l'étape précédente
+                    YvsProdOperationsOF prevOp = findNextOpOder(fc.getOperation(), false);
+                    if (prevOp != null) {
+                        //récupère les qté
+                        Double qteOpe = (Double) dao.loadObjectByNameQueries("YvsProdOfSuiviFlux.findByOp", new String[]{"operation"}, new Object[]{fc.getOperation()});
+                        qteOpe = qteOpe != null ? qteOpe : 0;
+                        item.setQuantite(qteOpe);
+                    }
+                }
             }
             selectedFlux.getListeSuiviFlux().add(item);
         }
@@ -3594,14 +3622,20 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                     }
                 }
                 //Si l'opération en cours est la dernière, on ouvre l'interface des déclarations
-                if (ordre.getListOperationsOf().indexOf(selectedOf) == (ordre.getListOperationsOf().size() - 1)) {
+                if (isLastOperation(selectedOp)) {
                     if (!ordre.getStatutDeclaration().equals(Constantes.ETAT_TERMINE)) {
                         resetDeclaration();
                         if (qteADeclare > 0) {
                             declaration.setQuantite(qteADeclare);
                             update("form_declaration");
                         }
-                        openDialog("dlgDeclaration");
+                        if (paramProduction.getDeclareWhenFinishOf()) {
+                            if (declaration.getQuantite() > 0) {
+                                saveDeclaration(false);
+                            }
+                        } else {
+                            openDialog("dlgDeclaration");
+                        }
                     }
                 }
 
@@ -3716,7 +3750,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
     public boolean saveNewSuiviFluxComposant(boolean all, YvsProdSuiviOperations operation) {
         return saveNewSuiviFluxComposant(all, operation, true);
     }
-    
+
     public boolean saveNewSuiviFluxComposant(boolean all, YvsProdSuiviOperations operation, boolean controlStock) {
         if (currentSession != null ? Util.asLong(currentSession.getId()) : false) {
             if (selectedOp != null ? selectedOp.getStatutOp().equals(Constantes.ETAT_ENCOURS) : false) {
@@ -4494,7 +4528,11 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                     ordre.setStatutDeclaration(Constantes.ETAT_TERMINE);
                     selectedOf.setQuantite(ordre.getQuantitePrevu());
                 } else {
-                    openDialog("dlgConfirmFinAllOp");
+                    if (paramProduction.getDeclareWhenFinishOf()) {
+                        finishOperation(true);
+                    } else {
+                        openDialog("dlgConfirmFinAllOp");
+                    }
                     if (transfertOf) {
                         transfertAllProd();
                     }
@@ -4519,7 +4557,11 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 ordre.setStatutDeclaration(Constantes.ETAT_TERMINE);
                 selectedOf.setQuantite(ordre.getQuantitePrevu());
             } else {
-                openDialog("dlgConfirmFinAllOp");
+                if (paramProduction.getDeclareWhenFinishOf()) {
+                    finishOperation(true);
+                } else {
+                    openDialog("dlgConfirmFinAllOp");
+                }
                 if (transfertOf) {
                     transfertAllProd();
                 }
@@ -5153,7 +5195,15 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             }
             //Cherche un doc de transfert entre les deux dépôt à cette date et au créneau
             YvsComCreneauDepot crSrc = (YvsComCreneauDepot) dao.loadOneByNameQueries("YvsComCreneauDepot.findByTrancheDepot", new String[]{"tranche", "depot"}, new Object[]{new YvsGrhTrancheHoraire(declaration.getSessionOf().getTranche().getId()), new YvsBaseDepots(declaration.getSessionOf().getDepot().getId())});
+            if ((crSrc != null) ? crSrc.getId() < 1 : true) {
+                getErrorMessage("Vous devez specifier le créneau source");
+                return;
+            }
             YvsComCreneauDepot crDest = (YvsComCreneauDepot) dao.loadOneByNameQueries("YvsComCreneauDepot.findByTrancheDepot", new String[]{"tranche", "depot"}, new Object[]{new YvsGrhTrancheHoraire(trancheHoraire.getId()), new YvsBaseDepots(depotDest.getId())});
+            if ((crDest != null) ? crDest.getId() < 1 : true) {
+                getErrorMessage("Vous devez specifier le créneau de reception");
+                return;
+            }
             YvsComDocStocks doc = null;
             if (crDest != null && crSrc != null) {
                 doc = (YvsComDocStocks) dao.loadOneByNameQueries("YvsComDocStocks.findOneDocStockToEdit", new String[]{"statut", "statut1", "statut2", "date", "crSource", "crDest"},
@@ -5558,7 +5608,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                     YvsBaseDepots y = m.getDepots().get(idx);
                     sessionProd.setDepot(UtilCom.buildBeanDepot(y));
                     //Charge les tranches
-                    tranches = dao.loadNameQueries("YvsComCreneauHoraireUsers.findTrancheByDepot", new String[]{"depot"}, new Object[]{y});
+                    tranches = dao.loadNameQueries("YvsComCreneauHoraireUsers.findTrancheByDepotActif", new String[]{"depot"}, new Object[]{y});
                 } else {
                     sessionProd.setDepot(new Depots());
                 }
@@ -6915,6 +6965,14 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             of.setComposants(dao.loadNameQueries("YvsProdComposantOF.findByOF", new String[]{"ordre"}, new Object[]{of}));
             update("tableOF");
         }
+    }
+
+    public boolean isLastOperation(YvsProdOperationsOF y) {
+        int index = ordre.getListOperationsOf().indexOf(y);
+        if (index > -1) {
+            return index == ordre.getListOperationsOf().size() - 1;
+        }
+        return false;
     }
 
     public void openToRecond(ComposantsOf composant, YvsBaseConditionnement uniteScr) {

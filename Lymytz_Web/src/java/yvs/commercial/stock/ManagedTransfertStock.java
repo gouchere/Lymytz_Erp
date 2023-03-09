@@ -920,7 +920,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
         if (control_tranche_source) {
             if ((bean.getCreneauSource() != null) ? bean.getCreneauSource().getId() < 1 : true) {
                 if (msg) {
-                    getErrorMessage("Vous devez specifier le créneau de source");
+                    getErrorMessage("Vous devez specifier le créneau source");
                 }
                 return false;
             }

@@ -585,78 +585,103 @@
                                     </pe:inputNumber>
                                 </h:panelGrid>
                             </h:panelGrid>
-                            <p:dataTable value="#{managedOrdresF.selectedFlux.listeSuiviFlux}" var="item_es" selectionMode="single" 
-                                         rowIndexVar="line_s_" rowKey="#{item_es.id}"
-                                         id="table_suivi_edit_flux" editMode="cell" editable="true" style="font-size: 0.8em">
-                                <p:ajax event="cellEdit" global="false" process="@this"  listener="#{managedOrdresF.listenChangeQuantite}" />                                
-                                <p:column headerText="#{lab.L_reference}" width="80"  >                                    
-                                    <span style="color: #{((item_es.composant.composant.stock lt item_es.quantite) and (item_es.composant.sens eq 'S'))?'red':'inherit'}"
-                                          title="#{(item_es.composant.composant.stock lt item_es.quantite)?'Stock article insuffisant':''}">
-                                        <b >#{item_es.composant.composant.article.refArt}</b>
-                                    </span>
-                                </p:column>
-                                <p:column headerText="#{lab.LP_PN_composant}" >
-                                    <span style="color: #{((item_es.composant.composant.stock lt item_es.quantite) and (item_es.composant.sens eq 'S')) ?'red':'inherit'}"
-                                          title="#{(item_es.composant.composant.stock lt item_es.quantite)?'Stock article insuffisant':''}">
-                                        #{item_es.composant.composant.article.designation}
-                                    </span>
-                                    <h:panelGroup style="float: right">
-                                        <p:graphicImage library="icones" name="#{(item_es.composant.sens eq 'E')?'in.png':'out.png'}" width="12" height="12" style="margin-right: 10px"/>
-                                        <h:outputText value="#{item_es.composant.composant.unite.unite.reference}" styleClass="style_unite" title="#{item_es.composant.composant.unite.unite.libelle}"/>
-                                    </h:panelGroup>
-                                </p:column>
-                                <p:column headerText="#{lab.LC_PMS_stocks}" style="text-align: right" width="80">
-                                    <h:panelGroup rendered="#{item_es.composant.composant.article.suiviEnStock}">
-                                        <h:outputText value="#{managedOrdresF.giveStockMp(item_es.composant.composant)}" converter="#{managedOrdresF.cproduction}"/>       
-                                    </h:panelGroup>
-                                </p:column>
-                                <p:column headerText="#{lab.LP_POF_qte_cycle}" style="text-align: right" rendered="#{managedOrdresF.suiviOperation.id gt 0}">
-                                    <h:outputText value="#{managedOrdresF.giveQteCycleOp(item_es.composant,managedOrdresF.suiviOperation.id)}" converter="#{managedOrdresF.cproduction}"/>       
-                                </p:column>
-                                <p:column headerText="#{lab.LP_POF_en_cours}" width="80"  style="text-align: right">
-                                    <h:outputText value="#{managedOrdresF.giveQteFluxEncours(item_es.composant)}" converter="#{managedOrdresF.cproduction}"/> 
-                                </p:column>    
-                                <p:column headerText="#{lab.LP_PSO_prevu}" width="80"  style="text-align: right">
-                                    <h:outputText value="#{item_es.composant.quantite}" converter="#{managedOrdresF.cproduction}" style="font-weight: bold"/>
-                                </p:column>    
-                                <p:column headerText="#{lab.LP_PSO_ecart}" width="100"  style="text-align: right">
-                                    <h:outputText value="#{item_es.composant.quantite-managedOrdresF.giveQteFluxEncours(item_es.composant)}" 
-                                                  converter="#{managedOrdresF.cproduction}" />
-                                </p:column>   
-                                <p:column headerText="" style="text-align: right" width="90">
-                                    <f:facet name="header">
-                                        <span>#{lab.L_quantite}</span>
-                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px; float: right" title="#{lab.LP_POF_option_remplissage}" type="button" id="btn_opt_qte_flux"
-                                                         rendered="#{accesRessource.prod_acces_raccourcis}"/>
-                                        <p:contextMenu for="btn_opt_qte_flux" event="left click" style="font-size: 0.8em; width: 220px">
-                                            <p:menuitem icon="ui-icon-arrowthickstop-1-s" value="#{lab.LP_PSO_appliquer_reste}" actionListener="#{managedOrdresF.applyResteQte(false)}"/>
-                                            <p:menuitem icon="ui-icon-arrowthickstop-1-s" value="#{lab.LP_PSO_appliquer_enregistrer_reste}" actionListener="#{managedOrdresF.applyResteQte(true)}"/>
-                                        </p:contextMenu>
-                                    </f:facet>
-                                    <p:cellEditor >
-                                        <f:facet name="output" >
-                                            <h:outputText value="#{item_es.quantite}" converter="#{managedOrdresF.cproduction}" id="cell_qte1"/>
+                            <div style="max-height: 70%;">
+                                <p:dataTable value="#{managedOrdresF.selectedFlux.listeSuiviFlux}" var="item_es" selectionMode="single" 
+                                             rowIndexVar="line_s_" rowKey="#{item_es.id}" id="table_suivi_edit_flux" editMode="cell" 
+                                             editable="true" style="font-size: 0.8em">
+                                    <p:ajax event="cellEdit" global="false" process="@this"  listener="#{managedOrdresF.listenChangeQuantite}" />                                
+                                    <p:column headerText="#{lab.L_reference}" width="80"  >                                    
+                                        <span style="color: #{((item_es.composant.composant.stock lt item_es.quantite) and (item_es.composant.sens eq 'S'))?'red':'inherit'}"
+                                              title="#{(item_es.composant.composant.stock lt item_es.quantite)?'Stock article insuffisant':''}">
+                                            <b >#{item_es.composant.composant.article.refArt}</b>
+                                        </span>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LP_PN_composant}" >
+                                        <span style="color: #{((item_es.composant.composant.stock lt item_es.quantite) and (item_es.composant.sens eq 'S')) ?'red':'inherit'}"
+                                              title="#{(item_es.composant.composant.stock lt item_es.quantite)?'Stock article insuffisant':''}">
+                                            #{item_es.composant.composant.article.designation}
+                                        </span>
+                                        <h:panelGroup style="float: right">
+                                            <p:graphicImage library="icones" name="#{(item_es.composant.sens eq 'E')?'in.png':'out.png'}" width="12" height="12" style="margin-right: 10px"/>
+                                            <h:outputText value="#{item_es.composant.composant.unite.unite.reference}" styleClass="style_unite" title="#{item_es.composant.composant.unite.unite.libelle}"/>
+                                        </h:panelGroup>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LC_PMS_stocks}" style="text-align: right" width="80">
+                                        <h:panelGroup rendered="#{item_es.composant.composant.article.suiviEnStock}">
+                                            <h:outputText value="#{managedOrdresF.giveStockMp(item_es.composant.composant)}" converter="#{managedOrdresF.cproduction}"/>       
+                                        </h:panelGroup>
+                                    </p:column>
+                                    <p:column headerText="#{lab.LP_POF_qte_cycle}" style="text-align: right" rendered="#{managedOrdresF.suiviOperation.id gt 0}">
+                                        <h:outputText value="#{managedOrdresF.giveQteCycleOp(item_es.composant,managedOrdresF.suiviOperation.id)}" converter="#{managedOrdresF.cproduction}"/>       
+                                    </p:column>
+                                    <p:column headerText="#{lab.LP_POF_en_cours}" width="80"  style="text-align: right">
+                                        <h:outputText value="#{managedOrdresF.giveQteFluxEncours(item_es.composant)}" converter="#{managedOrdresF.cproduction}"/> 
+                                    </p:column>    
+                                    <p:column headerText="#{lab.LP_PSO_prevu}" width="80"  style="text-align: right">
+                                        <h:outputText value="#{item_es.composant.quantite}" converter="#{managedOrdresF.cproduction}" style="font-weight: bold"/>
+                                    </p:column>    
+                                    <p:column headerText="#{lab.LP_PSO_ecart}" width="100"  style="text-align: right">
+                                        <h:outputText value="#{item_es.composant.quantite-managedOrdresF.giveQteFluxEncours(item_es.composant)}" 
+                                                      converter="#{managedOrdresF.cproduction}" />
+                                    </p:column>   
+                                    <p:column headerText="" style="text-align: right" width="90">
+                                        <f:facet name="header">
+                                            <span>#{lab.L_quantite}</span>
+                                            <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px; float: right" title="#{lab.LP_POF_option_remplissage}" type="button" id="btn_opt_qte_flux"
+                                                             rendered="#{accesRessource.prod_acces_raccourcis}"/>
+                                            <p:contextMenu for="btn_opt_qte_flux" event="left click" style="font-size: 0.8em; width: 220px">
+                                                <p:menuitem icon="ui-icon-arrowthickstop-1-s" value="#{lab.LP_PSO_appliquer_reste}" actionListener="#{managedOrdresF.applyResteQte(false)}"/>
+                                                <p:menuitem icon="ui-icon-arrowthickstop-1-s" value="#{lab.LP_PSO_appliquer_enregistrer_reste}" actionListener="#{managedOrdresF.applyResteQte(true)}"/>
+                                            </p:contextMenu>
                                         </f:facet>
-                                        <f:facet name="input">
-                                            <h:inputText value="#{item_es.quantite}" style="width: 80px" id="cell_qte2" />
+                                        <p:cellEditor >
+                                            <f:facet name="output" >
+                                                <h:outputText value="#{item_es.quantite}" converter="#{managedOrdresF.cproduction}" id="cell_qte1"/>
+                                            </f:facet>
+                                            <f:facet name="input">
+                                                <h:inputText value="#{item_es.quantite}" style="width: 80px" id="cell_qte2" />
+                                            </f:facet>
+                                        </p:cellEditor>
+                                    </p:column>
+                                    <p:column headerText="" width="15"  style="text-align: right">
+                                        <p:commandButton icon="ui-icon-circle-minus" style="float: right; width: 22px; height: 22px" title="#{lab.LP_POF_retirer_composant_operation}"
+                                                         actionListener="#{managedOrdresF.deleteUseComposant(item_es)}"/>                        
+                                        <f:facet name="header">
+                                            <p:commandButton icon="ui-icon-circle-plus" style="float: right; width: 22px; height: 22px" title="#{lab.LP_POF_ajouter_composant_operation}"
+                                                             onclick="dlgComposantOFView.show()" />
                                         </f:facet>
-                                    </p:cellEditor>
-                                </p:column>
-                                <p:column headerText="" width="15"  style="text-align: right">
-                                    <p:commandButton icon="ui-icon-circle-minus" style="float: right; width: 22px; height: 22px" title="#{lab.LP_POF_retirer_composant_operation}"
-                                                     actionListener="#{managedOrdresF.deleteUseComposant(item_es)}"/>                        
-                                    <f:facet name="header">
-                                        <p:commandButton icon="ui-icon-circle-plus" style="float: right; width: 22px; height: 22px" title="#{lab.LP_POF_ajouter_composant_operation}"
-                                                         onclick="dlgComposantOFView.show()" />
-                                    </f:facet>
-                                </p:column> 
-                            </p:dataTable>
+                                    </p:column> 
+                                </p:dataTable>
+                            </div>
                             <p:outputPanel autoUpdate="true">
-                                <p:commandButton rendered="#{managedOrdresF.suiviOperation.id gt 0}" value="#{lab.LP_POF_appliquer_nouveau}" title="#{lab.LP_POF_appliquer_flux_nouveau_cycle_operation}"
-                                                 actionListener="#{managedOrdresF.saveFluxStock(true)}"  update="table_suivi_edit_flux" icon="ui-icon-arrowthickstop-1-s"
-                                                 />                
-                                <p:commandButton value="#{(managedOrdresF.suiviOperation.id gt 0)?'Modifier':'Appliquer'}" actionListener="#{managedOrdresF.saveFluxStock(false)}" 
-                                                 update="formOF" icon="ui-icon-arrowthickstop-1-s"/>                
+                                <p:outputPanel rendered="#{managedOrdresF.paramProduction.declareWhenFinishOf and managedOrdresF.isLastOperation(managedOrdresF.selectedOp)}">
+                                    <div style="padding-top: 5px;padding-bottom: 5px;margin-top: 5px; margin-bottom: 5px; background: #ccc">
+                                        <p:selectBooleanCheckbox itemLabel="Transférer la production" value="#{managedOrdresF.transfertOf}" valueChangeListener="#{managedOrdresF.initTransfert}" >
+                                            <p:ajax event="valueChange" process="@this tr_decl_prod"/>
+                                        </p:selectBooleanCheckbox>
+                                        <h:panelGrid id="tr_decl_prod" columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0"  style="font-size: 0.9em" rendered="#{managedOrdresF.transfertOf}">
+                                            <h:outputText value="#{lab.L_depot}" style="font-weight: normal; font-size: 0.9em"/> 
+                                            <h:outputText value="#{lab.L_tranche}" style="font-weight: normal; font-size: 0.9em"/> 
+                                            <h:selectOneMenu value="#{managedOrdresF.depotDest.id}" style="min-width: 150px" id="chp_depot_tr_decl_prod_"
+                                                             valueChangeListener="#{managedOrdresF.chooseDepotCible}">
+                                                <f:selectItem itemLabel="--" itemValue="0"/>
+                                                <f:selectItems value="#{managedOrdresF.depotsCible}" var="dep_" itemLabel="#{dep_.designation}" itemValue="#{dep_.id}" />                                 
+                                                <p:ajax event="valueChange" update="chp_tranche_tr_decl_prod_"/>
+                                            </h:selectOneMenu>
+                                            <h:selectOneMenu value="#{managedOrdresF.trancheHoraire.id}" style="min-width: 150px" id="chp_tranche_tr_decl_prod_">
+                                                <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                                <f:selectItems value="#{managedOrdresF.tranchesCible}" var="tran_" itemLabel="#{tran_.titre}" itemValue="#{tran_.id}" />                                   
+                                                <p:ajax event="valueChange" global="false" process="@this"/>
+                                            </h:selectOneMenu>
+                                        </h:panelGrid>
+                                    </div>
+                                </p:outputPanel>
+                                <h:panelGroup>
+                                    <p:commandButton rendered="#{managedOrdresF.suiviOperation.id gt 0}" value="#{lab.LP_POF_appliquer_nouveau}" title="#{lab.LP_POF_appliquer_flux_nouveau_cycle_operation}"
+                                                     actionListener="#{managedOrdresF.saveFluxStock(true)}"  update="table_suivi_edit_flux" icon="ui-icon-arrowthickstop-1-s"/>                
+                                    <p:commandButton value="#{(managedOrdresF.suiviOperation.id gt 0)?'Modifier':'Appliquer'}" actionListener="#{managedOrdresF.saveFluxStock(false)}" 
+                                                     update="formOF" icon="ui-icon-arrowthickstop-1-s"/>   
+                                </h:panelGroup>             
                             </p:outputPanel>
                         </p:outputPanel>                        
                     </div>                          
