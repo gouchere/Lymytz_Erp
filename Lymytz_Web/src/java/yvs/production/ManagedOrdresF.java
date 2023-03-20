@@ -2099,16 +2099,28 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                     if (state.equals(Constantes.ETAT_CLOTURE)) {
                         selectedOf.setStatutDeclaration(Constantes.ETAT_TERMINE);
                         ordre.setStatutDeclaration(Constantes.ETAT_TERMINE);
+                    } else if (state.equals(Constantes.ETAT_ATTENTE)) {
+                        for (YvsProdDeclarationProduction d : selectedOf.getDeclarations()) {
+                            if (!controleChangeDeclaration(d)) {
+                                return false;
+                            }
+                        }
                     }
                     selectedOf.setStatutOrdre(state);
                     selectedOf.setSuspendu(false);
                     selectedOf.setDateUpdate(new Date());
+                    if (state.equals(Constantes.ETAT_ATTENTE)) {
+                        selectedOf.setStatutDeclaration(Constantes.ETAT_ATTENTE);
+                    }
                     dao.update(selectedOf);
                     ordre.setStatusOrdre(state);
                     update("panel_state");
                     int idx = listeOrdreF.indexOf(selectedOf);
                     if (idx >= 0) {
                         listeOrdreF.get(idx).setStatutOrdre(state);
+                        if (state.equals(Constantes.ETAT_ATTENTE)) {
+                            listeOrdreF.get(idx).setStatutDeclaration(Constantes.ETAT_ATTENTE);
+                        }
                         update("tableOF");
                     }
                     if (maj) {
@@ -2120,6 +2132,22 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                                 op.setStatutOp(Constantes.ETAT_ATTENTE);
                                 dao.update(op);
                             }
+                            for (YvsProdDeclarationProduction d : selectedOf.getDeclarations()) {
+                                dao.delete(d);
+                            }
+                            for (YvsProdOperationsOF o : selectedOf.getOperations()) {
+                                String rq = "DELETE FROM yvs_prod_suivi_operations WHERE operation_of = ?";
+                                Options[] param = new Options[]{new Options(o.getId(), 1)};
+                                dao.requeteLibre(rq, param);
+                                o.getSuiviOperations().clear();
+                            }
+                            ordre.getDeclarations().clear();
+                            selectedOf.getDeclarations().clear();
+                            if (idx >= 0) {
+                                listeOrdreF.get(idx).getDeclarations().clear();
+                                listeOrdreF.get(idx).setOperations(selectedOf.getOperations());
+                                update("tableOF");
+                            }
                             update("zone_diplay_op");
                             update("tablePhase_:table_phase");
                         }
@@ -2130,11 +2158,15 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                             //Démarre la première opération (en supposant que c'est bien ordonné)
                             changeStatutOp(ordre, selectedOf, ordre.getListOperationsOf().get(0), Constantes.ETAT_ENCOURS, true);
                             update("zone_diplay_op");
+                            return true;
                         } else {
                             getErrorMessage("Aucune opération n'a été trouvé !");
+                            return false;
                         }
                     }
                     return true;
+                } else {
+                    getErrorMessage("Cet ordre de fabrication est cloturé!");
                 }
             } else {
                 getErrorMessage("Aucun ordre de fabrication n'est selectionné !");
@@ -3012,6 +3044,22 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             sitesSeach.add(0);
             addParametreSite();
         }
+        if (!autoriser("production_view_all_user")) {
+            //trouve les sites où je suis planifier
+//            date = yvs.dao.salaire.service.Constantes.givePrevOrNextDate(new Date(), -paramProduction.getLimiteVuOf());
+//            List<Long> ids = dao.loadNameQueries("YvsProdSessionOf.findIdProdByUsersDates", new String[]{"producteur", "dateDebut", "dateFin"}, new Object[]{currentUser.getUsers(), date, new Date()});
+//            if (ids == null) {
+//                ids = new ArrayList<>();
+//            }
+//            List<Long> i = dao.loadNameQueries("YvsProdOrdreFabrication.findIdByAuthorDates", new String[]{"author", "dateDebut", "dateFin"}, new Object[]{currentUser, date, new Date()});
+//            if (i != null) {
+//                ids.addAll(i);
+//            }
+//            if (ids.isEmpty()) {
+//                ids.add(0L);
+//            }
+//            paginator.addParam(new ParametreRequete("y.id", "idsP", ids, "IN", "AND"));
+        }
         if (!autoriser("production_view_all_societe")) {
             paginator.addParam(new ParametreRequete("y.siteProduction.agence", "agence", currentAgence, "=", "AND"));
         }
@@ -3325,6 +3373,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public void loadOnViewToUpdate(SelectEvent ev) {
         openOfToupdate(ev);
+        suiviOperation = new SuiviOperations();
         for (YvsProdOperationsOF cp : ordre.getListOperationsOf()) {
             if (!cp.getStatutOp().equals(Constantes.STATUT_DOC_TERMINE)) {
                 //prépare la première opération non encore terminé
@@ -4584,7 +4633,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
     }
 
-    public void changeStatutDeclaration(YvsProdDeclarationProduction doc) {
+    private boolean controleChangeDeclaration(YvsProdDeclarationProduction doc) {
         char statut;
         if (doc != null) {
             if (doc.getStatut().equals(Constantes.STATUT_DOC_VALIDE)) {
@@ -4594,23 +4643,38 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             }
             if (statut != Constantes.STATUT_DOC_VALIDE && doc.getStatut() == Constantes.STATUT_DOC_VALIDE) {
                 if (!controleInventaire(doc.getSessionOf().getSessionProd().getDepot().getId(), doc.getSessionOf().getSessionProd().getDateSession(), doc.getSessionOf().getSessionProd().getTranche().getId())) {
-                    return;
+                    return false;
                 }
                 //vérifie qu'on n'ai pas de conditionnement
                 if (!doc.getConditionnements().isEmpty()) {
                     getErrorMessage("Impossible de modifier le statut", " des ordres de conditionnements ont été trouvés pour cette déclaration !");
-                    return;
+                    return false;
                 }
                 double stock = dao.stocks(selectedOf.getArticle().getId(), 0, doc.getSessionOf().getSessionProd().getDepot().getId(), 0, 0, doc.getSessionOf().getSessionProd().getDateSession(), (doc.getConditionnement() != null) ? doc.getConditionnement().getId() : -1, 0);
                 if (stock < doc.getQuantite()) {
                     getErrorMessage("L'article '" + selectedOf.getArticle().getDesignation() + "' est insuffisant en stock pour effectuer cette action");
-                    return;
+                    return false;
                 }
                 stock = dao.stocks(selectedOf.getArticle().getId(), 0, doc.getSessionOf().getSessionProd().getDepot().getId(), 0, 0, new Date(), (doc.getConditionnement() != null) ? doc.getConditionnement().getId() : -1, 0);
                 if (stock < doc.getQuantite()) {
                     getErrorMessage("L'article '" + selectedOf.getArticle().getDesignation() + "' est insuffisant en stock pour effectuer cette action");
-                    return;
+                    return false;
                 }
+            }
+        }
+        return true;
+    }
+
+    public boolean changeStatutDeclaration(YvsProdDeclarationProduction doc) {
+        char statut;
+        if (doc != null) {
+            if (doc.getStatut().equals(Constantes.STATUT_DOC_VALIDE)) {
+                statut = Constantes.STATUT_DOC_ATTENTE;
+            } else {
+                statut = Constantes.STATUT_DOC_VALIDE;
+            }
+            if (!controleChangeDeclaration(doc)) {
+                return false;
             }
             String rq = "UPDATE yvs_prod_declaration_production SET statut = '" + statut + "' WHERE id=?";
             Options[] param = new Options[]{new Options(doc.getId(), 1)};
@@ -4626,9 +4690,11 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             }
             afterSaveDeclaration();
             succes();
+            return true;
         } else {
             getErrorMessage("Vous devez selectionner une doc");
         }
+        return false;
     }
 
     public boolean canDeclared(YvsProdOrdreFabrication y) {

@@ -45,6 +45,9 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdSuiviOperations.findByHeureFin", query = "SELECT y FROM YvsProdSuiviOperations y WHERE y.heureFin = :heureFin"),
     @NamedQuery(name = "YvsProdSuiviOperations.findByCout", query = "SELECT y FROM YvsProdSuiviOperations y WHERE y.cout = :cout"),
     @NamedQuery(name = "YvsProdSuiviOperations.findByDateSave", query = "SELECT y FROM YvsProdSuiviOperations y WHERE y.dateSave = :dateSave"),
+    
+    @NamedQuery(name = "YvsProdSuiviOperations.findIdProdByUsersDates", query = "SELECT DISTINCT(y.operationOf.ordreFabrication.id) FROM YvsProdSuiviOperations y WHERE y.sessionOf.sessionProd.producteur = :producteur AND y.operationOf.ordreFabrication.dateDebut BETWEEN :dateDebut AND :dateFin"),
+    
     @NamedQuery(name = "YvsProdSuiviOperations.findByDateUpadate", query = "SELECT y FROM YvsProdSuiviOperations y WHERE y.dateUpadate = :dateUpadate")})
 public class YvsProdSuiviOperations implements Serializable {
 

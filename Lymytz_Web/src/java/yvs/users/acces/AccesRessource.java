@@ -134,7 +134,7 @@ public class AccesRessource implements Serializable {
     public boolean prod_launch_of, prod_update_of_encours, prod_valid_declaration_prod, prod_change_depot_declaration, prod_gamme_load_all, prod_nomenc_load_all,
             production_view_all_date, production_view_all_site, production_view_all_of, production_cloture_of, prod_view_all_site, prod_view_all_equipe, production_view_all_societe,
             prod_update_all_of, prod_force_declaration, prod_view_session_all_user, prod_view_session_all_date, prod_acces_raccourcis, prod_update_ppte_composant, prod_create_other_session,
-            prod_commande_save, prod_commande_update, prod_commande_delete;
+            prod_commande_save, prod_commande_update, prod_commande_delete, production_view_all_user;
 
     /**
      * Mutuelle
@@ -2212,6 +2212,10 @@ public class AccesRessource implements Serializable {
 
     public boolean isProd_view_session_all_user() {
         return prod_view_session_all_user;
+    }
+
+    public boolean isProduction_view_all_user() {
+        return production_view_all_user;
     }
 
     public boolean isProd_view_session_all_date() {

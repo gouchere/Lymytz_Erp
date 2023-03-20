@@ -53,6 +53,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdOrdreFabrication.findByDateDebut", query = "SELECT y FROM YvsProdOrdreFabrication y WHERE y.dateDebut = :dateDebut"),
     @NamedQuery(name = "YvsProdOrdreFabrication.findByDate", query = "SELECT y FROM YvsProdOrdreFabrication y WHERE (y.dateDebut BETWEEN :date1 AND :date2) AND y.siteProduction.agence.societe=:societe"),
     @NamedQuery(name = "YvsProdOrdreFabrication.findByDateC", query = "SELECT COUNT(y) FROM YvsProdOrdreFabrication y WHERE (y.dateDebut BETWEEN :date1 AND :date2) AND y.siteProduction.agence.societe=:societe"),
+    @NamedQuery(name = "YvsProdOrdreFabrication.findIdByAuthorDates", query = "SELECT y.id FROM YvsProdOrdreFabrication y WHERE (y.dateDebut BETWEEN :dateDebut AND :dateFin) AND y.author =:author"),
     @NamedQuery(name = "YvsProdOrdreFabrication.findByStatutOrdre", query = "SELECT y FROM YvsProdOrdreFabrication y WHERE y.statutOrdre = :statutOrdre AND y.siteProduction.agence.societe=:societe"),
     @NamedQuery(name = "YvsProdOrdreFabrication.findByStatutOrdreC", query = "SELECT COUNT(y) FROM YvsProdOrdreFabrication y WHERE y.statutOrdre = :statutOrdre AND y.siteProduction.agence.societe=:societe")})
 public class YvsProdOrdreFabrication implements Serializable {

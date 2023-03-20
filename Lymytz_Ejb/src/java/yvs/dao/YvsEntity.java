@@ -5,11 +5,12 @@
  */
 package yvs.dao;
 
-import java.io.Serializable;
+import yvs.entity.users.YvsUsersAgence;
+
 import javax.persistence.Column;
 import javax.persistence.Transient;
 import javax.validation.constraints.Size;
-import yvs.entity.users.YvsUsersAgence;
+import java.io.Serializable;
 
 /**
  *

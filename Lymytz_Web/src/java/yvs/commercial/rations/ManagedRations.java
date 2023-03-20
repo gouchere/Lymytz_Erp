@@ -971,23 +971,25 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
             getErrorMessage("Cette date est invalide !");
             return false;
         }
-        Date begin = timestampToDate(selectedDoc.getDateFiche(), selectedDoc.getCreneauHoraire().getTranche().getHeureDebut());
-        Date end = timestampToDate(selectedDoc.getDateFiche(), selectedDoc.getCreneauHoraire().getTranche().getHeureFin());
-        if (end.before(begin)) {
-            Calendar debut = dateToCalendar(end);
-            debut.add(Calendar.DATE, 1);
+        int ecart = currentParamStock != null ? currentParamStock.getMargeTimeFicheRation() : -1;
+        if (ecart >= 0) {
+            Date begin = timestampToDate(selectedDoc.getDateFiche(), selectedDoc.getCreneauHoraire().getTranche().getHeureDebut());
+            Date end = timestampToDate(selectedDoc.getDateFiche(), selectedDoc.getCreneauHoraire().getTranche().getHeureFin());
+            if (end.before(begin)) {
+                Calendar debut = dateToCalendar(end);
+                debut.add(Calendar.DATE, 1);
+                begin = debut.getTime();
+            } else {
+                begin = end;
+            }
+            Calendar debut = dateToCalendar(begin);
+            debut.add(Calendar.HOUR_OF_DAY, currentParamStock.getMargeTimeFicheRation());
             begin = debut.getTime();
-        } else {
-            begin = end;
+            if ((begin != null) ? (begin.before(new Date())) : true) {
+                getErrorMessage("Vous ne pouvez plus prendre dans cette fiche! (delai dépassé)");
+                return false;
+            }
         }
-        Calendar debut = dateToCalendar(begin);
-        debut.add(Calendar.HOUR_OF_DAY, currentParamStock.getMargeTimeFicheRation());
-        begin = debut.getTime();
-        if ((begin != null) ? (begin.before(new Date())) : true) {
-            getErrorMessage("Vous ne pouvez plus prendre dans cette fiche! (delai dépassé)");
-            return false;
-        }
-
         if (selectedRation.getPersonnel() != null ? (selectedRation.getPersonnel().getCodeRation() != null
                 ? selectedRation.getPersonnel().getCodeRation().trim().length() < 1 : true) : true) {
             getErrorMessage("Ce personnel n'a pas de code ration !");

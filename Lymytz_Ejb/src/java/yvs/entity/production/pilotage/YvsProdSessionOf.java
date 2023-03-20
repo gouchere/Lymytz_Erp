@@ -43,6 +43,9 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdSessionOf.findEquipeProducteurOrdre", query = "SELECT DISTINCT y.sessionProd.equipe FROM YvsProdSessionOf y WHERE y.ordre = :ordre AND y.sessionProd.producteur=:producteur  ORDER BY y.sessionProd.equipe.reference"),
     @NamedQuery(name = "YvsProdSessionOf.findById", query = "SELECT y FROM YvsProdSessionOf y WHERE y.id = :id"),
     @NamedQuery(name = "YvsProdSessionOf.findOne", query = "SELECT y FROM YvsProdSessionOf y WHERE y.ordre=:ordre AND y.sessionProd=:session"),
+    
+    @NamedQuery(name = "YvsProdSessionOf.findIdProdByUsersDates", query = "SELECT DISTINCT(y.ordre.id) FROM YvsProdSessionOf y WHERE y.sessionProd.producteur = :producteur AND y.sessionProd.dateSession BETWEEN :dateDebut AND :dateFin"),
+    
     @NamedQuery(name = "YvsProdSessionOf.findByDateSave", query = "SELECT y FROM YvsProdSessionOf y WHERE y.dateSave = :dateSave"),
     @NamedQuery(name = "YvsProdSessionOf.findByDateUpdate", query = "SELECT y FROM YvsProdSessionOf y WHERE y.dateUpdate = :dateUpdate")})
 public class YvsProdSessionOf implements Serializable {

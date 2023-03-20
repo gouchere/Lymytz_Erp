@@ -56,6 +56,9 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdDeclarationProduction.findLastByArticle", query = "SELECT y  FROM YvsProdDeclarationProduction y WHERE y.conditionnement.article = :article ORDER BY y.sessionOf.sessionProd.dateSession DESC"),
     @NamedQuery(name = "YvsProdDeclarationProduction.findNbreDocByArticle", query = "SELECT COUNT(DISTINCT(y.ordre))  FROM YvsProdDeclarationProduction y WHERE y.conditionnement.article = :article"),
     @NamedQuery(name = "YvsProdDeclarationProduction.findNbreDocByConditionnement", query = "SELECT COUNT(DISTINCT(y.ordre))  FROM YvsProdDeclarationProduction y WHERE y.conditionnement = :conditionnement"),
+    
+    @NamedQuery(name = "YvsProdDeclarationProduction.findIdProdByUsers", query = "SELECT DISTINCT(y.ordre.id)  FROM YvsProdDeclarationProduction y WHERE y.sessionOf.sessionProd.producteur = :producteur"),
+    @NamedQuery(name = "YvsProdDeclarationProduction.findIdProdByUsersDates", query = "SELECT DISTINCT(y.ordre.id)  FROM YvsProdDeclarationProduction y WHERE y.sessionOf.sessionProd.producteur = :producteur AND y.ordre.dateDebut BETWEEN :dateDebut AND :dateFin"),
 
     @NamedQuery(name = "YvsProdDeclarationProduction.findByOrdre", query = "SELECT y FROM YvsProdDeclarationProduction y WHERE y.ordre = :ordre")})
 public class YvsProdDeclarationProduction implements Serializable {
