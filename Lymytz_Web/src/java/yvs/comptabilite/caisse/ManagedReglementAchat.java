@@ -770,8 +770,6 @@ public class ManagedReglementAchat extends Managed implements Serializable {
             }
             return false;
         }
-        System.out.println("valider : " + valider);
-        System.out.println("d : " + d);
         if (d != null ? !pt.getStatutPiece().equals(Constantes.STATUT_DOC_PAYER) : false) {
             double mtn = 0;
             if (d.getReglements().contains(pt)) {

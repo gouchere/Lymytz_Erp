@@ -37,22 +37,6 @@ public class ApplicationConfig extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
-        resources.add(lymytz.ws.GenericResource.class);
-        resources.add(lymytz.ws.base.GenericResource.class);
-        resources.add(lymytz.ws.base.v1.GenericResource.class);
-        resources.add(lymytz.ws.commercial.GenericResource.class);
-        resources.add(lymytz.ws.commercial.dashboard.GenericResource.class);
-        resources.add(lymytz.ws.commercial.v1.GenericResource.class);
-        resources.add(lymytz.ws.compta.GenericResource.class);
-        resources.add(lymytz.ws.compta.dashboard.GenericResource.class);
-        resources.add(lymytz.ws.compta.v1.GenericResource.class);
-        resources.add(lymytz.ws.dashboard.GenericResource.class);
-        resources.add(lymytz.ws.grh.GenericResource.class);
-        resources.add(lymytz.ws.market.GenericResource.class);
-        resources.add(lymytz.ws.param.GenericResource.class);
-        resources.add(lymytz.ws.param.v1.GenericResource.class);
-        resources.add(lymytz.ws.validation.GenericResource.class);
-        resources.add(lymytz.ws.validation.v1.GenericResource.class);
     }
     
 }
