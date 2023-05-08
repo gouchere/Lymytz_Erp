@@ -164,7 +164,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
     //Variable de recherche
     private long depotSessionSearch, equipeSessionSearch, userSessionSearch, equipeDSearch, depotDSearch, trancheDSearch;
     private int siteDSearch;
-    private boolean addDateDSearch;
+    private boolean addDateDSearch, groupProd = true;
     private Date dateDebutDSearch = new Date(), dateFinDSearch = new Date(), dateSessionSearch = new Date();
     private String articleDSearch, numeroDSearch, idsDeclaration;
     private String filterState;
@@ -217,6 +217,14 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         allStatutsOf.add(Constantes.ETAT_TERMINE);
         allStatutsOf.add(Constantes.ETAT_CLOTURE);
         allStatutsOf.add(Constantes.ETAT_SUSPENDU);
+    }
+
+    public boolean isGroupProd() {
+        return groupProd;
+    }
+
+    public void setGroupProd(boolean groupProd) {
+        this.groupProd = groupProd;
     }
 
     public PaginatorResult<YvsProdComposantOF> getP_composant() {
@@ -2347,7 +2355,9 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 calculBesoinProduit();
                 return true;
             } else {
-                getInfoMessage("Plus d'opérations...");
+                if (!paramProduction.getDeclareWhenFinishOf()) {
+                    getInfoMessage("Plus d'opérations...");
+                }
                 //ouvre le formulaire de déclaration
                 if (next && !ordre.getNomenclature().getTypeNomenclature().equals(Constantes.PROD_TYPE_NOMENCLATURE_TRANSFORMATION)) {
                     if (!ordre.getStatutDeclaration().equals(Constantes.ETAT_TERMINE)) {
@@ -3288,7 +3298,11 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 + "LEFT JOIN FETCH y.article.groupe "
                 + "LEFT JOIN FETCH y.nomenclature "
                 + "LEFT JOIN FETCH y.gamme JOIN FETCH y.author.users";
-        listeOrdreF = paginator.executeDynamicQuery("DISTINCT y", " DISTINCT y", query, "y.dateDebut DESC, y.article.groupe.id, y.article.categorie DESC", avancer, initForm, (int) imax, dao);
+        String orderBy = "y.dateDebut DESC, y.article.groupe.id, y.article.categorie DESC";
+        if (!groupProd) {
+            orderBy = "y.dateDebut DESC, y.article.categorie DESC";
+        }
+        listeOrdreF = paginator.executeDynamicQuery("DISTINCT y", " DISTINCT y", query, orderBy, avancer, initForm, (int) imax, dao);
         update("tableOF");
     }
 
@@ -3666,7 +3680,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 majTauxEvolutionOf();
                 update("tableOF");
                 if (loadNext) {
-                    if (findAndSelectNextOperation(selectedOp, true)) {
+                    if (findAndSelectNextOperation(selectedOp, !paramProduction.getDeclareWhenFinishOf())) {
                         update("header_detail_edit_flux");
                     }
                 }
@@ -4859,6 +4873,9 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
     }
 
     public void clearParams() {
+        if (!typePage.equals(Constantes.PROD_TYPE_PAGE_SUIVI)) {
+            statutsOf.clear();
+        }
         initForm = true;
         paginator.clear();
         //init variable
@@ -4869,8 +4886,8 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         statutOf = null;
         statutDec = null;
         numSearch_ = null;
+        groupProd = true;
         loadAllOf(true, initForm);
-
     }
 
     public void _chooseDateSearch(ValueChangeEvent ev) {
@@ -5619,6 +5636,9 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 }
 
                 bean.setSite(program.getSite());
+                if (currentSession != null ? currentSession.getId() > 0 : false) {
+                    bean.setDepotPf(new Depots(currentSession.getDepot().getId()));
+                }
 //                if (controleFiche(bean, true, false, false)) {
                 YvsProdOrdreFabrication entity = saveNewOF(bean);
                 if (entity != null ? entity.getId() > 0 : false) {

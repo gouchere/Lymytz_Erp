@@ -1738,9 +1738,24 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
             contenu.setTaxe(contenu_fa.getTaxe());
         }
         if (contenu_fa.getArticle().isPuvTtc()) {
-            contenu.setPrixTotalRecu((contenu.getPrixAchat() * contenu.getQuantiteCommende()));
+            contenu.setPrixTotalRecu((contenu.getPrixAchat() * contenu.getQuantiteCommende()) - contenu.getRemiseRecu());
         } else {
-            contenu.setPrixTotalRecu((contenu.getPrixAchat() * contenu.getQuantiteCommende()) + contenu.getTaxe());
+            contenu.setPrixTotalRecu((contenu.getPrixAchat() * contenu.getQuantiteCommende()) + contenu.getTaxe() - contenu.getRemiseRecu());
+        }
+    }
+
+    public void onCorrectifPrixTotal() {
+        if (dao.isComptabilise(docAchat.getId(), Constantes.SCR_AVOIR_ACHAT)) {
+            getErrorMessage("Impossible de corriger les prix car ce document est comptabilisé");
+            return;
+        }
+        for (YvsComContenuDocAchat c : contenus) {
+            if (c.getArticle().getPuvTtc()) {
+                c.setPrixTotal((c.getPrixAchat() * c.getQuantiteCommande()) - c.getRemise());
+            } else {
+                c.setPrixTotal((c.getPrixAchat() * c.getQuantiteCommande()) + c.getTaxe() - c.getRemise());
+            }
+            dao.update(c);
         }
     }
 
