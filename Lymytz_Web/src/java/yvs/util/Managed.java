@@ -2950,7 +2950,7 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     }
 
     public Object[] returnInfosReference(YvsBaseModeleReference bean, String reference) {
-        Object[] result = null;
+        String type = null;
         if (bean == null && Util.asString(reference)) {
             String separateur = "_";
             if (reference.contains("/")) {
@@ -2962,11 +2962,19 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
             if (tab != null ? tab.length > 0 : false) {
                 String prefix = tab[0];
                 bean = (YvsBaseModeleReference) dao.loadOneByNameQueries("YvsBaseModeleReference.findByPrefix", new String[]{"prefix", "societe"}, new Object[]{prefix, currentAgence.getSociete()});
+                if (bean != null) {
+                    type = bean.getElement().getDesignation();
+                }
             }
         }
-        if (bean != null ? bean.getId() > 0 : false) {
+        return returnInfosByReferenceAndtype(reference, type);
+    }
+
+    public Object[] returnInfosByReferenceAndtype(String reference, String type) {
+        Object[] result = null;
+        if (asString(reference) && asString(type)) {
             result = new Object[9];
-            switch (bean.getElement().getDesignation()) {
+            switch (type) {
                 case "Employe": {
                     result[0] = "YvsGrhEmployes.countAll";
                     result[1] = new String[]{"societe"};
@@ -3959,6 +3967,19 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     }
 
     public boolean controleDocStock(long id, Date heure, long depot, Date date, boolean error) {
+        List<Object[]> nb = controleDocsStock(id, heure, depot, date);
+        if (nb != null ? nb.size() > 0 : false) {
+            if (error) {
+                getErrorMessage("Vous ne pouvez pas poursuivre ce traitement. des documents de stocks non validés ont été trouvé dans ce dépôt");
+            } else {
+                getWarningMessage("Vous ne pouvez pas poursuivre ce traitement. des documents de stocks non validés ont été trouvé dans ce dépôt");
+            }
+            return false;
+        }
+        return true;
+    }
+
+    public List<Object[]> controleDocsStock(long id, Date heure, long depot, Date date) {
         //Vérifie que tous les stocks sont validé avant la date de l'inventaire
         List<String> etats = new ArrayList<>();
         etats.add(Constantes.ETAT_EDITABLE);
@@ -3981,16 +4002,7 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
         }
         champ = new String[]{"statuts", "depot", "date", "tranches", "id"};
         val = new Object[]{etats, new YvsBaseDepots(depot), date, ids, id};
-        Long nb = (Long) dao.loadObjectByNameQueries("YvsComDocStocks.findByDocNonValideNoId", champ, val);
-        if (nb != null ? nb > 0 : false) {
-            if (error) {
-                getErrorMessage("Vous ne pouvez pas poursuivre ce traitement. des documents de stocks non validés ont été trouvé dans ce dépôt");
-            } else {
-                getWarningMessage("Vous ne pouvez pas poursuivre ce traitement. des documents de stocks non validés ont été trouvé dans ce dépôt");
-            }
-            return false;
-        }
-        return true;
+        return dao.loadListByNameQueries("YvsComDocStocks.findByNumAndTypeNonValideNoId", champ, val);
     }
 
     public boolean controleInventaire(long depot, Date date, Long tranches) {
@@ -6226,8 +6238,12 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     }
 
     public void actionSearch() {
-        if (Util.asString(search)) {
-            Object[] result = returnInfosReference(null, search);
+        actionSearch(search, null);
+    }
+
+    public void actionSearch(String reference, String type) {
+        if (Util.asString(reference)) {
+            Object[] result = asString(type) ? returnInfosByReferenceAndtype(reference, type) : returnInfosReference(null, reference);
             if (result != null ? result.length > 0 : false) {
 //                Class classe = (Class) result[6];
                 Object entity = dao.loadOneByNameQueries(result[3].toString(), (String[]) result[4], (Object[]) result[5]);

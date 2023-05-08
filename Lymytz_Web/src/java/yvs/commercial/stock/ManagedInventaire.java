@@ -107,6 +107,7 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
 
     private double quantiteeJustifiee = 0;
     private List<Object[]> alertes;
+    private List<Object[]> docsNoValid;
 
     ServiceClotureVente service;
 
@@ -122,6 +123,15 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
         historiques = new ArrayList<>();
         articles = new ArrayList<>();
         alertes = new ArrayList<>();
+        docsNoValid = new ArrayList<>();
+    }
+
+    public List<Object[]> getDocsNoValid() {
+        return docsNoValid;
+    }
+
+    public void setDocsNoValid(List<Object[]> docsNoValid) {
+        this.docsNoValid = docsNoValid;
     }
 
     public YvsBaseArticleDepot getSelectArticleDepot() {
@@ -2083,6 +2093,11 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
         update("data_inventaire");
     }
 
+    @Override
+    public void actionSearch(String reference, String prefix) {
+        super.actionSearch(reference, giveNameType(prefix));
+    }
+
     public boolean changeStatut(String etat) {
         if (etat.equals(Constantes.ETAT_EDITABLE)) {
             if (!autoriser("gescom_inv_editer")) {
@@ -2098,7 +2113,11 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
                 getErrorMessage("Vous devez renseigner la tranche");
                 return false;
             }
-            if (!controleDocStock(docStock.getId(), docStock.getCreneauSource().getTranche().getHeureDebut(), docStock.getSource().getId(), docStock.getDateDoc())) {
+            docsNoValid = controleDocsStock(docStock.getId(), docStock.getCreneauSource().getTranche().getHeureDebut(), docStock.getSource().getId(), docStock.getDateDoc());
+            if (docsNoValid != null ? !docsNoValid.isEmpty() : false) {
+                update("data-doc_not_valid");
+                openDialog("dlgListDocNotValid");
+                getErrorMessage("Vous ne pouvez pas poursuivre ce traitement. des documents de stocks non validés ont été trouvé dans ce dépôt");
                 return false;
             }
         }
