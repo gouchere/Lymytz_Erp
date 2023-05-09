@@ -2550,6 +2550,27 @@ public class ManagedSalaire extends Managed<DetailsBulletin, YvsGrhBulletins> im
         generePieceSalaire(listBulletins);
     }
 
+    public void confirmValidSelection() {
+        try {
+            if ((chaineSelectBulletin != null) ? !chaineSelectBulletin.equals("") : false) {
+                List<Integer> l = decomposeSelection(chaineSelectBulletin);
+                List<YvsGrhBulletins> list = new ArrayList<>();
+                YvsGrhBulletins b;
+                for (Integer ids : l) {
+                    b = listBulletins.get(ids);
+                    list.add(b);
+                    validBulletin(b, true);
+                }
+                generePieceSalaire(list);
+                chaineSelectBulletin = "";
+
+            }
+        } catch (Exception e) {
+            getErrorMessage("Validation Impossible !");
+            getException("Error Suppression ", e);
+        }
+    }
+
     public void confirmCancelValidAll() {
         if (!autoriser("grh_cancel_valid_bulletin")) {
             openNotAcces();
@@ -2558,7 +2579,28 @@ public class ManagedSalaire extends Managed<DetailsBulletin, YvsGrhBulletins> im
         for (YvsGrhBulletins b : listBulletins) {
             cancelBulletin(b);
         }
-        generePieceSalaire(listBulletins);
+        deletePieceSalaire(listBulletins);
+    }
+
+    public void confirmCancelValidSelection() {
+        try {
+            if ((chaineSelectBulletin != null) ? !chaineSelectBulletin.equals("") : false) {
+                List<Integer> l = decomposeSelection(chaineSelectBulletin);
+                List<YvsGrhBulletins> list = new ArrayList<>();
+                YvsGrhBulletins b;
+                for (Integer ids : l) {
+                    b = listBulletins.get(ids);
+                    list.add(b);
+                    cancelBulletin(b);
+                }
+                deletePieceSalaire(list);
+                chaineSelectBulletin = "";
+
+            }
+        } catch (Exception e) {
+            getErrorMessage("Validation Impossible !");
+            getException("Error Suppression ", e);
+        }
     }
 
     public void confirmPayeAll() {
