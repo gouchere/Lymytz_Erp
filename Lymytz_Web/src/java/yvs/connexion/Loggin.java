@@ -364,9 +364,15 @@ public class Loggin implements Serializable {
 //    private List<YvsAgences> listEntityAgence;
     public void loadAgence(long idSociete, YvsUsers users) {
         listAgences.clear();
-        String[] chp = new String[]{"societe", "users"};
-        Object[] val = new Object[]{new YvsSocietes(idSociete), users};
-        listAgences = dao.loadNameQueries("YvsUsersAgence.findAgenceActionByUsersSociete", chp, val);
+        if (superAdmin) {
+            String[] chp = new String[]{"societe"};
+            Object[] val = new Object[]{new YvsSocietes(idSociete)};
+            listAgences = dao.loadNameQueries("YvsAgences.findBySocieteAll", chp, val);
+        } else {
+            String[] chp = new String[]{"societe", "users"};
+            Object[] val = new Object[]{new YvsSocietes(idSociete), users};
+            listAgences = dao.loadNameQueries("YvsUsersAgence.findAgenceActionByUsersSociete", chp, val);
+        }
     }
 
     public List<Object[]> countWorkFlowToValid() {
@@ -922,18 +928,16 @@ public class Loggin implements Serializable {
     }
 
     public void loadAcces(YvsUsers user) {
-        if (user != null) {
-            if (user.getNiveauAcces() != null) {
-                paramBase = (YvsBaseParametre) dao.loadOneByNameQueries("YvsBaseParametre.findAll", new String[]{"societe"}, new Object[]{societe});
-                String[] champ = new String[]{"niveauAcces"};
-                Object[] val = new Object[]{user.getNiveauAcces()};
-                List<YvsAutorisationModule> listM = dao.loadNameQueries("YvsAutorisationModule.findByNiveauAcces", champ, val);
-                loadDroitModule(listM);
-                List<YvsAutorisationPageModule> listP = dao.loadNameQueries("YvsAutorisationPageModule.findByNiveauAcces", champ, val);
-                loadDroitPage(listP);
-                List<YvsAutorisationRessourcesPage> listR = dao.loadNameQueries("YvsAutorisationRessourcesPage.findByNiveauAcces", champ, val);
-                loadDroitRessource(listR);
-            }
+        if (user != null ? user.getNiveauAcces() != null : false) {
+            paramBase = (YvsBaseParametre) dao.loadOneByNameQueries("YvsBaseParametre.findAll", new String[]{"societe"}, new Object[]{societe});
+            String[] champ = new String[]{"niveauAcces"};
+            Object[] val = new Object[]{user.getNiveauAcces()};
+            List<YvsAutorisationModule> listM = dao.loadNameQueries("YvsAutorisationModule.findByNiveauAcces", champ, val);
+            loadDroitModule(listM);
+            List<YvsAutorisationPageModule> listP = dao.loadNameQueries("YvsAutorisationPageModule.findByNiveauAcces", champ, val);
+            loadDroitPage(listP);
+            List<YvsAutorisationRessourcesPage> listR = dao.loadNameQueries("YvsAutorisationRessourcesPage.findByNiveauAcces", champ, val);
+            loadDroitRessource(listR);
         }
     }
 

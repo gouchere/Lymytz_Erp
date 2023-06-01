@@ -2083,7 +2083,7 @@ public class ManagedDocDivers extends Managed<DocCaissesDivers, YvsComptaCaisseD
             }
             return false;
         }
-        if (!verifyDate(bean.getDatePiece(), 0)) {
+        if (!verifyDate(bean.getDateValider(), 0)) {
             return false;
         }
         return (giveExerciceActif(bean.getDatePiece()) != null);
