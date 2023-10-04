@@ -1866,7 +1866,7 @@ public class UtilCompta {
             r.setNotifs(y.getNotifs());
             r.setDateSave(y.getDateSave());
             r.setPhasesReglement(y.getPhasesReglement());
-
+            r.setDatePaiement(y.getDatePaiement());
             for (YvsComptaNotifReglementAchat c : y.getNotifs()) {
                 r.getAchatDiverses().add(buildBeanAcomptesAchatDivers(c));
             }
@@ -1903,6 +1903,7 @@ public class UtilCompta {
             r.setDateSave(y.getDateSave());
             r.setReferenceExterne(y.getReferenceExterne());
             r.setDateUpdate(new Date());
+            r.setDatePaiement(y.getDatePaiement());
         }
         return r;
     }

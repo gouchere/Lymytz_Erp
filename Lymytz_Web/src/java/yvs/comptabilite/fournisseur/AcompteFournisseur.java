@@ -30,6 +30,7 @@ public class AcompteFournisseur implements Serializable {
     private long id;
     private double montant, solde, reste;
     private Date dateAcompte = new Date();
+    private Date datePaiement;
     private Date dateSave = new Date();
     private boolean comptabilise;
     private String numRefrence;
@@ -228,6 +229,15 @@ public class AcompteFournisseur implements Serializable {
     public void setFirstEtape(String firstEtape) {
         this.firstEtape = firstEtape;
     }
+
+    public Date getDatePaiement() {
+        return datePaiement;
+    }
+
+    public void setDatePaiement(Date datePaiement) {
+        this.datePaiement = datePaiement;
+    }
+    
 
     @Override
     public int hashCode() {

@@ -1122,11 +1122,11 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
     }
 
     private void loadContenusBon(YvsComDocAchats y) {
-        contenusBon = loadContenusStay(y, Constantes.TYPE_FA);
+        contenusBon = chargerLeContenuRestantALivrer(y, Constantes.TYPE_FA);
         update("data_article_bon_achat");
     }
 
-    private List<YvsComContenuDocAchat> loadContenusStay(YvsComDocAchats y, String type) {
+    private List<YvsComContenuDocAchat> chargerLeContenuRestantALivrer(YvsComDocAchats y, String type) {
         List<YvsComContenuDocAchat> list = new ArrayList<>();
         y.setInt_(false);
         nameQueri = "YvsComContenuDocAchat.findByDocAchat";
@@ -2765,8 +2765,8 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
     }
 
     public void onValideDistantLivraisonByForce() {
-        if (distant != null ? distant.getId() > 0 : false) {
-            switch (distant.getTypeDoc()) {
+        if (bonDelivraison != null ? bonDelivraison.getId() > 0 : false) {
+            switch (bonDelivraison.getTypeDoc()) {
                 case Constantes.TYPE_BLA: {
                     ManagedLivraisonAchat s = (ManagedLivraisonAchat) giveManagedBean(ManagedLivraisonAchat.class);
                     if (s != null) {
@@ -2793,7 +2793,7 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
             }
         }
     }
-    YvsComDocAchats distant;
+    YvsComDocAchats bonDelivraison;
 
     public void onValideDistantLivraison(YvsComDocAchats y) {
         if (y != null ? y.getId() > 0 : false) {
@@ -2814,7 +2814,6 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
 
                     break;
                 }
-
                 case Constantes.TYPE_FAA:
                 case Constantes.TYPE_BRA: {
                     ManagedBonAvoirAchat s = (ManagedBonAvoirAchat) giveManagedBean(ManagedBonAvoirAchat.class);
@@ -2875,8 +2874,8 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
     }
 
     public void onAnnulerDistantLivraisonByForce() {
-        if (distant != null ? distant.getId() > 0 : false) {
-            switch (distant.getTypeDoc()) {
+        if (bonDelivraison != null ? bonDelivraison.getId() > 0 : false) {
+            switch (bonDelivraison.getTypeDoc()) {
                 case Constantes.TYPE_BLA: {
                     ManagedLivraisonAchat s = (ManagedLivraisonAchat) giveManagedBean(ManagedLivraisonAchat.class);
                     if (s != null) {
@@ -4150,22 +4149,12 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
             if (!verifyDateAchat(dateLivraison, false)) {
                 return;
             }
-//            boolean gescom_update_stock_after_valide = autoriser("gescom_update_stock_after_valide");
-//            exist_inventaire = !verifyInventaire(facture.getDepotReception(), facture.getTranche(), dateLivraison, (gescom_update_stock_after_valide ? false : message));
-//            if (exist_inventaire) {
-//                if (!gescom_update_stock_after_valide) {
-//                    return;
-//                } else if (!force) {
-//                    openDialog("dlgConfirmChangeInventaire");
-//                    return;
-//                }
-//            }
         }
         String num = genererReference(Constantes.TYPE_BLA_NAME, dateLivraison, facture.getDepotReception().getId());
         if (num != null ? num.trim().length() > 0 : false) {
             List<YvsComContenuDocAchat> contenus = new ArrayList<>(docAchat.getContenus());
             //charge les restes à livrer
-            List<YvsComContenuDocAchat> l = loadContenusStay(facture, Constantes.TYPE_BLA);
+            List<YvsComContenuDocAchat> l = chargerLeContenuRestantALivrer(facture, Constantes.TYPE_BLA);
             if (l != null ? !l.isEmpty() : false) {
                 if (!verifyTranche(facture.getTranche(), facture.getDepotReception(), dateLivraison)) {
                     return;
@@ -4193,33 +4182,33 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
                         list.add(a);
                     }
                 }
-                distant = new YvsComDocAchats(facture);
-                distant.setDateSave(new Date());
-                distant.setAuthor(currentUser);
-                distant.setAgence(facture.getAgence());
-                distant.setValiderBy(currentUser.getUsers());
-                distant.setTypeDoc(Constantes.TYPE_BLA);
-                distant.setNumDoc(num);
-                distant.setNumPiece("BL N° " + facture.getNumDoc());
-                distant.setDepotReception(new YvsBaseDepots(facture.getDepotReception().getId()));
-                distant.setTranche(new YvsGrhTrancheHoraire(facture.getTranche().getId()));
-                distant.setDateDoc(dateLivraison);
-                distant.setDateLivraison(dateLivraison);
-                distant.setDocumentLie(new YvsComDocAchats(facture.getId()));
-                distant.setCloturer(false);
-                distant.setStatut(statut);
-                distant.setStatutLivre(statut.equals(Constantes.ETAT_VALIDE) ? Constantes.ETAT_LIVRE : Constantes.ETAT_ATTENTE);
-                distant.setStatutRegle(Constantes.ETAT_ATTENTE);
-                distant.setDescription("Reception de la facture N° " + facture.getNumDoc() + " le " + ldf.format(dateLivraison) + " à " + time.format(dateLivraison));
-                distant.getContenus().clear();
-                distant.setId(null);
-                distant = (YvsComDocAchats) dao.save1(distant);
+                bonDelivraison = new YvsComDocAchats(facture);
+                bonDelivraison.setDateSave(new Date());
+                bonDelivraison.setAuthor(currentUser);
+                bonDelivraison.setAgence(facture.getAgence());
+                bonDelivraison.setValiderBy(currentUser.getUsers());
+                bonDelivraison.setTypeDoc(Constantes.TYPE_BLA);
+                bonDelivraison.setNumDoc(num);
+                bonDelivraison.setNumPiece("BL N° " + facture.getNumDoc());
+                bonDelivraison.setDepotReception(new YvsBaseDepots(facture.getDepotReception().getId()));
+                bonDelivraison.setTranche(new YvsGrhTrancheHoraire(facture.getTranche().getId()));
+                bonDelivraison.setDateDoc(dateLivraison);
+                bonDelivraison.setDateLivraison(dateLivraison);
+                bonDelivraison.setDocumentLie(new YvsComDocAchats(facture.getId()));
+                bonDelivraison.setCloturer(false);
+                bonDelivraison.setStatut(Constantes.ETAT_EDITABLE);  
+                bonDelivraison.setStatutLivre(statut.equals(Constantes.ETAT_VALIDE) ? Constantes.ETAT_LIVRE : Constantes.ETAT_ATTENTE);
+                bonDelivraison.setStatutRegle(Constantes.ETAT_ATTENTE);
+                bonDelivraison.setDescription("Reception de la facture N° " + facture.getNumDoc() + " le " + ldf.format(dateLivraison) + " à " + time.format(dateLivraison));
+                bonDelivraison.getContenus().clear();
+                bonDelivraison.setId(null);
+                bonDelivraison = (YvsComDocAchats) dao.save1(bonDelivraison);
                 ManagedLotReception m = (ManagedLotReception) giveManagedBean(ManagedLotReception.class);
                 for (YvsComContenuDocAchat c : list) {
                     long id = c.getId();
                     c.setExterne(null);
-                    c.setDateLivraison(distant.getDateLivraison());
-                    c.setDocAchat(distant);
+                    c.setDateLivraison(bonDelivraison.getDateLivraison());
+                    c.setDocAchat(bonDelivraison);
                     c.setStatut(Constantes.ETAT_VALIDE);
                     c.setParent(new YvsComContenuDocAchat(c.getId()));
                     c.setAuthor(currentUser);
@@ -4228,24 +4217,24 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
                             c.setLot(m._saveNew(c.getLot().getNumero(), new Articles(c.getArticle().getId(), c.getArticle().getRefArt(), c.getArticle().getDesignation()), c.getLot().getDateFabrication(), c.getLot().getDateExpiration()));
                         }
                         if (c.getLot() != null ? c.getLot().getId() < 1 : true) {
-                            dao.requeteLibre("DELETE FROM yvs_com_doc_achats WHERE id = ?", new Options[]{new Options(distant.getId(), 1)});
+                            dao.requeteLibre("DELETE FROM yvs_com_doc_achats WHERE id = ?", new Options[]{new Options(bonDelivraison.getId(), 1)});
                             getErrorMessage("Un numéro de lot est requis pour l'article " + c.getArticle().getDesignation() + " dans le depot");
                             return;
                         }
                     }
                     c.setId(null);
                     c = (YvsComContenuDocAchat) dao.save1(c);
-                    distant.getContenus().add(c);
+                    bonDelivraison.getContenus().add(c);
                     int idx = facture.getContenus().indexOf(new YvsComContenuDocAchat(id));
                     if (idx > -1) {
                         facture.getContenus().get(idx).getContenus().add(c);
                     }
                 }
-                distant.setDocumentLie(facture);
+                bonDelivraison.setDocumentLie(facture);
                 if (statut.equals(Constantes.ETAT_VALIDE)) {
                     ManagedLivraisonAchat service = (ManagedLivraisonAchat) giveManagedBean(ManagedLivraisonAchat.class);
                     if (service != null) {
-                        if (service.validerOrder(distant, false, false, true, exist_inventaire, force)) {
+                        if (service.validerOrder(bonDelivraison, false, false, true, exist_inventaire, force)) {
                             String rq = "UPDATE yvs_com_doc_achats SET statut_livre = '" + (statut.equals(Constantes.ETAT_VALIDE) ? Constantes.ETAT_LIVRE : Constantes.ETAT_ATTENTE) + "' WHERE id=?";
                             Options[] param = new Options[]{new Options(facture.getId(), 1)};
                             dao.requeteLibre(rq, param);
@@ -4255,9 +4244,9 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
                 } else if (message) {
                     succes();
                 }
-                int idx = facture.getDocuments().indexOf(distant);
+                int idx = facture.getDocuments().indexOf(bonDelivraison);
                 if (idx < 0) {
-                    facture.getDocuments().add(distant);
+                    facture.getDocuments().add(bonDelivraison);
                 }
                 if (documents.contains(facture)) {
                     documents.set(documents.indexOf(facture), facture);
@@ -5708,7 +5697,7 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
         try {
             contenusRequireLot.clear();
             if (docAchat.getDepotReception() != null ? docAchat.getDepotReception().getId() > 0 : false) {
-                Boolean requiere_lot = false;
+                Boolean requiere_lot;
                 String query = "SELECT requiere_lot FROM yvs_base_article_depot WHERE article = ? AND depot = ?";
                 for (YvsComContenuDocAchat c : docAchat.getContenus()) {
                     requiere_lot = (Boolean) dao.loadObjectBySqlQuery(query, new Options[]{new Options(c.getArticle().getId(), 1), new Options(docAchat.getDepotReception().getId(), 2)});
