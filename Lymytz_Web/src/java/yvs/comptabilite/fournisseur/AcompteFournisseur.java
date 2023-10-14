@@ -48,6 +48,7 @@ public class AcompteFournisseur implements Serializable {
     private String firstEtape = "VALIDER";
     private List<YvsComptaNotifReglementDocDivers> notifs_doc;
     private List<AcomptesAchatDivers> achatDiverses;
+    private Date datePaiement;
     
 
     public AcompteFournisseur() {
@@ -229,6 +230,31 @@ public class AcompteFournisseur implements Serializable {
         this.firstEtape = firstEtape;
     }
 
+    public List<YvsComptaNotifReglementDocDivers> getNotifs_doc() {
+        return notifs_doc;
+    }
+
+    public void setNotifs_doc(List<YvsComptaNotifReglementDocDivers> notifs_doc) {
+        this.notifs_doc = notifs_doc;
+    }
+
+    public List<AcomptesAchatDivers> getAchatDiverses() {
+        return achatDiverses;
+    }
+
+    public void setAchatDiverses(List<AcomptesAchatDivers> achatDiverses) {
+        this.achatDiverses = achatDiverses;
+    }
+    
+    public void setDatePaiement(Date datePaiement) {
+        this.datePaiement = datePaiement;
+    }
+
+    public Date getDatePaiement() {
+        return datePaiement;
+    }
+
+
     @Override
     public int hashCode() {
         int hash = 7;
@@ -250,25 +276,6 @@ public class AcompteFournisseur implements Serializable {
         }
         return true;
     }
-
-    public List<YvsComptaNotifReglementDocDivers> getNotifs_doc() {
-        return notifs_doc;
-    }
-
-    public void setNotifs_doc(List<YvsComptaNotifReglementDocDivers> notifs_doc) {
-        this.notifs_doc = notifs_doc;
-    }
-
-    public List<AcomptesAchatDivers> getAchatDiverses() {
-        return achatDiverses;
-    }
-
-    public void setAchatDiverses(List<AcomptesAchatDivers> achatDiverses) {
-        this.achatDiverses = achatDiverses;
-    }
-    
-    
-    
     
 
 }

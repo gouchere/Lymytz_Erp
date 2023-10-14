@@ -938,7 +938,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 if (bean.getId() > 0) {
                     dao.update(selectCompte);
                 } else {
-                    selectCompte.setId(null);
+                    selectCompte.setId(null);                    
                     selectCompte = (YvsComptaAcompteFournisseur) dao.save1(selectCompte);
                     bean.setId(selectCompte.getId());
                     bean.setReste(bean.getMontant());
