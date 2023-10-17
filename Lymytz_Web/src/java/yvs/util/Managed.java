@@ -882,7 +882,7 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     }
 
     /**
-     * copie les propriétés de l'objet o dans l'objet o
+     * copie les propriétés de l'objet source dans l'objet cible sans en changer la référence
      *
      * @param cible
      * @param source
@@ -901,7 +901,6 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
                     lf0[i].set(cible, f.get(source));
                     i++;
                 } catch (IllegalArgumentException | IllegalAccessException ex) {
-                    System.err.println("Name : " + f.getName());
                     Logger.getLogger(Managed.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }

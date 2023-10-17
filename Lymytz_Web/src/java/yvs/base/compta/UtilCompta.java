@@ -1902,6 +1902,7 @@ public class UtilCompta {
             r.setNew_(true);
             r.setDateSave(y.getDateSave());
             r.setReferenceExterne(y.getReferenceExterne());
+            r.setDatePaiement(y.getStatut()!=Constantes.STATUT_DOC_PAYER? null:y.getDatePaiement());
             r.setDateUpdate(new Date());
             r.setDatePaiement(y.getDatePaiement());
         }
