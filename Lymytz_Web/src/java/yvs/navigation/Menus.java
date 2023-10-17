@@ -4,8 +4,7 @@
  */
 package yvs.navigation;
 
-import java.io.Serializable;import yvs.entity.compta.YvsBaseCaisse;
-
+import java.io.Serializable;
 /**
  *
  * @author GOUCHERE YVES

@@ -122,15 +122,6 @@ public class ManagedMemo extends Managed<UsersMemo, YvsUsersMemo> implements Ser
         position = -1;
     }
 
-    public void load() {
-        if (currentUser != null) {
-            champ = new String[]{"users", "date"};
-            val = new Object[]{currentUser.getUsers(), new Date()};
-            nameQueri = "YvsUsersMemo.findByRappel";
-            memos = dao.loadNameQueries(nameQueri, champ, val);
-        }
-    }
-
     public void loadAll(boolean avance, boolean init) {
         paginator.addParam(new ParametreRequete("y.users", "users", currentUser, "=", "AND"));
         memos = paginator.executeDynamicQuery("YvsUsersMemo", "y.dateDebutRappel DESC, y.id", avance, init, (int) imax, dao);

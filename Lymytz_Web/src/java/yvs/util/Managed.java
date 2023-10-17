@@ -5080,9 +5080,6 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
                 query += "AND a.societe = ? ";
             }
             query += "GROUP BY m.id, y.nature_alerte, y.description ORDER BY m.description";
-//            String query_date = "COALESCE((SELECT p.date_doc " + table.replace("3.societe = ?", "3.societe = a.societe").replace("5.users = ?", "5.users = u.users").replace("1.agence = ?", "1.agence = y.agence").replace('1', 'p').replace('2', 'o').replace('3', 'g').replace('4', 'f').replace('5', 's') + " AND p.model_doc = m.id AND p.nature_alerte = y.nature_alerte ORDER BY p.date_doc DESC LIMIT 1), current_date)";
-//            String query_ids = "ARRAY(SELECT p.id_element " + table.replace("3.societe = ?", "3.societe = a.societe").replace("5.users = ?", "5.users = u.users").replace("1.agence = ?", "1.agence = y.agence").replace('1', 'p').replace('2', 'o').replace('3', 'g').replace('4', 'f').replace('5', 's') + " AND p.model_doc = m.id AND p.nature_alerte = y.nature_alerte)";
-
             WARNINGS = dao.loadDataByNativeQuery(query, params.toArray(new Object[params.size()]));
         }
         return WARNINGS != null ? WARNINGS.size() : 0;
