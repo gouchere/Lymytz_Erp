@@ -30,6 +30,7 @@ public class AcompteFournisseur implements Serializable {
     private long id;
     private double montant, solde, reste;
     private Date dateAcompte = new Date();
+    private Date datePaiement;
     private Date dateSave = new Date();
     private boolean comptabilise;
     private String numRefrence;
@@ -48,8 +49,6 @@ public class AcompteFournisseur implements Serializable {
     private String firstEtape = "VALIDER";
     private List<YvsComptaNotifReglementDocDivers> notifs_doc;
     private List<AcomptesAchatDivers> achatDiverses;
-    private Date datePaiement;
-    
 
     public AcompteFournisseur() {
         notifs = new ArrayList<>();
@@ -245,7 +244,7 @@ public class AcompteFournisseur implements Serializable {
     public void setAchatDiverses(List<AcomptesAchatDivers> achatDiverses) {
         this.achatDiverses = achatDiverses;
     }
-    
+
     public void setDatePaiement(Date datePaiement) {
         this.datePaiement = datePaiement;
     }
@@ -253,7 +252,6 @@ public class AcompteFournisseur implements Serializable {
     public Date getDatePaiement() {
         return datePaiement;
     }
-
 
     @Override
     public int hashCode() {
@@ -276,6 +274,5 @@ public class AcompteFournisseur implements Serializable {
         }
         return true;
     }
-    
 
 }
