@@ -144,19 +144,19 @@ public class YvsBaseCaisse extends YvsEntity implements Serializable {
     private List<YvsBaseComptesCaisse> othersCompte;
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     private List<YvsBaseCaisse> subCaisses;
-    @OneToMany(mappedBy = "caisse", fetch = FetchType.LAZY)
+    @Transient
     private List<YvsComptaCaissePieceMission> piecesMission;
-    @OneToMany(mappedBy = "caisse", fetch = FetchType.LAZY)
+    @Transient
     private List<YvsComptaCaissePieceAchat> piecesAchat;
-    @OneToMany(mappedBy = "caisse",fetch = FetchType.LAZY)
+    @Transient
     private List<YvsComptaCaissePieceVente> piecesVente;
-    @OneToMany(mappedBy = "caisse", fetch = FetchType.LAZY)
+    @Transient
     private List<YvsComptaCaissePieceDivers> piecesDivers;
-    @OneToMany(mappedBy = "source", fetch = FetchType.LAZY)
+    @Transient
     private List<YvsComptaCaissePieceVirement> piecesVirement;
-    @OneToMany(mappedBy = "caisse", fetch = FetchType.LAZY)
+    @Transient
     private List<YvsComptaMouvementCaisse> mouvements;
-    @OneToMany(mappedBy = "cible", fetch = FetchType.LAZY)
+    @Transient
     private List<YvsComptaCaissePieceVirement> cibles;
     @OneToMany(mappedBy = "idCaisse", fetch = FetchType.LAZY)
     private List<YvsBaseCaisseUser> yvsBaseCaisseUserList;

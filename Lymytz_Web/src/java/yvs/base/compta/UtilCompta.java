@@ -1107,7 +1107,7 @@ public class UtilCompta {
                 c.setCompte(buildEntityCompte(ca.getCompte()));
             }
             if (ca.getResponsable() != null ? ca.getResponsable().getId() > 0 : false) {
-                c.setResponsable(UtilGrh.buildEmployeEntity(ca.getResponsable()));
+//                c.setResponsable(UtilGrh.buildEmployeEntity(ca.getResponsable()));
             }
             if (ca.getJournal() != null ? ca.getJournal().getId() > 0 : false) {
                 c.setJournal(buildBeanJournaux(ca.getJournal()));

@@ -1939,17 +1939,7 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
                     impl.setNiveauAcces(currentNiveau);
                     impl.setAgence(currentAgence);
                     if (article.getId() <= 0) {
-
-//                    if (!autoriser("base_article_save")) {
-//                        openNotAcces();
-//                        return false;
-//                    }
                         entityArticle.setId(null);
-//                    entityArticle.getPlans_tarifaires().clear();
-//                    entityArticle.getComptes().clear();
-//                    entityArticle = (YvsBaseArticles) dao.save1(entityArticle);
-//                    article.setId(entityArticle.getId());
-//                    saveAll();
                         //charge les catégorie comptable    
                         ResultatAction<YvsBaseArticles> re = impl.save(entityArticle);
                         if (re != null ? re.isResult() : false) {
@@ -1965,12 +1955,6 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
                         }
                         update("tableArticleCatC");
                     } else {
-//                        if (!autoriser("base_article_update")) {
-//                            openNotAcces();
-//                            return false;
-//                        }
-//                        entityArticle.setId(article.getId());
-//                        dao.update(entityArticle);
                         ResultatAction<YvsBaseArticles> re = impl.update(entityArticle);
                         if (re != null ? re.isResult() : false) {
                             entityArticle = re.getEntity();
@@ -1982,28 +1966,6 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
                     getErrorMessage("Erreur Système !");
                     return false;
                 }
-//                if (article.getId() <= 0) {
-//
-//                    if (!autoriser("base_article_save")) {
-//                        openNotAcces();
-//                        return false;
-//                    }
-//                    entityArticle.setId(null);
-//                    entityArticle.getPlans_tarifaires().clear();
-//                    entityArticle.getComptes().clear();
-//                    entityArticle = (YvsBaseArticles) dao.save1(entityArticle);
-//                    article.setId(entityArticle.getId());
-//                    saveAll();
-//                    //charge les catégorie comptable                
-//                    update("tableArticleCatC");
-//                } else {
-//                    if (!autoriser("base_article_update")) {
-//                        openNotAcces();
-//                        return false;
-//                    }
-//                    entityArticle.setId(article.getId());
-//                    dao.update(entityArticle);
-//                }
                 int idx = listArticle.indexOf(entityArticle);
                 if (idx > -1) {
                     listArticle.set(idx, entityArticle);

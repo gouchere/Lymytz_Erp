@@ -85,8 +85,6 @@ public class Loggin implements Serializable {
     private List<YvsSocietes> listSociete;
     private List<YvsUsersFavoris> FAVORIS;
     private boolean displayAgence, displaySociete, superAdmin;
-//    private boolean displayConnect = true;
-//    public boolean correctInt_;
     private boolean connecter, lookPassword;
     private String lastPage, lastModule, lastTitre;
 
@@ -94,7 +92,6 @@ public class Loggin implements Serializable {
     YvsNiveauAcces currentNiveau;
     YvsBaseDepots currentDepot;
     YvsBasePointVente currentPoint;
-//    YvsGrhEmployes currentEmploye;
     YvsGrhPosteDeTravail currentPoste;
     YvsGrhDepartement currentServive;
     YvsAgences currentAgence;
@@ -107,31 +104,21 @@ public class Loggin implements Serializable {
     private int dureeMessage = 9000;
     private String adresseMac, adresseIp;
     private boolean smallNavigation = false;
-    private List<YvsModule> modulesActif = new ArrayList<YvsModule>();
+    private List<YvsModule> modulesActif = new ArrayList<>();
+    
+    //*****Programmation des droits d'accès**/
+    @ManagedProperty(value = "#{accesModule}")
+    private AccesModule accesModule;
+    @ManagedProperty(value = "#{accesPage}")
+    private AccesPage accesPage;
+    @ManagedProperty(value = "#{accesRessource}")
+    private AccesRessource accesRessource;
+    @ManagedProperty(value = "#{acces}")
+    private Acces acces;
 
     public Loggin() {
         listAgences = new ArrayList<>();
         listSociete = new ArrayList<>();
-        //Version eclipselink
-
-//        try {
-//            Class<?> myClass = Class.forName("org.eclipse.persistence.Version");
-//            Method myMethod = myClass.getMethod("getVersion");
-//            String version = myMethod.invoke(null).toString();
-//            System.out.println("version = " + version);
-//        } catch (ClassNotFoundException ex) {
-//            Logger.getLogger(ManagedStockArticle.class.getName()).log(Level.SEVERE, null, ex);
-//        } catch (NoSuchMethodException ex) {
-//            Logger.getLogger(ManagedStockArticle.class.getName()).log(Level.SEVERE, null, ex);
-//        } catch (SecurityException ex) {
-//            Logger.getLogger(ManagedStockArticle.class.getName()).log(Level.SEVERE, null, ex);
-//        } catch (IllegalAccessException ex) {
-//            Logger.getLogger(ManagedStockArticle.class.getName()).log(Level.SEVERE, null, ex);
-//        } catch (IllegalArgumentException ex) {
-//            Logger.getLogger(ManagedStockArticle.class.getName()).log(Level.SEVERE, null, ex);
-//        } catch (InvocationTargetException ex) {
-//            Logger.getLogger(ManagedStockArticle.class.getName()).log(Level.SEVERE, null, ex);
-//        }
     }
 
     public String getPasswordAdmin() {
@@ -285,10 +272,7 @@ public class Loggin implements Serializable {
     public void setAgence(YvsAgences agence) {
         this.agence = agence;
     }
-
-//    private void getMessage(String message) {
-//        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, message, message));
-//    }
+    
     private void getMessage1(String message) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));
     }
@@ -300,15 +284,6 @@ public class Loggin implements Serializable {
     public void setListAgences(List<YvsAgences> listAgences) {
         this.listAgences = listAgences;
     }
-    //*****Programmation des droits d'accès**/
-    @ManagedProperty(value = "#{accesModule}")
-    private AccesModule accesModule;
-    @ManagedProperty(value = "#{accesPage}")
-    private AccesPage accesPage;
-    @ManagedProperty(value = "#{accesRessource}")
-    private AccesRessource accesRessource;
-    @ManagedProperty(value = "#{acces}")
-    private Acces acces;
 
     public Acces getAcces() {
         return acces;
@@ -361,7 +336,6 @@ public class Loggin implements Serializable {
     }
 
     //charge les agences de la société
-//    private List<YvsAgences> listEntityAgence;
     public void loadAgence(long idSociete, YvsUsers users) {
         listAgences.clear();
         if (superAdmin) {
