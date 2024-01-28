@@ -928,7 +928,6 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
         if (!verifyDateStock(bean.getDateDoc(), bean.isUpdate())) {
             return false;
         }
-//        return writeInExercice (bean.getDateDoc());
         return true;
     }
 
@@ -3007,7 +3006,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
                 }
             }
         }
-//        docStock.setContenus(dao.loadNameQueries("YvsComContenuDocStock.findByDocStock", new String[]{"docStock"}, new Object[]{new YvsComDocStocks(docStock.getId())}));
+        docStock.setContenus(dao.loadNameQueries("YvsComContenuDocStock.findByDocStock", new String[]{"docStock"}, new Object[]{new YvsComDocStocks(docStock.getId())}));
         selectDoc.setContenus(docStock.getContenus());
         if (docStock.getContenus() != null ? !docStock.getContenus().isEmpty() : false) {
             Long count = (Long) dao.loadObjectByNameQueries("YvsBaseMouvementStock.findCountByExterne", new String[]{"externe", "table"}, new Object[]{docStock.getContenus().get(0).getId(), Constantes.yvs_com_contenu_doc_stock});
@@ -3194,9 +3193,6 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
                 return false;
             }
             String oldEtat = docStock.getStatut();
-            String rq = "UPDATE yvs_com_doc_stocks SET statut = '" + etat + "' WHERE id=?";
-            Options[] param = new Options[]{new Options(selectDoc.getId(), 1)};
-//            dao.requeteLibre(rq, param);
             docStock.setStatut(etat);
             selectDoc.setStatut(etat);
             if (documents.contains(selectDoc)) {
@@ -3224,9 +3220,9 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
                 }
             } else if (!oldEtat.equals(Constantes.ETAT_EDITABLE) && !oldEtat.equals(Constantes.ETAT_ANNULE)) {
                 if (etat.equals(Constantes.ETAT_VALIDE)) {
-                    Date dateReception = etat.equals(Constantes.ETAT_VALIDE) ? docStock.getDateReception() : null;
+                    Date d_ = etat.equals(Constantes.ETAT_VALIDE) ? docStock.getDateReception() : null;
                     for (YvsComContenuDocStock c : docStock.getContenus()) {
-                        validerContenu(c, dateReception, true, false, false);
+                        validerContenu(c, d_, true, false, false);
                     }
                 }
             }

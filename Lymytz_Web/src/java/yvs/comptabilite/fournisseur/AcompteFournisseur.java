@@ -37,7 +37,7 @@ public class AcompteFournisseur implements Serializable {
     private String commentaire;
     private String referenceExterne;
     private double resteUnBlind;
-    private char nature = 'A';
+    private char nature = 'D';
     private char statut = Constantes.STATUT_DOC_ATTENTE;
     private char statutNotif = Constantes.STATUT_DOC_ATTENTE;
     private boolean repartirAutomatique = true;
@@ -174,7 +174,7 @@ public class AcompteFournisseur implements Serializable {
     }
 
     public char getNature() {
-        return Character.valueOf(nature) != null ? String.valueOf(nature).trim().length() > 0 ? nature : 'A' : 'A';
+        return Character.valueOf(nature) != null ? String.valueOf(nature).trim().length() > 0 ? nature : 'D' : 'D';
     }
 
     public void setNature(char nature) {

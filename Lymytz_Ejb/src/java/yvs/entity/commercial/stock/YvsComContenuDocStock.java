@@ -427,6 +427,7 @@ public class YvsComContenuDocStock extends YvsEntity implements Serializable {
         this.dateContenu = dateContenu;
     }
 
+    @Override
     public Long getId() {
         return id != null ? id : 0;
     }
@@ -593,6 +594,7 @@ public class YvsComContenuDocStock extends YvsEntity implements Serializable {
         return "yvs.entity.commercial.stock.YvsComContenuDocStock[ id=" + id + " ]";
     }
 
+    @Transient
     public double getPrix(DaoInterfaceLocal dao, YvsComDocStocksValeur valeur) {
         double prix = getPrix();
         double coefficient = 1;
@@ -621,6 +623,7 @@ public class YvsComContenuDocStock extends YvsEntity implements Serializable {
         return prix;
     }
 
+    @Transient
     public double getPrix(DaoInterfaceLocal dao, String valoriseBy) {
         double prix = getPrix();
         YvsBaseDepots depot = getDocStock().getSource() != null ? getDocStock().getSource() : getDocStock().getDestination();

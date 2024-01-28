@@ -1134,7 +1134,6 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
             List<YvsBaseArticleDepot> list = paginator.executeDynamicQuery("YvsBaseArticleDepot", "y.article.designation, y.article.refArt", avance, init, (int) imax, dao);
             Double sr;
             YvsBaseArticleDepot y;
-            String query = "SELECT AVG(COALESCE(cout_entree, 0)) FROM yvs_base_mouvement_stock WHERE conditionnement = ? AND depot = ? AND date_doc <= ?";
             for (YvsBaseArticleDepot a : list) {
                 a.getArticle().setConditionnements(dao.loadNameQueries("YvsBaseConditionnement.findByArticle", new String[]{"article"}, new Object[]{a.getArticle()}));
                 for (YvsBaseConditionnement c : a.getArticle().getConditionnements()) {
@@ -1144,16 +1143,14 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
                     y.setStockInitial(dao.stocks(a.getArticle().getId(), trancheSearch, a.getDepot().getId(), 0, 0, dateSearch, c.getId(), 0));
                     y.setStock(y.getStockInitial());
                     y.setPrixRevient(findLastPr(a.getArticle().getId(), a.getDepot().getId(), dateSearch, c.getId()));
-                    if (all) {
+                    if (all) {                        
+                        String query = "SELECT AVG(COALESCE(cout_entree, 0)) FROM yvs_base_mouvement_stock WHERE conditionnement = ? AND depot = ? AND date_doc <= ?";
                         Double prixEntree = (Double) dao.loadObjectBySqlQuery(query, new Options[]{new Options(c.getId(), 1), new Options(a.getDepot().getId(), 2), new Options(dateSearch, 3)});
                         y.setPrixEntree(prixEntree != null ? prixEntree : 0);
                         //stock reservé à une date
                         y.setResteALivrer(dao.getResteALivrer(a.getArticle().getId(), a.getDepot().getId(), dateSearch, c.getId()));
-                        //calcule le stock reservé
-                        sr = (Double) dao.loadOneByNameQueries("YvsComReservationStock.findQuantite", new String[]{"article", "depot", "date", "statut", "unite"}, new Object[]{a.getArticle(), a.getDepot(), dateSearch, Constantes.ETAT_VALIDE, c});
-                        y.setQuantiteReserve(sr != null ? sr : 0);
                         //calcule la moyenne des couts d'entree
-                        sr = (Double) dao.loadOneByNameQueries("YvsBaseMouvementStock.findPrixByArticle", new String[]{"article", "unite", "date"}, new Object[]{a.getArticle(), c, dateSearch});
+                        sr = (Double) dao.loadOneByNameQueries("YvsBaseMouvementStock.findPrixByArticle", new String[]{"unite", "date"}, new Object[]{c, dateSearch});
                         y.getArticle().setPuv(sr != null ? sr : 0);
                     }
                     boolean insert = false;
@@ -1247,7 +1244,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
                     sr = (Double) dao.loadOneByNameQueries("YvsComReservationStock.findQuantite", new String[]{"article", "depot", "date", "statut", "unite"}, new Object[]{a.getArticle(), a.getDepot(), dateSearch, Constantes.ETAT_VALIDE, c});
                     y.setQuantiteReserve(sr != null ? sr : 0);
                     //calcule la moyenne des couts d'entree
-                    sr = (Double) dao.loadOneByNameQueries("YvsBaseMouvementStock.findPrixByArticle", new String[]{"article", "unite", "date"}, new Object[]{a.getArticle(), c, dateSearch});
+                    sr = (Double) dao.loadOneByNameQueries("YvsBaseMouvementStock.findPrixByArticle", new String[]{"unite", "date"}, new Object[]{c, dateSearch});
                     y.getArticle().setPuv(sr != null ? sr : 0);
                     boolean insert = false;
                     if (stock_) {
@@ -1369,7 +1366,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
                     sr = (Double) dao.loadOneByNameQueries("YvsComReservationStock.findQuantite", new String[]{"article", "depot", "date", "statut", "unite"}, new Object[]{a.getArticle(), a.getDepot(), mouvementStock.getDateDebut(), Constantes.ETAT_VALIDE, c});
                     y.setQuantiteReserve(sr != null ? sr : 0);
                     //calcule la moyenne des couts d'entree
-                    sr = (Double) dao.loadOneByNameQueries("YvsBaseMouvementStock.findPrixByArticle", new String[]{"article", "unite", "date"}, new Object[]{a.getArticle(), c, mouvementStock.getDateDoc()});
+                    sr = (Double) dao.loadOneByNameQueries("YvsBaseMouvementStock.findPrixByArticle", new String[]{"unite", "date"}, new Object[]{c, mouvementStock.getDateDoc()});
                     y.getArticle().setPuv(sr != null ? sr : 0);
                     if (stock_) {
                         switch (getSoldeSearch()) {
