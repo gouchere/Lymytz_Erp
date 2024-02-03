@@ -51,6 +51,7 @@ public class Constantes implements Serializable {
     public static final String FIFO = "First Int First Out";
     public static final String LIFO = "Last Int First Out";
     public static final String CMP = "Cout Moyen Pondere";
+    public static final String NOTHING = "NOTHING";
 
     public static String DEFAULT_PHOTO = "";
     public static String DEFAULT_PHOTO_EMPLOYE_MAN = "";
@@ -1267,6 +1268,10 @@ public class Constantes implements Serializable {
 
     public static final String SUPPL_SOCIETE_AGREEMENT = "AGREEMENT";
     public static final String SUPPL_SOCIETE_AGREEMENT_NAME = "Agréement";
+
+    public String getNOTHING() {
+        return NOTHING;
+    }
 
     public String getSUPPL_SOCIETE_AGREEMENT() {
         return SUPPL_SOCIETE_AGREEMENT;
