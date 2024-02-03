@@ -92,9 +92,6 @@ import yvs.entity.param.workflow.YvsWorkflowValidDocStock;
 import yvs.entity.param.workflow.YvsWorkflowValidFactureAchat;
 import yvs.entity.param.workflow.YvsWorkflowValidFactureVente;
 import yvs.entity.param.workflow.YvsWorkflowValidMission;
-import yvs.entity.synchro.YvsSynchroDataSynchro;
-import yvs.entity.synchro.YvsSynchroListenTable;
-import yvs.entity.synchro.YvsSynchroServeurs;
 import yvs.entity.users.YvsNiveauAcces;
 import yvs.entity.users.YvsUsers;
 import yvs.entity.users.YvsUsersAgence;
@@ -112,7 +109,7 @@ public abstract class AbstractDao<T extends Serializable> {
     public EntityManager em;
 
 //    @PersistenceContext(unitName = "LYMYTZ-MESSAGERIE-EJBPU")
-    public EntityManager emM;
+//    public EntityManager emM;
     Class<T> entityClass;
     String EM;
 
@@ -180,8 +177,6 @@ public abstract class AbstractDao<T extends Serializable> {
         return false;
     }
 
-    //sauvegarder une entité persistente Et retourner l'instence persisté
-    //sauvegarder une entité persistente
     //TEST
     public void save(T en, boolean synchronise) {
         if (EM == null) {
@@ -189,9 +184,9 @@ public abstract class AbstractDao<T extends Serializable> {
         }
         getEntityManager().persist(en);
         getEntityManager().flush();
-        if (synchronise) {
-            afterCRUD(en, "INSERT");
-        }
+//        if (synchronise) {
+//            afterCRUD(en, "INSERT");
+//        }
         en = null;
     }
 
@@ -199,14 +194,12 @@ public abstract class AbstractDao<T extends Serializable> {
         save(en, true);
     }
 
-    //sauvegarder une entité persistente Et retourner l'instence persisté
     public T save1(T en, boolean synchronise) {
         getEntityManager().persist(en);
-//        en = getEntityManager().merge(en);
         getEntityManager().flush();
-        if (synchronise) {
-            afterCRUD(en, "INSERT");
-        }
+//        if (synchronise) {
+//            afterCRUD(en, "INSERT");
+//        }
         return en;
     }
 
@@ -217,14 +210,14 @@ public abstract class AbstractDao<T extends Serializable> {
     public T update(T en, boolean synchronise) {
         getEntityManager().clear();
         T re = ((T) getEntityManager().merge(en));
-        try {
-            getEntityManager().flush();
-        } catch (Exception e) {
-            Logger.getLogger(AbstractDao.class.getName()).log(Level.SEVERE, null, e);
-        }
-        if (synchronise) {
-            afterCRUD(re, "UPDATE");
-        }
+//        try {
+//            getEntityManager().flush();
+//        } catch (Exception e) {
+//            Logger.getLogger(AbstractDao.class.getName()).log(Level.SEVERE, null, e);
+//        }
+//        if (synchronise) {
+//           // afterCRUD(re, "UPDATE");
+//        }
         return re;
     }
 
@@ -236,9 +229,9 @@ public abstract class AbstractDao<T extends Serializable> {
         T r = getEntityManager().merge(en);
         getEntityManager().remove(r);
         getEntityManager().flush();
-        if (synchronise) {
-            afterCRUD(en, "DELETE");
-        }
+//        if (synchronise) {
+//            afterCRUD(en, "DELETE");
+//        }
         return true;
     }
 
@@ -269,7 +262,6 @@ public abstract class AbstractDao<T extends Serializable> {
     }
 
     public List<T> loadNameQueries(String querie, String[] champ, Object[] val) {
-//        getEntityManager().clear();
         Query qr = getEntityManager().createNamedQuery(querie);
         int i = 0;
         for (String st : champ) {
@@ -550,16 +542,7 @@ public abstract class AbstractDao<T extends Serializable> {
         q.setParameter("2", notif);
         q.executeUpdate();
     }
-
-//    public double getLastCout(long art, long depot, double qte) {
-//        double re;
-//        Query query = getEntityManager().createNativeQuery(
-//                "SELECT get_cout_stock_article(?,?,?)");
-//        query.setParameter(1, art).setParameter(2, depot).setParameter(3, qte);
-//        Double dr = (Double) query.getSingleResult();
-//        re = (dr != null) ? dr : 0;
-//        return re;
-//    }
+    
     public double callFonction(String rq, Options[] lp) {
         double re;
         Query q = getEntityManager().createNativeQuery(rq);
@@ -1635,23 +1618,22 @@ public abstract class AbstractDao<T extends Serializable> {
     public double getResteALivrer(long article, long depot, Date date, long conditionnement) {
         Double re;
         String rq = "SELECT((COALESCE"
-                + "((select sum(c.quantite) from yvs_com_contenu_doc_vente c inner join yvs_base_articles a on a.id=c.article "
+                + "((select sum(c.quantite) from yvs_com_contenu_doc_vente c "
                 + "inner join yvs_com_doc_ventes d on d.id=c.doc_vente  inner join yvs_com_entete_doc_vente en on en.id=d.entete_doc "
-                + "where d.type_doc='FV' and d.statut_livre != 'L' and d.statut='V' and en.date_entete<=? AND c.article=? AND d.depot_livrer=? AND c.conditionnement = ? limit 1),0)) "
+                + "where d.type_doc='FV' and d.statut_livre != 'L' and d.statut='V' and en.date_entete<=?  AND d.depot_livrer=? AND c.conditionnement = ? limit 1),0)) "
                 + "-"
                 + "(COALESCE("
-                + "(select sum(c1.quantite) from yvs_com_contenu_doc_vente c1 inner join yvs_base_articles a1 on a1.id=c1.article "
+                + "(select sum(c1.quantite) from yvs_com_contenu_doc_vente c1 "
                 + "inner join yvs_com_doc_ventes d1 on d1.id=c1.doc_vente "
-                + "where d1.type_doc='BLV' and d1.statut='V' and d1.date_livraison<=? AND c1.article=? AND d1.depot_livrer=? AND c1.conditionnement = ? limit 1),0))) ";
+                + "where d1.type_doc='BLV' and d1.statut='V' and d1.date_livraison<=? AND d1.depot_livrer=? AND c1.conditionnement = ? limit 1),0))) ";
         re = (Double) getEntityManager().createNativeQuery(rq)
                 .setParameter(1, date)
-                .setParameter(2, article)
-                .setParameter(3, depot)
-                .setParameter(4, conditionnement)
-                .setParameter(5, date)
-                .setParameter(6, article)
-                .setParameter(7, depot)
-                .setParameter(8, conditionnement)
+                .setParameter(2, depot)
+                .setParameter(3, conditionnement)
+                .setParameter(4, date)
+                .setParameter(5, article)
+                .setParameter(6, depot)
+                .setParameter(7, conditionnement)
                 .getSingleResult();
         return re != null ? re > 0 ? re : 0 : 0;
     }
@@ -3465,65 +3447,64 @@ public abstract class AbstractDao<T extends Serializable> {
         return false;
     }
 
-    public T afterCRUD(T entity, String action) {
-        try {
-            if (entity != null && asString(action)) {
-                if (entity.getClass().isAnnotationPresent(Table.class) && (entity instanceof YvsEntity)) {
-                    YvsEntity instance = (YvsEntity) entity;
-                    String name = ((Table) instance.getClass().getAnnotation(Table.class)).name();
-                    String serverName = "127.0.0.1";
-                    if (instance.getAdresseServeur() != null ? !instance.getAdresseServeur().isEmpty() : false) {
-                        serverName = instance.getAdresseServeur();
-                    }
-                    if (asString(name) && asString(serverName)) {
-                        if (instance.getId() != null ? instance.getId() > 0 : false) {
-                            YvsSynchroServeurs serveur = (YvsSynchroServeurs) loadOneByNameQueries("YvsSynchroServeurs.findByAdresseIp", new String[]{"adresseIp"}, new Object[]{serverName});
-                            if (serveur != null ? serveur.getId() < 1 : true) {
-                                serveur = null;
-                            }
-                            YvsSynchroListenTable listen = (YvsSynchroListenTable) loadOneByNameQueries("YvsSynchroListenTable.findByActionSource", new String[]{"idSource", "nameTable", "action"}, new Object[]{instance.getId(), name, action});
-                            if (listen != null ? listen.getId() < 1 : true) {
-                                listen = new YvsSynchroListenTable();
-                                listen.setActionName(action);
-                                listen.setIdSource(instance.getId());
-                                listen.setNameTable(name);
-                                listen.setToListen(true);
-                                listen.setServeur(serveur);
-                                listen.setAuthor(instance.getAuthor() != null ? instance.getAuthor().getId() > 0 ? instance.getAuthor().getId() : null : null);
-                                listen = (YvsSynchroListenTable) save1((T) listen, false);
-                            } else {
-                                listen.setToListen(true);
-                                listen.setServeur(serveur);
-                                listen.setDateSave(new Date());
-                                listen.setAuthor(instance.getAuthor() != null ? instance.getAuthor().getId() > 0 ? instance.getAuthor().getId() : null : null);
-                                update((T) listen, false);
-                                String query = "DELETE FROM yvs_synchro_data_synchro WHERE id_listen = ?";
-                                requeteLibre(query, new Options[]{new Options(listen.getId(), 1)});
-                            }
-//                            if (action.equals("DELETE")) {
-//                                String query = "DELETE FROM yvs_synchro_listen_table WHERE id_source = ? AND name_table = ? AND id != ?";
-//                                dao.requeteLibre(query, new Options[]{new Options(listen.getIdSource(), 1), new Options(listen.getNameTable(), 2), new Options(listen.getId(), 3)});
+//    public T afterCRUD(T entity, String action) {
+//        try {
+//            if (entity != null && asString(action)) {
+//                if (entity.getClass().isAnnotationPresent(Table.class) && (entity instanceof YvsEntity)) {
+//                    YvsEntity instance = (YvsEntity) entity;
+//                    String name = ((Table) instance.getClass().getAnnotation(Table.class)).name();
+//                    String serverName = "127.0.0.1";
+//                    if (instance.getAdresseServeur() != null ? !instance.getAdresseServeur().isEmpty() : false) {
+//                        serverName = instance.getAdresseServeur();
+//                    }
+//                    if (asString(name) && asString(serverName)) {
+//                        if (instance.getId() != null ? instance.getId() > 0 : false) {
+//                            YvsSynchroServeurs serveur = (YvsSynchroServeurs) loadOneByNameQueries("YvsSynchroServeurs.findByAdresseIp", new String[]{"adresseIp"}, new Object[]{serverName});
+//                            if (serveur != null ? serveur.getId() < 1 : true) {
+//                                serveur = null;
 //                            }
-                            if (serveur != null ? serveur.getId() > 0 : false) {
-                                YvsSynchroDataSynchro synchro = (YvsSynchroDataSynchro) loadOneByNameQueries("YvsSynchroDataSynchro.findOne", new String[]{"listen", "distant", "serveur"}, new Object[]{listen, instance.getIdDistant(), serveur});
-                                if (synchro != null ? synchro.getId() < 1 : true) {
-                                    synchro = new YvsSynchroDataSynchro();
-                                    synchro.setIdListen(listen);
-                                    synchro.setServeur(serveur);
-                                    synchro.setIdDistant(instance.getIdDistant());
-                                    save((T) synchro, false);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (IllegalArgumentException | SecurityException ex) {
-            Logger.getLogger(AbstractDao.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return entity;
-    }
-
+//                            YvsSynchroListenTable listen = (YvsSynchroListenTable) loadOneByNameQueries("YvsSynchroListenTable.findByActionSource", new String[]{"idSource", "nameTable", "action"}, new Object[]{instance.getId(), name, action});
+//                            if (listen != null ? listen.getId() < 1 : true) {
+//                                listen = new YvsSynchroListenTable();
+//                                listen.setActionName(action);
+//                                listen.setIdSource(instance.getId());
+//                                listen.setNameTable(name);
+//                                listen.setToListen(true);
+//                                listen.setServeur(serveur);
+//                                listen.setAuthor(instance.getAuthor() != null ? instance.getAuthor().getId() > 0 ? instance.getAuthor().getId() : null : null);
+//                                listen = (YvsSynchroListenTable) save1((T) listen, false);
+//                            } else {
+//                                listen.setToListen(true);
+//                                listen.setServeur(serveur);
+//                                listen.setDateSave(new Date());
+//                                listen.setAuthor(instance.getAuthor() != null ? instance.getAuthor().getId() > 0 ? instance.getAuthor().getId() : null : null);
+//                                update((T) listen, false);
+//                                String query = "DELETE FROM yvs_synchro_data_synchro WHERE id_listen = ?";
+//                                requeteLibre(query, new Options[]{new Options(listen.getId(), 1)});
+//                            }
+////                            if (action.equals("DELETE")) {
+////                                String query = "DELETE FROM yvs_synchro_listen_table WHERE id_source = ? AND name_table = ? AND id != ?";
+////                                dao.requeteLibre(query, new Options[]{new Options(listen.getIdSource(), 1), new Options(listen.getNameTable(), 2), new Options(listen.getId(), 3)});
+////                            }
+//                            if (serveur != null ? serveur.getId() > 0 : false) {
+//                                YvsSynchroDataSynchro synchro = (YvsSynchroDataSynchro) loadOneByNameQueries("YvsSynchroDataSynchro.findOne", new String[]{"listen", "distant", "serveur"}, new Object[]{listen, instance.getIdDistant(), serveur});
+//                                if (synchro != null ? synchro.getId() < 1 : true) {
+//                                    synchro = new YvsSynchroDataSynchro();
+//                                    synchro.setIdListen(listen);
+//                                    synchro.setServeur(serveur);
+//                                    synchro.setIdDistant(instance.getIdDistant());
+//                                    save((T) synchro, false);
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (IllegalArgumentException | SecurityException ex) {
+//            Logger.getLogger(AbstractDao.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        return entity;
+//    }
     public void afterCRUD_OLD(String action, T entity) {
         if (entity != null ? entity instanceof YvsEntity : false) {
 //            Class c = entity.getClass();

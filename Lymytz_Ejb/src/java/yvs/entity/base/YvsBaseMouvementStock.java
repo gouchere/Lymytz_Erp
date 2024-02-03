@@ -12,7 +12,8 @@ import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
-import javax.persistence.Entity; import javax.persistence.FetchType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -58,17 +59,17 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsBaseMouvementStock.findByDescription", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.description = :description"),
     @NamedQuery(name = "YvsBaseMouvementStock.findByDate", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.article.famille.societe = :societe AND y.dateDoc = :dateDoc"),
 
-    @NamedQuery(name = "YvsBaseMouvementStock.findPrixByArticle", query = "SELECT y.coutStock FROM YvsBaseMouvementStock y WHERE y.article = :article AND y.conditionnement = :unite AND y.dateMouvement<=:date ORDER BY y.dateMouvement DESC, y.id DESC"),
+    @NamedQuery(name = "YvsBaseMouvementStock.findPrixByArticle", query = "SELECT y.coutStock FROM YvsBaseMouvementStock y WHERE y.conditionnement = :unite AND y.dateMouvement<=:date ORDER BY y.dateMouvement DESC, y.id DESC"),
     @NamedQuery(name = "YvsBaseMouvementStock.findLastPrixEntree", query = "SELECT y.coutEntree FROM YvsBaseMouvementStock y WHERE y.article = :article AND y.conditionnement = :unite AND y.depot = :depot AND y.mouvement = 'E' ORDER BY y.dateMouvement DESC, y.id DESC"),
     @NamedQuery(name = "YvsBaseMouvementStock.findLastPrixEntreeByArticle", query = "SELECT y.coutEntree FROM YvsBaseMouvementStock y WHERE y.article = :article AND y.conditionnement = :unite AND y.mouvement = 'E' ORDER BY y.dateMouvement DESC, y.id DESC"),
-    
+
     @NamedQuery(name = "YvsBaseMouvementStock.findCountByExterne", query = "SELECT COUNT(y) FROM YvsBaseMouvementStock y WHERE y.idExterne = :externe AND y.tableExterne = :table"),
 
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotMouvement", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.mouvement = :mouvement"),
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotArticle", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.article = :article"),
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotTrancheArticle", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.tranche = :tranche AND y.article = :article"),
     @NamedQuery(name = "YvsBaseMouvementStock.countMvtOtherTypeJ", query = "SELECT COUNT(y) FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.dateDoc = :dateDoc AND y.tranche.typeJournee!=:typeJ "),
-    
+
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotDate", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.dateDoc = :dateDoc ORDER BY y.id DESC"),
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotDateArticle", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.dateDoc = :dateDoc AND y.article = :article"),
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotDates", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.dateDoc BETWEEN :dateDebut AND :dateFin"),
@@ -87,7 +88,7 @@ public class YvsBaseMouvementStock extends YvsEntity implements Serializable, Co
     private static final long serialVersionUID = 1L;
     @Id
     @SequenceGenerator(sequenceName = "yvs_mouvement_stock_id_seq", name = "yvs_mouvement_stock_id_seq_name", allocationSize = 1)
-    @GeneratedValue(generator = "yvs_mouvement_stock_id_seq_name", strategy = GenerationType.SEQUENCE) 
+    @GeneratedValue(generator = "yvs_mouvement_stock_id_seq_name", strategy = GenerationType.SEQUENCE)
     @Basic(optional = false)
     @Column(name = "id")
     private Long id;
@@ -133,10 +134,10 @@ public class YvsBaseMouvementStock extends YvsEntity implements Serializable, Co
     private Double coutStock;
     @Column(name = "calcul_pr")
     private Boolean calculPr;
-    
+
     @OneToOne(mappedBy = "mouvement", fetch = FetchType.LAZY)
     private YvsBaseMouvementStockLot lot;
-    
+
     @JoinColumn(name = "parent", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsBaseMouvementStock parent;
@@ -155,10 +156,10 @@ public class YvsBaseMouvementStock extends YvsEntity implements Serializable, Co
     @JoinColumn(name = "conditionnement", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsBaseConditionnement conditionnement;
-    
+
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     private List<YvsBaseMouvementStock> mouvements;
-    
+
     @Transient
     private boolean new_;
     @Transient

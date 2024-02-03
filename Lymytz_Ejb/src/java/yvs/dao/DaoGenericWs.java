@@ -33,8 +33,6 @@ public class DaoGenericWs<T extends Serializable> extends AbstractDao<T> impleme
     public EntityManager getEntityManager(String EM) {
         if (null != EM) {
             switch (EM) {
-                case "MSG":
-                    return emM;
                 case "ERP":
                     return em;
             }

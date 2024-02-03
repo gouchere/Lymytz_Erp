@@ -5,36 +5,10 @@
 package yvs.dao;
 
 import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import yvs.dao.salaire.service.Constantes;
-import yvs.entity.base.YvsBaseDepots;
-import yvs.entity.base.YvsBaseModeleReference;
-import yvs.entity.base.YvsBasePointVente;
-import yvs.entity.commercial.achat.YvsComDocAchats;
-import yvs.entity.commercial.achat.YvsComFicheApprovisionnement;
-import yvs.entity.commercial.ration.YvsComDocRation;
-import yvs.entity.commercial.stock.YvsComDocStocks;
-import yvs.entity.commercial.stock.YvsComReservationStock;
-import yvs.entity.commercial.vente.YvsComDocVentes;
-import yvs.entity.compta.YvsComptaCaissePieceAchat;
-import yvs.entity.compta.YvsComptaCaissePieceVente;
-import yvs.entity.compta.YvsComptaCaissePieceVirement;
-import yvs.entity.compta.YvsComptaJournaux;
-import yvs.entity.compta.YvsComptaMouvementCaisse;
-import yvs.entity.compta.YvsComptaPiecesComptable;
-import yvs.entity.compta.divers.YvsComptaBonProvisoire;
-import yvs.entity.compta.divers.YvsComptaCaisseDocDivers;
-import yvs.entity.grh.activite.YvsGrhMissions;
-import yvs.entity.mutuelle.YvsMutCaisse;
-import yvs.entity.mutuelle.credit.YvsMutCredit;
-import yvs.entity.mutuelle.credit.YvsMutTypeCredit;
-import yvs.entity.mutuelle.operation.YvsMutOperationCompte;
-import yvs.entity.param.YvsSocietes;
 import yvs.entity.production.pilotage.YvsProdComposantOF;
 import yvs.entity.production.pilotage.YvsProdOrdreFabrication;
 import yvs.entity.production.pilotage.YvsProdOperationsOF;
@@ -65,8 +39,6 @@ public class DaoUtil<T extends Serializable> extends AbstractDao<T> implements D
     public EntityManager getEntityManager(String EM) {
         if (null != EM) {
             switch (EM) {
-                case "MSG":
-                    return emM;
                 case "ERP":
                     return em;
             }

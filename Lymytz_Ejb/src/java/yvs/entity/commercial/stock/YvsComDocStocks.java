@@ -240,15 +240,15 @@ public class YvsComDocStocks extends YvsEntity implements Serializable {
     @OneToMany(mappedBy = "docStock")
     private List<YvsComCoutSupDocStock> couts;
     @JsonBackReference
-    @OneToMany(mappedBy = "docStock", fetch = FetchType.LAZY)
-    private List<YvsComContenuDocStock> contenus;
-    @JsonBackReference
     @OneToMany(mappedBy = "docStock")
     private List<YvsWorkflowValidDocStock> etapesValidations;
     @JsonBackReference
     @OneToMany(mappedBy = "docStock")
     private List<YvsComDocStocksEcart> ecarts;
 
+    @JsonBackReference
+    @Transient
+    private List<YvsComContenuDocStock> contenus;
     @Transient
     private static YvsComDocStocksValeur valeurInventaire = null;
     @Transient
