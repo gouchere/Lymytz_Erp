@@ -1,0 +1,5 @@
+-[ ] Voir les fonctions de chargement des factures sur la page des avoir. Le chargement ou la selection d'une facture semble lent
+-[ ] Effacer les les chemnin de pages qui n'ont pas été implémentés jusqu'au bout:
+    - Proforma, Location services, Reservations
+- [ ] Organiser dans un fichier l'ensemble des requetes que j'ai modifié
+- [ ] Organiser dans un fichier l'ensemble des requetes que j'ai modifié
