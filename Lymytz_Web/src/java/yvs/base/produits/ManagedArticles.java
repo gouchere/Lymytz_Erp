@@ -1548,6 +1548,11 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
         ParametreRequete p = new ParametreRequete("y.methodeVal", "methodeVal", null, "=", "AND");
         if (Util.asString(methValSearch)) {
             p.setObjet(methValSearch);
+            if (methValSearch.equals(Constantes.NOTHING)) {
+                p = new ParametreRequete(null, "methodeVal", methValSearch, "=", "AND");
+                p.getOtherExpression().add(new ParametreRequete("y.methodeVal", "methodeVal", methValSearch, "IS NULL", "OR"));
+                p.getOtherExpression().add(new ParametreRequete("TRIM(y.methodeVal)", "methodeVal_Empty", "", "=", "OR"));
+            }
         }
         paginator.addParam(p);
         loadAllArticle(false, true);
