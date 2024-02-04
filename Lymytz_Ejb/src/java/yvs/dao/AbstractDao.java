@@ -107,9 +107,7 @@ public abstract class AbstractDao<T extends Serializable> {
 
     @PersistenceContext(unitName = "LYMYTZ-ERP-ejbPU")
     public EntityManager em;
-
-//    @PersistenceContext(unitName = "LYMYTZ-MESSAGERIE-EJBPU")
-//    public EntityManager emM;
+    
     Class<T> entityClass;
     String EM;
 

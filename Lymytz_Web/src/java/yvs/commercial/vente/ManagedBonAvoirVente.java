@@ -1457,11 +1457,6 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
             cloneObject(contenu_fv, UtilCom.buildBeanContenuDocVente(bean));
             cloneObject(contenu, contenu_fv);
             contenu.setId(-1);
-//            if (!contenu.isUpdate()) {
-//                cloneObject(contenu, contenu_fv);
-//            } else {
-//                cloneObject(contenu.getArticle(), contenu_fv.getArticle());
-//            }
             cloneObject(contenu.getParent(), contenu_fv);
             contenu.setQuantite(bean.getQuantite());
             contenu.setPrix(bean.getPrix());
@@ -2362,6 +2357,8 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
         } else {
             contenu.setTaxe(contenu_fv.getTaxe());
         }
+        double rem=dao.getRemiseVente(contenu.getArticle().getId(), contenu.getQuantite(), contenu.getPrix(), docVente.getClient().getId(), docVente.getEnteteDoc().getPoint().getId(), docVente.getEnteteDoc().getDateEntete(), contenu.getConditionnement().getUnite().getId());
+        contenu.setRemise(rem);
         if (contenu_fv.getArticle().isPuvTtc()) {
             contenu.setPrixTotal((contenu.getPrix() * contenu.getQuantite()) - contenu.getRemise());
         } else {
