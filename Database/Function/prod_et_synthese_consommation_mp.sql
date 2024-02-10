@@ -1,10 +1,7 @@
--- Function: prod_et_synthese_consommation_mp(bigint, bigint, bigint, character varying, date, date, character varying, character varying)
-
--- DROP FUNCTION prod_et_synthese_consommation_mp(bigint, bigint, bigint, character varying, date, date, character varying, character varying);
-
-CREATE OR REPLACE FUNCTION prod_et_synthese_consommation_mp(IN societe_ bigint, IN agence_ bigint, IN depot_ bigint, IN article_ character varying, IN date_debut_ date, IN date_fin_ date, IN periode_ character varying, IN type_ character varying)
-  RETURNS TABLE(id bigint, article bigint, reference character varying, designation character varying, unite bigint, numero character varying, classe bigint, code character varying, intitule character varying, quantite double precision, prix double precision, valeur double precision, rang integer) AS
-$BODY$
+CREATE OR REPLACE FUNCTION public.prod_et_synthese_consommation_mp(societe_ bigint, agence_ bigint, depot_ bigint, article_ character varying, date_debut_ date, date_fin_ date, periode_ character varying, type_ character varying)
+ RETURNS TABLE(id bigint, article bigint, reference character varying, designation character varying, unite bigint, numero character varying, classe bigint, code character varying, intitule character varying, quantite double precision, prix double precision, valeur double precision, rang integer)
+ LANGUAGE plpgsql
+AS $function$
 DECLARE
 	data_ RECORD;
 	classe_ RECORD;
@@ -17,10 +14,12 @@ DECLARE
 	--inner_es CHARACTER VARYING DEFAULT 'LEFT JOIN yvs_com_contenu_doc_stock_reception r ON y.id_externe = r.id INNER JOIN yvs_com_contenu_doc_stock s ON r.contenu = s.id INNER JOIN yvs_com_doc_stocks o ON s.doc_stock = o.id WHERE';
 	--inner_ss CHARACTER VARYING DEFAULT 'LEFT JOIN yvs_com_contenu_doc_stock s ON y.id_externe = s.id INNER JOIN yvs_com_doc_stocks o ON s.doc_stock = o.id WHERE';
 	stock_ CHARACTER VARYING;
+	stock_E CHARACTER VARYING;
 	ids_ CHARACTER VARYING DEFAULT '''0''';
 	id_ CHARACTER VARYING DEFAULT '0';
 
 	transfert_ DOUBLE PRECISION DEFAULT 0;
+	quantite_E DOUBLE PRECISION DEFAULT 0;
 	quantite_ DOUBLE PRECISION DEFAULT 0;
 	valeur_ DOUBLE PRECISION DEFAULT 0;
 	prix_revient_ DOUBLE PRECISION DEFAULT 0;
@@ -30,7 +29,7 @@ DECLARE
 	serial_ BIGINT DEFAULT 1;
 
 BEGIN
-	-- Creation de la table temporaire des resumÃ©s de cotisation mensuel
+	-- Creation de la table temporaire des resumés de cotisation mensuel
 	DROP TABLE IF EXISTS table_et_synthese_consommation_mp;
 	CREATE TEMP TABLE IF NOT EXISTS table_et_synthese_consommation_mp(_id bigint, _article bigint, _reference character varying, _designation character varying, _unite bigint, _numero character varying, _classe bigint, _code character varying, _intitule character varying, _quantite double precision,_prix double precision, _valeur double precision, _rang integer);
 	DELETE FROM table_et_synthese_consommation_mp;
@@ -66,7 +65,7 @@ BEGIN
 		serial_ = serial_ + 1;
 		--calcul des appro
 		IF(depot_ IS NULL OR depot_ < 1)THEN
-			EXECUTE stock_||' AND y.mouvement = ''E'' AND y.type_doc NOT IN(''FT'', ''TR'')' INTO quantite_;
+			EXECUTE stock_||' AND y.mouvement = ''E'' AND y.type_doc NOT IN(''FT'', ''TR'', ''IN'')' INTO quantite_;
 		ELSE
 			EXECUTE stock_ || ' AND y.mouvement = ''E''' INTO quantite_;
 		END IF;
@@ -76,7 +75,7 @@ BEGIN
 		END IF;
 		serial_ = serial_ + 1;
 		RAISE NOTICE 'MATIERE PREMIERE : %',data_.ref_art;
-		IF(COALESCE(periode_, '') = 'PF') THEN -- SynthÃ¨se par PF
+		IF(COALESCE(periode_, '') = 'PF') THEN -- Synthèse par PF
 			FOR classe_ IN SELECT a.id, a.ref_art AS code_ref, a.designation, SUM(u.quantite) AS quantite FROM yvs_prod_of_suivi_flux u INNER JOIN yvs_prod_flux_composant c ON u.composant = c.id INNER JOIN yvs_prod_composant_of y ON c.composant = y.id
 					INNER JOIN yvs_prod_ordre_fabrication o ON y.ordre_fabrication = o.id INNER JOIN yvs_base_articles a ON o.article = a.id INNER JOIN yvs_prod_suivi_operations p ON u.id_operation = p.id
 					INNER JOIN yvs_prod_session_of s ON p.session_of = s.id INNER JOIN yvs_prod_session_prod e ON s.session_prod = e.id INNER JOIN yvs_base_depots d ON e.depot = d.id
@@ -93,8 +92,8 @@ BEGIN
 				END IF;
 				serial_ = serial_ + 1;
 			END LOOP;
-		ELSIF(COALESCE(periode_, '') = 'CL') THEN -- SynthÃ¨se par classe statistiques
-			--Consommation des produits non classÃ©s (n'ayant pas de classe statistiques)
+		ELSIF(COALESCE(periode_, '') = 'CL') THEN -- Synthèse par classe statistiques
+			--Consommation des produits non classés (n'ayant pas de classe statistiques)
 			SELECT INTO quantite_ SUM(u.quantite) FROM yvs_prod_of_suivi_flux u INNER JOIN yvs_prod_flux_composant c ON u.composant = c.id INNER JOIN yvs_prod_composant_of y ON c.composant = y.id
 				INNER JOIN yvs_prod_ordre_fabrication o ON y.ordre_fabrication = o.id INNER JOIN yvs_base_articles a ON o.article = a.id INNER JOIN yvs_prod_suivi_operations p ON u.id_operation = p.id
 				INNER JOIN yvs_prod_session_of s ON p.session_of = s.id INNER JOIN yvs_prod_session_prod e ON s.session_prod = e.id INNER JOIN yvs_base_depots d ON e.depot = d.id
@@ -122,8 +121,8 @@ BEGIN
 				END IF;
 				serial_ = serial_ + 1;
 			END LOOP;
-		ELSIF(COALESCE(periode_, '') = 'CP') THEN -- SynthÃ¨se par classe statistiques parent
-			--Consommation des produits non classÃ©s (n'ayant pas de classe statistiques)
+		ELSIF(COALESCE(periode_, '') = 'CP') THEN -- Synthèse par classe statistiques parent
+			--Consommation des produits non classés (n'ayant pas de classe statistiques)
 			SELECT INTO quantite_ SUM(u.quantite) FROM yvs_prod_of_suivi_flux u INNER JOIN yvs_prod_flux_composant c ON u.composant = c.id INNER JOIN yvs_prod_composant_of y ON c.composant = y.id
 				INNER JOIN yvs_prod_ordre_fabrication o ON y.ordre_fabrication = o.id INNER JOIN yvs_base_articles a ON o.article = a.id INNER JOIN yvs_prod_suivi_operations p ON u.id_operation = p.id
 				INNER JOIN yvs_prod_session_of s ON p.session_of = s.id INNER JOIN yvs_prod_session_prod e ON s.session_prod = e.id INNER JOIN yvs_base_depots d ON e.depot = d.id
@@ -175,20 +174,30 @@ BEGIN
 		serial_ = serial_ + 1;
 		--calcul les sorties qui ne sont pas les consommations MP	
 		IF(depot_ IS NULL OR depot_ < 1)THEN
-			EXECUTE stock_|| ' AND y.mouvement = ''S'' AND y.table_externe NOT IN (''yvs_prod_composant_of'', ''yvs_prod_flux_composant'', ''yvs_prod_of_suivi_flux'') AND y.type_doc NOT IN (''FT'', ''TR'') ' INTO quantite_;
+			EXECUTE stock_|| ' AND y.mouvement = ''S'' AND y.table_externe NOT IN (''yvs_prod_composant_of'', ''yvs_prod_flux_composant'', ''yvs_prod_of_suivi_flux'') AND y.type_doc NOT IN (''FT'', ''TR'', ''INV'') ' INTO quantite_;
 		ELSE
 			EXECUTE stock_|| ' AND y.mouvement = ''S'' AND y.table_externe NOT IN (''yvs_prod_composant_of'', ''yvs_prod_flux_composant'', ''yvs_prod_of_suivi_flux'')' INTO quantite_;
 		END IF;
 		IF(COALESCE(quantite_, 0) != 0)THEN
-			valeur_ = prix_revient_ * quantite_;
-			INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'SORTIE', 'AUTRES SORTIE', quantite_,prix_revient_, valeur_, 6);
+                    valeur_ = prix_revient_ * quantite_;
+                    INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'SORTIE', 'AUTRES SORTIE', quantite_,prix_revient_, valeur_, 6);
+		END IF;
+		--calcul les différences d'inventaires
+                    stock_E=stock_;
+                    EXECUTE stock_ || ' AND y.mouvement = ''S'' AND  y.type_doc =''IN'' ' INTO quantite_;
+		    EXECUTE stock_E || ' AND y.mouvement = ''E'' AND  y.type_doc =''IN'' ' INTO quantite_E;
+                    
+                    quantite_= COALESCE(quantite_E,0) - COALESCE(quantite,0);
+		IF(quantite_ != 0)THEN
+                    valeur_ = prix_revient_ * quantite_;
+                    INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'AJUSTEMENT', 'AJUSTEMENT INVENTAIRE', quantite_,prix_revient_, valeur_, 7);
 		END IF;
 		serial_ = serial_ + 1;
 		-- Calcul du stocks final
 		quantite_ = (SELECT get_stock(data_.id, 0, depot_, agence_, societe_, date_fin_, data_.unite));
 		IF(COALESCE(quantite_, 0) != 0)THEN
 			valeur_ = prix_revient_ * quantite_;
-			INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'S.F', 'STOCK FINAL', quantite_,prix_revient_, valeur_, 7);
+			INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'S.F', 'STOCK FINAL', quantite_,prix_revient_, valeur_, 8);
 		END IF;
 		serial_ = serial_ + 1;
 	END LOOP;
@@ -229,9 +238,5 @@ BEGIN
 	END IF;
 	RETURN QUERY SELECT * FROM table_et_synthese_consommation_mp ORDER BY _rang, _code, _designation, _reference, _numero;
 END;
-$BODY$
-  LANGUAGE plpgsql VOLATILE
-  COST 100
-  ROWS 1000;
-ALTER FUNCTION prod_et_synthese_consommation_mp(bigint, bigint, bigint, character varying, date, date, character varying, character varying)
-  OWNER TO postgres;
+$function$
+;
