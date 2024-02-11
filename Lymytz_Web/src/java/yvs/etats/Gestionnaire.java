@@ -63,9 +63,9 @@ public class Gestionnaire implements Serializable, Cloneable {
     protected double coefficient = 1;
     protected long zone;
     protected int ecart, colonne, limit = 0, offset, length;
-    protected String periode = "M", nature = "A", agences, ordres, descOrdre = "desc", depots, categorie, compteDebut, compteFin, comptes, valorise_by = "V";
+    protected String editeurs, periode = "M", nature = "A", agences, ordres, descOrdre = "desc", depots, categorie, compteDebut, compteFin, comptes, valorise_by = "V", valoriseMp = "PUA", valoriseMs = "PUV", valorisePf = "PUV", valorisePsf = "PR";
     protected Date dateDebut = new Date(), dateFin = new Date();
-    protected boolean displayName, displayAnotherName, containsValue, cumule, byValue;
+    protected boolean displayName, displayAnotherName, containsValue, cumule, byValue, valoriseExcedent;
     protected boolean displayCA = true, displayQte = true, displayMarge = true, displayRevient = true, displayTaux = true;
     protected int cumulBy = 0, vueType;
     protected Boolean lettrer, addTotal;
@@ -74,6 +74,54 @@ public class Gestionnaire implements Serializable, Cloneable {
 
     public Gestionnaire() {
 
+    }
+
+    public String getEditeurs() {
+        return editeurs;
+    }
+
+    public void setEditeurs(String editeurs) {
+        this.editeurs = editeurs;
+    }
+
+    public String getValoriseMp() {
+        return valoriseMp;
+    }
+
+    public void setValoriseMp(String valoriseMp) {
+        this.valoriseMp = valoriseMp;
+    }
+
+    public String getValoriseMs() {
+        return valoriseMs;
+    }
+
+    public void setValoriseMs(String valoriseMs) {
+        this.valoriseMs = valoriseMs;
+    }
+
+    public String getValorisePf() {
+        return valorisePf;
+    }
+
+    public void setValorisePf(String valorisePf) {
+        this.valorisePf = valorisePf;
+    }
+
+    public String getValorisePsf() {
+        return valorisePsf;
+    }
+
+    public void setValorisePsf(String valorisePsf) {
+        this.valorisePsf = valorisePsf;
+    }
+
+    public boolean isValoriseExcedent() {
+        return valoriseExcedent;
+    }
+
+    public void setValoriseExcedent(boolean valoriseExcedent) {
+        this.valoriseExcedent = valoriseExcedent;
     }
 
     public YvsComParametre getParametreCom() {

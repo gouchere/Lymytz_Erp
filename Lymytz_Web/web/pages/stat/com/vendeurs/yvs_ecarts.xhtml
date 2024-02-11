@@ -10,25 +10,116 @@
     <ui:define name="breadcumb">
         #{navigations.naviguationApps('Ecarts des vendeurs','modStat', 'smenStatVendeurEcart', true)}
     </ui:define>  
-    #{managedBordStatistique.loadAll()}
-    #{managedAgence.loadAgence()}
-    #{managedUser.loadAllUserSociete_()}
     <ui:define name="contents"> 
+        #{managedBordStatistique.loadAll()}
+        #{managedAgence.loadAgence()}
         <script type="text/javascript">
             $(function() {
                 $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
-                definedTabView('tabview', '', ($('body').find('.part_scroll').height() - 20), 2, 30);
+                definedTabView('tabview', '0', ($('body').find('.part_scroll').height() - 20), 2, 30);
             });
         </script>
         <h:form prependId="false" id="main_ecart_vente">
+            <p:dialog header="Liste des utilisateurs" widgetVar="dlgListUsers" closeOnEscape="true" width="45%">
+                <p:commandButton value="Charger la liste" actionListener="#{managedUser.loadAllUserSociete_()}" update="users-ecart-vendeur"/>
+                <p:dataTable id="users-ecart-vendeur" value="#{managedUser.listAllUser}" var="usr" rowKey="#{usr.id}"
+                             selection="#{managedBordStatistique.selectedUsers}" style="width: 100%"
+                             paginator="true" paginatorAlwaysVisible="false" rows="20">   
+                    <p:ajax event="rowSelectCheckbox" global="false" update=":main_ecart_vente:users-selected-ecart-vendeur" />
+                    <p:ajax event="rowUnselectCheckbox" global="false" update=":main_ecart_vente:users-selected-ecart-vendeur" />  
+                    <p:column selectionMode="multiple" style="width:16px;text-align:center" /> 
+                    <p:column headerText="Code" filterBy="#{usr.codeUsers}">
+                        <h:outputText value="#{usr.codeUsers}" />                                          
+                    </p:column>                                    
+                    <p:column headerText="Noms et Prenoms" filterBy="#{usr.nomUsers}">
+                        <h:outputText value="#{usr.nomUsers}" />                                          
+                    </p:column>
+                </p:dataTable>
+            </p:dialog>                            
+            <p:dialog header="#{lab.L_plus_option}" widgetVar="dlgPlusOption" closeOnEscape="true" width="50%">                            
+                <h:panelGrid columns="2" style="width: 100%" cellpadding="0" cellspacing="0">
+                    <h:outputText value="Depot : "/>
+                    <h:panelGroup id="depot-ecart-vendeur">
+                        <h:selectOneMenu value="#{managedBordStatistique.depot}" style="width: 85%">
+                            <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                            <f:selectItems value="#{managedDepot.depots_all}" var="dp" itemLabel="#{dp.designation}" itemValue="#{dp.id}"/>
+                            <p:ajax event="valueChange" listener="#{managedBordStatistique.chooseDepot()}" global="false"/>
+                        </h:selectOneMenu> 
+                        <p:commandButton icon="ui-icon-refresh" actionListener="#{managedDepot.loadDepotsByAgence(managedBordStatistique.agence, false, true)}" update="depot-ecart-vendeur"/>
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.LCF_PRV_vendeur}"/>
+                    <h:panelGroup>
+                        <h:selectOneMenu id="vendeur-ecart-vendeur" value="#{managedBordStatistique.users}" rendered="#{!managedBordStatistique.byPoint}" style="width: 85%">
+                            <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                            <f:selectItems value="#{managedUser.listAllUser}" var="vd" itemLabel="#{vd.nomUsers}" itemValue="#{vd.id}"/>
+                        </h:selectOneMenu> 
+                        <p:commandButton icon="ui-icon-refresh" actionListener="#{managedUser.loadAllUserSociete_()}" update="vendeur-ecart-vendeur"/>
+                    </h:panelGroup>
+                    <h:outputText value="#{lab.LC_PTBV_par_point} : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.byPoint}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectOneMenu> 
+                    <p:separator style="margin: 15px 0"/>
+                    <h:outputText value=" Pour les valorisations des inventaires " style="margin: 15px 0;padding: 0 0 0 5px"/>
+                    <h:panelGroup>
+                        <h:outputText value="Liste des responsables : "/>
+                        <p:commandButton icon="ui-icon-plus" onclick="dlgListUsers.show()" global="false"/>
+                    </h:panelGroup>
+                    <h:panelGroup id="users-selected-ecart-vendeur">
+                        <c:forEach items="#{managedBordStatistique.selectedUsers}" var="surs">
+                            <span>-<strong style="margin-right: 10px">#{surs.nomUsers}</strong></span>
+                        </c:forEach>
+                    </h:panelGroup>
+                    <h:outputText value="Coefficient : "/>
+                    <pe:inputNumber value="#{managedBordStatistique.coefficient}" style="width: 100%"/>
+                    <h:outputText value="Valoriser les marchadises sur : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.valoriseMs}" style="width: 100%">
+                        <f:selectItem itemLabel="Prix de vente" itemValue="PUV"/>
+                        <f:selectItem itemLabel="Prix d'achat" itemValue="PUA"/>
+                        <f:selectItem itemLabel="Prix de revient" itemValue="PR"/>
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectOneMenu> 
+                    <h:outputText value="Valoriser les produits fini sur : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.valorisePf}" style="width: 100%">
+                        <f:selectItem itemLabel="Prix de vente" itemValue="PUV"/>
+                        <f:selectItem itemLabel="Prix d'achat" itemValue="PUA"/>
+                        <f:selectItem itemLabel="Prix de revient" itemValue="PR"/>
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectOneMenu> 
+                    <h:outputText value="Valoriser les produits semi fini sur : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.valorisePsf}" style="width: 100%">
+                        <f:selectItem itemLabel="Prix de vente" itemValue="PUV"/>
+                        <f:selectItem itemLabel="Prix d'achat" itemValue="PUA"/>
+                        <f:selectItem itemLabel="Prix de revient" itemValue="PR"/>
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectOneMenu> 
+                    <h:outputText value="Valoriser les matieres premiere sur : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.valoriseMp}" style="width: 100%">
+                        <f:selectItem itemLabel="Prix de vente" itemValue="PUV"/>
+                        <f:selectItem itemLabel="Prix d'achat" itemValue="PUA"/>
+                        <f:selectItem itemLabel="Prix de revient" itemValue="PR"/>
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectOneMenu> 
+                    <h:outputText value="Valoriser les excedents? : "/>
+                    <h:selectOneMenu value="#{managedBordStatistique.valoriseExcedent}" style="width: 100%">
+                        <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
+                        <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
+                        <p:ajax event="valueChange" global="false"/>
+                    </h:selectOneMenu> 
+                </h:panelGrid>
+                <f:facet name="footer" class="yvs-dialog-footer">
+                    #{lab.L_copy}
+                </f:facet> 
+            </p:dialog>
             <div id="tabview">
                 <div class="tabview_top part_fix" style="background: black;color: white;width: 100%">
-                    <h:panelGrid columns="5" style="float: left;color: white;font-size: 0.8em;" cellpadding="0" cellspacing="0">
+                    <h:panelGrid columns="4" style="float: left;color: white;font-size: 0.8em;" cellpadding="0" cellspacing="0">
                         <h:outputText value="#{lab.L_agence} : "/>
                         <h:outputText value="#{lab.L_dates} : "/>
                         <h:outputText value="#{lab.LP_PTB_periodicite} : "/>
-                        <h:outputText value="#{lab.LCF_PRV_vendeur}"/>
-                        <h:outputText value="#{lab.LC_PTBV_par_point} : "/>
+                        <h:outputText value=""/>
                         <h:selectOneMenu value="#{managedBordStatistique.agence}">
                             <f:selectItem itemLabel="#{lab.L_tout}" itemValue="0"/>
                             <f:selectItems value="#{managedAgence.listAgence}" var="ag" itemLabel="#{ag.designation}" itemValue="#{ag.id}"/>
@@ -47,15 +138,8 @@
                             <f:selectItem itemValue="J" itemLabel="#{lab.LP_PTB_journalier}"/>
                             <p:ajax event="valueChange" global="false"/>
                         </h:selectOneMenu>
-                        <h:selectOneMenu value="#{managedBordStatistique.users}" rendered="#{!managedBordStatistique.byPoint}" style="max-width: 200px">
-                            <f:selectItem itemLabel="--" itemValue="#{0}"/>
-                            <f:selectItems value="#{managedUser.listAllUser}" var="vd" itemLabel="#{vd.nomUsers}" itemValue="#{vd.id}"/>
-                        </h:selectOneMenu> 
-                        <h:selectOneMenu value="#{managedBordStatistique.byPoint}">
-                            <f:selectItem itemLabel="#{lab.L_oui}" itemValue="#{true}"/>
-                            <f:selectItem itemLabel="#{lab.L_non}" itemValue="#{false}"/>
-                            <p:ajax event="valueChange" global="false"/>
-                        </h:selectOneMenu> 
+                        <p:commandLink style="border: 2px solid white; border-radius: 5px;padding: 2px;color: white" global="false" 
+                                       onclick="dlgPlusOption.show()" value="#{lab.L_plus_option}"/>
                     </h:panelGrid>
                     <div class="checkbox" style="float: right">
 
@@ -63,6 +147,7 @@
                 </div>
                 <div class="tabview_content part_scroll" style="width: 100%">
                     <ui:include src="../sub/journal/yvs_ecart_vendeur.xhtml"/>
+                    <ui:include src="../sub/journal/yvs_ecart_inventaire.xhtml"/>
                 </div>
             </div>
         </h:form>
