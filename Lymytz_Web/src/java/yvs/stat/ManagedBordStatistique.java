@@ -124,6 +124,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     private Fournisseur fournisseur = new Fournisseur();
     private YvsBaseTiersTemplate template = new YvsBaseTiersTemplate();
     private YvsBaseExercice exo = new YvsBaseExercice();
+    private YvsBaseDepots selectedDepot = new YvsBaseDepots();
 
     private List<Dashboards.InstanceDashboards> saves;
 
@@ -177,11 +178,12 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     private List<Long> selectionArticle = new ArrayList<>();
     private long idClient, idFsseur;
     private int indexClient = -1, indexFsseur = -1;
-    private double totalListingAchat, totalListingFactureAchat;
+    private double totalListingAchat, totalListingFactureAchat, coefficient = 1;
     private double totalCaByPeriode;
     private double totalCaByArticle;
 
-    private String codeClient, codeFsseur;
+    private String codeClient, codeFsseur, editeurs, valoriseMp = "PUA", valoriseMs = "PUV", valorisePf = "PUV", valorisePsf = "PR";
+    private boolean valoriseExcedent;
     private SyntheseClient synthese = new SyntheseClient();
     private SyntheseFournisseur syntheseF = new SyntheseFournisseur();
     private double creditFsseur, debitFsseur, soldeFsseur;
@@ -191,6 +193,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
 
     private YvsComDocAchats achat = new YvsComDocAchats();
 
+    private List<YvsUsers> selectedUsers;
     private List<YvsComptaBonProvisoire> bonsProvisoires;
     private List<YvsBaseModeReglement> models;
     private List<YvsBaseCaisse> caisses;
@@ -213,9 +216,11 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     private Dashboards prodConso = new Dashboards(null);
     private Dashboards prodConsoEquipe = new Dashboards(null);
     private Dashboards ecart = new Dashboards("MANQUANT");
+    private Dashboards valorise = new Dashboards("");
     private Dashboards ration = new Dashboards("");
 
     public ManagedBordStatistique() {
+        selectedUsers = new ArrayList<>();
         generales = new ArrayList<>();
         models = new ArrayList<>();
         caisses = new ArrayList<>();
@@ -268,6 +273,78 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         journalProdByEquipe.setType(JournalVendeur.TYPE_QUANTITE);
         journalProdByTranche.setCumulBy(2);
         journalProdByTranche.setType(JournalVendeur.TYPE_QUANTITE);
+    }
+
+    public List<YvsUsers> getSelectedUsers() {
+        return selectedUsers;
+    }
+
+    public void setSelectedUsers(List<YvsUsers> selectedUsers) {
+        this.selectedUsers = selectedUsers;
+    }
+
+    public String getEditeurs() {
+        return editeurs;
+    }
+
+    public void setEditeurs(String editeurs) {
+        this.editeurs = editeurs;
+    }
+
+    public double getCoefficient() {
+        return coefficient;
+    }
+
+    public void setCoefficient(double coefficient) {
+        this.coefficient = coefficient;
+    }
+
+    public String getValoriseMp() {
+        return valoriseMp;
+    }
+
+    public void setValoriseMp(String valoriseMp) {
+        this.valoriseMp = valoriseMp;
+    }
+
+    public String getValoriseMs() {
+        return valoriseMs;
+    }
+
+    public void setValoriseMs(String valoriseMs) {
+        this.valoriseMs = valoriseMs;
+    }
+
+    public String getValorisePf() {
+        return valorisePf;
+    }
+
+    public void setValorisePf(String valorisePf) {
+        this.valorisePf = valorisePf;
+    }
+
+    public String getValorisePsf() {
+        return valorisePsf;
+    }
+
+    public void setValorisePsf(String valorisePsf) {
+        this.valorisePsf = valorisePsf;
+    }
+
+    public boolean isValoriseExcedent() {
+        return valoriseExcedent;
+    }
+
+    public void setValoriseExcedent(boolean valoriseExcedent) {
+        this.valoriseExcedent = valoriseExcedent;
+    }
+
+    public Dashboards getValorise() {
+        return valorise;
+    }
+
+    public void setValorise(Dashboards valorise) {
+        this.valorise = valorise;
     }
 
     public double getTotalListingFactureAchat() {
@@ -1672,6 +1749,21 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
 
         parametrages.add(new Dashboard("ECART_PRODUCTION", "../production/sub/general/yvs_ecart_inventaire.xhtml", "-U", (acces != null ? acces.isStat_ecart_production() : false)));
         parametrages.add(new Dashboard("PRODUCTION_VENTE", "../production/sub/general/yvs_production_vente.xhtml", "-VB", (acces != null ? acces.isStat_production_vente() : false)));
+    }
+
+    public void chooseDepot() {
+        if (depot > 0) {
+            ManagedDepot externe = (ManagedDepot) giveManagedBean("managedDepot");
+            System.err.println("externe : " + externe);
+            if (externe != null) {
+                int index = externe.getDepots_all().indexOf(new YvsBaseDepots(depot));
+                if (index > -1) {
+                    selectedDepot = externe.getDepots_all().get(index);
+                }
+            }
+        } else {
+            selectedDepot = new YvsBaseDepots();
+        }
     }
 
     public boolean displayMoreOption() {
@@ -4371,6 +4463,67 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         param.put("COEFFICIENT", ecart.getCoefficient());
         param.put("USERS", 0);
         executeReport(ecart.isCumule() ? "ecart_inventaire_cumule" : "ecart_inventaire", param);
+    }
+
+    public void loadValeurInventaire() {
+        if (selectedUsers.size() < 1 && depot < 1) {
+            getErrorMessage("Vous devez precisez le depot ou un/plusieurs editeurs");
+            return;
+        }
+        if (selectedUsers.size() > 0 && depot > 0) {
+            getErrorMessage("Vous ne pouvez pas selectionner le depot et l'editeur");
+            return;
+        }
+        String editeurs = "";
+        for (YvsUsers u : selectedUsers) {
+            editeurs += (editeurs.equals("") ? "" : ",") + u.getId();
+        }
+        valorise.setSociete(currentAgence.getSociete().getId());
+        valorise.setAgence(agence);
+        valorise.setDepot(depot);
+        valorise.setEditeurs(editeurs);
+        valorise.setValoriseMs(valoriseMs);
+        valorise.setValorisePf(valorisePf);
+        valorise.setValorisePsf(valorisePsf);
+        valorise.setValoriseMp(valoriseMp);
+        valorise.setCoefficient(coefficient);
+        valorise.setDateDebut(dateDebut);
+        valorise.setDateFin(dateFin);
+        valorise.setValoriseExcedent(valoriseExcedent);
+        valorise.loadValeurInventaire(dao);
+    }
+
+    public void downloadValeurInventaire() {
+        if (selectedUsers.size() < 1 && depot < 1) {
+            getErrorMessage("Vous devez precisez le depot ou un/plusieurs editeurs");
+            return;
+        }
+        if (selectedUsers.size() > 0 && depot > 0) {
+            getErrorMessage("Vous ne pouvez pas selectionner le depot et l'editeur");
+            return;
+        }
+        String editeurs = "";
+        for (YvsUsers u : selectedUsers) {
+            editeurs += (editeurs.equals("") ? "" : ",") + u.getId();
+        }
+        Map<String, Object> param = new HashMap<>();
+        param.put("AUTEUR", currentUser.getUsers().getNomUsers());
+        param.put("LOGO", returnLogo());
+        param.put("SOCIETE", currentAgence.getSociete().getId().intValue());
+        param.put("SUBREPORT_DIR", SUBREPORT_DIR());
+        param.put("AGENCE", (int) agence);
+        param.put("DATE_DEBUT", dateDebut);
+        param.put("DATE_FIN", dateFin);
+        param.put("DEPOT_NOM", asString(selectedDepot.getDesignation()) ? selectedDepot.getDesignation() : "AUCUN");
+        param.put("VALORISE_MP", valoriseMp);
+        param.put("VALORISE_PF", valorisePf);
+        param.put("VALORISE_PSF", valorisePsf);
+        param.put("VALORISE_MS", valoriseMs);
+        param.put("VALORISE_EXCEDENT", valoriseExcedent);
+        param.put("COEFFICIENT", coefficient);
+        param.put("DEPOT", (int) depot);
+        param.put("EDITEUR", editeurs);
+        executeReport("valorisation_inventaire", param);
     }
 
     public void loadStockArticle() {

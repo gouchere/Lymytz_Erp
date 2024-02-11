@@ -365,6 +365,20 @@ public class JournalVendeur implements Serializable {
         this.valeur = total;
     }
 
+    public JournalVendeur(String numero, String periode, String principal, String secondaire, String reference, double quantite1, double quantite2, double pr, double puv, double total1, double total2) {
+        this(periode);
+        this.principal = principal;
+        this.secondaire = secondaire;
+        this.reference = reference;
+        this.numero = numero;
+        this.quantite = quantite1;
+        this.attente = quantite2;
+        this.prixrevient = pr;
+        this.prixvente = puv;
+        this.valeur = total1;
+        this.ttc = total2;
+    }
+
     public String getTYPE_TTC() {
         return TYPE_TTC;
     }

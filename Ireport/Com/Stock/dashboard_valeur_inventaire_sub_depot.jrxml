@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="dashboard_valeur_inventaire_sub_depot" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="842" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="abbf5912-bbf0-4dac-bf15-3994f5977b18">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="SOCIETE" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[2290]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["M"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_DEBUT" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("01/01/2022")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DATE_FIN" class="java.util.Date" isForPrompting="false">
+		<defaultValueExpression><![CDATA[new SimpleDateFormat("dd/MM/yyyy").parse("31/07/2022")]]></defaultValueExpression>
+	</parameter>
+	<parameter name="NATURE" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["J:\\Lymytz\\Lymytz_Erp\\Ireport\\"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="COEFFICIENT" class="java.lang.Double" isForPrompting="false">
+		<defaultValueExpression><![CDATA[1]]></defaultValueExpression>
+	</parameter>
+	<parameter name="AGENCE" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[2315]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DEPOT" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[1923]]></defaultValueExpression>
+	</parameter>
+	<parameter name="EDITEUR" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[0]]></defaultValueExpression>
+	</parameter>
+	<parameter name="DEPOT_DESIGNATION" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[SELECT DISTINCT
+     yvs_users."id" AS yvs_users_id, yvs_users."code_users" AS yvs_users_code, yvs_users."nom_users" AS yvs_users_nom
+FROM
+	"public"."yvs_users" yvs_users
+	inner join "public"."yvs_com_doc_stocks" yvs_com_doc_stocks on yvs_com_doc_stocks."editeur" = yvs_users."id"
+WHERE yvs_com_doc_stocks."type_doc" = 'IN' AND (yvs_com_doc_stocks."source" = $P{DEPOT} OR yvs_com_doc_stocks."destination" = $P{DEPOT})
+AND yvs_com_doc_stocks."date_doc" BETWEEN $P{DATE_DEBUT} AND $P{DATE_FIN}
+
+union SELECT -1 AS yvs_users_id, 'AUCUN' AS yvs_users_code, 'AUCUN' AS yvs_users_nom
+order by yvs_users_id]]>
+	</queryString>
+	<field name="yvs_users_id" class="java.lang.Long"/>
+	<field name="yvs_users_code" class="java.lang.String"/>
+	<field name="yvs_users_nom" class="java.lang.String"/>
+	<detail>
+		<band height="314" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="842" height="314" uuid="5334d41f-b2ca-4388-ab4e-e37f059508f8"/>
+				<subreportParameter name="NATURE">
+					<subreportParameterExpression><![CDATA[$P{NATURE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="PERIODE">
+					<subreportParameterExpression><![CDATA[$P{PERIODE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DATE_FIN">
+					<subreportParameterExpression><![CDATA[$P{DATE_FIN}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="COEFFICIENT">
+					<subreportParameterExpression><![CDATA[$P{COEFFICIENT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DATE_DEBUT">
+					<subreportParameterExpression><![CDATA[$P{DATE_DEBUT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DEPOT">
+					<subreportParameterExpression><![CDATA[$P{DEPOT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="AGENCE">
+					<subreportParameterExpression><![CDATA[$P{AGENCE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="DEPOT_DESIGNATION">
+					<subreportParameterExpression><![CDATA[$P{DEPOT_DESIGNATION}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SOCIETE">
+					<subreportParameterExpression><![CDATA[$P{SOCIETE}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="EDITEUR">
+					<subreportParameterExpression><![CDATA[$F{yvs_users_id}.intValue()]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{SUBREPORT_DIR} + "dashboard_valeur_inventaire_sub_user.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

@@ -2136,6 +2136,64 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
         }
     }
 
+    public void loadValeurInventaire(DaoInterfaceLocal dao) {
+        loadValeurInventaire(societe, depot, editeurs, valoriseMs, valorisePf, valorisePsf, valoriseMp, coefficient, dateDebut, dateFin, valoriseExcedent, dao);
+    }
+
+    private void loadValeurInventaire(long societe, long depot, String editeurs, String valoriseMs, String valorisePf, String valorisePsf, String valoriseMp, double coefficient, Date dateDebut, Date dateFin, boolean valoriseExcedent, DaoInterfaceLocal dao) {
+        Options[] param = new Options[]{new Options(societe, 1), new Options(depot, 2), new Options(editeurs, 3), new Options(valoriseMs, 4), new Options(valorisePf, 5), new Options(valorisePsf, 6), new Options(valoriseMp, 7), new Options(coefficient, 8), new Options(dateDebut, 9), new Options(dateFin, 10), new Options(valoriseExcedent, 11)};
+        String query = "select y.users, y.code, y.nom, y.article, y.refart, y.designation, y.categorie, y.reffam, y.famille, y.unite, y.reference, y.quantite, y.prix, y.total from public.com_et_valorise_inventaire(?,?,?,?,?,?,?,?,?,?,?) y order by y.nom, y.designation";
+        Query qr = dao.getEntityManager().createNativeQuery(query);
+        for (Options o : param) {
+            qr.setParameter(o.getPosition(), o.getValeur());
+        }
+        try {
+            titres.clear();
+            groupes.clear();
+            lignes.clear();
+            elements.clear();
+            colonnes.clear();
+            periodes.clear();
+            valeurs.clear();
+
+            Object[] o;
+            for (Object y : qr.getResultList()) {
+                o = (Object[]) y;
+                if (o != null ? o.length > 0 : false) {
+                    Long _users = (Long) o[0];
+                    String _code = (String) o[1];
+                    String _nom = (String) o[2];
+                    Long _article = (Long) o[3];
+                    String _refart = (String) o[4];
+                    String _designation = (String) o[5];
+                    String _categorie = (String) o[6];
+                    String _reffam = (String) o[7];
+                    String _famille = (String) o[8];
+                    Long _unite = (Long) o[9];
+                    String _reference = (String) o[10];
+                    Double _quantite = (Double) o[11];
+                    Double _prix = (Double) o[12];
+                    Double _total = (Double) o[13];
+
+                    JournalVendeur row= new JournalVendeur(_users, _code, _nom);
+                    int idx = valeurs.indexOf(row);
+                    if (idx > -1) {
+                        row = valeurs.get(idx);
+                    }
+                                                       //element, periode, secondaire, unite, principal, quantite, prixrevient, prixvente
+                    row.getSous().add(new JournalVendeur(_users, _famille, _refart, _designation, _reference, _quantite, _prix, _total));
+                    if (idx > -1) {
+                        valeurs.set(idx, row);
+                    } else {
+                        valeurs.add(row);
+                    }
+                }
+            }
+        } catch (NoResultException ex) {
+            Logger.getLogger(Dashboards.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public void loadJournalProduction(DaoInterfaceLocal dao) {
         loadJournalProduction(societe, agence, depot, comptes, dateDebut, dateFin, categorie, cumulBy, valorise_by, nature, dao);
     }
