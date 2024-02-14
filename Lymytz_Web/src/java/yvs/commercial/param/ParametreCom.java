@@ -32,6 +32,7 @@ public class ParametreCom implements Serializable {
     private boolean calculPr = true;
     private boolean livreBcvWithoutPaye = true;
     private int jourAnterieur;
+    private int dureeUpdate;
     private int nbFicheMax;
     private int tailleCodeRation;
     private int margeTimeFicheRation = 6;
@@ -175,6 +176,14 @@ public class ParametreCom implements Serializable {
         this.id = id;
     }
 
+    public int getDureeUpdate() {
+        return dureeUpdate;
+    }
+
+    public void setDureeUpdate(int dureeUpdate) {
+        this.dureeUpdate = dureeUpdate;
+    }
+    
     public int getNbFicheMax() {
         return nbFicheMax;
     }

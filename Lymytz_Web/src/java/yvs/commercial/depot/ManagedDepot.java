@@ -736,7 +736,7 @@ public class ManagedDepot extends ManagedCommercial<Depots, YvsBaseDepots> imple
                     }
                 } else if (currentUser != null) {
                     //charge les dépôts où l'utilisateurs est planifier
-                    List<YvsBaseDepots> list = dao.loadNameQueries("YvsComCreneauHoraireUsers.findDepotByUsersAgence", new String[]{"agence", "users", "responsable", "date", "hier"}, new Object[]{new YvsAgences(agence), currentUser.getUsers(), currentUser.getUsers().getEmploye(), new Date(), Constantes.getPreviewDate(new Date())});
+                    List<YvsBaseDepots> list = dao.loadNameQueries("YvsComCreneauHoraireUsers.findDepotByUsersAgence", new String[]{"agence", "users", "date", "hier"}, new Object[]{new YvsAgences(agence), currentUser.getUsers(), new Date(), Constantes.getPreviewDate(new Date())});
                     if (forAction) {
                         depots.addAll(list);
                     }
@@ -745,18 +745,6 @@ public class ManagedDepot extends ManagedCommercial<Depots, YvsBaseDepots> imple
                         depots_all = dao.loadNameQueries("YvsBaseDepotsUser.findDepotByUsersAgence", new String[]{"agence", "users"}, new Object[]{new YvsAgences(agence), currentUser.getUsers()});
                         for (YvsBaseDepots d : list) {
                             if (!depots_all.contains(d)) {
-                                depots_all.add(d);
-                            }
-                        }
-                    }
-                    //charge les dépôts où il en est responsable        
-                    if (currentUser.getUsers().getEmploye() != null) {
-                        list = dao.loadNameQueries("YvsBaseDepots.findByActifResponsableAgence", new String[]{"agence", "responsable"}, new Object[]{new YvsAgences(agence), currentUser.getUsers().getEmploye()});
-                        for (YvsBaseDepots d : list) {
-                            if (forAction ? !depots.contains(d) : false) {
-                                depots.add(d);
-                            }
-                            if (forFind ? !depots_all.contains(d) : false) {
                                 depots_all.add(d);
                             }
                         }
