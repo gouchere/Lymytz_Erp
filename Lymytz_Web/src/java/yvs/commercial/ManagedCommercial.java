@@ -667,8 +667,6 @@ public abstract class ManagedCommercial<T extends Serializable, S extends Serial
         val = new Object[]{new YvsBaseDepots(depot), type, operation};
         nameQueri = "YvsBaseDepotOperation.cByDepotTypeOperation";
         Long N = (Long) dao.loadObjectByNameQueries(nameQueri, champ, val);
-//        List<YvsBaseDepotOperation> l = dao.loadNameQueries(nameQueri, champ, val, 0, 1);
-//        return l != null ? !l.isEmpty() : false;
         return (N != null) ? N > 0 : false;
     }
 

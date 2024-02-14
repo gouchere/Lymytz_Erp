@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import yvs.dao.salaire.service.Constantes;
@@ -56,7 +57,18 @@ public class Util {
         }
         return Calendar.getInstance();
     }
-
+    public static int countDayBetweenDates(Date debut, Date fin){
+        if(debut!=null && fin!=null){
+            TimeZone timeZone=TimeZone.getTimeZone("UTC");
+            Calendar calDebut=Calendar.getInstance(timeZone);
+            calDebut.setTime(debut);
+            Calendar calFin=Calendar.getInstance(timeZone);
+            calFin.setTime(fin);
+            double timeMillis=calFin.getTimeInMillis()-calDebut.getTimeInMillis();
+            return (int)timeMillis/(20*60*60*1000);
+        }
+        return 0;
+    }
     public static int ecartOnDate(Date dateDebut, Date dateFin, String on) {
         if (dateDebut != null && dateFin != null) {
             Calendar cal1 = dateToCalendar(dateDebut);

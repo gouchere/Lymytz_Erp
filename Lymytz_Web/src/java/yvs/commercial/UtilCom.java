@@ -246,7 +246,6 @@ import yvs.parametrage.entrepot.LiaisonDepot;
 import yvs.theme.Theme;
 import yvs.users.Users;
 import yvs.users.UtilUsers;
-import static yvs.users.UtilUsers.buildSimpleBeanUsers;
 import yvs.util.Constantes;
 import yvs.util.Util;
 
@@ -372,6 +371,7 @@ public class UtilCom {
             p.setComptabilisationAuto(y.getComptabilisationAuto());
             p.setComptabilisationMode(y.getComptabilisationMode());
             p.setJourAnterieur(y.getJourAnterieur());
+            p.setDureeUpdate(y.getDureeUpdate());
             p.setTailleCodeRation(y.getTailleCodeRation());
             p.setActiveRation(y.getActiveRation());
             p.setPrintDocumentWhenValide(y.getPrintDocumentWhenValide());

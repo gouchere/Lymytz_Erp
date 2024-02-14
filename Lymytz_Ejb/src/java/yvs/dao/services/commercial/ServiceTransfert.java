@@ -10,16 +10,16 @@ import java.util.Date;
 import java.util.List;
 import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Options;
+import yvs.dao.Util;
 import yvs.dao.local.UtilsBean;
 import yvs.dao.salaire.service.Constantes;
 import yvs.dao.salaire.service.GenericService;
 import yvs.dao.salaire.service.ResultatAction;
-import yvs.entity.base.YvsBaseCodeAcces;
 import yvs.entity.base.YvsBaseDepots;
+import yvs.entity.commercial.YvsComParametreStock;
 import yvs.entity.commercial.stock.YvsComContenuDocStock;
 import yvs.entity.commercial.stock.YvsComContenuDocStockReception;
 import yvs.entity.commercial.stock.YvsComDocStocks;
-import yvs.entity.grh.personnel.YvsGrhEmployes;
 import yvs.entity.param.YvsSocietes;
 import yvs.entity.users.YvsNiveauAcces;
 import yvs.entity.users.YvsUsers;
@@ -43,13 +43,6 @@ public class ServiceTransfert extends GenericService {
     }
 
     public ResultatAction valideTransfert(YvsComDocStocks doc) {
-//        String re = null;
-//        for (YvsComContenuDocStock c : doc.getContenus()) {
-//            re = controleStock(c.getArticle().getId(), c.getConditionnement().getId(), doc.getSource().getId(), 0L, c.getQuantite(), 0, "INSERT", "S", doc.getDateDoc());
-//            if (re != null) {
-//                return result.missingStocks(c.getArticle().getDesignation(), re);
-//            }
-//        }
         ResultatAction r = changeStatut_(Constantes.ETAT_VALIDE, doc);
         if (r.isResult()) {
             doc.setCloturer(false);
@@ -70,11 +63,35 @@ public class ServiceTransfert extends GenericService {
         return result.succes();
     }
 
-    public ResultatAction _controleFiche(YvsComDocStocks bean, boolean control_tranche_source, boolean control_tranche_destination) {
+    public ResultatAction controleUpdateContent(YvsComContenuDocStock lineContent, YvsComDocStocks document, Date dateReception, String statutDoc, boolean allTransfert) {
+        if (lineContent == null || document == null) {
+            return result.emptyDoc();
+        }
+        if (lineContent.getId() == null || document.getId() == null) {
+            return result.emptyDoc();
+        }
+        if (!chechAutorisationActionOnDepot(document, 2, currentUser.getUsers())) {
+            return result.userNotAbility();
+        }
+        if (!allTransfert) {
+            if (!dao.controleInventaire(lineContent.getDocStock().getDestination().getId(), lineContent.getDateReception(), lineContent.getDocStock().getCreneauDestinataire().getTranche().getId())) {
+                return result.inventaireLock(document.getSource().getDesignation());
+            }
+        }
+        if (!checkAutorisationUpdateTransfertInPast(document)) {
+            return result.timeIsPast();
+        }
+        return result.succes();
+    }
+
+    private ResultatAction checkDocument(YvsComDocStocks bean, boolean control_tranche_source, boolean control_tranche_destination) {
         if (bean == null) {
             return result.emptyDoc();
         }
-
+        final ResultatAction resultDate = verifyDate(bean.getDateDoc(), -1);
+        if (!resultDate.isResult()) {
+            return resultDate;
+        }
         if (bean.getDateReception().before(bean.getDateDoc())) {
             return result.dateNotCorrect();
         }
@@ -84,21 +101,30 @@ public class ServiceTransfert extends GenericService {
         if (bean.getDestination() == null ? true : bean.getDestination().getId() <= 0) {
             return result.emptyDepot(false);
         }
-        if (!verifyOperation(bean.getSource(), Constantes.TRANSFERT, Constantes.TRANSFERT)) {
+        if (control_tranche_destination) {
+            if ((bean.getCreneauDestinataire() != null) ? bean.getCreneauDestinataire().getId() < 1 : true) {
+                return result.emptyCreneauHoraire(false);
+            }
+        }
+        if (control_tranche_source) {
+            if ((bean.getCreneauSource() != null) ? bean.getCreneauSource().getId() < 1 : true) {
+                return result.emptyCreneauHoraire(true);
+            }
+        }
+        if (!checkTypeOperationInDepot(bean.getSource().getId(), Constantes.TRANSFERT, Constantes.TRANSFERT)) {
             return result.operationNotAllow(bean.getSource().getDesignation(), Constantes.TRANSFERT);
         }
-        if (!verifyOperation(bean.getDestination(), Constantes.TRANSFERT, Constantes.TRANSFERT)) {
+        if (!checkTypeOperationInDepot(bean.getDestination().getId(), Constantes.TRANSFERT, Constantes.TRANSFERT)) {
             return result.operationNotAllow(bean.getDestination().getDesignation(), Constantes.TRANSFERT);
-        }
-        if (!dao.autoriser("tr_valid_all", niveau)) {
-            System.err.println(" Aucune autorisation " + niveau);
-            //droit de super validation des transfert
-            if (!chechAutorisationAction(bean, 2)) {
-                return result.userNotAbility();
-            }
         }
         if (bean.getCloturer()) {
             return result.docIsAlreadyClose();
+        }
+        if (!dao.autoriser("tr_valid_all", niveau) && Constantes.ETAT_VALIDE.equals(bean.getStatut())) {
+            //droit de super validation des transfert (permet de se passer des autorisations dans un dépot)
+            if (!chechAutorisationActionOnDepot(bean, 2, currentUser.getUsers())) {
+                return result.userNotAbility();
+            }
         }
         if (bean.getNumDoc() == null || bean.getNumDoc().equals("")) {
             UtilsBean util = new UtilsBean(null, dao);
@@ -108,30 +134,13 @@ public class ServiceTransfert extends GenericService {
                 return result.numDocNotGenerated();
             }
         }
-        if ((bean.getDestination() != null) ? bean.getDestination().getId() < 1 : true) {
-            return result.emptyDepot(false);
-        }
-        if (control_tranche_destination) {
-            if ((bean.getCreneauDestinataire() != null) ? bean.getCreneauDestinataire().getId() < 1 : true) {
-                return result.emptyCreneauHoraire(false);
-            }
-        }
-        if ((bean.getSource() != null) ? bean.getSource().getId() < 1 : true) {
-            return result.emptyDepot(true);
-        }
-        if (control_tranche_source) {
-            if ((bean.getCreneauSource() != null) ? bean.getCreneauSource().getId() < 1 : true) {
-                return result.emptyCreneauHoraire(true);
-            }
-        }
         if (!autoriser("tr_edit_all_time")) {
-            ResultatAction r = verifyDateStock(bean.getDateDoc());
+            int ecart = getEcartSaveOrUpdateDocStock(bean);
+            ResultatAction r = verifyDate(bean.getDateDoc(), ecart);
             if (!r.isResult()) {
                 return r;
             }
         }
-        //Vérifier les inventaires dans les dépôts source et destination
-
         // Vérifié qu'aucun document d'inventaire n'exite après cette date
         Long nb = (Long) dao.loadObjectByNameQueries("YvsComDocStocks.findByDocInventaireAfter", new String[]{"statut", "depot", "date", "type", "heure", "typeJourne"}, new Object[]{Constantes.ETAT_VALIDE, bean.getSource(), bean.getDateDoc(), Constantes.TYPE_IN, bean.getCreneauSource().getTranche().getHeureFin(), bean.getCreneauSource().getTranche().getTypeJournee()});
         if (nb != null ? nb > 0 : false) {
@@ -144,14 +153,18 @@ public class ServiceTransfert extends GenericService {
         return result.succes();
     }
 
-    public boolean verifyOperation(YvsBaseDepots d, String type, String operation) {
-        if (d != null ? d.getId() > 0 : false) {
-            return checkOperationDepot(d.getId(), type, operation);
-        }
-        return true;
+    public ResultatAction checkBeforChangeStatus(YvsComDocStocks bean, boolean control_tranche_source, boolean control_tranche_destination) {
+        return checkDocument(bean, control_tranche_source, control_tranche_destination);
     }
 
-    public boolean checkOperationDepot(long depot, String type, String operation) {
+    public ResultatAction _controleFiche(YvsComDocStocks bean, boolean control_tranche_source, boolean control_tranche_destination) {
+        if (!isEditableStatut(bean)) {
+            return result.docIsNotEditable();
+        }
+        return checkDocument(bean, control_tranche_source, control_tranche_destination);
+    }
+
+    public boolean checkTypeOperationInDepot(long depot, String type, String operation) {
         Long nb = (Long) dao.loadObjectByNameQueries("YvsBaseDepotOperation.countByDepotTypeOperation", new String[]{"depot", "type", "operation"}, new Object[]{new YvsBaseDepots(depot), type, operation});
         return nb != null ? nb > 0 : false;
     }
@@ -163,70 +176,75 @@ public class ServiceTransfert extends GenericService {
         return cal.getTime();
     }
 
-    public boolean chechAutorisationAction(YvsComDocStocks doc, int action) {
-        if (currentUser != null ? currentUser.getId() < 1 : true) {
-            return false;
+    public boolean checkAutorisationUpdateTransfertInPast(YvsComDocStocks doc) {
+        int limit = getEcartSaveOrUpdateDocStock(doc);
+        int jourPasse = Util.countDayBetweenDates(doc.getDateDoc(), new Date());
+        if (jourPasse >= limit) {
+            if (!autoriser("tr_add_content_after_valide")) {
+                return false;
+            }
         }
-        return chechAutorisationAction(doc, action, currentUser.getUsers());
+        return true;
     }
 
-    public boolean chechAutorisationAction(YvsComDocStocks doc, int action, YvsUsers currentUser) {
-        if (currentUser != null ? (currentUser != null) : false) {
+    private int getEcartSaveOrUpdateDocStock(YvsComDocStocks doc) {
+        if (doc == null) {
+            return 0;
+        }
+        if (doc.getDateDoc() == null) {
+            return 0;
+        }
+        YvsComParametreStock ps = (YvsComParametreStock) dao.loadOneByNameQueries("YvsComParametreStock.findByAgence", new String[]{"agence"}, new Object[]{currentUser.getAgence()});
+        return (ps != null) ? ((ps.getDureeUpdate() != null) ? ps.getDureeUpdate() : 0) : 0;
+    }
+
+    private boolean isEditableStatut(YvsComDocStocks doc) {
+        return Constantes.ETAT_EDITABLE.equals(doc.getStatut());
+    }
+
+    /**
+     * Vérifie si je suis habilité à passer un movement dans un dépôt.
+     *
+     * @param doc documement de stock conserné
+     * @param action
+     * @param currentUser
+     * @return
+     */
+    public boolean chechAutorisationActionOnDepot(YvsComDocStocks doc, int action, YvsUsers currentUser) {
+        if (currentUser != null && doc != null) {
             switch (action) {
                 case 1: { //Cas de l'emetteur du transfert
-                    if (doc != null ? doc.getSource() != null : false) {
-                        boolean correct = false;
+                    if (doc.getSource() != null) {
                         Long nb = (Long) dao.loadObjectByNameQueries("YvsComCreneauHoraireUsers.ifUserHasPlaning", new String[]{"hier", "date", "users", "crenoD"}, new Object[]{hier(doc.getDateDoc()), doc.getDateDoc(), currentUser, doc.getCreneauSource()});
-                        correct = nb != null ? nb > 0 : false;
+                        final boolean correct = nb != null ? nb > 0 : false;
                         if (!correct) {
                             //contrôle le code d'accès de l'utilisateur
                             if (doc.getSource().getCodeAcces() != null ? doc.getSource().getCodeAcces().getCode() != null : false) {
                                 nb = (Long) dao.loadObjectByNameQueries("YvsBaseUsersAcces.findIdAcces", new String[]{"users", "code", "societe"}, new Object[]{currentUser, doc.getSource().getCodeAcces().getCode(), currentScte});
                                 if (nb != null ? nb > 0 : false) {
-                                    break;
+                                    return true;
                                 }
                             }
-                            YvsGrhEmployes employe = doc.getSource().getResponsable();
-                            if (employe != null ? employe.getId() < 1 : true) {
-                                employe = (YvsGrhEmployes) dao.loadOneByNameQueries("YvsBaseDepots.findResponsableById", new String[]{"id"}, new Object[]{doc.getSource().getId()});
-                            }
-                            if (currentUser.getEmploye() != null && employe != null) {
-                                // Controle si le employé courant est le responsable du depot destinataire
-                                if (!employe.equals(currentUser.getEmploye())) {
-                                    return false;
-                                }
-                            } else {
-                                return false;
-                            }
+                        } else {
+                            return true;
                         }
                     }
                     break;
                 }
                 case 2: {   //cas du destinataire du transfert
-                    if (doc != null ? doc.getDestination() != null : false) {
-                        boolean correct = false;
+                    if (doc.getDestination() != null) {
                         Long nb = (Long) dao.loadObjectByNameQueries("YvsComCreneauHoraireUsers.ifUserHasPlaning", new String[]{"hier", "date", "users", "crenoD"}, new Object[]{hier(doc.getDateReception()), doc.getDateReception(), currentUser, doc.getCreneauDestinataire()});
-                        correct = nb != null ? nb > 0 : false;
+                        final boolean correct = nb != null ? nb > 0 : false;
                         if (!correct) {
                             //contrôle le code d'accès de l'utilisateur
                             if (doc.getDestination().getCodeAcces() != null ? doc.getDestination().getCodeAcces().getCode() != null : false) {
                                 nb = (Long) dao.loadObjectByNameQueries("YvsBaseUsersAcces.findIdAcces", new String[]{"users", "code", "societe"}, new Object[]{currentUser, doc.getDestination().getCodeAcces().getCode(), currentScte});
                                 if (nb != null ? nb > 0 : false) {
-                                    break;
+                                    return true;
                                 }
                             }
-                            YvsGrhEmployes employe = doc.getSource().getResponsable();
-                            if (employe != null ? employe.getId() < 1 : true) {
-                                employe = (YvsGrhEmployes) dao.loadOneByNameQueries("YvsBaseDepots.findResponsableById", new String[]{"id"}, new Object[]{doc.getDestination().getId()});
-                            }
-                            if (currentUser.getEmploye() != null && employe != null) {
-                                // Controle si le employé courant est le responsable du depot destinataire
-                                if (!employe.equals(currentUser.getEmploye())) {
-                                    return false;
-                                }
-                            } else {
-                                return false;
-                            }
+                        } else {
+                            return true;
                         }
                     }
                     break;
@@ -237,53 +255,39 @@ public class ServiceTransfert extends GenericService {
         } else {
             return false;
         }
-        return true;
+        return false;
     }
 
     public ResultatAction changeStatut_(String etat, YvsComDocStocks doc) {
-        if (!etat.equals("") && doc != null) {
+        if (!"".equals(etat) && doc != null) {
             ResultatAction r = _controleFiche(doc, true, true);
             if (!r.isResult()) {
                 return r;
             }
-//            if (etat.equals(Constantes.ETAT_VALIDE)) {
-//                for (YvsComContenuDocStock c : doc.getContenus()) {
-//                    c.setStatut(Constantes.ETAT_VALIDE);
-//                    c.setAuthor(currentUser);
-//                    c.setDateUpdate(new Date());
-//                    dao.update(c);
-//                }
-//            } else {
             for (YvsComContenuDocStock c : doc.getContenus()) {
-//                    c.setStatut(Constantes.ETAT_EDITABLE);
-//                    c.setAuthor(currentUser);
-//                    c.setDateUpdate(new Date());
-//                    dao.update(c);
                 changeStatutLine(c, doc.getDateReception(), etat, true);
             }
             actualiseStatutDoc(doc);
-//            }
             return new ResultatAction().succes();
         }
         return new ResultatAction().fail("Le statut du document est incorrect !");
     }
 
     public ResultatAction changeStatutLine(YvsComContenuDocStock y, Date dateReception, String statutDoc, boolean allTransfert) {
-        ResultatAction result = new ResultatAction();
-        if (y != null ? y.getId() > 0 : false) {
+        ResultatAction resultService = new ResultatAction();
+        if (y == null) {
+            return new ResultatAction().fail("Aucun documents n'a été trouvé !");
+        }
+        if (y.getId() > 0) {
             if (!allTransfert) {
-                result = _controleFiche(y.getDocStock(), true, (y.getDocStock().getStatut().equals(Constantes.ETAT_SOUMIS) || y.getStatut().equals(Constantes.ETAT_ENCOURS)));
-                if (!result.isResult()) {
-                    return result;
+                resultService = _controleFiche(y.getDocStock(), true, (y.getDocStock().getStatut().equals(Constantes.ETAT_SOUMIS) || y.getStatut().equals(Constantes.ETAT_ENCOURS)));
+                if (!resultService.isResult()) {
+                    return resultService;
                 }
-//                boolean acces = autoriser("tr_valid_all");
-//                if (!acces ? !chechAutorisationAction(y.getDocStock(), 2) : false) {
-//                    return result.userNotAbility();
-//                }
             }
             if (!allTransfert) {
                 if (!dao.controleInventaire(y.getDocStock().getDestination().getId(), y.getDateReception(), y.getDocStock().getCreneauDestinataire().getTranche().getId())) {
-                    return result.inventaireLock(y.getDocStock().getDestination().getDesignation());
+                    return resultService.inventaireLock(y.getDocStock().getDestination().getDesignation());
                 }
             }
             if (!y.getStatut().equals(Constantes.ETAT_EDITABLE)) {
@@ -306,7 +310,7 @@ public class ServiceTransfert extends GenericService {
                     if (!allTransfert) {
                         actualiseStatutDoc(y.getDocStock());
                     }
-                    return result.succes();
+                    return resultService.succes();
                 }
             } else {
                 if (statutDoc.equals(Constantes.ETAT_SOUMIS) || statutDoc.equals(Constantes.ETAT_ENCOURS) || statutDoc.equals(Constantes.ETAT_VALIDE)) {
@@ -326,9 +330,9 @@ public class ServiceTransfert extends GenericService {
                     if (!allTransfert) {
                         actualiseStatutDoc(y.getDocStock());
                     }
-                    return result.succes();
+                    return resultService.succes();
                 } else {
-                    return result.docIsNotSubmit();
+                    return resultService.docIsNotSubmit();
                 }
             }
         }

@@ -216,6 +216,10 @@ public class ResultatAction<T extends Serializable> implements Serializable {
         return new ResultatAction(false, 07, "Ce document est deja cloturer", Constantes.MOD_COM, Constantes.TYPE_FT_NAME);
     }
 
+    public ResultatAction docIsNotEditable() {
+        return new ResultatAction(false, 07, "Le document doit être éditable pour être modifié", Constantes.MOD_COM, Constantes.TYPE_FT_NAME);
+    }
+
     public ResultatAction inventaireLock(String depot) {
         return new ResultatAction(false, 8, "Vous ne pouvez créer une fiche de stock à cette date car un ou plusieurs inventaires ont déjà été réalisés après. dépôt: " + depot, Constantes.MOD_COM, Constantes.TYPE_FT_NAME);
     }
