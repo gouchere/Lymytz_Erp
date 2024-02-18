@@ -31,7 +31,17 @@
 
             }
         </script>
-
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog widgetVar="dlgUploadImgXLS" width="300" height="100" closeOnEscape="true"
+                      dynamic="true" resizable="false">
+                <p:fileUpload sizeLimit="1000000"  id="file_import_02"  mode="advanced" dragDropSupport="true" 
+                              allowTypes="/(\.|\/)(xls|xls?x)$/" fileUploadListener="#{managedBonAvoirAchat.handleFileUploadXLS}"
+                              uploadLabel="#{lab.L_envoyer}" label="#{lab.L_parcourir}" auto="true"
+                              oncomplete="dlgUploadImgXLS.hide()"> 
+                </p:fileUpload>
+            </p:dialog>
+        </h:form>
+        
         <h:form prependId="false" id="main-agence">
             <p:dialog widgetVar="dlgAgenceForDepot" header="Selectionner une agence" width="50%" closeOnEscape="true"> 
                 <p:dataTable value="#{managedAgence.agences}" var="ag" rowKey="#{ag.id}" selectionMode="single" id="table_agence" rowIndexVar="line_ag">
@@ -914,7 +924,7 @@
                                             </h:panelGrid> 
                                         </div>
                                     </f:facet>
-                                    <p:outputPanel>
+                                    <p:outputPanel id="blog_contenu_avoir_achat">
                                         <h:inputHidden id="input_hide_contenu_avoir_achat" value="#{managedBonAvoirAchat.tabIds_article}"/>
                                         <p:dataTable id="data_contenu_avoir_achat" value="#{managedBonAvoirAchat.contenus}" var="artf" rowKey="#{artf.id}" 
                                                      rowIndexVar="artfIdx" selection="#{managedBonAvoirAchat.selectContenus}">
@@ -949,6 +959,7 @@
                                             <p:column style="width: 7%;text-align: center">
                                                 <f:facet name="header">
                                                     <p:contextMenu for="btn_option_contenu_avoir_achat_head" event="left click" style="font-size: 0.8em;width: 200px">
+                                                        <p:menuitem value="Importer" icon="ui-icon-arrowthickstop-1-s" global="false" onclick="dlgUploadImgXLS.show()"/>
                                                         <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedBonAvoirAchat.deleteBeanArticles(false)}"/>
                                                     </p:contextMenu>                           
                                                     <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_avoir_achat_head" type="button"/>
@@ -960,6 +971,9 @@
                                             </p:column> 
                                             <p:column selectionMode="multiple" style="width:16px;text-align:center"/>  
                                         </p:dataTable>
+                                        <p:commandButton icon="ui-icon-disk" value="Enregistrer" style="float:right"
+                                                         oncomplete="collapseForm('contenu_avoir_achat')" rendered="#{managedBonAvoirAchat.displayButtonSaveFromImport}"
+                                                         update="blog_form_contenu_avoir_achat" actionListener="#{managedBonAvoirAchat.saveContenusFromImport()}"/> 
                                     </p:outputPanel>                     
                                 </h:panelGrid>
                             </p:outputPanel>

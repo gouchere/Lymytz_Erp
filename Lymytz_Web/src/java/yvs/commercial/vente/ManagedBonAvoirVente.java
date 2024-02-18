@@ -5,17 +5,28 @@
  */
 package yvs.commercial.vente;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.event.ValueChangeEvent;
 import lymytz.navigue.Navigations;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.primefaces.event.FileUploadEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
 import yvs.base.compta.ModeDeReglement;
@@ -50,6 +61,7 @@ import yvs.entity.base.YvsBaseArticleDepot;
 import yvs.entity.base.YvsBaseConditionnement;
 import yvs.entity.base.YvsBaseModeReglement;
 import yvs.entity.base.YvsBasePointVenteDepot;
+import yvs.entity.base.YvsBaseUniteMesure;
 import yvs.entity.commercial.YvsComCommercialPoint;
 import yvs.entity.commercial.YvsComParametre;
 import yvs.entity.commercial.YvsComParametreVente;
@@ -64,13 +76,16 @@ import yvs.entity.compta.YvsComptaPhasePiece;
 import yvs.entity.compta.YvsComptaPiecesComptable;
 import yvs.entity.param.YvsAgences;
 import yvs.entity.produits.YvsBaseArticles;
+import yvs.entity.produits.group.YvsBaseFamilleArticle;
 import yvs.entity.users.YvsUsers;
 import yvs.grh.UtilGrh;
 import yvs.grh.presence.TrancheHoraire;
+import yvs.parametrage.ManagedImportExport;
 import yvs.parametrage.dico.Dictionnaire;
 import yvs.parametrage.entrepot.Depots;
 import yvs.production.UtilProd;
 import yvs.users.ManagedUser;
+import static yvs.util.Managed.Lnf;
 import static yvs.util.Managed.ldf;
 import static yvs.util.Managed.time;
 import yvs.util.ParametreRequete;
@@ -107,7 +122,7 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
     private boolean newMensualite, memoriserDeleteContenu = false;
 
     private String tabIds, tabIds_mensualite, tabIds_article, type = Constantes.TYPE_FAV;
-    private boolean existFacture, update, selectArt;
+    private boolean existFacture, update, selectArt, displayButtonSaveFromImport;
     private boolean recalculTaxe;
 
     //Parametre recherche
@@ -125,6 +140,14 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
         caissiers = new ArrayList<>();
         vendeurs = new ArrayList<>();
         selectContenus = new ArrayList<>();
+    }
+
+    public boolean isDisplayButtonSaveFromImport() {
+        return displayButtonSaveFromImport;
+    }
+
+    public void setDisplayButtonSaveFromImport(boolean displayButtonSaveFromImport) {
+        this.displayButtonSaveFromImport = displayButtonSaveFromImport;
     }
 
     public Date getDateGenerer() {
@@ -880,6 +903,8 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
         contenus_fv.clear();
         selectDoc = null;
         selectEntete = new YvsComEnteteDocVente();
+
+        displayButtonSaveFromImport = false;
 
         resetFicheArticle();
         if (type.equals(Constantes.TYPE_FAV)) {
@@ -2357,7 +2382,7 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
         } else {
             contenu.setTaxe(contenu_fv.getTaxe());
         }
-        double rem=dao.getRemiseVente(contenu.getArticle().getId(), contenu.getQuantite(), contenu.getPrix(), docVente.getClient().getId(), docVente.getEnteteDoc().getPoint().getId(), docVente.getEnteteDoc().getDateEntete(), contenu.getConditionnement().getUnite().getId());
+        double rem = dao.getRemiseVente(contenu.getArticle().getId(), contenu.getQuantite(), contenu.getPrix(), docVente.getClient().getId(), docVente.getEnteteDoc().getPoint().getId(), docVente.getEnteteDoc().getDateEntete(), contenu.getConditionnement().getUnite().getId());
         contenu.setRemise(rem);
         if (contenu_fv.getArticle().isPuvTtc()) {
             contenu.setPrixTotal((contenu.getPrix() * contenu.getQuantite()) - contenu.getRemise());
@@ -3233,5 +3258,162 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
         }
         paginator.addParam(p);
         loadAllFacture(true, true);
+    }
+
+    private double getCellDouble(Cell cell) {
+        if (cell == null) {
+            return 0;
+        }
+        try {
+            return cell.getNumericCellValue();
+        } catch (Exception ex) {
+            Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                return Lnf.parse(cell.getStringCellValue().trim()).doubleValue();
+            } catch (ParseException ex1) {
+                Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+        }
+        return 0;
+    }
+
+    private YvsComContenuDocVente getContenuFormData(Long id, Row maRow) {
+        // QTE - REFERENCE - DESIGNATION - UNITE - PRIX - REMISE - TAXE
+        final int QTE_INDEX = 0;
+        final int REFERENCE_INDEX = 1;
+        final int DESIGNATION_INDEX = 2;
+        final int UNITE_INDEX = 3;
+        final int PRIX_INDEX = 4;
+        final int REMISE_INDEX = 5;
+        final int TAXE_INDEX = 6;
+        YvsComContenuDocVente bean = null;
+        try {
+            if (maRow != null ? maRow.getLastCellNum() > 0 : false) {
+                final int sizeCells = maRow.getLastCellNum();
+                bean = new YvsComContenuDocVente(id);
+                bean.setQuantite(sizeCells > QTE_INDEX ? getCellDouble(maRow.getCell(QTE_INDEX)) : 0);
+                if (sizeCells > UNITE_INDEX) {
+                    bean.setArticle(new YvsBaseArticles(null, maRow.getCell(REFERENCE_INDEX).getStringCellValue().trim(), maRow.getCell(DESIGNATION_INDEX).getStringCellValue().trim()));
+                }
+                if (sizeCells > UNITE_INDEX) {
+                    bean.setConditionnement(new YvsBaseConditionnement(null, new YvsBaseUniteMesure(null, maRow.getCell(UNITE_INDEX).getStringCellValue().trim(), maRow.getCell(UNITE_INDEX).getStringCellValue().trim())));
+                }
+                bean.setPrix(sizeCells > PRIX_INDEX ? getCellDouble(maRow.getCell(PRIX_INDEX)) : 0);
+                bean.setRemise(sizeCells > REMISE_INDEX ? getCellDouble(maRow.getCell(REMISE_INDEX)) : 0);
+                bean.setTaxe(sizeCells > TAXE_INDEX ? getCellDouble(maRow.getCell(TAXE_INDEX)) : 0);
+                bean.setPrixTotal((bean.getQuantite() * (bean.getPrix() - bean.getRabais())) - bean.getRemise());
+                bean.setDateSave(new Date());
+                bean.setDateUpdate(new Date());
+                bean.setDateContenu(new Date());
+                bean.setAuthor(currentUser);
+                bean.setStatut(Constantes.ETAT_EDITABLE);
+            }
+        } catch (NumberFormatException ex) {
+            Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return bean;
+    }
+
+    private void getDataFromFileExcel(InputStream monFileInputStream) throws IOException, InvalidFormatException {
+        if (monFileInputStream != null) {
+            if (docVente.getId() > 0 && contenus.size() > 0) {
+                getErrorMessage("Vous ne pouvez pas importer dans un document qui possede du contenu ");
+                return;
+            }
+            contenus.clear();
+            //création du worbook
+            Workbook monWorkbook = WorkbookFactory.create(monFileInputStream);
+            Sheet maSheet = monWorkbook.getSheetAt(0);
+            int idexRowMax = maSheet.getLastRowNum();
+            YvsComContenuDocVente bean;
+            long id = -1;
+            for (int i = 1; i <= idexRowMax; i++) {
+                Row maRow = maSheet.getRow(i);
+                bean = getContenuFormData(id--, maRow);
+                if (bean != null) {
+                    contenus.add(bean);
+                }
+            }
+            if (contenus.size() > 0) {
+                displayButtonSaveFromImport = true;
+            }
+        }
+    }
+
+    public void handleFileUploadXLS(FileUploadEvent ev) {
+        if (ev != null) {
+            try {
+                getDataFromFileExcel(ev.getFile().getInputstream());
+                if (type.equals(Constantes.TYPE_FAV)) {
+                    update("tabView_fav:blog_contenu_avoir_vente");
+                } else {
+                    update("blog_contenu_retour_vente");
+                }
+            } catch (IOException | InvalidFormatException ex) {
+                Logger.getLogger(ManagedBonAvoirVente.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    public void saveContenusFromImport() {
+        docVente.setTypeDoc(type);
+        boolean success = controleFiche(docVente);
+        if (success) {
+            YvsBaseArticles article;
+            YvsBaseUniteMesure unite;
+            YvsBaseConditionnement conditionnement;
+            boolean continu = true;
+            for (YvsComContenuDocVente bean : contenus) {
+                try {
+                    if (bean.getId() < 1) {
+                        article = (YvsBaseArticles) dao.loadOneByNameQueries("YvsBaseArticles.findByCodeL", new String[]{"societe", "code"}, new Object[]{currentAgence.getSociete(), bean.getArticle().getRefArt()});
+                        if (article != null ? article.getId() < 1 : true) {
+                            bean.setMessageError("Article inconnu pour la reference indiquee");
+                            continu = false;
+                            continue;
+                        }
+                        unite = (YvsBaseUniteMesure) dao.loadOneByNameQueries("YvsBaseUniteMesure.findByNumType", new String[]{"societe", "reference", "type"}, new Object[]{currentAgence.getSociete(), bean.getConditionnement().getUnite().getReference(), Constantes.UNITE_QUANTITE});
+                        if (unite != null ? unite.getId() < 1 : true) {
+                            bean.setMessageError("Unite de mesure inconnu pour la reference indiquee");
+                            continu = false;
+                            continue;
+                        }
+                        conditionnement = (YvsBaseConditionnement) dao.loadOneByNameQueries("YvsBaseConditionnement.findByArticleUnite", new String[]{"article", "unite"}, new Object[]{article, unite});
+                        if (unite != null ? unite.getId() < 1 : true) {
+                            bean.setMessageError("Aucun conditionnement trouve pour l'unite sur l'article");
+                            continu = false;
+                            continue;
+                        }
+                        bean.setArticle(article);
+                        bean.setConditionnement(conditionnement);
+                        bean.setPrixTotal(bean.getPrixTotal() + (article.getPuvTtc() ? 0 : bean.getTaxe()));
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(ManagedBonAvoirVente.class.getName()).log(Level.SEVERE, null, ex);
+                    bean.setMessageError(ex.getLocalizedMessage());
+                    continu = false;
+                }
+            }
+            if (continu) {
+                if (docVente.getId() < 1) {
+                    saveNew();
+                } else {
+                    try {
+                        YvsComContenuDocVente en;
+                        for (YvsComContenuDocVente bean : contenus) {
+                            bean.setId(null);
+                            bean.setDocVente(selectDoc);
+                            en = (YvsComContenuDocVente) dao.save1(bean);
+                            bean.setId(en.getId());
+                        }
+                        succes();
+                        actionOpenOrResetAfter(this);
+                    } catch (Exception ex) {
+                        Logger.getLogger(ManagedBonAvoirVente.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                displayButtonSaveFromImport = false;
+            }
+        }
     }
 }

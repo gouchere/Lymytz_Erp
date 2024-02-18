@@ -708,6 +708,10 @@ public class YvsComContenuDocVente extends YvsEntity implements Serializable {
         this.rabais = rabais;
     }
 
+    public boolean isHasMessageError() {
+        return messageError != null ? !messageError.trim().equals("") : false;
+    }
+
     public String getMessageError() {
         return messageError;
     }
