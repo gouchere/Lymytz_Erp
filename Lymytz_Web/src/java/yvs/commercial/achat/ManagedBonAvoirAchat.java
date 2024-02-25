@@ -21,11 +21,6 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.event.ValueChangeEvent;
 import lymytz.navigue.Navigations;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
@@ -34,13 +29,9 @@ import yvs.base.produits.Articles;
 import yvs.base.produits.Conditionnement;
 import yvs.base.produits.ManagedArticles;
 import yvs.base.tiers.Tiers;
-import yvs.commercial.UtilCom;
-import yvs.dao.Options;
-import yvs.entity.grh.presence.YvsGrhTrancheHoraire;
-import yvs.util.Constantes;
-import yvs.util.Util;
 import yvs.commercial.ManagedCommercial;
 import static yvs.commercial.ManagedCommercial.currentParam;
+import yvs.commercial.UtilCom;
 import yvs.commercial.depot.ManagedDepot;
 import yvs.commercial.fournisseur.Fournisseur;
 import yvs.commercial.fournisseur.ManagedFournisseur;
@@ -48,6 +39,7 @@ import yvs.commercial.param.ManagedTypeDocDivers;
 import yvs.commercial.param.TypeDocDivers;
 import yvs.commercial.stock.CoutSupDoc;
 import yvs.comptabilite.ManagedSaisiePiece;
+import yvs.dao.Options;
 import yvs.entity.base.YvsBaseArticleDepot;
 import yvs.entity.base.YvsBaseConditionnement;
 import yvs.entity.base.YvsBaseDepots;
@@ -63,15 +55,20 @@ import yvs.entity.compta.YvsBasePlanComptable;
 import yvs.entity.compta.YvsBaseTypeDocDivers;
 import yvs.entity.compta.YvsComptaContentJournal;
 import yvs.entity.compta.YvsComptaPiecesComptable;
+import yvs.entity.grh.presence.YvsGrhTrancheHoraire;
 import yvs.entity.param.YvsAgences;
 import yvs.entity.produits.YvsBaseArticles;
+import yvs.etats.excell.Document;
+import yvs.etats.excell.Row;
 import yvs.grh.presence.TrancheHoraire;
 import yvs.parametrage.ManagedImportExport;
 import yvs.production.UtilProd;
+import yvs.util.Constantes;
 import static yvs.util.Managed.Lnf;
 import static yvs.util.Managed.ldf;
 import static yvs.util.Managed.time;
 import yvs.util.ParametreRequete;
+import yvs.util.Util;
 import yvs.util.enume.Nombre;
 
 /**
@@ -2570,48 +2567,19 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
         loadAllFacture(true, true);
     }
 
-    private double getCellDouble(Cell cell) {
-        if (cell == null) {
-            return 0;
-        }
-        try {
-            return cell.getNumericCellValue();
-        } catch (Exception ex) {
-            Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex);
-            try {
-                return Lnf.parse(cell.getStringCellValue().trim()).doubleValue();
-            } catch (ParseException ex1) {
-                Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-        }
-        return 0;
-    }
-
     private YvsComContenuDocAchat getContenuFormData(Long id, Row maRow) {
-        // QTE - REFERENCE - DESIGNATION - UNITE - PRIX - REMISE - TAXE
-        final int QTE_INDEX = 0;
-        final int REFERENCE_INDEX = 1;
-        final int DESIGNATION_INDEX = 2;
-        final int UNITE_INDEX = 3;
-        final int PRIX_INDEX = 4;
-        final int REMISE_INDEX = 5;
-        final int TAXE_INDEX = 6;
+        // QTE | QUANTITE - REFERENCE - DESIGNATION - UNITE - PRIX - REMISE - TAXE
         YvsComContenuDocAchat bean = null;
         try {
-            if (maRow != null ? maRow.getLastCellNum() > 0 : false) {
-                final int sizeCells = maRow.getLastCellNum();
+            if (maRow != null ? maRow.size() > 0 : false) {
                 bean = new YvsComContenuDocAchat(id);
-                bean.setQuantiteCommande(sizeCells > QTE_INDEX ? getCellDouble(maRow.getCell(QTE_INDEX)) : 0);
+                bean.setQuantiteCommande((Double) maRow.getValue("QUANTITE", "QTE"));
                 bean.setQuantiteRecu(bean.getQuantiteCommande());
-                if (sizeCells > UNITE_INDEX) {
-                    bean.setArticle(new YvsBaseArticles(null, maRow.getCell(REFERENCE_INDEX).getStringCellValue().trim(), maRow.getCell(DESIGNATION_INDEX).getStringCellValue().trim()));
-                }
-                if (sizeCells > UNITE_INDEX) {
-                    bean.setConditionnement(new YvsBaseConditionnement(null, new YvsBaseUniteMesure(null, maRow.getCell(UNITE_INDEX).getStringCellValue().trim(), maRow.getCell(UNITE_INDEX).getStringCellValue().trim())));
-                }
-                bean.setPrixAchat(sizeCells > PRIX_INDEX ? getCellDouble(maRow.getCell(PRIX_INDEX)) : 0);
-                bean.setRemise(sizeCells > REMISE_INDEX ? getCellDouble(maRow.getCell(REMISE_INDEX)) : 0);
-                bean.setTaxe(sizeCells > TAXE_INDEX ? getCellDouble(maRow.getCell(TAXE_INDEX)) : 0);
+                bean.setArticle(new YvsBaseArticles(null, (String) maRow.getValue("REFERENCE"), (String) maRow.getValue("DESIGNATION")));
+                bean.setConditionnement(new YvsBaseConditionnement(null, new YvsBaseUniteMesure(null, (String) maRow.getValue("UNITE"), (String) maRow.getValue("UNITE"))));
+                bean.setPrixAchat((Double) maRow.getValue("PRIX"));
+                bean.setRemise((Double) maRow.getValue("REMISE"));
+                bean.setTaxe((Double) maRow.getValue("TAXE"));
                 bean.setPrixTotal((bean.getQuantiteCommande() * bean.getPrixAchat()) - bean.getRemise());
                 bean.setDateSave(new Date());
                 bean.setDateUpdate(new Date());
@@ -2619,7 +2587,7 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
                 bean.setAuthor(currentUser);
                 bean.setStatut(Constantes.ETAT_EDITABLE);
             }
-        } catch (NumberFormatException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex);
         }
         return bean;
@@ -2632,14 +2600,12 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
                 return;
             }
             contenus.clear();
-            //création du worbook
-            Workbook monWorkbook = WorkbookFactory.create(monFileInputStream);
-            Sheet maSheet = monWorkbook.getSheetAt(0);
-            int idexRowMax = maSheet.getLastRowNum();
+            Document document = Document.create(monFileInputStream);
+            int sizeRow = document.size();
             YvsComContenuDocAchat bean;
             long id = -1;
-            for (int i = 1; i <= idexRowMax; i++) {
-                Row maRow = maSheet.getRow(i);
+            for (int i = 0; i < sizeRow; i++) {
+                Row maRow = document.getRow(i);
                 bean = getContenuFormData(id--, maRow);
                 if (bean != null) {
                     contenus.add(bean);

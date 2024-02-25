@@ -8,7 +8,6 @@ package yvs.commercial.vente;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,11 +20,6 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.event.ValueChangeEvent;
 import lymytz.navigue.Navigations;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
@@ -76,8 +70,9 @@ import yvs.entity.compta.YvsComptaPhasePiece;
 import yvs.entity.compta.YvsComptaPiecesComptable;
 import yvs.entity.param.YvsAgences;
 import yvs.entity.produits.YvsBaseArticles;
-import yvs.entity.produits.group.YvsBaseFamilleArticle;
 import yvs.entity.users.YvsUsers;
+import yvs.etats.excell.Document;
+import yvs.etats.excell.Row;
 import yvs.grh.UtilGrh;
 import yvs.grh.presence.TrancheHoraire;
 import yvs.parametrage.ManagedImportExport;
@@ -85,7 +80,6 @@ import yvs.parametrage.dico.Dictionnaire;
 import yvs.parametrage.entrepot.Depots;
 import yvs.production.UtilProd;
 import yvs.users.ManagedUser;
-import static yvs.util.Managed.Lnf;
 import static yvs.util.Managed.ldf;
 import static yvs.util.Managed.time;
 import yvs.util.ParametreRequete;
@@ -3260,47 +3254,18 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
         loadAllFacture(true, true);
     }
 
-    private double getCellDouble(Cell cell) {
-        if (cell == null) {
-            return 0;
-        }
-        try {
-            return cell.getNumericCellValue();
-        } catch (Exception ex) {
-            Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex);
-            try {
-                return Lnf.parse(cell.getStringCellValue().trim()).doubleValue();
-            } catch (ParseException ex1) {
-                Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex1);
-            }
-        }
-        return 0;
-    }
-
     private YvsComContenuDocVente getContenuFormData(Long id, Row maRow) {
-        // QTE - REFERENCE - DESIGNATION - UNITE - PRIX - REMISE - TAXE
-        final int QTE_INDEX = 0;
-        final int REFERENCE_INDEX = 1;
-        final int DESIGNATION_INDEX = 2;
-        final int UNITE_INDEX = 3;
-        final int PRIX_INDEX = 4;
-        final int REMISE_INDEX = 5;
-        final int TAXE_INDEX = 6;
+        // QTE | QUANTITE - REFERENCE - DESIGNATION - UNITE - PRIX - REMISE - TAXE
         YvsComContenuDocVente bean = null;
         try {
-            if (maRow != null ? maRow.getLastCellNum() > 0 : false) {
-                final int sizeCells = maRow.getLastCellNum();
+            if (maRow != null ? maRow.size() > 0 : false) {
                 bean = new YvsComContenuDocVente(id);
-                bean.setQuantite(sizeCells > QTE_INDEX ? getCellDouble(maRow.getCell(QTE_INDEX)) : 0);
-                if (sizeCells > UNITE_INDEX) {
-                    bean.setArticle(new YvsBaseArticles(null, maRow.getCell(REFERENCE_INDEX).getStringCellValue().trim(), maRow.getCell(DESIGNATION_INDEX).getStringCellValue().trim()));
-                }
-                if (sizeCells > UNITE_INDEX) {
-                    bean.setConditionnement(new YvsBaseConditionnement(null, new YvsBaseUniteMesure(null, maRow.getCell(UNITE_INDEX).getStringCellValue().trim(), maRow.getCell(UNITE_INDEX).getStringCellValue().trim())));
-                }
-                bean.setPrix(sizeCells > PRIX_INDEX ? getCellDouble(maRow.getCell(PRIX_INDEX)) : 0);
-                bean.setRemise(sizeCells > REMISE_INDEX ? getCellDouble(maRow.getCell(REMISE_INDEX)) : 0);
-                bean.setTaxe(sizeCells > TAXE_INDEX ? getCellDouble(maRow.getCell(TAXE_INDEX)) : 0);
+                bean.setQuantite((Double) maRow.getValue("QUANTITE", "QTE"));
+                bean.setArticle(new YvsBaseArticles(null, (String) maRow.getValue("REFERENCE"), (String) maRow.getValue("DESIGNATION")));
+                bean.setConditionnement(new YvsBaseConditionnement(null, new YvsBaseUniteMesure(null, (String) maRow.getValue("UNITE"), (String) maRow.getValue("UNITE"))));
+                bean.setPrix((Double) maRow.getValue("PRIX"));
+                bean.setRemise((Double) maRow.getValue("REMISE"));
+                bean.setTaxe((Double) maRow.getValue("TAXE"));
                 bean.setPrixTotal((bean.getQuantite() * (bean.getPrix() - bean.getRabais())) - bean.getRemise());
                 bean.setDateSave(new Date());
                 bean.setDateUpdate(new Date());
@@ -3308,7 +3273,7 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
                 bean.setAuthor(currentUser);
                 bean.setStatut(Constantes.ETAT_EDITABLE);
             }
-        } catch (NumberFormatException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex);
         }
         return bean;
@@ -3321,14 +3286,12 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
                 return;
             }
             contenus.clear();
-            //création du worbook
-            Workbook monWorkbook = WorkbookFactory.create(monFileInputStream);
-            Sheet maSheet = monWorkbook.getSheetAt(0);
-            int idexRowMax = maSheet.getLastRowNum();
+            Document document = Document.create(monFileInputStream);
+            int sizeRow = document.size();
             YvsComContenuDocVente bean;
             long id = -1;
-            for (int i = 1; i <= idexRowMax; i++) {
-                Row maRow = maSheet.getRow(i);
+            for (int i = 0; i < sizeRow; i++) {
+                Row maRow = document.getRow(i);
                 bean = getContenuFormData(id--, maRow);
                 if (bean != null) {
                     contenus.add(bean);
