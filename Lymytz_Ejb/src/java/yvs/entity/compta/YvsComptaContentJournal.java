@@ -99,14 +99,14 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsComptaContentJournal.findByDebitExterne", query = "SELECT y FROM YvsComptaContentJournal y WHERE y.debit > 0 AND y.refExterne = :id AND y.tableExterne = :table"),
     @NamedQuery(name = "YvsComptaContentJournal.findByDebitExternes", query = "SELECT y FROM YvsComptaContentJournal y WHERE y.debit > 0 AND y.refExterne IN :ids AND y.tableExterne = :table"),
     @NamedQuery(name = "YvsComptaContentJournal.findByCreditExternes", query = "SELECT y FROM YvsComptaContentJournal y WHERE y.credit > 0 AND y.refExterne IN :ids AND y.tableExterne = :table"),
-    
+
     @NamedQuery(name = "YvsComptaContentJournal.findByCreditPieceDates", query = "SELECT y FROM YvsComptaContentJournal y WHERE y.credit > 0 AND y.piece = :piece AND y.piece.datePiece BETWEEN :dateDebut AND :dateFin"),
     @NamedQuery(name = "YvsComptaContentJournal.findByDebitPieceDates", query = "SELECT y FROM YvsComptaContentJournal y WHERE y.debit > 0 AND y.piece = :piece AND y.piece.datePiece BETWEEN :dateDebut AND :dateFin"),
     @NamedQuery(name = "YvsComptaContentJournal.findByCreditExterneDates", query = "SELECT y FROM YvsComptaContentJournal y WHERE y.credit > 0 AND y.refExterne = :id AND y.tableExterne = :table AND y.piece.datePiece BETWEEN :dateDebut AND :dateFin"),
     @NamedQuery(name = "YvsComptaContentJournal.findByDebitExterneDates", query = "SELECT y FROM YvsComptaContentJournal y WHERE y.debit > 0 AND y.refExterne = :id AND y.tableExterne = :table AND y.piece.datePiece BETWEEN :dateDebut AND :dateFin"),
     @NamedQuery(name = "YvsComptaContentJournal.findByDebitExternesDates", query = "SELECT y FROM YvsComptaContentJournal y WHERE y.debit > 0 AND y.refExterne IN :ids AND y.tableExterne = :table AND y.piece.datePiece BETWEEN :dateDebut AND :dateFin"),
     @NamedQuery(name = "YvsComptaContentJournal.findByCreditExternesDates", query = "SELECT y FROM YvsComptaContentJournal y WHERE y.credit > 0 AND y.refExterne IN :ids AND y.tableExterne = :table AND y.piece.datePiece BETWEEN :dateDebut AND :dateFin"),
-    
+
     @NamedQuery(name = "YvsComptaContentJournal.findCompteWithReport", query = "SELECT DISTINCT(y.compteGeneral) FROM YvsComptaContentJournal y WHERE y.compteGeneral.natureCompte.societe=:societe AND y.piece.datePiece <= :dateFin AND y.compteGeneral.typeReport != 'AU' ORDER BY y.compteGeneral.numCompte"),
 
     @NamedQuery(name = "YvsComptaContentJournal.countPieceByExternes", query = "SELECT COUNT(DISTINCT(y.piece)) FROM YvsComptaContentJournal y WHERE y.refExterne IN :ids AND y.tableExterne = :table"),
@@ -197,6 +197,10 @@ public class YvsComptaContentJournal extends YvsEntity implements Serializable, 
     private String error_;
     @Transient
     private String warning_;
+    @Transient
+    private String codeTiers;
+    @Transient
+    private String messageError;
 
     public YvsComptaContentJournal() {
         analytiques = new ArrayList<>();
@@ -276,6 +280,26 @@ public class YvsComptaContentJournal extends YvsEntity implements Serializable, 
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCodeTiers() {
+        return codeTiers;
+    }
+
+    public void setCodeTiers(String codeTiers) {
+        this.codeTiers = codeTiers;
+    }
+
+    public boolean isHasMessageError() {
+        return messageError != null ? !messageError.trim().equals("") : false;
+    }
+
+    public String getMessageError() {
+        return messageError;
+    }
+
+    public void setMessageError(String messageError) {
+        this.messageError = messageError;
     }
 
     public Date getDateUpdate() {
