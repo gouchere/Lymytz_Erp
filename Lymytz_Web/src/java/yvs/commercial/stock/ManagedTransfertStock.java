@@ -968,7 +968,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
                 return false;
             }
         }
-        return _controleFiche_(bean.getDocStock(), !autoriser("tr_add_content_after_valide"));
+        return _controleFiche_(bean.getDocStock(), autoriser("tr_add_content_after_valide"));
     }
 
     private boolean controleDleteLine(YvsComContenuDocStock bean) {
@@ -1038,7 +1038,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
             getErrorMessage("Vous devez entrer le libelle");
             return false;
         }
-        return _controleFiche_(docStock, !autoriser("tr_add_content_after_valide"));
+        return _controleFiche_(docStock, autoriser("tr_add_content_after_valide"));
     }
 
     @Override
@@ -1239,17 +1239,15 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
     public void saveContenu() {
         try {
             contenu.setDocStock(docStock);
-            if (controleFicheContenu(contenu, true)) {
-                if (contenu.getLots().size() > 1) {
-                    ManagedLotReception w = (ManagedLotReception) giveManagedBean(ManagedLotReception.class);
-                    if (w != null) {
-                        contenu.setLots(w.buildQuantiteLot(contenu.getLots(), contenu.getQuantite()));
-                    }
-                    openDialog("dlgListLotReception");
-                    update("data-contenu_ft_require_lot");
-                } else {
-                    saveNewContenu();
+            if (contenu.getLots().size() > 1) {
+                ManagedLotReception w = (ManagedLotReception) giveManagedBean(ManagedLotReception.class);
+                if (w != null) {
+                    contenu.setLots(w.buildQuantiteLot(contenu.getLots(), contenu.getQuantite()));
                 }
+                openDialog("dlgListLotReception");
+                update("data-contenu_ft_require_lot");
+            } else {
+                saveNewContenu();
             }
         } catch (Exception ex) {
             getErrorMessage("Operation Impossible !");
@@ -1263,15 +1261,15 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
                 boolean correct = false;
                 ContenuDocStock clone;
                 List<YvsComLotReception> lots = new ArrayList<>(contenu.getLots());
-                for (int i = 0; i < lots.size(); i++) {
-                    if (lots.get(i).getQuantitee() > 0) {
+                for (YvsComLotReception lot : lots) {
+                    if (lot.getQuantitee() > 0) {
                         clone = new ContenuDocStock();
                         cloneObject(clone, contenu);
-                        clone.setQuantite(lots.get(i).getQuantitee());
+                        clone.setQuantite(lot.getQuantitee());
                         clone.getLots().clear();
                         listenChangeQuantite(clone);
-                        clone.setLotSortie(UtilCom.buildBeanLotReception(lots.get(i)));
-                        clone.setLotEntree(UtilCom.buildBeanLotReception(lots.get(i)));
+                        clone.setLotSortie(UtilCom.buildBeanLotReception(lot));
+                        clone.setLotEntree(UtilCom.buildBeanLotReception(lot));
                         correct = saveNewContenu(clone, false);
                     }
                 }
@@ -1316,6 +1314,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
     public YvsComContenuDocStock _saveNewContenu(ContenuDocStock contenu, boolean principal) {
         YvsComContenuDocStock en = null;
         try {
+            //cette vérificaction empêche de modifier une fiche qui apprait editable pour la fiche chargé à l'écran et pourtant déjà validé en base de données
             if (!docStock.getStatut().equals(Constantes.ETAT_EDITABLE)) {
                 if (docStock.getStatut().equals(Constantes.ETAT_SOUMIS)) {
                     String statut = (String) dao.loadObjectByNameQueries("YvsComDocStocks.findStatutById", new String[]{"id"}, new Object[]{docStock.getId()});
