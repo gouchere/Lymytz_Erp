@@ -5,7 +5,10 @@
  */
 package yvs.comptabilite;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -14,11 +17,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.primefaces.event.FileUploadEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
 import yvs.base.compta.Comptes;
@@ -46,7 +58,9 @@ import yvs.dao.Options;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.dao.services.compta.ServiceComptabilite;
 import yvs.dao.services.compta.TempContent;
+import yvs.entity.base.YvsBaseConditionnement;
 import yvs.entity.base.YvsBaseExercice;
+import yvs.entity.base.YvsBaseUniteMesure;
 import yvs.entity.compta.divers.YvsComptaCaissePieceDivers;
 import yvs.entity.commercial.achat.YvsComDocAchats;
 import yvs.entity.commercial.vente.YvsComDocVentes;
@@ -119,7 +133,6 @@ import yvs.entity.grh.salaire.YvsGrhDetailPrelevementEmps;
 import yvs.entity.grh.salaire.YvsGrhOrdreCalculSalaire;
 import yvs.entity.mutuelle.YvsMutPeriodeExercice;
 import yvs.entity.param.YvsAgences;
-import yvs.entity.param.YvsSocietes;
 import yvs.entity.produits.YvsBaseArticles;
 import yvs.entity.stat.export.YvsStatExportEtat;
 import yvs.entity.tiers.YvsBaseTiers;
@@ -1405,6 +1418,9 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
 //        if (operation != null ? !"M".equals(operation) : false) {
 
 //        }
+        if (pieceCompta.getExercice() != null ? pieceCompta.getExercice().getId() < 1 : true) {
+            pieceCompta.setExercice(UtilMut.buildBeanExercice(giveExerciceActif(pieceCompta.getDatePiece())));
+        }
         pieceCompta.setDateSaise(pieceCompta.getDateSaise() != null ? pieceCompta.getDateSaise() : new Date());
         pieceCompta.setMois(pieceCompta.getMois() != null ? pieceCompta.getMois() : new Date());
         return pieceCompta;
@@ -1842,17 +1858,19 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         List<YvsComptaContentJournal> contents = new ArrayList<>();
         contents.addAll(pc.getContentsPiece());
         pc.getContentsPiece().clear();
+        YvsComptaPiecesComptable piece = pc;
         if (pc.getId() > 0) {
             dao.update(pc);
         } else {
             pc.setId(null);
-            pc = (YvsComptaPiecesComptable) dao.save1(pc);
+            piece = (YvsComptaPiecesComptable) dao.save1(pc);
+            pc = piece;
         }
         List<YvsComptaContentAnalytique> analytiques;
         YvsComptaContentJournal c;
         for (int i = 0; i < contents.size(); i++) {
             c = contents.get(i);
-            c.setPiece(pc);
+            c.setPiece(piece);
             analytiques = new ArrayList<>();
             analytiques.addAll(c.getAnalytiques());
             c.getAnalytiques().clear();
@@ -10965,6 +10983,28 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         return "";
     }
 
+    public Long findIdTiers(String code, String table) {
+        Long result = 0l;
+        if (code != null ? code.trim().length() > 0 : false) {
+            try {
+                if (table.equals(yvs.dao.salaire.service.Constantes.BASE_TIERS_CLIENT)) {
+                    result = (Long) dao.loadObjectByNameQueries("YvsComClient.findIdByCode", new String[]{"societe", "code"}, new Object[]{currentAgence.getSociete(), code});
+                } else if (table.equals(yvs.dao.salaire.service.Constantes.BASE_TIERS_FOURNISSEUR)) {
+                    result = (Long) dao.loadObjectByNameQueries("YvsBaseFournisseur.findIdByCode", new String[]{"societe", "code"}, new Object[]{currentAgence.getSociete(), code});
+                } else if (table.equals(yvs.dao.salaire.service.Constantes.BASE_TIERS_EMPLOYE)) {
+                    result = (Long) dao.loadObjectByNameQueries("YvsGrhEmployes.findIdByCode", new String[]{"societe", "code"}, new Object[]{currentAgence.getSociete(), code});
+                } else if (table.equals(yvs.dao.salaire.service.Constantes.BASE_TIERS_COMMERCIAL)) {
+                    result = (Long) dao.loadObjectByNameQueries("YvsComComerciale.findIdByCode", new String[]{"societe", "code"}, new Object[]{currentAgence.getSociete(), code});
+                } else {
+                    result = (Long) dao.loadObjectByNameQueries("YvsBaseTiers.findIdByCode", new String[]{"societe", "code"}, new Object[]{currentAgence.getSociete(), code});
+                }
+            } catch (Exception ex) {
+                getException(getClass().getSimpleName() + " (findIdTiers)", ex);
+            }
+        }
+        return result;
+    }
+
     public void addParamNaturePiece(String nature) {
         paginator.addParam(new ParametreRequete("y.tableExterne", "tableExterne", (Util.asString(nature) ? nature : null), "=", "AND"));
         initForm = true;
@@ -11048,7 +11088,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
             succes();
         } catch (Exception ex) {
             getErrorMessage("Impossible de nettoyer");
-            System.err.println("Error " + ex.getMessage());
+            getException(getClass().getSimpleName() + " (clearContentJournal)", ex);
         }
     }
 
@@ -11613,5 +11653,138 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         }
         succes();
 
+    }
+
+    private double getCellDouble(Cell cell) {
+        if (cell == null) {
+            return 0;
+        }
+        try {
+            return cell.getNumericCellValue();
+        } catch (Exception ex) {
+            Logger.getLogger(ManagedSaisiePiece.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                return Lnf.parse(cell.getStringCellValue().trim()).doubleValue();
+            } catch (ParseException ex1) {
+                Logger.getLogger(ManagedSaisiePiece.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+        }
+        return 0;
+    }
+
+    private int getCellInteger(Cell cell) {
+        if (cell == null) {
+            return 0;
+        }
+        try {
+            return (int) cell.getNumericCellValue();
+        } catch (Exception ex) {
+            Logger.getLogger(ManagedSaisiePiece.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                return Lnf.parse(cell.getStringCellValue().trim()).intValue();
+            } catch (ParseException ex1) {
+                Logger.getLogger(ManagedSaisiePiece.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+        }
+        return 0;
+    }
+
+    private String getCellCompte(Cell cell) {
+        if (cell == null) {
+            return null;
+        }
+        try {
+            return cell.getStringCellValue().trim();
+        } catch (Exception ex) {
+            return (((int) cell.getNumericCellValue()) + "").trim();
+        }
+    }
+
+    private YvsComptaContentJournal getContenuFormData(Long id, Row maRow) {
+        // TYPE-TIER : TIERS, FOURNISSEUR, CLIENT, EMPLOYE, COMMERCIAL
+        // ECHEANCE : dd-MM-yyyy
+        // JOUR - REFERENCE - LIBELLE - COMPTE - TIER - LETTRAGE - DEBIT - CREDIT - ECHEANCE - TYPE-TIER
+        final int JOUR_INDEX = 0;
+        final int REFERENCE_INDEX = 1;
+        final int LIBELLE_INDEX = 2;
+        final int COMPTE_INDEX = 3;
+        final int TIER_INDEX = 4;
+        final int LETTRAGE_INDEX = 5;
+        final int DEBIT_INDEX = 6;
+        final int CREDIT_INDEX = 7;
+        final int ECHEANCE_INDEX = 8;
+        final int TYPETIER_INDEX = 9;
+        YvsComptaContentJournal bean = null;
+        try {
+            if (maRow != null ? maRow.getLastCellNum() > 0 : false) {
+                final int sizeCells = maRow.getLastCellNum();
+                bean = new YvsComptaContentJournal(id);
+                bean.setJour(sizeCells > JOUR_INDEX ? getCellInteger(maRow.getCell(JOUR_INDEX)) : 0);
+                bean.setNumRef(sizeCells > REFERENCE_INDEX ? maRow.getCell(REFERENCE_INDEX).toString().trim() : "");
+                bean.setLibelle(sizeCells > LIBELLE_INDEX ? (maRow.getCell(LIBELLE_INDEX) != null ? maRow.getCell(LIBELLE_INDEX).getStringCellValue().trim() : "") : "");
+                bean.setCompteGeneral(new YvsBasePlanComptable(null, sizeCells > COMPTE_INDEX ? getCellCompte(maRow.getCell(COMPTE_INDEX)) : ""));
+                bean.setCodeTiers(sizeCells > TIER_INDEX ? (maRow.getCell(TIER_INDEX) != null ? maRow.getCell(TIER_INDEX).toString().trim() : "") : "");
+                bean.setTableTiers(sizeCells > TYPETIER_INDEX ? (maRow.getCell(TYPETIER_INDEX) != null ? maRow.getCell(TYPETIER_INDEX).getStringCellValue().trim() : "TIERS") : "TIERS");
+                bean.setLettrage(sizeCells > LETTRAGE_INDEX ? (maRow.getCell(LETTRAGE_INDEX) != null ? maRow.getCell(LETTRAGE_INDEX).getStringCellValue().trim() : null) : null);
+                bean.setDebit(sizeCells > DEBIT_INDEX ? getCellDouble(maRow.getCell(DEBIT_INDEX)) : 0);
+                bean.setCredit(sizeCells > CREDIT_INDEX ? getCellDouble(maRow.getCell(CREDIT_INDEX)) : 0);
+                bean.setEcheance(sizeCells > ECHEANCE_INDEX ? (maRow.getCell(ECHEANCE_INDEX) != null ? maRow.getCell(ECHEANCE_INDEX).getDateCellValue() : new Date()) : new Date());
+                bean.setDateSave(new Date());
+                bean.setDateUpdate(new Date());
+                bean.setAuthor(currentUser);
+                bean.setStatut(Constantes.STATUT_DOC_ATTENTE);
+            }
+        } catch (NumberFormatException ex) {
+            Logger.getLogger(ManagedSaisiePiece.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return bean;
+    }
+
+    private void getDataFromFileExcel(InputStream monFileInputStream) throws IOException, InvalidFormatException {
+        if (monFileInputStream != null) {
+            if (pieceCompta.getId() > 0 && pieceCompta.getContentsPieces().size() > 0) {
+                getErrorMessage("Vous ne pouvez pas importer dans un document qui possede du contenu ");
+                return;
+            }
+            if (pieceCompta.getModel() != null ? pieceCompta.getModel().getId() > 0 : false) {
+                getErrorMessage("Vous ne pouvez pas ajouter un élèment... car cette pièce est générée par un model");
+                return;
+            }
+            pieceCompta.getContentsPieces().clear();
+            //création du worbook
+            Workbook monWorkbook = WorkbookFactory.create(monFileInputStream);
+            Sheet maSheet = monWorkbook.getSheetAt(0);
+            int idexRowMax = maSheet.getLastRowNum();
+            YvsComptaContentJournal bean;
+            YvsBasePlanComptable compte;
+            long id = -1;
+            for (int i = 1; i <= idexRowMax; i++) {
+                Row maRow = maSheet.getRow(i);
+                bean = getContenuFormData(id--, maRow);
+                if (bean != null) {
+                    compte = (YvsBasePlanComptable) dao.loadOneByNameQueries("YvsBasePlanComptable.findByNumCompte", new String[]{"societe", "numCompte"}, new Object[]{currentAgence.getSociete(), bean.getCompteGeneral().getNumCompte()});
+                    if (compte != null ? compte.getId() < 1 : true) {
+                        bean.setMessageError("Compte general inconnu pour la reference indiquee");
+                    }
+                    bean.setCompteGeneral(compte);
+                    bean.setCompteTiers(findIdTiers(bean.getCodeTiers(), bean.getTableTiers()));
+                    if ((compte != null && compte.getSaisieCompteTiers()) ? (bean.getCompteTiers() != null ? bean.getCompteTiers() < 1 : true) : false) {
+                        bean.setMessageError("Compte tiers inconnu pour la reference indiquee");
+                    }
+                    pieceCompta.getContentsPieces().add(bean);
+                }
+            }
+        }
+    }
+
+    public void handleFileUploadXLS(FileUploadEvent ev) {
+        if (ev != null) {
+            try {
+                getDataFromFileExcel(ev.getFile().getInputstream());
+                update("table_content_Pcomptable");
+            } catch (IOException | InvalidFormatException ex) {
+                Logger.getLogger(ManagedSaisiePiece.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 }

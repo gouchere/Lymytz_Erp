@@ -99,7 +99,8 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsBaseTiers.findByAlwaysVisible", query = "SELECT y FROM YvsBaseTiers y WHERE y.alwaysVisible = :alwaysVisible"),
     @NamedQuery(name = "YvsBaseTiers.findByActif", query = "SELECT y FROM YvsBaseTiers y WHERE y.actif = :actif"),
 
-    @NamedQuery(name = "YvsBaseTiers.findIdByCode", query = "SELECT y FROM YvsBaseTiers y WHERE y.codeTiers BETWEEN :compteDebut AND :compteFin AND y.societe = :societe"),
+    @NamedQuery(name = "YvsBaseTiers.findIdByCode", query = "SELECT y.id FROM YvsBaseTiers y WHERE y.codeTiers = :code AND y.societe = :societe"),
+    @NamedQuery(name = "YvsBaseTiers.findByCodes", query = "SELECT y FROM YvsBaseTiers y WHERE y.codeTiers BETWEEN :compteDebut AND :compteFin AND y.societe = :societe"),
 
     @NamedQuery(name = "YvsBaseTiers.findCountByFabriquant", query = "SELECT COUNT(y) FROM YvsBaseTiers y WHERE y.fabriquant = :fabriquant AND y.societe =:societe"),
     @NamedQuery(name = "YvsBaseTiers.findByFabriquant", query = "SELECT y FROM YvsBaseTiers y WHERE y.fabriquant = :fabriquant AND y.societe =:societe AND y.actif=true")})

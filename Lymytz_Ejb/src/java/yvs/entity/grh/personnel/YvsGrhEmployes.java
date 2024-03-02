@@ -124,6 +124,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsGrhEmployes.findByTiers", query = "SELECT y FROM YvsGrhEmployes y WHERE y.compteTiers = :tiers"),
 
     @NamedQuery(name = "YvsGrhEmployes.findDataById", query = "SELECT y.matricule, y.nom, y.prenom FROM YvsGrhEmployes y WHERE y.id=:id"),
+    @NamedQuery(name = "YvsGrhEmployes.findIdByCode", query = "SELECT y.id FROM YvsGrhEmployes y WHERE y.agence.societe = :societe AND y.matricule = :code"),
 
     @NamedQuery(name = "YvsGrhEmployes.findPrevByNom", query = "SELECT y FROM YvsGrhEmployes y WHERE y.agence.societe = :societe AND CONCAT(y.nom, ' ', y.prenom) < :nom_prenom ORDER BY y.nom DESC, y.prenom DESC"),
     @NamedQuery(name = "YvsGrhEmployes.findNextByNom", query = "SELECT y FROM YvsGrhEmployes y WHERE y.agence.societe = :societe AND CONCAT(y.nom, ' ', y.prenom) > :nom_prenom ORDER BY y.nom, y.prenom"),

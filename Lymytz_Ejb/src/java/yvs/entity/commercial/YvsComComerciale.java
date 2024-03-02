@@ -60,7 +60,10 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsComComerciale.findByPrenom", query = "SELECT y FROM YvsComComerciale y WHERE y.prenom = :prenom"),
     @NamedQuery(name = "YvsComComerciale.findByTelephone", query = "SELECT y FROM YvsComComerciale y WHERE y.telephone = :telephone"),
     @NamedQuery(name = "YvsComComerciale.findByDateSave", query = "SELECT y FROM YvsComComerciale y WHERE y.dateSave = :dateSave"),
-    @NamedQuery(name = "YvsComComerciale.findDefaut", query = "SELECT y FROM YvsComComerciale y WHERE y.agence.societe = :societe AND y.actif = TRUE AND y.defaut = TRUE")})
+    @NamedQuery(name = "YvsComComerciale.findDefaut", query = "SELECT y FROM YvsComComerciale y WHERE y.agence.societe = :societe AND y.actif = TRUE AND y.defaut = TRUE"),
+    
+    @NamedQuery(name = "YvsComComerciale.findIdByCode", query = "SELECT y.id FROM YvsComComerciale y WHERE y.agence.societe = :societe AND y.codeRef = :code")
+})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class YvsComComerciale implements Serializable {
 

@@ -63,7 +63,8 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsBaseFournisseur.findByCodeFsseur", query = "SELECT y FROM YvsBaseFournisseur y WHERE y.codeFsseur = :codeFsseur AND  y.tiers.societe = :societe"),
     @NamedQuery(name = "YvsBaseFournisseur.findByLikeCode", query = "SELECT y FROM YvsBaseFournisseur y WHERE y.codeFsseur LIKE :code AND y.tiers.societe = :societe ORDER BY y.tiers.nom, y.tiers.prenom"),
 
-    @NamedQuery(name = "YvsBaseFournisseur.findIdByCode", query = "SELECT y FROM YvsBaseFournisseur y WHERE y.codeFsseur BETWEEN :compteDebut AND :compteFin AND y.tiers.societe = :societe"),
+    @NamedQuery(name = "YvsBaseFournisseur.findIdByCode", query = "SELECT y.id FROM YvsBaseFournisseur y WHERE y.codeFsseur = :code AND y.tiers.societe = :societe"),
+    @NamedQuery(name = "YvsBaseFournisseur.findByCodes", query = "SELECT y FROM YvsBaseFournisseur y WHERE y.codeFsseur BETWEEN :compteDebut AND :compteFin AND y.tiers.societe = :societe"),
     @NamedQuery(name = "YvsBaseFournisseur.findTiers", query = "SELECT y.tiers FROM YvsBaseFournisseur y WHERE y.id = :id"),
     @NamedQuery(name = "YvsBaseFournisseur.findTiersId", query = "SELECT DISTINCT y.tiers.id FROM YvsBaseFournisseur y WHERE y.id IN :ids"),
 

@@ -38,6 +38,18 @@
 
             }
         </script>  
+
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog widgetVar="dlgUploadImgXLS" width="300" height="100" closeOnEscape="true"
+                      dynamic="true" resizable="false">
+                <p:fileUpload sizeLimit="1000000"  id="file_import_02"  mode="advanced" dragDropSupport="true" 
+                              allowTypes="/(\.|\/)(xls|xls?x)$/" fileUploadListener="#{managedSaisiePiece.handleFileUploadXLS}"
+                              uploadLabel="#{lab.L_envoyer}" label="#{lab.L_parcourir}" auto="true"
+                              oncomplete="dlgUploadImgXLS.hide()" update=":main_piece_compta:form_btn_saisieJ"> 
+                </p:fileUpload>
+            </p:dialog>
+        </h:form>
+
         <h:form prependId="false" >
             <p:dialog header="#{lab.LCF_PR_liste_comptes}" widgetVar="dlgCmpteG" width="55%" closeOnEscape="true" footer="&copy; Lymytz" >
                 <div class="dlg_part_fixe">
@@ -601,7 +613,7 @@
                                 <h:panelGrid columns="2" cellpadding="0" cellspacing="0" styleClass="yvs_nostyle">
                                     <span>#{lab.LCF_PSL_journal}</span>
                                     <h:panelGroup>
-                                        <h:selectOneMenu value="#{piecesCompta.journal.id}" disabled="#{piecesCompta.contentsPieces.size() ne 0}"
+                                        <h:selectOneMenu value="#{piecesCompta.journal.id}" disabled="#{piecesCompta.contentsPieces.size() ne 0 and piecesCompta.id gt 0}"
                                                          valueChangeListener="#{managedSaisiePiece.giveSoldeJournal}" style="min-width: 120px;max-width: 220px">
                                             <f:selectItem itemValue="0" itemLabel="" />
                                             <f:selectItems value="#{managedJournaux.journaux}" var="ijj" itemValue="#{ijj.id}" itemLabel="#{ijj.intitule}" />
@@ -679,44 +691,51 @@
                                     <p:commandLink value="#{icontent.analytiques.size() gt 0 ? icontent.analytiques.size():'A'}" title="#{lab.LCF_PSL_saisir_affectation}" actionListener="#{managedSaisiePiece.loadContentJournal(icontent)}"
                                                    update=":main_affectation:blog_affectation :main_affectation:title_affectation" oncomplete="dlgAffectation.show()" rendered="#{icontent.compteGeneral.saisieAnalytique}"
                                                    style="font-weight: bold;border: 1px solid #666; border-radius: 4px;padding: 2px;background: #0099ff;color: white;font-size: 0.8em"/>
+                                    <h:graphicImage title="#{icontent.messageError}" library="img" name="comment.png" width="15" height="15" rendered="#{icontent.hasMessageError}"/>
                                 </h:panelGroup>
                             </p:column>
-                            <p:column headerText="Id " width="15" style="text-align: center">
+                            <p:column headerText="Id " width="15" style="text-align: center;color:#{icontent.hasMessageError?'red':''}">
                                 <span title="#{icontent.id}">#{icontent.id}</span>   
-                                <h:panelGroup style="float: right;margin-right: 5px">
+                                <h:panelGroup style="float: right;margin-right: 5px;color:#{icontent.hasMessageError?'red':''}">
                                     <h:outputText title="Report" value="R" rendered="#{icontent.report}" styleClass="style_statut_blue"/>
                                 </h:panelGroup>
                             </p:column>
-                            <p:column headerText="#{lab.L_jour}" width="15" style="text-align: center">
+                            <p:column headerText="#{lab.L_jour}" width="15" style="text-align: center;color:#{icontent.hasMessageError?'red':''}">
                                 <span title="#{icontent.libelle}">#{icontent.jour}</span>   
                             </p:column>
-                            <p:column headerText="#{lab.L_reference}" width="100">
+                            <p:column headerText="#{lab.L_reference}" width="100" style="color:#{icontent.hasMessageError?'red':''}">
                                 <span title="#{icontent.libelle}">#{icontent.numRef}</span>                                
                             </p:column>                        
-                            <p:column headerText="#{lab.LCF_PSS_compte_g}" width="80" style="text-align: center">
+                            <p:column headerText="#{lab.LCF_PSS_compte_g}" width="80" style="text-align: center;color:#{icontent.hasMessageError?'red':''}">
                                 <span title="#{icontent.compteGeneral.intitule}">#{icontent.compteGeneral.numCompte}</span>                                
                             </p:column>
-                            <p:column headerText="#{lab.LCF_PSS_compte_t}" width="80" style="text-align: center">
+                            <p:column headerText="#{lab.LCF_PSS_compte_t}" width="80" style="text-align: center;color:#{icontent.hasMessageError?'red':''}">
                                 <span title="#{managedSaisiePiece.findNameTiers(icontent.compteTiers, icontent.tableTiers, 'N')}">
                                     #{managedSaisiePiece.findNameTiers(icontent.compteTiers, icontent.tableTiers, 'R')}
                                 </span>                                
                             </p:column>
-                            <p:column headerText="#{lab.LCF_PSL_debit}" style="text-align: right">
+                            <p:column headerText="#{lab.LCF_PSL_debit}" style="text-align: right;color:#{icontent.hasMessageError?'red':''}">
                                 <h:panelGroup style="float: left" rendered="#{icontent.debit gt 0}">
                                     <h:outputText title="#{lab.LCF_PLC_lettrage}" value="#{icontent.lettrage}" rendered="#{icontent.lettrage != null ? icontent.lettrage ne '': false}" styleClass="style_statut"/>
                                 </h:panelGroup>     
                                 <h:outputText value="#{icontent.debit}" converter="DNS"  title="#{icontent.libelle}"/>
                             </p:column>
-                            <p:column headerText="#{lab.LCF_PSL_credit}" style="text-align: right">
+                            <p:column headerText="#{lab.LCF_PSL_credit}" style="text-align: right;color:#{icontent.hasMessageError?'red':''}">
                                 <h:panelGroup style="float: left" rendered="#{icontent.credit gt 0}">
                                     <h:outputText title="#{lab.LCF_PLC_lettrage}" value="#{icontent.lettrage}" rendered="#{icontent.lettrage != null ? icontent.lettrage ne '': false}" styleClass="style_statut"/>
                                 </h:panelGroup>     
                                 <h:outputText value="#{icontent.credit}" converter="DNS"  title="#{icontent.libelle}"/>
                             </p:column>
-                            <p:column headerText="#{lab.LCF_PSL_echeance}" width="80" style="text-align: center">
+                            <p:column headerText="#{lab.LCF_PSL_echeance}" width="80" style="text-align: center;color:#{icontent.hasMessageError?'red':''}">
                                 <h:outputText value="#{icontent.echeance}" converter="DATE"  title="#{icontent.libelle}"/>
                             </p:column>
                             <p:column headerText=" " width="10" style="text-align: center">
+                                <f:facet name="header">
+                                    <p:contextMenu for="btn_option_content_saisie_journal_head" event="left click" style="font-size: 0.8em;width: 200px">
+                                        <p:menuitem value="Importer" icon="ui-icon-arrowthickstop-1-s" global="false" onclick="dlgUploadImgXLS.show()"/>
+                                    </p:contextMenu>                           
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_content_saisie_journal_head" type="button"/>
+                                </f:facet>
                                 <p:contextMenu for="btn_option_content_saisie_journal" event="left click" style="font-size: 0.8em">
                                     <p:menuitem value="#{lab.L_aller_a}" icon="ui-icon-arrowthick-1-e" actionListener="#{managedSaisiePiece.onSelectedDistant(icontent)}"
                                                 title="#{lab.L_aller_a} '#{icontent.tableExterne}' #{lab.LCF_PSL_pour_element} (#{icontent.refExterne})"/>

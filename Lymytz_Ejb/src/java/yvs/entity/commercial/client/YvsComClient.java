@@ -55,6 +55,7 @@ import yvs.entity.users.YvsUsersAgence;
 @NamedQueries({
     @NamedQuery(name = "YvsComClient.findAll", query = "SELECT y FROM YvsComClient y WHERE y.tiers.societe = :societe ORDER BY y.tiers.nom, y.tiers.prenom"),
     @NamedQuery(name = "YvsComClient.findIds", query = "SELECT y.id FROM YvsComClient y WHERE y.tiers.societe = :societe ORDER BY y.tiers.nom, y.tiers.prenom"),
+    @NamedQuery(name = "YvsComClient.findIdByCode", query = "SELECT y.id FROM YvsComClient y WHERE y.tiers.societe = :societe AND y.codeClient = :code ORDER BY y.tiers.nom, y.tiers.prenom"),
     @NamedQuery(name = "YvsComClient.findAll_", query = "SELECT y FROM YvsComClient y WHERE y.tiers.societe = :societe ORDER BY y.codeClient ASC"),
     @NamedQuery(name = "YvsComClient.findByName", query = "SELECT y FROM YvsComClient y WHERE y.tiers.societe = :societe AND  ((UPPER(y.codeClient) LIKE UPPER(:code) OR UPPER(y.nom) LIKE UPPER(:code) OR UPPER(y.prenom) LIKE UPPER(:code))) ORDER BY y.tiers.nom"),
     @NamedQuery(name = "YvsComClient.findTrue", query = "SELECT y FROM YvsComClient y WHERE y.tiers.societe = :societe AND y.actif = true ORDER BY y.tiers.nom, y.tiers.prenom"),
@@ -80,7 +81,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsComClient.findByNomPrenom", query = "SELECT y FROM YvsComClient y WHERE y.nom = :nom AND y.prenom = :prenom AND y.tiers.societe = :societe"),
     @NamedQuery(name = "YvsComClient.findByTiers", query = "SELECT y FROM YvsComClient y WHERE y.tiers=:tiers"),
 
-    @NamedQuery(name = "YvsComClient.findIdByCode", query = "SELECT y FROM YvsComClient y WHERE y.codeClient BETWEEN :compteDebut AND :compteFin AND y.tiers.societe = :societe"),
+    @NamedQuery(name = "YvsComClient.findByCodes", query = "SELECT y FROM YvsComClient y WHERE y.codeClient BETWEEN :compteDebut AND :compteFin AND y.tiers.societe = :societe"),
 
     @NamedQuery(name = "YvsComClient.findAllNotIds", query = "SELECT y FROM YvsComClient y WHERE y.tiers.societe = :societe AND y.id NOT IN :ids ORDER BY y.tiers.nom, y.tiers.prenom"),
     @NamedQuery(name = "YvsComClient.findTiers", query = "SELECT y.tiers FROM YvsComClient y WHERE y.id = :id"),
