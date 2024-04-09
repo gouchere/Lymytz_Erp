@@ -47,7 +47,6 @@ function showMacAddress_OLD() {
         output = output + '</tr>';
     }
     output = output + '</table>';
-    console.log(output);
     document.getElementById("txtMACAdress").innerHTML = output;
 }
 

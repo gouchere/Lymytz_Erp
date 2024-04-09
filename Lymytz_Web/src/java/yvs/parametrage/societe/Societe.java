@@ -39,8 +39,6 @@ public class Societe extends BeanDeBase implements Serializable {
     private String telephone2;
     private Date debutExoComptable = new Date();
     private Date finExoComptable = new Date();
-//    private byte tailleCmpteGeneraux;
-//    private byte tailleCmpteAnalytique;
     private String devise;
     private String cachet;
     private int nombreDeDecimal = 2;

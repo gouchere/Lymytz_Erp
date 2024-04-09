@@ -1460,7 +1460,7 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
             cloneObject(contenu.getParent(), contenu_fv);
             contenu.setQuantite(bean.getQuantite());
             contenu.setPrix(bean.getPrix());
-            contenu.setRemise(0);
+            contenu.setRemise(bean.getRemise());
             contenu.setTaxe(bean.getTaxe());
             recalculTaxe = true;
             contenu.setPrixTotal(bean.getPrixTotal());

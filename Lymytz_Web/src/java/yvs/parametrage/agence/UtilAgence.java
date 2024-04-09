@@ -50,7 +50,6 @@ public class UtilAgence {
             r.setVille(UtilGrh.buildBeanDictionnaire(y.getVille()));
             r.setPays(r.getVille() != null ? (r.getVille().getParent() != null ? r.getVille().getParent() : new Dictionnaire()) : new Dictionnaire());
             r.setResponsableAgence((y.getChefAgence() != null) ? buildBeanSimpleEmployePartial(y.getChefAgence()) : new EmployePartial());
-//            age.setEmployePermament(y.employePermamentByList());
             r.setEmployeStagiaire(y.getEmployeStagiaire());
             r.setEmployeTacheron(y.getEmployeTacheron());
             r.setEmployeTemporaire(y.getEmployeTemporaire());

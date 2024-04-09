@@ -590,7 +590,6 @@ $(function() {
     /*Les raccourcis claviers*/
     $(document).keydown(function(e) {
         var adresse = obtenirPropriete("origin");
-        console.log(e.keyCode);
         if (e.ctrlKey && e.keyCode === 70) {//ouvre la boite de dialogue article pour la combinaison ctrl+f            
             $(".img_slide").trigger('click');
             e.preventDefault();
@@ -603,7 +602,6 @@ $(function() {
             e.stopPropagation();
             return false;
         }
-//        console.log(e.keyCode);
         if (e.keyCode === 113) {//F2
             //ouvre les modules
             $('.svgMenu_l').trigger('click');
