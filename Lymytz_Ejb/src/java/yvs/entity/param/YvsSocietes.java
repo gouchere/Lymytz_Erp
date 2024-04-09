@@ -697,30 +697,30 @@ public class YvsSocietes extends YvsEntity implements Serializable {
         employeTemporaire = 0;
         employeTacheron = 0;
         employeStagiaire = 0;
-        for (YvsAgences a : agences) {
-            for (YvsGrhEmployes e : a.getEmployes()) {
-                for (YvsGrhProfilEmps p : e.getYvsProfilEmpsList()) {
-                    if (p.getActif()) {
-                        switch (p.getStatut()) {
-                            case "PE":
-                                employePermament++;
-                                break;
-                            case "TEP":
-                                employeTemporaire++;
-                                break;
-                            case "Tacheron":
-                                employeTacheron++;
-                                break;
-                            case "ST":
-                                employeStagiaire++;
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-            }
-        }
+//        for (YvsAgences a : agences) {
+//            for (YvsGrhEmployes e : a.getEmployes()) {
+//                for (YvsGrhProfilEmps p : e.getYvsProfilEmpsList()) {
+//                    if (p.getActif()) {
+//                        switch (p.getStatut()) {
+//                            case "PE":
+//                                employePermament++;
+//                                break;
+//                            case "TEP":
+//                                employeTemporaire++;
+//                                break;
+//                            case "Tacheron":
+//                                employeTacheron++;
+//                                break;
+//                            case "ST":
+//                                employeStagiaire++;
+//                                break;
+//                            default:
+//                                break;
+//                        }
+//                    }
+//                }
+//            }
+//        }
         return employePermament;
     }
 }

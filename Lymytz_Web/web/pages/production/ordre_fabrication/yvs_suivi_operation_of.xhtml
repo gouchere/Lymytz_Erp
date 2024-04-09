@@ -142,8 +142,10 @@
             </p:dialog>
         </h:form> 
         <h:form prependId="false" id="form_session">
-            <p:dialog header="#{lab.LP_POF_infos_sessions}" widgetVar="dlgInfoSession_" width="80%" minHeight="450" footer="&copy;Lymytz 2014"
-                      closeOnEscape="true" >
+            <p:dialog header="#{lab.LP_POF_infos_sessions}" widgetVar="dlgInfoSession_" 
+                      width="80%" minHeight="450" 
+                      footer="&copy;Lymytz 2014"
+                      closeOnEscape="true">
                 <ui:include src="yvs_sessions_prod.xhtml" />
             </p:dialog>
         </h:form>
@@ -154,6 +156,7 @@
             </p:dialog>
         </h:form>
         <h:form prependId="false">
+            <!--pour eviter des erreurs sur la vue-->
             <p:dialog header="#{lab.LP_POF_suivi_flux_operation}" widgetVar="dlgEditFlux" width="93%" height="650" footer="&copy;Lymytz 2014"
                       closeOnEscape="true" >                
             </p:dialog>
@@ -326,14 +329,15 @@
             <h:form prependId="false" id="formulaire_mainOrdreF" style="width: 100%; overflow-y: hidden"> 
                 <div class="part_fix">
                     <div style="font-size: 0.9em;float: left;width: 30%; ">  
-                        <p:commandButton value="Preparer une production" type="button" icon="ui-icon-extlink" onclick="dlgProgramOrdre.show()"
+                        <p:commandButton value="Préparer une production" type="button" icon="ui-icon-extlink" onclick="dlgProgramOrdre.show()"
                                          update=":main-programmation_of:defaut-article_program_of"/>                                            
                     </div >  
                     <div style="margin-left: 31%">
                         <p:outputPanel autoUpdate="true" id="of_statut_zone"> 
                             <p:outputPanel styleClass="yvs_form_of" style="float: left;margin-top: 10px" rendered="#{ordreFabrication.id gt 0}">
                                 <p:commandLink value="#{lab.LP_PSO_declarer}" title="#{lab.LP_POF_enregistrer_nouvelle_declaration}" styleClass="button-stateOF #{(ordreFabrication.statutDeclaration eq constantes.ETAT_TERMINE)?'button-stateOF_actif':''}"
-                                               actionListener="#{managedOrdresF.loadDeclaration()}" disabled="#{(ordreFabrication.statutDeclaration eq constantes.ETAT_TERMINE)}" rendered="#{(ordreFabrication.id gt 0) and accesRessource.prod_acces_raccourcis}"                                                        
+                                               actionListener="#{managedOrdresF.loadDeclaration()}" disabled="#{(ordreFabrication.statutDeclaration eq constantes.ETAT_TERMINE)}" 
+                                               rendered="#{(ordreFabrication.id gt 0) and accesRessource.prod_acces_raccourcis}"                                                        
                                                oncomplete="dlgDeclaration.show()" update=":main_form_declaration:blog_declaration"/>
                             </p:outputPanel>
 
@@ -345,7 +349,7 @@
                                             rendered="#{(ordreFabrication.statusOrdre ne constantes.STATUT_DOC_ATTENTE) and (ordreFabrication.statusOrdre ne constantes.STATUT_DOC_ENCOUR)}"
                                             update="panel_state tableOF" />
                             </p:contextMenu>
-                            <p:outputPanel id="panel_state" styleClass="yvs_form_of" style="float: right;margin-top: 10px" rendered="#{ordreFabrication.id gt 0}"> 
+                            <p:outputPanel id="panel_state" styleClass="yvs_form_of" style="float: right;margin-top: 10px" > 
                                 <p:commandLink value="#{lab.L_en_attente}" styleClass="button-stateOF #{(ordreFabrication.statusOrdre==constantes.STATUT_DOC_ATTENTE)?'button-stateOF_actif':''}" 
                                                disabled="#{((ordreFabrication.statusOrdre != constantes.STATUT_DOC_SUSPENDU) 
                                                            and (ordreFabrication.statusOrdre != constantes.STATUT_PROD_LANCE)
@@ -533,7 +537,8 @@
                         <p:outputPanel id="formOF">
                             <p:outputPanel layout="block" style="border-bottom: 1px #003399 solid; width: 100%; padding-bottom: 18px" id="zone_gear_operation">
                                 <h:panelGroup>
-                                    <p:commandButton icon="ui-icon-triangle-1-w" style="width: 22px; height: 22px" actionListener="#{managedOrdresF.findAndSelectNextOperation(managedOrdresF.selectedOp,false)}"
+                                    <p:commandButton icon="ui-icon-triangle-1-w" style="width: 22px; height: 22px" 
+                                                     actionListener="#{managedOrdresF.findAndSelectNextOperation(managedOrdresF.selectedOp,false)}"
                                                      update="zone_gear_operation header_detail_edit_flux"/>
                                     <h:outputText value="#{managedOrdresF.selectedOp.numero}/#{ordreFabrication.listOperationsOf.size()*10}" style="font-size: 0.8em"/>
                                     <p:commandButton icon="ui-icon-triangle-1-e" style="width: 22px; height: 22px" actionListener="#{managedOrdresF.findAndSelectNextOperation(managedOrdresF.selectedOp,true)}"
@@ -691,9 +696,12 @@
                                     </div>
                                 </p:outputPanel>
                                 <h:panelGroup>
-                                    <p:commandButton rendered="#{managedOrdresF.suiviOperation.id gt 0}" value="#{lab.LP_POF_appliquer_nouveau}" title="#{lab.LP_POF_appliquer_flux_nouveau_cycle_operation}"
-                                                     actionListener="#{managedOrdresF.saveFluxStock(true)}"  update="table_suivi_edit_flux" icon="ui-icon-arrowthickstop-1-s"/>                
-                                    <p:commandButton value="#{(managedOrdresF.suiviOperation.id gt 0)?'Modifier':'Appliquer'}" actionListener="#{managedOrdresF.saveFluxStock(false)}" 
+                                    <p:commandButton rendered="#{managedOrdresF.suiviOperation.id gt 0}" value="#{lab.LP_POF_appliquer_nouveau}" 
+                                                     title="#{lab.LP_POF_appliquer_flux_nouveau_cycle_operation}"
+                                                     actionListener="#{managedOrdresF.saveFluxStock(true)}"  
+                                                     update="table_suivi_edit_flux" icon="ui-icon-arrowthickstop-1-s"/>                
+                                    <p:commandButton value="#{(managedOrdresF.suiviOperation.id gt 0)?'Modifier':'Appliquer'}" 
+                                                     actionListener="#{managedOrdresF.saveFluxStock(false)}" 
                                                      update="formOF" icon="ui-icon-arrowthickstop-1-s"/>   
                                 </h:panelGroup>             
                             </p:outputPanel>
@@ -719,7 +727,9 @@
             <div class="zone_find">
                 <div class="yvs_form_of display_auteur" align="right"  style="font-style: italic;">
                     <p:outputPanel autoUpdate="true">
-                        <span style="float: left">#{lab.L_enregistrer_le} <h:outputText value="#{managedOrdresF.selectedOf.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span> 
+                        <span style="float: left">#{lab.L_enregistrer_le} 
+                            <h:outputText value="#{managedOrdresF.selectedOf.dateSave}" styleClass="valeur" converter="DTL" style="font-weight: bold"/>
+                        </span> 
                         <span>#{lab.L_modifier_le} <h:outputText value="#{managedOrdresF.selectedOf.dateUpdate}" styleClass="valeur" converter="DTL" style="font-weight: bold"/></span>
                         <span>#{lab.L_par} <h:outputText value="#{managedOrdresF.selectedOf.author.users.nomUsers}"  styleClass="valeur" style="font-weight: bold"/></span>
                     </p:outputPanel>

@@ -80,30 +80,22 @@ public class UtilUsers {
 
     public static Users buildBeanUsers(YvsUsers usr) {
         Users b = buildSimpleBeanUsers(usr);
-        if (usr != null) {
-            b.setCommerciaux(usr.getCommercial());
-            b.setAgence(UtilAgence.buildBeanAgence(usr.getAgence()));
-            b.setNiveauAcces(buildBeanNiveauAcces(usr.getNiveauAcces()));
-            b.setSociete(b.getNiveauAcces().getSociete());
-            for (AdresseProfessionnel a : b.getListAdresse()) {
-                if (a.isPrincipal()) {
-                    b.setAdresse(a);
-                    break;
+            if (usr != null) {
+                b.setCommerciaux(usr.getCommercial());
+                b.setAgence(UtilAgence.buildBeanAgence(usr.getAgence()));
+                b.setNiveauAcces(buildBeanNiveauAcces(usr.getNiveauAcces()));
+                b.setSociete(b.getNiveauAcces().getSociete());
+                b.setCategorie(usr.getCategorie() != null ? UtilCom.buildBeanCategoriePerso(usr.getCategorie()) : new CategoriePerso());
+                b.setPlanCommission(usr.getPlanCommission() != null ? UtilCom.buildBeanPlanCommission(usr.getPlanCommission()) : new PlanCommission());
+                if (usr.getEmploye() != null) {
+                    b.setEmploye(usr.getEmploye().getNom_prenom());
+                    b.setTiers(UtilTiers.buildSimpleBeanTiers(usr.getEmploye().getCompteTiers()));
+                }
+                if (usr.getValidite() != null ? usr.getValidite().getId() > 0 : false) {
+                    b.setTemporaire(true);
+                    b.setDateExpiration(usr.getValidite().getDateExpiration());
                 }
             }
-//            b.setCarnetAdresse((usr.getYvsMsgCarnetAdresseList() != null) ? buildBeanListCarnetAdresse(usr.getYvsMsgCarnetAdresseList()) : new ArrayList<CarnetAdresse>());
-//            b.setDossiers((usr.getYvsGroupeMessageList() != null) ? buildBeanListGroupeMessage(usr.getYvsGroupeMessageList()) : new ArrayList<GroupeMessage>());
-            b.setCategorie(usr.getCategorie() != null ? UtilCom.buildBeanCategoriePerso(usr.getCategorie()) : new CategoriePerso());
-            b.setPlanCommission(usr.getPlanCommission() != null ? UtilCom.buildBeanPlanCommission(usr.getPlanCommission()) : new PlanCommission());
-            if (usr.getEmploye() != null) {
-                b.setEmploye(usr.getEmploye().getNom_prenom());
-                b.setTiers(UtilTiers.buildSimpleBeanTiers(usr.getEmploye().getCompteTiers()));
-            }
-            if (usr.getValidite() != null ? usr.getValidite().getId() > 0 : false) {
-                b.setTemporaire(true);
-                b.setDateExpiration(usr.getValidite().getDateExpiration());
-            }
-        }
         return b;
     }
 
