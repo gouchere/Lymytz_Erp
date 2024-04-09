@@ -4158,15 +4158,6 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
             getErrorMessage("Le document doit être enregistré dans un exercice actif");
             return false;
         }
-//        YvsBaseExercice exo = (YvsBaseExercice) dao.loadOneByNameQueries("YvsBaseExercice.findActifByDate", champ, val);
-//        if (exo != null ? exo.getId() < 1 : true) {
-//            getErrorMessage("Le document doit être enregistré dans un exercice actif");
-//            return false;
-//        }
-//        if (exo.getCloturer()) {
-//            getErrorMessage("Le document ne peut pas être enregistré dans un exercice cloturé");
-//            return false;
-//        }
         return true;
     }
 

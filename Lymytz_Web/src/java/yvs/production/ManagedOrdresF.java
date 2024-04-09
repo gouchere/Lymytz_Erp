@@ -3386,10 +3386,10 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
     }
 
     public void loadOnViewToUpdate(SelectEvent ev) {
-        openOfToupdate(ev);
         suiviOperation = new SuiviOperations();
+        openOfToupdate(ev);
         for (YvsProdOperationsOF cp : ordre.getListOperationsOf()) {
-            if (!cp.getStatutOp().equals(Constantes.STATUT_DOC_TERMINE)) {
+            if (!cp.getStatutOp().equals(Constantes.ETAT_TERMINE)) {
                 //prépare la première opération non encore terminé
                 openFluxComposantOperation(cp);
                 break;
@@ -5617,16 +5617,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             int count = 0;
             List<YvsProdOperationsGamme> lop;
             for (OrdreFabrication bean : programs) {
-                if (bean.getNomenclature() != null ? bean.getNomenclature().getId() > 0 : false) {
-//                    champ = new String[]{"nomenclature"};
-//                    val = new Object[]{new YvsProdNomenclature(bean.getNomenclature().getId())};
-//                    nameQueri = "YvsProdComposantNomenclature.findByNomenclature";
-//                    List<YvsProdComposantNomenclature> lcn = dao.loadListTableByNameQueries(nameQueri, champ, val);
-//                    if (lcn != null ? !lcn.isEmpty() : false) {
-////                        addComposantsOF(bean, calculBesoins(lcn, lcn.get(0).getNomenclature(), bean));
-//                        bean.setListComposantOf(calculBesoins(lcn, lcn.get(0).getNomenclature(), bean));
-//                    }
-                }
                 if (bean.getGamme() != null ? bean.getGamme().getId() > 0 : false) {
                     champ = new String[]{"gamme"};
                     val = new Object[]{new YvsProdGammeArticle(bean.getGamme().getId())};
@@ -5639,7 +5629,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 if (currentSession != null ? currentSession.getId() > 0 : false) {
                     bean.setDepotPf(new Depots(currentSession.getDepot().getId()));
                 }
-//                if (controleFiche(bean, true, false, false)) {
                 YvsProdOrdreFabrication entity = saveNewOF(bean);
                 if (entity != null ? entity.getId() > 0 : false) {
                     bean.setId(entity.getId());
@@ -5648,7 +5637,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                         changeStateOf(bean, entity, Constantes.STATUT_PROD_LANCE + "", false);
                     }
                 }
-//                }
             }
             if (count == programs.size()) {
                 succes();

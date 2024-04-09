@@ -2417,8 +2417,6 @@ public class UtilProd {
             o.setNomenclature(buildSimpleBeanNomenclatureAndUnite(of.getNomenclature()));
             o.setGamme(buildSimpleBeanGammeArticle(of.getGamme()));
             o.setRetardDeLancement(o.getStatusOrdre().equals(Constantes.STATUT_DOC_ATTENTE) && of.getDateDebut().before(new Date()));
-////            o.setDepotMp(buildBeanDepot(of.getDepotMp()));
-////            o.setDepotPf(buildBeanDepot(of.getDepotPf()));
             o.setDateSave(of.getDateSave());
             o.setDateDebutLancement(of.getDateDebut());
             o.setHeureDeLancement(of.getHeureLancement());
@@ -2429,8 +2427,6 @@ public class UtilProd {
             o.setTypeOf(of.getTypeOf());
             o.setSite(buildBeanSiteProduction(of.getSiteProduction()));
             o.setCoutDeProduction(of.getCoutOf());
-////            o.setListComposantOf(of.getComposants());
-////            o.setListOperationsOf(of.getOperations());
         }
         return o;
     }
