@@ -583,10 +583,10 @@ public class Constantes {
         return result;
     }
 
-    public static int calculNbYear(Date d1, Date d2) {
+    public static double calculNbYear(Date d1, Date d2) {
         if (d1 != null && d2 != null) {
             if (d2.after(d1)) {
-                int A1, A2, M1, M2;
+                double A1, A2, M1, M2;
                 Calendar c1 = Calendar.getInstance();
                 c1.setTime(d1);
                 A1 = c1.get(Calendar.YEAR);
@@ -594,7 +594,7 @@ public class Constantes {
                 c1.setTime(d2);
                 A2 = c1.get(Calendar.YEAR);
                 M2 = c1.get(Calendar.MONTH);
-                return (int) ((((A2 * 12) + M2) - ((A1 * 12) + M1)) / 12);
+                return ((((A2 * 12) + M2) - ((A1 * 12) + M1)) / 12);
             }
         }
         return 0;
