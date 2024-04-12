@@ -69,6 +69,8 @@ public class YvsProdComposantOp implements Serializable {
     private Double tauxPerte;   //Taux de perte en pourcentage
     @Column(name = "marge_qte")
     private Double margeQte;    //(En pourcentage de la quantité de composant indiqué à la nomenclature)
+    @Column(name = "marge_sup")
+    private Double margeSup;    //(En pourcentage de la quantité de composant indiqué à la nomenclature)
     @Column(name = "coeficient_valeur")
     private Double coeficientValeur;
     @Column(name = "date_save")
@@ -179,6 +181,14 @@ public class YvsProdComposantOp implements Serializable {
         this.margeQte = margeQte;
     }
 
+    public Double getMargeSup() {
+        return margeSup != null ? margeSup : 0;
+    }
+
+    public void setMargeSup(Double margeSup) {
+        this.margeSup = margeSup;
+    }
+
     public Double getCoeficientValeur() {
         return coeficientValeur != null ? coeficientValeur : 0;
     }
@@ -186,6 +196,7 @@ public class YvsProdComposantOp implements Serializable {
     public void setCoeficientValeur(Double coeficientValeur) {
         this.coeficientValeur = coeficientValeur;
     }
+
     public Double getTauxPerte() {
         return tauxPerte != null ? tauxPerte : 0;
     }

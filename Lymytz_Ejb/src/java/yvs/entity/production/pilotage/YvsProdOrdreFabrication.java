@@ -97,8 +97,6 @@ public class YvsProdOrdreFabrication implements Serializable {
     @Column(name = "fin_validite")
     @Temporal(javax.persistence.TemporalType.DATE)
     private Date finValidite;
-//    @Column(name = "always_valid")
-//    private Boolean alwaysValid;
     @Column(name = "suivi_stock_by_operation")
     private Boolean suiviStockByOperation;
     @Column(name = "suivi_operation")

@@ -2648,15 +2648,6 @@ public class UtilProd {
             if (y.getOrdre() != null ? y.getOrdre().getId() > 0 : false) {
                 r.setOrdre(new YvsProdOrdreFabrication(y.getOrdre().getId()));
             }
-//            if (y.getEquipe() != null ? y.getEquipe().getId() > 0 : false) {
-//                r.setEquipe(new YvsProdEquipeProduction(y.getEquipe().getId()));
-//            }
-//            if (y.getTranche() != null ? y.getTranche().getId() > 0 : false) {
-//                r.setTranche(new YvsGrhTrancheHoraire(y.getTranche().getId()));
-//            }
-//            if (y.getDepot() != null ? y.getDepot().getId() > 0 : false) {
-//                r.setDepot(new YvsBaseDepots(y.getDepot().getId(), y.getDepot().getDesignation()));
-//            }
             if (y.getConditionnement() != null ? y.getConditionnement().getId() > 0 : false) {
                 r.setConditionnement(buildConditionnement(y.getConditionnement(), ua));
             }
