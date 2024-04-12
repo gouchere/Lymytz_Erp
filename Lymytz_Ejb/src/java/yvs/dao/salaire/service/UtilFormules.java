@@ -869,10 +869,8 @@ public class UtilFormules implements Serializable {
                 if (presence != null) {
                     result = presence.getDureePresenceEffectif();
                 }
-//                result = giveDayOfWorkReel(contrat.getEmploye().getId(), debutTraitement, finTraitement);
                 break;
             case Constantes.S_NB_JOUR_REQUIS:
-//                result = giveDayOfWorkPrevu(contrat.getEmploye().getId());
                 result = presence.getDureePresenceRequis();
                 break;
             case Constantes.S_NOTE_DE_FRAIS:
@@ -910,11 +908,9 @@ public class UtilFormules implements Serializable {
                 result = findDureeReposPointe(contrat.getEmploye());    //nombre de jour de repos pointé
                 break;
             case Constantes.GRH_DUREE_ABSENCE:
-//                result = findDureeAbsence(contrat.getEmploye());    //nombre de jour de repos pointé
                 result = presence.getDureeAbsence();
                 break;
             case Constantes.GRH_DUREE_RETARD:
-//                result = findDureeAbsence(contrat.getEmploye());    //nombre de jour de repos pointé
                 result = findDureeRetard(currentEmps, finTraitement);
                 break;
             default:
@@ -927,7 +923,6 @@ public class UtilFormules implements Serializable {
         double result = 0;
         switch (code) {
             case Constantes.GRH_DUREE_MISSION:
-//                result = findDureeMission(contrat.getEmploye());
                 result = presence.getNbMission();
                 break;
             default:
@@ -988,13 +983,11 @@ public class UtilFormules implements Serializable {
         String requete = "SELECT SUM(y.total_Heure_Sup) FROM Yvs_Grh_Presence y WHERE y.valider=true AND y.employe=? AND "
                 + "(y.date_Debut BETWEEN ? AND ?)";
         yvs.dao.Options param_[] = new yvs.dao.Options[]{new yvs.dao.Options(idEmp, 1), new yvs.dao.Options(debutTraitement, 2), new yvs.dao.Options(finTraitement, 3)};
-//        Double d = (Double) dao.loadObjectByNameQueries("YvsGrhPresence.countTotalHS", new String[]{"employe", "date1", "date2"}, new Object[]{new YvsGrhEmployes(idEmp), debut, fin});
         Double d = (Double) dao.callFonction(requete, param_);
         return (d > 0) ? (d) : 0;
     }
 
     private double getHeureSupDimanche(long idEmp) {
-        //String requete = "select public.travail_jour_dimanche(?,?,?)";
         String requete = "SELECT SUM(y.total_Heure_Sup) FROM Yvs_Grh_Presence y WHERE y.valider=true AND y.employe=? AND "
                 + "(y.date_debut BETWEEN ? AND ?) AND extract (DOW FROM y.date_debut)=0";
         yvs.dao.Options param_[] = new yvs.dao.Options[]{new yvs.dao.Options(idEmp, 1), new yvs.dao.Options(debutTraitement, 2), new yvs.dao.Options(finTraitement, 3)};
@@ -1003,7 +996,6 @@ public class UtilFormules implements Serializable {
     }
 
     private double getHeureSupJFerie(long idEmp) {
-        //String requete = "select public.travail_jour_ferier(?,?,?)";
         String requete = "SELECT SUM(y.total_Heure_Sup) FROM Yvs_Grh_Presence y WHERE y.employe=? AND y.valider=true AND y.date_debut IN "
                 + "(SELECT distinct alter_date(js.jour::timestamp, 'year', y.date_debut) FROM yvs_jours_feries js "
                 + "WHERE (((alter_date(js.jour, 'year', y.date_debut) BETWEEN ? AND ?) AND js.all_year is true) "
@@ -1016,7 +1008,6 @@ public class UtilFormules implements Serializable {
 
     //récupère le nombre d'heure  de travail effectif
     private double giveHourOfWorkReal(long idEmp) {
-        //String requete = "select public.heure_travail_effectif(?,?,?,?)";
         String requete = "SELECT SUM(y.total_presence) FROM Yvs_Grh_Presence y WHERE y.valider=true AND y.employe=? AND (y.date_debut BETWEEN ? AND ?) AND extract (DOW FROM y.date_debut)!=0";
         yvs.dao.Options param_[] = new yvs.dao.Options[]{new yvs.dao.Options(idEmp, 1), new yvs.dao.Options(debutTraitement, 2), new yvs.dao.Options(finTraitement, 3), new yvs.dao.Options(true, 4)};
         Double d = (Double) dao.callFonction(requete, param_);
