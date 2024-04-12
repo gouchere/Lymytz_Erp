@@ -1174,6 +1174,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 item.setInListByDefault(true);
                 item.setTauxComposant(composantGamme.getQuantite());
                 item.setMargeQte(composantGamme.getMargeQte());
+                item.setMargeSuperieure(composantGamme.getMargeSup());
                 item.setCoeficientValeur(composantGamme.getCoeficientValeur());
                 item.setOrdre(composantGamme.getComposant().getOrdre());
                 item.setTypeCout(composantGamme.getTypeCout());
@@ -1796,8 +1797,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                     entity.setGamme(gamme);
                     entity.setDateDebut(ordre.getDateDebutLancement());
                     entity.setHeureLancement(ordre.getHeureDeLancement());
-//                    entity.setDepotMp(depot);
-//                    entity.setDepotPf(new YvsBaseDepots(ordre.getDepotPf().getId()));
                     entity.setPriorite(ordre.getPriorite());
                     entity.setQuantite(quantite);
                     entity.setStatutOrdre(Constantes.ETAT_ATTENTE);
@@ -2362,8 +2361,9 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 if (next && !ordre.getNomenclature().getTypeNomenclature().equals(Constantes.PROD_TYPE_NOMENCLATURE_TRANSFORMATION)) {
                     if (!ordre.getStatutDeclaration().equals(Constantes.ETAT_TERMINE)) {
                         resetDeclaration();
-                        if (qteADeclare > 0) {
-                            declaration.setQuantite(qteADeclare);
+                        double quantite = this.qteADeclarer > this.qteAProduire ? this.qteADeclarer : this.qteAProduire;
+                        if (quantite > 0) {
+                            declaration.setQuantite(quantite);
                             update("form_declaration");
                         }
                         closeDialog("dlgEditFlux");
@@ -2415,7 +2415,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             }
             if (paramProduction.getDeclareWhenFinishOf()) {
                 if (!fc.getSens().equals(Constantes.STOCK_SENS_NEUTRE)) {
-                    item.setQuantite(fc.getQuantite() * qteADeclare / ordre.getQuantitePrevu());
+                    item.setQuantite(fc.getQuantite() * qteAProduire / ordre.getQuantitePrevu());
                 } else {
                     // récupère la quantité généré à l'étape précédente
                     YvsProdOperationsOF prevOp = findNextOpOder(fc.getOperation(), false);
@@ -3380,7 +3380,8 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             selectedOf = (YvsProdOrdreFabrication) ev.getObject();
             onSelectObject(selectedOf);
             if (typePage.equals(Constantes.PROD_TYPE_PAGE_SUIVI)) {
-                qteADeclare = selectedOf.getResteADeclarer();
+                qteAProduire = selectedOf.getResteADeclarer();
+                qteADeclarer=0;
             }
         }
     }
@@ -3582,21 +3583,30 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
     }
 
-    private double qteADeclare;
+    private double qteAProduire;
+    private double qteADeclarer;
 
-    public double getQteADeclare() {
-        return qteADeclare;
+    public double getQteAProduire() {
+        return qteAProduire;
     }
 
-    public void setQteADeclare(double qteADeclare) {
-        this.qteADeclare = qteADeclare;
+    public void setQteAProduire(double qteAProduire) {
+        this.qteAProduire = qteAProduire;
+    }
+
+    public double getQteADeclarer() {
+        return qteADeclarer;
+    }
+
+    public void setQteADeclarer(double qteADeclarer) {
+        this.qteADeclarer = qteADeclarer;
     }
 
     public void calculBesoinProduit() {
         if (ordre.getId() > 0 && ordre.getNomenclature().getId() > 0 && selectedOp != null) {
             for (YvsProdOfSuiviFlux fc : selectedFlux.getListeSuiviFlux()) {
                 if (!fc.getComposant().getSens().equals(Constantes.STOCK_SENS_NEUTRE)) {
-                    fc.setQuantite(fc.getComposant().getQuantite() * qteADeclare / ordre.getQuantitePrevu());
+                    fc.setQuantite(fc.getComposant().getQuantite() * qteAProduire / ordre.getQuantitePrevu());
                 } else {
                     // récupère la quantité généré à l'étape précédente
                     YvsProdOperationsOF prevOp = findNextOpOder(fc.getComposant().getOperation(), false);
@@ -3688,8 +3698,9 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 if (isLastOperation(selectedOp)) {
                     if (!ordre.getStatutDeclaration().equals(Constantes.ETAT_TERMINE)) {
                         resetDeclaration();
-                        if (qteADeclare > 0) {
-                            declaration.setQuantite(qteADeclare);
+                        double quantite = this.qteADeclarer > this.qteAProduire ? this.qteADeclarer : this.qteAProduire;
+                        if (quantite > 0) {
+                            declaration.setQuantite(quantite);
                             update("form_declaration");
                         }
                         if (paramProduction.getDeclareWhenFinishOf()) {
@@ -3795,7 +3806,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         if (!selectedFlux.getComposant().getFreeUse()) {
             // la quantité qu'on consomme doit être inférieur à la quantité prévu augmenté de la marge
             double quantite = selectedFlux.getQuantite() + (selectedFlux.getQuantite() * selectedFlux.getMargeQte() / 100);
-            System.err.println("Quantité : " + quantite + "Quantite entrée " + suiviFlux.getQuantite());
             if (Constantes.arrondi(suiviFlux.getQuantite(), paramG.getConverter()) > Constantes.arrondi(quantite, paramG.getConverter())) {
                 getErrorMessage("la consommation de l'article '" + selectedFlux.getComposant().getArticle().getDesignation() + " est supérieur à la quantité prévue");
                 return false;
@@ -3996,11 +4006,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         if (y != null) {
             dao.delete(y);
             selectedFlux.getListeSuiviFlux().remove(y);
-//            int idx = ordre.getListComposantOf().indexOf(y.getComposant().getComposant());
-//            if (idx > -1) {
-//                YvsProdComposantOF c = ordre.getListComposantOf().get(idx);
-//                majComposantOF(c, idx);
-//            }
             update("table_op_use_mp");
         }
     }
@@ -4089,12 +4094,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             declaration = UtilProd.buildBeanDeclarationProduction(selectDeclaration);
             declaration.setSessionOf(UtilProd.copyBeanSessionProdOf(selectDeclaration.getSessionOf()));
             update("blog_declaration");
-//            //Modifie la session
-//            if (selectDeclaration.getSessionOf() != null) {
-//                if (selectDeclaration.getSessionOf().equals(currentSession.getOrdreF())) {
-//                    s
-//                }
-//            }
         }
     }
 
@@ -4114,38 +4113,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         selectedOf = y;
         loadDeclaration();
     }
-
-//    public boolean controleFiche(DeclarationProduction bean) {
-//        if (bean == null) {
-//            getErrorMessage("Operation impossible!!!");
-//            return false;
-//        }
-//        if (bean.getOrdre() != null ? bean.getOrdre().getId() < 1 : true) {
-//            getErrorMessage("Vous devez perciser l'ordre de fabrication");
-//            return false;
-//        }
-//        if (bean.getOrdre().getStatusOrdre().equals(Constantes.ETAT_CLOTURE)) {
-//            getErrorMessage("L'Ordre de fabrication a déjà été cloturé!", "Impossible d'enregistrer cette déclaration");
-//            return false;
-//        }
-//        if (bean.getConditionnement() != null ? bean.getConditionnement().getId() < 1 : true) {
-//            getErrorMessage("Aucune unité n'a été trouvé pour cet article");
-//            return false;
-//        }
-//        if (bean.getQuantite() <= 0) {
-//            getErrorMessage("Vous devez perciser la quantitée");
-//            return false;
-//        }
-//        if (bean.getSessionOf() == null ? bean.getSessionOf().getId() <= 0 : false) {
-//            getErrorMessage("Aucune session de travail n'a été trouvé pour cet ordre !");
-//        }
-//        
-//        if (!canDeclared(new YvsProdOrdreFabrication(bean.getOrdre().getId()))) {
-//            getErrorMessage("Vous ne pouvez pas déclarer cette production... Toutes les opérations ne sont pas encore lancés ou doivent être terminé");
-//            return false;
-//        }
-//        return true;
-//    }
+    
     private boolean controleQteDeclare(DeclarationProduction bean, boolean cloture) {
         // quantité déjà déclaré
         double totalDeclare = bean.getQuantite();
@@ -4163,13 +4131,13 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
         marge = (ordre.getQuantitePrevu() * (marge / 100));
         if (totalDeclare > (ordre.getQuantitePrevu() + marge)) {
-            getWarningMessage("La quantité déclaré est supérieure à la marge prévue !");
+            getErrorMessage("La quantité déclaré est supérieure à la marge prévue !");
             return false;
         }
         //à la clôture, on vérifie si on a tout déclaré
         if (cloture) {
             if (totalDeclare + marge < (ordre.getQuantitePrevu())) {
-                getWarningMessage("La quantité déclaré est inférieure à la marge prévue !");
+                getErrorMessage("La quantité déclaré est inférieure à la marge prévue !");
                 return false;
             }
         }
@@ -4246,19 +4214,19 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 selectDeclaration = UtilProd.buildDeclarationProduction(declaration, currentUser, findSessionOf());
                 selectDeclaration.setSessionOf(sess);
                 //evalue le cout de production (Récupère toutes les déclarations lié à cet OF)
-                List<YvsProdDeclarationProduction> declarations = dao.loadNameQueries("YvsProdDeclarationProduction.findByOFStatut", new String[]{"ordre", "statut"}, new Object[]{selectedOf, Constantes.STATUT_DOC_VALIDE});
+                List<YvsProdDeclarationProduction> listeDeclarations = dao.loadNameQueries("YvsProdDeclarationProduction.findByOFStatut", new String[]{"ordre", "statut"}, new Object[]{selectedOf, Constantes.STATUT_DOC_VALIDE});
                 if (declaration.getId() < 1) {
                     selectDeclaration.setId(null);
                     selectDeclaration = (YvsProdDeclarationProduction) dao.save1(selectDeclaration);
                     declaration.setId(selectDeclaration.getId());
-                    declarations.add(selectDeclaration);
+                    listeDeclarations.add(selectDeclaration);
                     totalDeclare = totalDeclare + declaration.getQuantite();
                 } else {
-                    idx = declarations.indexOf(selectDeclaration);
+                    idx = listeDeclarations.indexOf(selectDeclaration);
                     dao.update(selectDeclaration);
                     totalDeclare = totalDeclare + declaration.getQuantite() - oldQte;
                     if (idx >= 0) {
-                        declarations.set(idx, selectDeclaration);
+                        listeDeclarations.set(idx, selectDeclaration);
                     }
                 }
                 if (totalDeclare > 0) {
@@ -4268,7 +4236,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                         ordre.setCoutDeProduction(selectedOf.getCoutOf());
                         dao.update(selectedOf);
                     }
-                    for (YvsProdDeclarationProduction d : declarations) {
+                    for (YvsProdDeclarationProduction d : listeDeclarations) {
                         d.setCoutProduction(selectedOf.getCoutOf() / totalDeclare);
                         dao.update(d);
                         if (d.getId() == declaration.getId()) {
@@ -4304,21 +4272,37 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
     }
 
+    private Double getConsoReel(YvsProdComposantOF co) {
+        Double value = (Double) dao.loadObjectByNameQueries("YvsProdOfSuiviFlux.findFluxComposantBySens", new String[]{"composant", "sens"}, new Object[]{co, Constantes.STOCK_SENS_SORTIE});
+        return (value != null) ? arrondi(value, paramG.getConverter()) : 0;
+    }
+
+    private Double getConsoMaximale(YvsProdComposantOF co, double quantitePrevu) {
+        Double value = getSommeMargeSup(co);
+        double margeSup = quantitePrevu * value / 100;
+        return arrondi(quantitePrevu + margeSup, paramG.getConverter());
+    }
+
+    private Double getConsoMinimale(YvsProdComposantOF co, double quantitePrevu) {
+        Double value = getSommeMargeInf(co);
+        double margeMin = quantitePrevu * value / 100;
+        return arrondi(quantitePrevu - margeMin, paramG.getConverter());
+    }
+
     private boolean canDeclare(double totalDeclare) {
         if (paramProduction != null ? paramProduction.getDeclarationProportionnel() : false) {
             double oldQte = (declaration.getId() > 0 && selectDeclaration != null) ? selectDeclaration.getQuantite() : 0;
             totalDeclare = totalDeclare - oldQte + declaration.getQuantite();
             Double consoReel;
             Double consoPrevu;
-            Double marge;
+            double consoMinimale;
+            double consoMaximale;
             for (YvsProdComposantOF co : ordre.getListComposantOf()) {
-                //récupère le total des flux et compare avec la qte marge
-                consoReel = (Double) dao.loadObjectByNameQueries("YvsProdOfSuiviFlux.findFluxComposantBySens", new String[]{"composant", "sens"}, new Object[]{co, Constantes.STOCK_SENS_SORTIE});
-                consoReel = consoReel != null ? consoReel : 0;
-                consoPrevu = totalDeclare * co.getQuantitePrevu() / ordre.getQuantite();//   
-                marge = consoReel * getSommeMarge(co) / 100;
-                //La conso réel doit être sup. ou égale à la conso prévu
-                if ((arrondi((consoReel + marge), paramG.getConverter()) < arrondi(consoPrevu, paramG.getConverter())) || (arrondi(consoReel, paramG.getConverter()) > arrondi(consoPrevu + marge, paramG.getConverter()))) {
+                consoReel = getConsoReel(co);
+                consoPrevu = totalDeclare * co.getQuantitePrevu() / ordre.getQuantite();
+                consoMinimale = getConsoMinimale(co, consoPrevu);
+                consoMaximale = getConsoMaximale(co, consoPrevu);
+                if (consoReel > consoMaximale || consoReel < consoMinimale) {
                     getErrorMessage("Impossible de continuer cette déclaration", "La consommation de " + co.getArticle().getDesignation() + " n'est pas cohérente avec les quantité planifiées");
                     return false;
                 }
@@ -4327,8 +4311,13 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         return true;
     }
 
-    private double getSommeMarge(YvsProdComposantOF co) {
+    private double getSommeMargeInf(YvsProdComposantOF co) {
         Double re = (Double) dao.loadOneByNameQueries("YvsProdFluxComposant.findSomMargeByComposant", new String[]{"composant", "sens"}, new Object[]{co, Constantes.STOCK_SENS_SORTIE});
+        return re != null ? re : 0;
+    }
+
+    private double getSommeMargeSup(YvsProdComposantOF co) {
+        Double re = (Double) dao.loadOneByNameQueries("YvsProdFluxComposant.findSomMargeByComposantSup", new String[]{"composant", "sens"}, new Object[]{co, Constantes.STOCK_SENS_SORTIE});
         return re != null ? re : 0;
     }
 
@@ -4445,35 +4434,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
         return valeur;
     }
-
-//    public void valoriseOf(YvsProdOrdreFabrication of) {
-//        String query = "SELECT o.code_ref,a.ref_art,a.designation,fx.sens, fx.type_cout, sum(sf.quantite) quantite, get_pr(a.id, 0,0,current_date, co.unite) prix "
-//                + "FROM yvs_prod_of_suivi_flux sf "
-//                + "INNER JOIN yvs_prod_suivi_operations so ON so.id=sf.id_operation "
-//                + "INNER JOIN yvs_prod_operations_of o ON o.id=so.operation_of "
-//                + "INNER JOIN yvs_prod_flux_composant fx ON fx.id=sf.composant "
-//                + "INNER JOIN yvs_prod_composant_of co ON co.id=fx.composant "
-//                + "INNER JOIN yvs_base_articles a ON a.id=co.article "
-//                + "WHERE o.ordre_fabrication=? "
-//                + "GROUP BY code_ref, a.ref_art, a.designation,fx.sens, a.id,co.unite, fx.type_cout "
-//                + "ORDER BY o.code_ref,fx.sens DESC, a.ref_art";
-//        List<Object[]> result = dao.loadListBySqlQuery(query, new Options[]{new Options(of.getId(), 1)});
-//        String operation = "";
-//        Double cout;
-//        Double quantite = 0d, q, valeur;
-//        Character sens;
-//        for (Object[] line : result) {
-//            //changement d'opération
-//            if (operation.equals((String) line[0])) {
-//                sens = (Character) line[3];
-//                sens = (sens != null) ? sens : Constantes.
-//                if (se) {
-//                    q = (Double) line[5];
-//                }
-//                quantite += ((q != null) ? q : 0);
-//            }
-//        }
-//    }
+    
     public void recalculCurrentOrder() {
         recalculOrder(selectedOf);
     }
@@ -6144,7 +6105,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             soperation.setSessionOf(session);
             soperation.setStatut(Constantes.ETAT_TERMINE);
             soperation = (YvsProdSuiviOperations) dao.save1(soperation);
-            System.err.println("... End Save Suivi Op :" + soperation.getId() + " De " + op.getCodeRef());
             for (YvsProdFluxComposant fc : op.getComposants()) {
                 flux = new YvsProdOfSuiviFlux();
                 flux.setAuthor(session.getAuthor());
@@ -6157,7 +6117,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 flux.setQuantite(giveQuantite(findComposantNom(fc.getComposant().getArticle(), session.getOrdre().getNomenclature()), session.getOrdre().getNomenclature(), qte));
                 flux.setQuantitePerdue(0d);
                 dao.save(flux);
-                System.err.println("...... End Save Suivi Flux :" + fc);
             }
         }
         return null;
@@ -7022,14 +6981,6 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             return;
         }
         Oldflux = flux;
-//        dao.delete(flux);
-//        if (operation != null) {
-//            operation.getComposants().remove(flux);
-//            update("tbv_ppte_op:table_op_use_mp");
-//            update("tablePhase_:table_composantOF");
-//        }
-//        succes();
-//        ordre.getListComposantOf().remove(flux.getComposant());
         openToAddNewComposant(true);
     }
 
@@ -7062,14 +7013,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             YvsBaseTableConversion tc = (YvsBaseTableConversion) dao.loadOneByNameQueries("YvsBaseTableConversion.findUniteCorrespondance", new String[]{"unite", "uniteE"},
                     new Object[]{uniteScr.getUnite(), new YvsBaseUniteMesure(service.getContenu().getConditionnement().getUnite().getId())});
             double taux = (tc != null) ? tc.getTauxChange() : 0;
-            System.err.println(" ---- **** ----- Taux" + taux);
             service.getContenu().setQuantite(composant.getQuantitePrevu() * taux);
-//            if (contenu.getPrix() > 0 && taux > 0) {
-//                contenu.setPrixEntree(contenu.getPrix() / taux);
-//            } else {
-//                contenu.setPrixEntree(dao.getPr(contenu.getArticle().getId(), docStock.getSource().getId(), 0, docStock.getDateDoc(), y.getId()));
-//            }
-//            service.getContenu().setQuantite(service.convertirUnite(UtilProd.buildBeanUniteMesure(uniteScr.getUnite()), composant.getUnite().getUnite(), composant.getQuantitePrevu()));
             openDialog("dlgRecondQte");
             update("form-recond-qte");
         }

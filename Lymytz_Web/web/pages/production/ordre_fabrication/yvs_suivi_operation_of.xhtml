@@ -595,11 +595,11 @@
                                         <h:graphicImage library="icones" name="alert.png"  title="#{lab.LP_POF_supprimer_cycle}"/>
                                     </p:commandLink>
                                 </h:panelGrid>
-                                <h:panelGrid style="float: right" columns="2">
+                                <h:panelGrid style="float: right" columns="2">                                    
                                     <h:outputText value="#{lab.LP_PSO_qte_declare}" title="#{lab.LP_POF_quantite_declarer}" rendered="#{ordreFabrication.quantiteDeclare gt 0}"/>
                                     <p:inputText value="#{ordreFabrication.quantiteDeclare}" rendered="#{ordreFabrication.quantiteDeclare gt 0}" style="width: 100px; text-align: center; background: #b4e391" readonly="true"/>
-                                    <span>#{lab.LP_POF_pf_declarer} </span>
-                                    <h:inputText value="#{managedOrdresF.qteADeclare}" style="width: 100px; text-align: center">
+                                    <span>Quantité à produire </span>
+                                    <h:inputText value="#{managedOrdresF.qteAProduire}" style="width: 100px; text-align: center">
                                         <p:ajax event="blur" listener="#{managedOrdresF.calculBesoinProduit()}" update="table_suivi_edit_flux"/>
                                     </h:inputText>
                                 </h:panelGrid>
@@ -674,24 +674,32 @@
                             </div>
                             <p:outputPanel autoUpdate="true">
                                 <p:outputPanel rendered="#{managedOrdresF.paramProduction.declareWhenFinishOf and managedOrdresF.isLastOperation(managedOrdresF.selectedOp)}">
-                                    <div style="padding-top: 5px;padding-bottom: 5px;margin-top: 5px; margin-bottom: 5px; background: #ccc">
+                                    <div style="padding-top: 5px;padding-bottom: 5px;margin-top: 5px; margin-bottom: 5px; background: #ccc">                                                                                       
                                         <p:selectBooleanCheckbox itemLabel="Transférer la production" value="#{managedOrdresF.transfertOf}" valueChangeListener="#{managedOrdresF.initTransfert}" >
                                             <p:ajax event="valueChange" process="@this tr_decl_prod"/>
                                         </p:selectBooleanCheckbox>
-                                        <h:panelGrid id="tr_decl_prod" columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0"  style="font-size: 0.9em" rendered="#{managedOrdresF.transfertOf}">
-                                            <h:outputText value="#{lab.L_depot}" style="font-weight: normal; font-size: 0.9em"/> 
-                                            <h:outputText value="#{lab.L_tranche}" style="font-weight: normal; font-size: 0.9em"/> 
-                                            <h:selectOneMenu value="#{managedOrdresF.depotDest.id}" style="min-width: 150px" id="chp_depot_tr_decl_prod_"
-                                                             valueChangeListener="#{managedOrdresF.chooseDepotCible}">
-                                                <f:selectItem itemLabel="--" itemValue="0"/>
-                                                <f:selectItems value="#{managedOrdresF.depotsCible}" var="dep_" itemLabel="#{dep_.designation}" itemValue="#{dep_.id}" />                                 
-                                                <p:ajax event="valueChange" update="chp_tranche_tr_decl_prod_"/>
-                                            </h:selectOneMenu>
-                                            <h:selectOneMenu value="#{managedOrdresF.trancheHoraire.id}" style="min-width: 150px" id="chp_tranche_tr_decl_prod_">
-                                                <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
-                                                <f:selectItems value="#{managedOrdresF.tranchesCible}" var="tran_" itemLabel="#{tran_.titre}" itemValue="#{tran_.id}" />                                   
-                                                <p:ajax event="valueChange" global="false" process="@this"/>
-                                            </h:selectOneMenu>
+                                        <h:panelGrid columns="2" cellspacing="10">
+                                            <h:panelGrid columns="1" cellspacing="10">                                            
+                                                <h:outputText value="Quantité à déclarer "/>
+                                                <h:inputText value="#{managedOrdresF.qteADeclarer}" style="width: 100px; text-align: center"/>
+                                            </h:panelGrid>
+                                            <h:panelGrid columns="1"> 
+                                                <h:panelGrid id="tr_decl_prod" columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0"  style="font-size: 0.9em" rendered="#{managedOrdresF.transfertOf}">
+                                                    <h:outputText value="#{lab.L_depot}" style="font-weight: normal; font-size: 0.9em"/> 
+                                                    <h:outputText value="#{lab.L_tranche}" style="font-weight: normal; font-size: 0.9em"/> 
+                                                    <h:selectOneMenu value="#{managedOrdresF.depotDest.id}" style="min-width: 150px" id="chp_depot_tr_decl_prod_"
+                                                                     valueChangeListener="#{managedOrdresF.chooseDepotCible}">
+                                                        <f:selectItem itemLabel="--" itemValue="0"/>
+                                                        <f:selectItems value="#{managedOrdresF.depotsCible}" var="dep_" itemLabel="#{dep_.designation}" itemValue="#{dep_.id}" />                                 
+                                                        <p:ajax event="valueChange" update="chp_tranche_tr_decl_prod_"/>
+                                                    </h:selectOneMenu>
+                                                    <h:selectOneMenu value="#{managedOrdresF.trancheHoraire.id}" style="min-width: 150px" id="chp_tranche_tr_decl_prod_">
+                                                        <f:selectItem itemLabel="--" itemValue="0" noSelectionOption="true"/>
+                                                        <f:selectItems value="#{managedOrdresF.tranchesCible}" var="tran_" itemLabel="#{tran_.titre}" itemValue="#{tran_.id}" />                                   
+                                                        <p:ajax event="valueChange" global="false" process="@this"/>
+                                                    </h:selectOneMenu>
+                                                </h:panelGrid>
+                                            </h:panelGrid>
                                         </h:panelGrid>
                                     </div>
                                 </p:outputPanel>

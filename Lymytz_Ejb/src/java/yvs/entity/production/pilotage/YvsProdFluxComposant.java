@@ -37,6 +37,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsProdFluxComposant.findAll", query = "SELECT y FROM YvsProdFluxComposant y"),
     @NamedQuery(name = "YvsProdFluxComposant.findById", query = "SELECT y FROM YvsProdFluxComposant y WHERE y.id = :id"),
     @NamedQuery(name = "YvsProdFluxComposant.findSomMargeByComposant", query = "SELECT SUM(COALESCE(y.margeQte,0)) FROM YvsProdFluxComposant y WHERE y.composant=:composant AND y.sens=:sens"),
+    @NamedQuery(name = "YvsProdFluxComposant.findSomMargeByComposantSup", query = "SELECT SUM(COALESCE(y.margeSuperieure,0)) FROM YvsProdFluxComposant y WHERE y.composant=:composant AND y.sens=:sens"),
     @NamedQuery(name = "YvsProdFluxComposant.findByQuantite", query = "SELECT y FROM YvsProdFluxComposant y WHERE y.quantite = :quantite"),
     @NamedQuery(name = "YvsProdFluxComposant.findSumQuantiteCompossant", query = "SELECT SUM(y.quantite) FROM YvsProdFluxComposant y WHERE y.composant = :composant"),
     @NamedQuery(name = "YvsProdFluxComposant.findSumCompossantNotIn", query = "SELECT SUM(y.quantite) FROM YvsProdFluxComposant y WHERE y.composant = :composant AND y.operation.statutOp != 'T'"),
@@ -64,7 +65,9 @@ public class YvsProdFluxComposant implements Serializable {
     @Column(name = "taux_composant")
     private Double tauxComposant;
     @Column(name = "marge_qte")
-    private Double margeQte ;
+    private Double margeQte;
+    @Column(name = "marge_superieure")
+    private Double margeSuperieure;
     @Column(name = "sens")
     private Character sens;
     @Column(name = "type_cout")
@@ -84,7 +87,6 @@ public class YvsProdFluxComposant implements Serializable {
     @Column(name = "date_update")
     private Date dateUpdate;
 
-
     @JoinColumn(name = "operation", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsProdOperationsOF operation;
@@ -94,10 +96,10 @@ public class YvsProdFluxComposant implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author", referencedColumnName = "id")
     private YvsUsersAgence author;
-    
-    @OneToMany(mappedBy = "composant",fetch = FetchType.LAZY)
+
+    @OneToMany(mappedBy = "composant", fetch = FetchType.LAZY)
     private List<YvsProdOfIndicateurSuivi> indicateursSuivis;
-    @OneToMany(mappedBy = "composant",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "composant", fetch = FetchType.LAZY)
     private List<YvsProdOfSuiviFlux> listeSuiviFlux;
 
     @Transient
@@ -209,6 +211,14 @@ public class YvsProdFluxComposant implements Serializable {
 
     public void setMargeQte(Double margeQte) {
         this.margeQte = margeQte;
+    }
+
+    public Double getMargeSuperieure() {
+        return margeSuperieure != null ? margeSuperieure : 0;
+    }
+
+    public void setMargeSuperieure(Double margeSuperieure) {
+        this.margeSuperieure = margeSuperieure;
     }
 
     public Double getCoeficientValeur() {
