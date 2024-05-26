@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION public.prod_et_synthese_consommation_mp(societe_ bigint, agence_ bigint, depot_ bigint, article_ character varying, date_debut_ date, date_fin_ date, periode_ character varying, type_ character varying)
+CREATE OR REPLACE FUNCTION public.prod_et_synthese_consommation_mp(societe_ bigint, agence_ bigint, depot_ bigint, article_ character varying, date_debut_ date, date_fin_ date,
+ periode_ character varying, type_ character varying)
  RETURNS TABLE(id bigint, article bigint, reference character varying, designation character varying, unite bigint, numero character varying, classe bigint, code character varying, intitule character varying, quantite double precision, prix double precision, valeur double precision, rang integer)
  LANGUAGE plpgsql
 AS $function$
@@ -65,9 +66,9 @@ BEGIN
 		serial_ = serial_ + 1;
 		--calcul des appro
 		IF(depot_ IS NULL OR depot_ < 1)THEN
-			EXECUTE stock_||' AND y.mouvement = ''E'' AND y.type_doc NOT IN(''FT'', ''TR'', ''IN'')' INTO quantite_;
+			EXECUTE stock_||' AND y.mouvement = ''E'' AND (y.type_doc =''BLA'' OR y.type_doc=''CO'') ' INTO quantite_;
 		ELSE
-			EXECUTE stock_ || ' AND y.mouvement = ''E''' INTO quantite_;
+			EXECUTE stock_ || ' AND y.mouvement = ''E'' AND y.type_doc IN (''BLA'', ''CO'')' INTO quantite_;
 		END IF;
 		IF(COALESCE(quantite_, 0) != 0)THEN
 			valeur_ = prix_revient_ * quantite_;
@@ -180,7 +181,17 @@ BEGIN
 		END IF;
 		IF(COALESCE(quantite_, 0) != 0)THEN
                     valeur_ = prix_revient_ * quantite_;
-                    INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'SORTIE', 'AUTRES SORTIE', quantite_,prix_revient_, valeur_, 6);
+                    INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'SORTIE', 'AUTRES SORTIES', quantite_,prix_revient_, valeur_, 6);
+		END IF;
+                -- Les autres entrées.
+                IF(depot_ IS NULL OR depot_ < 1)THEN
+			EXECUTE stock_|| ' AND y.mouvement = ''E'' AND (y.type_doc =''ES'' OR y.type_doc=''BRV'') ' INTO quantite_; --la prise en compte des BRV (retour vente) est juste pour maintenir la cohérence au cas ou
+		ELSE
+			EXECUTE stock_|| ' AND y.mouvement = ''E'' AND (y.type_doc =''ES'' OR y.type_doc=''BRV'') ' INTO quantite_;
+		END IF;
+		IF(COALESCE(quantite_, 0) != 0)THEN
+                    valeur_ = prix_revient_ * quantite_;
+                    INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'ENTREE', 'AUTRES ENTREES', quantite_,prix_revient_, valeur_, 7);
 		END IF;
 		--calcul les différences d'inventaires
                     stock_E=stock_;
@@ -190,14 +201,14 @@ BEGIN
                     quantite_= COALESCE(quantite_E,0) - COALESCE(quantite,0);
 		IF(quantite_ != 0)THEN
                     valeur_ = prix_revient_ * quantite_;
-                    INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'AJUSTEMENT', 'AJUSTEMENT INVENTAIRE', quantite_,prix_revient_, valeur_, 7);
+                    INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'AJUSTEMENT', 'AJUSTEMENT INVENTAIRE', quantite_,prix_revient_, valeur_, 8);
 		END IF;
 		serial_ = serial_ + 1;
 		-- Calcul du stocks final
 		quantite_ = (SELECT get_stock(data_.id, 0, depot_, agence_, societe_, date_fin_, data_.unite));
 		IF(COALESCE(quantite_, 0) != 0)THEN
 			valeur_ = prix_revient_ * quantite_;
-			INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'S.F', 'STOCK FINAL', quantite_,prix_revient_, valeur_, 8);
+			INSERT INTO table_et_synthese_consommation_mp VALUES (serial_, data_.id, data_.ref_art, data_.designation, data_.unite, data_.reference, 0, 'S.F', 'STOCK FINAL', quantite_,prix_revient_, valeur_, 9);
 		END IF;
 		serial_ = serial_ + 1;
 	END LOOP;
