@@ -2181,7 +2181,7 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
                         row = valeurs.get(idx);
                     }
                                                        //element, periode, secondaire, unite, principal, quantite, prixrevient, prixvente
-                    row.getSous().add(new JournalVendeur(_users, _famille, _refart, _designation, _reference, _quantite, _prix, _total));
+                    row.getSous().add(new JournalVendeur(_users, _famille, _refart, _designation, _reference, _quantite, _prix, _total, _categorie));
                     if (idx > -1) {
                         valeurs.set(idx, row);
                     } else {
