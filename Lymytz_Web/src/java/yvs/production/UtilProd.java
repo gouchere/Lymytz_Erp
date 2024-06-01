@@ -160,6 +160,7 @@ public class UtilProd {
             p.setDeclarationProportionnel(y.getDeclarationProportionnel());
             p.setDeclareWhenFinishOf(y.getDeclareWhenFinishOf());
             p.setValoriserBy(y.getValoriserBy());
+            p.setValoriseFromOf(y.getValoriseFromOf());
         }
         return p;
     }
@@ -180,6 +181,7 @@ public class UtilProd {
             p.setDeclarationProportionnel(y.isDeclarationProportionnel());
             p.setValoriserBy(y.getValoriserBy());
             p.setDeclareWhenFinishOf(y.isDeclareWhenFinishOf());
+            p.setValoriseFromOf(y.isValoriseFromOf());
 
         }
         return p;
