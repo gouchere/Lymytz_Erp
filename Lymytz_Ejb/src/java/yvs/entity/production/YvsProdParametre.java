@@ -73,6 +73,8 @@ public class YvsProdParametre implements Serializable {
     private Integer limiteCreateOf;
     @Column(name = "declaration_proportionnel")
     private Boolean declarationProportionnel;
+    @Column(name = "valorise_from_of")
+    private Boolean valoriseFromOf;
     @Column(name = "valoriser_by")
     private String valoriserBy = "V";
 
@@ -144,6 +146,14 @@ public class YvsProdParametre implements Serializable {
 
     public void setSociete(YvsSocietes societe) {
         this.societe = societe;
+    }
+
+    public Boolean getValoriseFromOf() {
+        return valoriseFromOf != null ? valoriseFromOf : false;
+    }
+
+    public void setValoriseFromOf(Boolean valoriseFromOf) {
+        this.valoriseFromOf = valoriseFromOf;
     }
 
     public Boolean getSuiviOpRequis() {
