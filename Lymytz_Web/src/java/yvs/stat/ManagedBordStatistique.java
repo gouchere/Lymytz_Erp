@@ -183,6 +183,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     private double totalCaByArticle;
 
     private String codeClient, codeFsseur, editeurs, valoriseMp = "PUA", valoriseMs = "PUV", valorisePf = "PUV", valorisePsf = "PR";
+    private String whatValeurDisplay = "MANQUANT+EXCEDENT";//-MANQUANT+EXCEDENT -MANQUANT%EXCEDENT -EXCEDENT -MANQUANT
     private boolean valoriseExcedent;
     private SyntheseClient synthese = new SyntheseClient();
     private SyntheseFournisseur syntheseF = new SyntheseFournisseur();
@@ -273,6 +274,14 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         journalProdByEquipe.setType(JournalVendeur.TYPE_QUANTITE);
         journalProdByTranche.setCumulBy(2);
         journalProdByTranche.setType(JournalVendeur.TYPE_QUANTITE);
+    }
+
+    public String getWhatValeurDisplay() {
+        return whatValeurDisplay;
+    }
+
+    public void setWhatValeurDisplay(String whatValeurDisplay) {
+        this.whatValeurDisplay = whatValeurDisplay;
     }
 
     public List<YvsUsers> getSelectedUsers() {
@@ -1754,7 +1763,6 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     public void chooseDepot() {
         if (depot > 0) {
             ManagedDepot externe = (ManagedDepot) giveManagedBean("managedDepot");
-            System.err.println("externe : " + externe);
             if (externe != null) {
                 int index = externe.getDepots_all().indexOf(new YvsBaseDepots(depot));
                 if (index > -1) {
@@ -1763,6 +1771,32 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
             }
         } else {
             selectedDepot = new YvsBaseDepots();
+        }
+    }
+
+    public void chooseUser(ValueChangeEvent ev) {
+        if (ev == null) {
+            return;
+        }
+        long newValue = (long) ev.getNewValue();
+        if (newValue > 0) {
+            int index = selectedUsers.indexOf(new YvsUsers(newValue));
+            if (index < 0) {
+                ManagedUser externe = (ManagedUser) giveManagedBean("managedUser");
+                if (externe != null) {
+                    index = externe.getListAllUser().indexOf(new YvsUsers(newValue));
+                    if (index > -1) {
+                        YvsUsers selected = externe.getListAllUser().get(index);
+                        selectedUsers.add(selected);
+                    }
+                }
+            }
+        } else {
+            long oldValue = (long) ev.getNewValue();
+            int index = selectedUsers.indexOf(new YvsUsers(oldValue));
+            if (index > -1) {
+                selectedUsers.remove(index);
+            }
         }
     }
 
@@ -4523,7 +4557,15 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         param.put("COEFFICIENT", coefficient);
         param.put("DEPOT", (int) depot);
         param.put("EDITEUR", editeurs);
-        executeReport("valorisation_inventaire", param);
+        String report = "valorisation_inventaire";
+        if (displayExcedent()) {
+            report = "valorisation_inventaire_excedent";
+        } else if (displayManquant()) {
+            report = "valorisation_inventaire_manquant";
+        } else if (whatValeurDisplay.equals("MANQUANT%EXCEDENT")) {
+            report = "valorisation_inventaire_manquant_excedent";
+        }
+        executeReport(report, param);
     }
 
     public void loadStockArticle() {
@@ -5373,5 +5415,42 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         } catch (Exception e) {
         }
         return margeSupp;
+    }
+
+    public Double getTotalValeurInventaire(JournalVendeur row) {
+        //total_ = quantite_ * prix_ * COALESCE(coefficient_, 1);
+        double result = row.getPrixvente();
+        if (displayManquant()) {
+            result = row.getAttente();
+        } else if (displayExcedent()) {
+            result = row.getValeur();
+        }
+        return result;
+    }
+
+    public Double getSumTotalValeurInventaire(JournalVendeur row) {
+        //total_ = quantite_ * prix_ * COALESCE(coefficient_, 1);
+        double result = valorise.summaryGroupResume(row.getSous(), "puv");
+        if (displayManquant()) {
+            result = valorise.summaryGroupResume(row.getSous(), "attente");
+        } else if (displayExcedent()) {
+            result = valorise.summaryGroupResume(row.getSous(), "valeur");
+        }
+        return result;
+    }
+
+    public boolean displayManquant() {
+        //-MANQUANT+EXCEDENT -MANQUANT%EXCEDENT -EXCEDENT -MANQUANT
+        return whatValeurDisplay.equals("MANQUANT%EXCEDENT") || whatValeurDisplay.equals("MANQUANT");
+    }
+
+    public boolean displayExcedent() {
+        //-MANQUANT+EXCEDENT -MANQUANT%EXCEDENT -EXCEDENT -MANQUANT
+        return whatValeurDisplay.equals("MANQUANT%EXCEDENT") || whatValeurDisplay.equals("EXCEDENT");
+    }
+
+    public boolean displayManquantExcedent() {
+        //-MANQUANT+EXCEDENT -MANQUANT%EXCEDENT -EXCEDENT -MANQUANT
+        return !asString(whatValeurDisplay) || whatValeurDisplay.equals("MANQUANT%EXCEDENT") || whatValeurDisplay.equals("MANQUANT+EXCEDENT");
     }
 }

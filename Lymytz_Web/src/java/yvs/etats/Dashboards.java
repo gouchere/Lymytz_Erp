@@ -2142,7 +2142,7 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
 
     private void loadValeurInventaire(long societe, long depot, String editeurs, String valoriseMs, String valorisePf, String valorisePsf, String valoriseMp, double coefficient, Date dateDebut, Date dateFin, boolean valoriseExcedent, DaoInterfaceLocal dao) {
         Options[] param = new Options[]{new Options(societe, 1), new Options(depot, 2), new Options(editeurs, 3), new Options(valoriseMs, 4), new Options(valorisePf, 5), new Options(valorisePsf, 6), new Options(valoriseMp, 7), new Options(coefficient, 8), new Options(dateDebut, 9), new Options(dateFin, 10), new Options(valoriseExcedent, 11)};
-        String query = "select y.users, y.code, y.nom, y.article, y.refart, y.designation, y.categorie, y.reffam, y.famille, y.unite, y.reference, y.quantite, y.prix, y.total from public.com_et_valorise_inventaire(?,?,?,?,?,?,?,?,?,?,?) y order by y.nom, y.designation";
+        String query = "select y.users, y.code, y.nom, y.article, y.refart, y.designation, y.categorie, y.reffam, y.famille, y.unite, y.reference, y.quantite, y.prix, y.total, y.excedent, y.manquant, y.total_excedent, y.total_manquant from public.com_et_valorise_inventaire(?,?,?,?,?,?,?,?,?,?,?) y order by y.nom, y.designation";
         Query qr = dao.getEntityManager().createNativeQuery(query);
         for (Options o : param) {
             qr.setParameter(o.getPosition(), o.getValeur());
@@ -2174,6 +2174,10 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
                     Double _quantite = (Double) o[11];
                     Double _prix = (Double) o[12];
                     Double _total = (Double) o[13];
+                    Double _excedent = (Double) o[14];
+                    Double _manquant = (Double) o[15];
+                    Double _total_excedent = (Double) o[16];
+                    Double _total_manquant = (Double) o[17];
 
                     JournalVendeur row= new JournalVendeur(_users, _code, _nom);
                     int idx = valeurs.indexOf(row);
@@ -2181,7 +2185,7 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
                         row = valeurs.get(idx);
                     }
                                                        //element, periode, secondaire, unite, principal, quantite, prixrevient, prixvente
-                    row.getSous().add(new JournalVendeur(_users, _famille, _refart, _designation, _reference, _quantite, _prix, _total, _categorie));
+                    row.getSous().add(new JournalVendeur(_users, _famille, _refart, _designation, _reference, _quantite, _prix, _total, _categorie, _excedent, _manquant, _total_excedent, _total_manquant));
                     if (idx > -1) {
                         valeurs.set(idx, row);
                     } else {
