@@ -4524,7 +4524,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         valorise.setDateDebut(dateDebut);
         valorise.setDateFin(dateFin);
         valorise.setValoriseExcedent(valoriseExcedent);
-        valorise.loadValeurInventaire(dao);
+        valorise.loadValeurInventaire(whatValeurDisplay, dao);
     }
 
     public void downloadValeurInventaire() {
@@ -4558,9 +4558,9 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         param.put("DEPOT", (int) depot);
         param.put("EDITEUR", editeurs);
         String report = "valorisation_inventaire";
-        if (displayExcedent()) {
+        if (whatValeurDisplay.equals("EXCEDENT")) {
             report = "valorisation_inventaire_excedent";
-        } else if (displayManquant()) {
+        } else if (whatValeurDisplay.equals("MANQUANT")) {
             report = "valorisation_inventaire_manquant";
         } else if (whatValeurDisplay.equals("MANQUANT%EXCEDENT")) {
             report = "valorisation_inventaire_manquant_excedent";

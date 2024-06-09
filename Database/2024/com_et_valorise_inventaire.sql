@@ -57,20 +57,20 @@ begin
 			manquant_ = 0;
 			quantite_ = 0;
 			update_ = false;
+                        select into prec_ _quantite_, _prix_ from table_et_valorise_inventaire where _users_ = users_.id and _unite_ = data_.conditionnement;
+                        if(prec_ is not null and coalesce(prec_._quantite_, 0) != 0)then
+                                update_ = true;
+                        end if;
 			IF(data_.type_doc = 'SS')then 
-				manquant_ = data_.quantite;
-				quantite_ = data_.quantite;
+				manquant_ = coalesce(data_.quantite, 0) + coalesce(prec_._quantite_, 0);
+                                quantite_ = manquant_;
 			else
-                                excedent_ = data_.quantite;
+				excedent_ = coalesce(data_.quantite, 0) + coalesce(prec_._quantite_, 0);
 				if(coalesce(valorise_excedent_, false) = true)then
-					select into prec_ _quantite_, _prix_ from table_et_valorise_inventaire where _users_ = users_.id and _unite_ = data_.conditionnement;
-					if(prec_ is not null and coalesce(prec_._quantite_, 0) != 0)then
-						update_ = true;
-					end if;
 					quantite_ = coalesce(prec_._quantite_, 0) - coalesce(excedent_, 0);
 				end if;
 			end if;
-			if(quantite_ > 0)then	
+			if(manquant_ > 0 OR excedent_ > 0)then	
 				if(update_ = false)then
 					if(data_.categorie = 'FOURNITURE' or data_.categorie = 'EMBALLAGE' or data_.categorie = 'MATIERE PREMIERE' or data_.categorie = 'MP')then
 						if(valorise_mp_ = 'PUV')then
