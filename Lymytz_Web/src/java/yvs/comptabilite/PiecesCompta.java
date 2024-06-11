@@ -30,8 +30,8 @@ public class PiecesCompta implements Serializable {
     private String reference;
     private Journaux journal = new Journaux();
     private Date mois;
-    private Date dateSaise, datePiece=new Date();
-    private char statutPiece;
+    private Date dateSaise, datePiece = new Date();
+    private char statutPiece = Constantes.STATUT_DOC_EDITABLE;
     private Exercice exercice = new Exercice();
     private ModelesSasie model = new ModelesSasie();
     private List<YvsComptaContentJournal> contentsPieces;
@@ -98,7 +98,7 @@ public class PiecesCompta implements Serializable {
     }
 
     public char getStatutPiece() {
-        return statutPiece != ' ' ? statutPiece : Constantes.STATUT_DOC_EDITABLE;
+        return !String.valueOf(statutPiece).trim().equals("") ? statutPiece : Constantes.STATUT_DOC_EDITABLE;
     }
 
     public void setStatutPiece(char statut_piece) {
