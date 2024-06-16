@@ -34,7 +34,7 @@ public class AYvsBasePointLivraison extends AbstractEntity {
                 return new ResultatAction<>(false, entity, 0L, "vous  devez renseigner la désignation");
             }
             if (entity.getVille() != null ? entity.getVille().getId() < 1 : true) {
-                return new ResultatAction<>(false, entity, 0L, "Vous devez precisez la ville;");
+                return new ResultatAction<>(false, entity, 0L, "Vous devez preciser la ville;");
             }
             return new ResultatAction<>(true, entity, 0L, "Succès");
         } catch (Exception ex) {

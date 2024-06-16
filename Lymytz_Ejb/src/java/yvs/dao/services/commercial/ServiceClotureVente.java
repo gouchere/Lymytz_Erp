@@ -80,7 +80,7 @@ public class ServiceClotureVente extends GenericService {
     public ResultatAction saveNew(YvsComEnteteDocVente entete, Date date, long caisse, double montant) {
         ResultatAction result = new ResultatAction();
         if (entete != null ? (entete.getId() < 1) : true) {
-            result.setMessage("Vous devez precisez une journal de vente");
+            result.setMessage("Vous devez preciser une journal de vente");
             return result;
         }
         if (entete.getCreneau() != null ? entete.getCreneau().getId() < 1 : true) {
