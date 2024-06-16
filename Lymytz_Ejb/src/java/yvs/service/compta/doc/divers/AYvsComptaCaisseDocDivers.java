@@ -1026,7 +1026,7 @@ public class AYvsComptaCaisseDocDivers extends AbstractEntity {
             if (selectDoc.getStatutDoc().equals(Constantes.ETAT_VALIDE) || selectDoc.getStatutDoc().equals(Constantes.ETAT_CLOTURE)) {
                 if (y.getCaisse() != null ? y.getCaisse().getId() < 1 : true) {
                     if (msg) {
-//                        getErrorMessage("Vous devez precisez la caisse");
+//                        getErrorMessage("Vous devez preciser la caisse");
                     }
                     return false;
                 }
