@@ -62,7 +62,9 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsBaseConditionnement.findIdByArticleUnite", query = "SELECT y.id FROM YvsBaseConditionnement y JOIN FETCH y.unite JOIN FETCH y.article WHERE y.article = :article AND y.unite = :unite"),
     @NamedQuery(name = "YvsBaseConditionnement.findIdUniteById", query = "SELECT y.unite.id FROM YvsBaseConditionnement y  WHERE y.id=:id"),
     @NamedQuery(name = "YvsBaseConditionnement.findVenteByArticle", query = "SELECT y FROM YvsBaseConditionnement y JOIN FETCH y.unite JOIN FETCH y.article WHERE y.article = :article AND y.byVente = TRUE"),
-    @NamedQuery(name = "YvsBaseConditionnement.findUniteByArticle", query = "SELECT DISTINCT(y.unite) FROM YvsBaseConditionnement y JOIN FETCH y.unite WHERE (UPPER(y.article.refArt) LIKE :article OR UPPER(y.article.designation) LIKE :article) AND y.unite.societe = :societe")})
+    @NamedQuery(name = "YvsBaseConditionnement.findUniteByArticle", query = "SELECT DISTINCT(y.unite) FROM YvsBaseConditionnement y JOIN FETCH y.unite WHERE (UPPER(y.article.refArt) LIKE :article OR UPPER(y.article.designation) LIKE :article) AND y.unite.societe = :societe"),
+    @NamedQuery(name = "YvsBaseConditionnement.findIdLikeArticle", query = "SELECT DISTINCT(y.id) FROM YvsBaseConditionnement y WHERE (UPPER(y.article.refArt) LIKE :article OR UPPER(y.article.designation) LIKE :article) AND y.unite.societe = :societe")
+})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class YvsBaseConditionnement extends YvsEntity implements Serializable {
 

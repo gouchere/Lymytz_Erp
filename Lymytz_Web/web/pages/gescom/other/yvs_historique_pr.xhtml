@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core" 
+                xmlns:pe="http://primefaces.org/ui/extensions"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jsp/jstl/core">
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Historique PR','modGescom', 'smenHistoriquePR', true, managedHistoriquePR)}
+    </ui:define> 
+    <ui:define name="contents">
+        #{managedHistoriquePR.doNothing()}
+        #{managedDepot.loadAllDepot()}
+        <script type="text/javascript">
+            $(function() {
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+                collapseForm('historique_pr');
+            });
+        </script>
+
+        <h:form prependId="false">
+            <p:confirmDialog hideEffect="explode" widgetVar="dlgConfirmDelete" closeOnEscape="true"
+                             message="#{lab.LC_PCP_text4}" header="#{lab.L_confirmation}">
+                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedHistoriquePR.deleteBean()}" oncomplete="dlgConfirmDelete.hide()"
+                                  update=":main_historique_pr:data_historique_pr"/>
+                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmDelete.hide()"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-->
+       *****************************************************************************
+       Début du formulaire
+       *****************************************************************************
+       <-->
+        <h:form prependId="false" id="main_historique_pr">
+            <div class="part_fix">
+                <p:splitButton value="#{lab.L_supprimer}" id="delete_historique_pr" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()" global="false">
+                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" onclick="dlgConfirmDelete.show()" global="false"/>                   
+                </p:splitButton>
+            </div>
+            <div class="part_scroll">
+                <!-->
+                 *****************************************************************************
+                 Vue Formulaire
+                 *****************************************************************************
+                <-->
+                <div class="yvs_form_historique_pr" style="width: 99%; margin: auto; background: white">                    
+                    <h:inputHidden id="input_hide_historique_pr" value="#{managedHistoriquePR.tabIds}"/>
+                    <p:dataTable id="data_historique_pr" value="#{managedHistoriquePR.historiques}" var="hist" rowKey="#{hist.id}" rowIndexVar="histIdx">
+                        <p:column headerText="N°" style="text-align: center;width: 25px">
+                            <span>#{histIdx+1}</span>
+                        </p:column>
+                        <p:column headerText="ID" style="text-align: center;width: 10%">
+                            <span>#{hist.id}</span>
+                        </p:column>
+                        <p:column headerText="Article">
+                            <span>#{managedHistoriquePR.getArticleName(hist)}</span>
+                        </p:column>
+                        <p:column headerText="Date evaluation" style="text-align: center;width: 20%">
+                            <h:outputText value="#{hist.dateEvaluation}" converter="DATE"/>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PCP_depot}">
+                            <span>#{managedHistoriquePR.getDepotName(hist)}</span> 
+                        </p:column>
+                        <p:column headerText="P.R" style="text-align: right;width: 20%">
+                            <h:outputText value="#{hist.pr}" converter="DNA"/>
+                        </p:column>
+                        <p:column width="20" style="text-align: center">
+                            <f:facet name="header">
+                                <h:selectBooleanCheckbox styleClass="chek_all_line_historique_pr" value="false"
+                                                         onclick="selectionAllLineTab(#{managedHistoriquePR.historiques.size()}, 'historique_pr')">
+                                </h:selectBooleanCheckbox>
+                            </f:facet>
+                            <h:selectBooleanCheckbox  value="#{cren.select}" styleClass="chek_line_historique_pr" 
+                                                      onclick="selectionLineTab(#{histIdx}, 'historique_pr')">
+                            </h:selectBooleanCheckbox>
+                        </p:column>
+                    </p:dataTable>       
+                    <span class="nbSelecthistorique_pr" style="font-size: .8em; font-style: italic; color: #828c95;"></span>
+                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                        <p:commandButton actionListener="#{managedHistoriquePR.loadAll(false, false)}" update="data_historique_pr" icon="ui-icon-circle-triangle-w" disabled="#{managedHistoriquePR.paginator.disPrev}"/>
+                        <p:outputPanel >
+                            <p:inplace label="#{managedHistoriquePR.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
+                                <pe:inputNumber value="#{managedHistoriquePR.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
+                                    <p:ajax event="blur" listener="#{managedHistoriquePR.gotoPagePaginator()}" update="data_historique_pr"/>
+                                </pe:inputNumber>
+                            </p:inplace><p:outputLabel value="/#{managedHistoriquePR.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
+                        </p:outputPanel>
+                        <p:commandButton actionListener="#{managedHistoriquePR.loadAll(true, false)}" update="data_historique_pr" icon="ui-icon-circle-triangle-e" disabled="#{managedHistoriquePR.paginator.disNext}"/>
+                        <p:selectOneMenu value="#{managedHistoriquePR.nbMax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedHistoriquePR.choosePaginator}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
+                            <f:selectItems value="#{managedHistoriquePR.paginations}"/>
+                            <p:ajax event="valueChange" update="data_historique_pr"/>
+                        </p:selectOneMenu>
+                    </p:outputPanel>    
+                </div>
+                <!-->
+                 *****************************************************************************
+                 Vue Liste
+                 *****************************************************************************
+                <-->
+                <div class="yvs_list_historique_pr" style="width: 99%; margin: auto; background: white">
+
+                </div> 
+                <!-->
+                 *****************************************************************************
+                 Vue Calendrier
+                 *****************************************************************************
+                <-->
+                <div class="yvs_grid_historique_pr">
+
+                </div>
+            </div>
+        </h:form>
+    </ui:define>
+    <ui:define name="zone_search">
+        <script type="text/javascript">
+            $(document).ready(function() {
+                slideZoneSearche();
+            });
+        </script>
+        <h:form prependId="false" style="background: #CCC">            
+            <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
+                            styleClass="img_slide" title="#{lab.L_cacher}"/>  
+            <div class="zone_find">
+                <div class="yvs_form_historique_pr display_auteur" align="right"  style="font-style: italic;">
+
+                </div>
+                <h:panelGrid columns="3" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:outputText value="Date" />
+                    <h:outputText value="Article" />
+                    <h:outputText value="Depot" />
+                    <h:panelGrid columns="2" style="font-size: 0.8em;margin-top: 3px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                        <h:selectBooleanCheckbox value="#{managedHistoriquePR.dateSearch}" style="margin-top: 2px;float: right">
+                            <p:ajax event="valueChange" listener="#{managedHistoriquePR.chooseDateSearch()}" update="blog_date_search_historique_pr :main_historique_pr:data_historique_pr"/>
+                        </h:selectBooleanCheckbox>
+                        <h:panelGrid columns="2" style="float: right;margin-top: 3px">
+                            <h:panelGroup id="blog_date_search_historique_pr">
+                                <p:calendar value="#{managedHistoriquePR.dateDebutSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedHistoriquePR.dateSearch}" size="10" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedHistoriquePR.chooseDateSearch()}" update=":main_historique_pr:data_historique_pr"/>
+                                </p:calendar>
+                                <p:spacer width="5px" style="background: black"/>
+                                <p:calendar value="#{managedHistoriquePR.dateFinSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedHistoriquePR.dateSearch}" size="10" style="font-size: 0.8em">
+                                    <p:ajax event="dateSelect" listener="#{managedHistoriquePR.chooseDateSearch()}" update=":main_historique_pr:data_historique_pr"/>
+                                </p:calendar>
+                            </h:panelGroup>
+                        </h:panelGrid>
+                    </h:panelGrid>
+                    <h:inputText value="#{managedHistoriquePR.articleSearch}">
+                        <p:ajax event="blur" listener="#{managedHistoriquePR.searchArticle()}" update=":main_historique_pr:data_historique_pr"/>
+                    </h:inputText>
+                    <h:selectOneMenu value="#{managedHistoriquePR.depotSearch}" id="_select_depot_historique_pr" style="width: 100%">
+                        <f:selectItem itemLabel="" itemValue="0"/>
+                        <f:selectItems value="#{managedDepot.depots_all}" var="de" itemLabel="#{de.designation}" itemValue="#{de.id}"/>
+                        <p:ajax event="valueChange" listener="#{managedHistoriquePR.chooseDepotSeach()}" update=":main_historique_pr:data_historique_pr"/>
+                    </h:selectOneMenu>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

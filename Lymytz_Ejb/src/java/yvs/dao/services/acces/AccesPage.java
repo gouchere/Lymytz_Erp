@@ -78,7 +78,7 @@ public class AccesPage implements Serializable {
             gescom_inventaire, gescom_stock_dep, gescom_valorise, gescom_ration, gescom_param_ration, gescom_reserv, gescom_recond, gescom_param_obj_vente,
             gescom_bcv, gescom_avoirv, gescom_blv, gescom_retourv, gescom_tbG, gescom_fv, gescom_pfv, gescom_obj_vente, gescom_plan_remise, gescom_calcul_com,
             gescom_dashboard_client, gescom_jorunal_vente, gescom_age_client, gescom_reconditionnment, gescom_tbg_stock, gescom_tbg_vente,
-            gescom_dashboard_fournisseur, gescom_dashboard_vendeur, gescom_fv_v2, gescom_fv_service;
+            gescom_dashboard_fournisseur, gescom_dashboard_vendeur, gescom_fv_v2, gescom_fv_service, gescom_hist_pr;
     //Module Production prod_
     //Module Comptabilite et Finance compta_
     private boolean compta_view_reg_vente, compta_cheq_reg_vente, compta_param_g,
@@ -227,6 +227,10 @@ public class AccesPage implements Serializable {
 
     public void setGes_prod_commande(boolean ges_prod_commande) {
         this.ges_prod_commande = ges_prod_commande;
+    }
+
+    public boolean isGescom_hist_pr() {
+        return gescom_hist_pr;
     }
 
     public boolean isGescom_tbg_stock() {
