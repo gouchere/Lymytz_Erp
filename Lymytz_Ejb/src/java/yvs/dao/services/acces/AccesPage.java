@@ -233,6 +233,10 @@ public class AccesPage implements Serializable {
         return gescom_hist_pr;
     }
 
+    public void setGescom_hist_pr(boolean gescom_hist_pr) {
+        this.gescom_hist_pr = gescom_hist_pr;
+    }        
+
     public boolean isGescom_tbg_stock() {
         return gescom_tbg_stock;
     }
