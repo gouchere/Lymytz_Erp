@@ -640,6 +640,7 @@ public class ManagedPointVente extends ManagedCommercial<PointVente, YvsBasePoin
             p.setPredicat("AND");
             pa.addParam(p);
             pointVente.setArticles(pa.executeDynamicQuery("YvsBaseConditionnementPoint", "y.article.article.designation, y.article.article.refArt", avance, init, (int) max, dao));
+            displayPRArticle();
         } else {
             getErrorMessage("Vous devez selectionner un point de vente");
         }
@@ -1545,7 +1546,6 @@ public class ManagedPointVente extends ManagedCommercial<PointVente, YvsBasePoin
     public void displayPRArticle() {
         try {
             if (!autoriser("pv_load_pr_article")) {
-                openNotAcces();
                 return;
             }
             if (pointVente != null ? pointVente.getId() < 1 : true) {
