@@ -23,6 +23,7 @@ import yvs.base.compta.Journaux;
 import yvs.base.compta.ManagedJournaux;
 import yvs.base.compta.ModeDeReglement;
 import yvs.base.compta.UtilCompta;
+import static yvs.base.compta.UtilCompta.buildBeanAcomptesVenteDivers;
 import yvs.base.tiers.Tiers;
 import yvs.commercial.ManagedModeReglement;
 import yvs.commercial.UtilCom;
@@ -110,6 +111,13 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
     public boolean date_up = false;
     private Date dateDebut_ = new Date(), dateFin_ = new Date();
 
+    private PaginatorResult<YvsComptaNotifReglementVente> pVente = new PaginatorResult<>();
+    private PaginatorResult<YvsComptaNotifReglementDocDivers> pDivers = new PaginatorResult<>();
+    private long max = 10;
+    private String numeroSearchNotif;
+    private boolean addDateNotif;
+    private Date dateDebutSearchNotif = new Date(), dateFinSearchNotif = new Date();
+
     private long nbrComptaSearch;
 
     private String tabIds;
@@ -136,6 +144,62 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
         soldes = new ArrayList();
         redevances = new ArrayList();
         selectNotifs = new ArrayList();
+    }
+
+    public boolean isAddDateNotif() {
+        return addDateNotif;
+    }
+
+    public void setAddDateNotif(boolean addDateNotif) {
+        this.addDateNotif = addDateNotif;
+    }
+
+    public String getNumeroSearchNotif() {
+        return numeroSearchNotif;
+    }
+
+    public void setNumeroSearchNotif(String numeroSearchVente) {
+        this.numeroSearchNotif = numeroSearchVente;
+    }
+
+    public Date getDateDebutSearchNotif() {
+        return dateDebutSearchNotif;
+    }
+
+    public void setDateDebutSearchNotif(Date dateDebutSearchNotif) {
+        this.dateDebutSearchNotif = dateDebutSearchNotif;
+    }
+
+    public Date getDateFinSearchNotif() {
+        return dateFinSearchNotif;
+    }
+
+    public void setDateFinSearchNotif(Date dateFinSearchNotif) {
+        this.dateFinSearchNotif = dateFinSearchNotif;
+    }
+
+    public long getMax() {
+        return max;
+    }
+
+    public void setMax(long max) {
+        this.max = max;
+    }
+
+    public PaginatorResult<YvsComptaNotifReglementDocDivers> getpDivers() {
+        return pDivers;
+    }
+
+    public void setpDivers(PaginatorResult<YvsComptaNotifReglementDocDivers> pDivers) {
+        this.pDivers = pDivers;
+    }
+
+    public PaginatorResult<YvsComptaNotifReglementVente> getpVente() {
+        return pVente;
+    }
+
+    public void setpVente(PaginatorResult<YvsComptaNotifReglementVente> pVente) {
+        this.pVente = pVente;
     }
 
     public long getAgenceRegle() {
@@ -699,6 +763,85 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
     public void loadCredit(boolean avance, boolean init) {
         paginators.addParam(new ParametreRequete("y.client.tiers.societe", "societe", currentAgence.getSociete(), "=", "AND"));
         credits = paginators.executeDynamicQuery("YvsComptaCreditClient", "y.dateCredit DESC", avance, init, (int) imax, dao);
+    }
+
+    public void loadNotifAcompte(boolean avance, boolean init) {
+        compte.getVenteDiverses().clear();
+        if (selectCompte != null ? selectCompte.getId() > 0 : false) {
+            loadNotifVenteAcompte(avance, init);
+            loadNotifDiversAcompte(avance, init);
+            for (YvsComptaNotifReglementVente c : selectCompte.getNotifs()) {
+                compte.getVenteDiverses().add(buildBeanAcomptesVenteDivers(c));
+            }
+            for (YvsComptaNotifReglementDocDivers c : selectCompte.getNotifsDivers()) {
+                compte.getVenteDiverses().add(buildBeanAcomptesVenteDivers(c));
+            }
+        } else {
+            getErrorMessage("Vous devez selectionner un acompte");
+        }
+    }
+
+    public void loadNotifVenteAcompte(boolean avance, boolean init) {
+        if (selectCompte != null ? selectCompte.getId() > 0 : false) {
+            ParametreRequete p = new ParametreRequete("y.acompte", "acompte", selectCompte, "=", "AND");
+            pVente.addParam(p);
+            selectCompte.setNotifs(pVente.executeDynamicQuery("y", "y", "YvsComptaNotifReglementVente y JOIN FETCH y.pieceVente JOIN FETCH y.pieceVente.vente", "y.pieceVente.datePiece", avance, init, (int) max, dao));
+        } else {
+            getErrorMessage("Vous devez selectionner un acompte");
+        }
+    }
+
+    public void loadNotifDiversAcompte(boolean avance, boolean init) {
+        if (selectCompte != null ? selectCompte.getId() > 0 : false) {
+            ParametreRequete p = new ParametreRequete("y.acompteClient", "acompte", selectCompte, "=", "AND");
+            pDivers.addParam(p);
+            selectCompte.setNotifsDivers(pDivers.executeDynamicQuery("y", "y", "YvsComptaNotifReglementDocDivers y JOIN FETCH y.pieceDocDivers JOIN FETCH y.pieceDocDivers.docDivers", "y.pieceDocDivers.datePiece", avance, init, (int) max, dao));
+        } else {
+            getErrorMessage("Vous devez selectionner un acompte");
+        }
+    }
+
+    public void findByDatesNotif() {
+        ParametreRequete pV = new ParametreRequete("y.pieceVente.datePiece", "dates", null);
+        ParametreRequete pD = new ParametreRequete("y.pieceDocDivers.datePiece", "dates", null);
+        if (addDateNotif) {
+            pV = new ParametreRequete(null, "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "AND");
+            pV.getOtherExpression().add(new ParametreRequete("y.pieceVente.datePiece", "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "OR"));
+            pV.getOtherExpression().add(new ParametreRequete("y.pieceVente.vente.enteteDoc.dateEntete", "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "OR"));
+
+            pD = new ParametreRequete(null, "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "AND");
+            pD.getOtherExpression().add(new ParametreRequete("y.pieceDocDivers.datePiece", "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "OR"));
+            pD.getOtherExpression().add(new ParametreRequete("y.pieceDocDivers.docDivers.dateDoc", "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "OR"));
+        }
+        pVente.addParam(pV);
+        pDivers.addParam(pD);
+        loadNotifAcompte(true, true);
+    }
+
+    public void findByNumeroNotif() {
+        if (numeroSearchNotif != null ? numeroSearchNotif.trim().length() > 0 : false) {
+            ParametreRequete pV = new ParametreRequete(null, "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "AND");
+            pV.getOtherExpression().add(new ParametreRequete("UPPER(y.pieceVente.numeroPiece)", "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "OR"));
+            pV.getOtherExpression().add(new ParametreRequete("UPPER(y.pieceVente.vente.numDoc)", "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "OR"));
+            pVente.addParam(pV);
+            
+            ParametreRequete pD = new ParametreRequete(null, "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "AND");
+            pD.getOtherExpression().add(new ParametreRequete("UPPER(y.pieceDocDivers.numPiece)", "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "OR"));
+            pD.getOtherExpression().add(new ParametreRequete("UPPER(y.pieceDocDivers.docDivers.numPiece)", "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "OR"));
+            pDivers.addParam(pD);
+        } else {
+            pVente.addParam(new ParametreRequete("y.pieceVente.numeroPiece", "numero", null));
+            pDivers.addParam(new ParametreRequete("y.pieceDocDivers.numeroPiece", "numero", null));
+        }
+        loadNotifAcompte(true, true);
+    }
+
+    public void choosePaginatorNotif(ValueChangeEvent ev) {
+        if ((ev != null) ? ev.getNewValue() != null : false) {
+            long v = (long) ev.getNewValue();
+            max = v;
+            loadNotifAcompte(true, true);
+        }
     }
 
     public void loadAll(boolean avance, boolean init) {
@@ -1792,6 +1935,7 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
     public void onSelectObject(YvsComptaAcompteClient y) {
         selectCompte = y;
         populateView(UtilCompta.buildBeanAcompteClient(y));
+        loadNotifAcompte(true, true);
         historiqueCompte(y.getClient());
         resetReglement();
         update("blog_acompte_client");
@@ -1818,7 +1962,6 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
             if (operation.equals("A")) {
                 YvsComptaAcompteClient y = (YvsComptaAcompteClient) ev.getObject();
                 onSelectObject(y);
-                y.setNotifs(dao.loadNameQueries("YvsComptaNotifReglementVente.findByAcompte", new String[]{"acompte"}, new Object[]{y}));
             } else {
                 YvsComptaCreditClient y = (YvsComptaCreditClient) ev.getObject();
                 onSelectObject(y);
@@ -2632,11 +2775,11 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
         }
 
     }
-    
+
     public void encaisserPiecesAll() {
-        for(AcomptesVenteDivers a : selectNotifs){
+        for (AcomptesVenteDivers a : selectNotifs) {
             encaisserPieces(a);
-        }      
+        }
     }
 
     public void annulerPiece(YvsComptaNotifReglementVente y, boolean suspend) {
@@ -2656,11 +2799,11 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
         }
 
     }
-    
+
     public void annulerPiecesAll(boolean suspend) {
-        for(AcomptesVenteDivers a : selectNotifs){
+        for (AcomptesVenteDivers a : selectNotifs) {
             annulerPieces(a, suspend);
-        }      
+        }
     }
 
     public void changeStatutPiece(YvsComptaNotifReglementVente y, char statut) {
