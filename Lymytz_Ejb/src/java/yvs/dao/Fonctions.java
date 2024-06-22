@@ -793,7 +793,7 @@ public class Fonctions {
         }
         for (YvsComContenuDocAchat c : current.getContenus()) {
             if (c.getPrixAchat() <= 0) {
-                dao.setRESULT("Vous devez precisez le prix d'achat de l'article " + c.getArticle().getDesignation());
+                dao.setRESULT("Vous devez preciser le prix d'achat de l'article " + c.getArticle().getDesignation());
                 return false;
             }
         }
@@ -1494,7 +1494,7 @@ public class Fonctions {
             //le document divers doit être valide
             if (current.getStatutDoc().equals(Constantes.ETAT_VALIDE)) {
                 if (y.getCaisse() != null ? y.getCaisse().getId() < 1 : true) {
-                    dao.setRESULT("Vous devez precisez la caisse");
+                    dao.setRESULT("Vous devez preciser la caisse");
                     return false;
                 }
                 if (y.getJustify() != null ? (y.getJustify().getId() > 0 ? y.getJustify().getBon() != null : false) : false) {
@@ -1604,7 +1604,7 @@ public class Fonctions {
             return false;
         }
         if (piece.getMontant() <= 0) {
-            System.err.println("Vous devez precisez le montant !");
+            System.err.println("Vous devez preciser le montant !");
             return false;
         }
         if (controleFrais) {
@@ -1618,7 +1618,7 @@ public class Fonctions {
             return false;
         }
         if (piece.getModel() != null ? piece.getModel().getId() < 1 : true) {
-            System.err.println("Vous devez precisez le mode de paiement !");
+            System.err.println("Vous devez preciser le mode de paiement !");
             return false;
         }
         return true;
@@ -2009,20 +2009,20 @@ public class Fonctions {
             return false;
         }
         if (bean.getCompteGeneral() != null ? (bean.getCompteGeneral().getId() != null ? bean.getCompteGeneral().getId() < 1 : true) : true) {
-            dao.setRESULT("Vous devez precisez le compte général");
+            dao.setRESULT("Vous devez preciser le compte général");
             return false;
         }
         YvsBasePlanComptable c = bean.getCompteGeneral();
         if (c.getSaisieAnalytique() && false) {
-//            dao.setRESULT("Vous devez precisez le plan analytique");
+//            dao.setRESULT("Vous devez preciser le plan analytique");
 //            return false;
         }
         if (c.getSaisieCompteTiers() && bean.getCompteTiers() == null) {
-            dao.setRESULT("Vous devez precisez le compte tiers");
+            dao.setRESULT("Vous devez preciser le compte tiers");
             return false;
         }
         if (c.getSaisieEcheance() && bean.getEcheance() == null) {
-            dao.setRESULT("Vous devez precisez l'échéancier");
+            dao.setRESULT("Vous devez preciser l'échéancier");
             return false;
         }
         return true;
@@ -2721,7 +2721,7 @@ public class Fonctions {
             YvsBasePlanComptable compte = null;
             try {
                 if (y.getIdTiers() != null ? y.getIdTiers() < 1 : true) {
-                    dao.setRESULT("Comptabilisation impossible...car vous devez precisez le compte tiers");
+                    dao.setRESULT("Comptabilisation impossible...car vous devez preciser le compte tiers");
                     return null;
                 }
                 Long numero = Long.valueOf(dao.nameTiers(y.getIdTiers(), y.getTableTiers(), "C"));
@@ -2797,7 +2797,7 @@ public class Fonctions {
             YvsBasePlanComptable compte = null;
             try {
                 if (y.getIdTiers() != null ? y.getIdTiers() < 1 : true) {
-                    dao.setRESULT("Comptabilisation impossible...car vous devez precisez le compte tiers");
+                    dao.setRESULT("Comptabilisation impossible...car vous devez preciser le compte tiers");
                     return null;
                 }
                 Long numero = Long.valueOf(dao.nameTiers(y.getIdTiers(), y.getTableTiers(), "C"));
@@ -2976,7 +2976,7 @@ public class Fonctions {
                 return null;
             }
             if (y.getIdTiers() != null ? y.getIdTiers() < 1 : true) {
-                dao.setRESULT("Comptabilisation impossible...car vous devez precisez le compte tiers");
+                dao.setRESULT("Comptabilisation impossible...car vous devez preciser le compte tiers");
                 return null;
             }
 

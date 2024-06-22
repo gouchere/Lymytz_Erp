@@ -2049,13 +2049,13 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
                     jour = jour != null ? jour : 0;
                     debit = debit != null ? debit : 0;
                     credit = credit != null ? credit : 0;
-                    
+
                     ValeurComptable row = new ValeurComptable(piece, Constantes.dfN.format(date_piece), reference);
                     int idx = comptables.indexOf(row);
                     if (idx > -1) {
                         row = comptables.get(idx);
                     }
-                    
+
                     row.getSous().add(new ValeurComptable(id, code, intitule, piece, reference, date_piece, compte_general, numero, designation, compte_tiers, nom_prenom, plan, code_plan, libelle, jour, description, lettrage, debit, credit, tableTiers, reference_externe));
                     if (idx > -1) {
                         comptables.set(idx, row);
@@ -2136,13 +2136,13 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
         }
     }
 
-    public void loadValeurInventaire(DaoInterfaceLocal dao) {
-        loadValeurInventaire(societe, depot, editeurs, valoriseMs, valorisePf, valorisePsf, valoriseMp, coefficient, dateDebut, dateFin, valoriseExcedent, dao);
+    public void loadValeurInventaire(String whatValeurDisplay, DaoInterfaceLocal dao) {
+        loadValeurInventaire(societe, depot, editeurs, valoriseMs, valorisePf, valorisePsf, valoriseMp, coefficient, dateDebut, dateFin, valoriseExcedent, whatValeurDisplay, dao);
     }
 
-    private void loadValeurInventaire(long societe, long depot, String editeurs, String valoriseMs, String valorisePf, String valorisePsf, String valoriseMp, double coefficient, Date dateDebut, Date dateFin, boolean valoriseExcedent, DaoInterfaceLocal dao) {
+    private void loadValeurInventaire(long societe, long depot, String editeurs, String valoriseMs, String valorisePf, String valorisePsf, String valoriseMp, double coefficient, Date dateDebut, Date dateFin, boolean valoriseExcedent, String whatValeurDisplay, DaoInterfaceLocal dao) {
         Options[] param = new Options[]{new Options(societe, 1), new Options(depot, 2), new Options(editeurs, 3), new Options(valoriseMs, 4), new Options(valorisePf, 5), new Options(valorisePsf, 6), new Options(valoriseMp, 7), new Options(coefficient, 8), new Options(dateDebut, 9), new Options(dateFin, 10), new Options(valoriseExcedent, 11)};
-        String query = "select y.users, y.code, y.nom, y.article, y.refart, y.designation, y.categorie, y.reffam, y.famille, y.unite, y.reference, y.quantite, y.prix, y.total from public.com_et_valorise_inventaire(?,?,?,?,?,?,?,?,?,?,?) y order by y.nom, y.designation";
+        String query = "select y.users, y.code, y.nom, y.article, y.refart, y.designation, y.categorie, y.reffam, y.famille, y.unite, y.reference, y.quantite, y.prix, y.total, y.excedent, y.manquant, y.total_excedent, y.total_manquant from public.com_et_valorise_inventaire(?,?,?,?,?,?,?,?,?,?,?) y order by y.nom, y.designation";
         Query qr = dao.getEntityManager().createNativeQuery(query);
         for (Options o : param) {
             qr.setParameter(o.getPosition(), o.getValeur());
@@ -2155,6 +2155,10 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
             colonnes.clear();
             periodes.clear();
             valeurs.clear();
+
+            boolean displayManquant = whatValeurDisplay.equals("MANQUANT");
+            boolean displayExcedent = whatValeurDisplay.equals("EXCEDENT");
+            boolean displayManquantExcedent = whatValeurDisplay.equals("MANQUANT+EXCEDENT");
 
             Object[] o;
             for (Object y : qr.getResultList()) {
@@ -2174,14 +2178,28 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
                     Double _quantite = (Double) o[11];
                     Double _prix = (Double) o[12];
                     Double _total = (Double) o[13];
+                    Double _excedent = (Double) o[14];
+                    Double _manquant = (Double) o[15];
+                    Double _total_excedent = (Double) o[16];
+                    Double _total_manquant = (Double) o[17];
 
-                    JournalVendeur row= new JournalVendeur(_users, _code, _nom);
+                    if (displayExcedent && _excedent <= 0) {
+                        continue;
+                    }
+                    if (displayManquant && _manquant <= 0) {
+                        continue;
+                    }
+                    if (displayManquantExcedent && _quantite <= 0) {
+                        continue;
+                    }
+
+                    JournalVendeur row = new JournalVendeur(_users, _code, _nom);
                     int idx = valeurs.indexOf(row);
                     if (idx > -1) {
                         row = valeurs.get(idx);
                     }
-                                                       //element, periode, secondaire, unite, principal, quantite, prixrevient, prixvente
-                    row.getSous().add(new JournalVendeur(_users, _famille, _refart, _designation, _reference, _quantite, _prix, _total, _categorie));
+                    //element, periode, secondaire, unite, principal, quantite, prixrevient, prixvente
+                    row.getSous().add(new JournalVendeur(_users, _famille, _refart, _designation, _reference, _quantite, _prix, _total, _categorie, _excedent, _manquant, _total_excedent, _total_manquant));
                     if (idx > -1) {
                         valeurs.set(idx, row);
                     } else {

@@ -294,15 +294,15 @@ public class ResultatAction<T extends Serializable> implements Serializable {
     }
 
     public ResultatAction emptyCompteGeneral() {
-        return new ResultatAction(false, 100, "Vous devez precisez le compte général", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
+        return new ResultatAction(false, 100, "Vous devez preciser le compte général", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
     }
 
     public ResultatAction emptyCompteTiers() {
-        return new ResultatAction(false, 100, "Vous devez precisez le compte tiers", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
+        return new ResultatAction(false, 100, "Vous devez preciser le compte tiers", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
     }
 
     public ResultatAction emptyEcheancier() {
-        return new ResultatAction(false, 100, "Vous devez precisez l'échéancier", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
+        return new ResultatAction(false, 100, "Vous devez preciser l'échéancier", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
     }
 
     public ResultatAction emptyJournal() {

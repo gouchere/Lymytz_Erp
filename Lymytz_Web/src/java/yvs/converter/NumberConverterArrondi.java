@@ -56,25 +56,26 @@ public class NumberConverterArrondi implements Converter {
         DecimalFormat df = new DecimalFormat("#,##0.00");
         String num = df.format(d) != null ? df.format(d) : "";
         if (num.charAt(num.length() - 2) == '0' && num.charAt(num.length() - 1) == '0') {
-            df = new DecimalFormat("#,##0.000000000000000");
+            df = new DecimalFormat("#,##0.000000000000000");//2,000999999999985
             num = df.format(d) != null ? df.format(d) : "";
-//            String[] tabs = num.split("[,.]");
-//            String resultDecimal = "";
-//            if (tabs.length > 1) {
-//                String decimal = tabs[1];
-//                for (int i = 0; i < decimal.length(); i++) {
-//                    char n = decimal.charAt(i);
-//                    resultDecimal += n;
-//                    if (n != '0') {
-//                        break;
-//                    }
-//                }
-//                Double d1 = Double.parseDouble(resultDecimal);
-//                if (d1 == 0) {
-//                    resultDecimal = "0";
-//                }
-//            }
-//            num = num.substring(0, tabs[0].length() + 1) + resultDecimal;
+            String[] tabs = num.split("[,.]");
+            String resultDecimal = "";
+            if (tabs.length > 1) {
+                String decimal = tabs[1];
+                int nombreDecimal = 2;
+                for (int i = 0; i < decimal.length(); i++) {
+                    char n = decimal.charAt(i);
+                    resultDecimal += n;
+                    if (n != '0' && resultDecimal.length() >= nombreDecimal) {
+                        break;
+                    }
+                }
+                Double d1 = Double.parseDouble(resultDecimal);
+                if (d1 == 0) {
+                    resultDecimal = "0";
+                }
+            }
+            num = num.substring(0, tabs[0].length() + 1) + resultDecimal;
         }
         while (num.length() > 0 && String.valueOf(num.charAt(num.length() - 1)).equals("0")) {
             num = num.substring(0, num.length() - 1);

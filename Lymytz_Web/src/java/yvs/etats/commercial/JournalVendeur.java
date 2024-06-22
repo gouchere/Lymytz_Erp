@@ -242,6 +242,14 @@ public class JournalVendeur implements Serializable {
         this.reference = reference;
     }
 
+    public JournalVendeur(long element, String periode, String secondaire, String unite, String principal, double quantite, double prixrevient, double prixvente, String reference, double marge, double margemin, double valeur, double attente) {
+        this(element, periode, secondaire, unite, principal, quantite, prixrevient, prixvente, reference);
+        this.marge = marge;
+        this.marge_min = margemin;
+        this.valeur = valeur;
+        this.attente = attente;
+    }
+
     public JournalVendeur(long element, String periode, String secondaire, String unite, double quantite, double prixrevient, double prixvente, double prixachat) {
         this(element, periode, secondaire, unite, quantite, prixrevient, prixvente);
         this.prixachat = prixachat;
