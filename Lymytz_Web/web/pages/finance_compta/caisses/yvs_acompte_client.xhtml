@@ -589,7 +589,7 @@
                             </div>
                         </div>
                         <div style="clear: left"/>
-                        <div id="zone_show_acompte_client" style="border: solid 2px; height: 250px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                        <div id="zone_show_acompte_client" style="border: solid 2px; height: 340px; padding: 2px; border-radius: 5px;margin-top: 5px">
                             <span style="display: inline-block; background: #CCC; width: 100%;cursor: pointer" >
                                 <span class="button_slide" onclick="slideShow('zone_show_acompte_client', 250)">[-]</span>
 
@@ -605,7 +605,7 @@
                                                 actionListener="#{managedOperationClient.openOrfindAndRegleFacture()}" />
                                 </p:contextMenu>
                             </span>
-                            <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 210px; margin: auto;overflow-y: auto">
+                            <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 280px; margin: auto;overflow-y: auto">
                                 <p:outputPanel style="width: 100%; margin: auto; background: white" id="blog_reglement_acompte">
                                     <h:panelGrid id="form_reglement_acompte" columns="5" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="padding-top: 2px;padding-bottom: -5px">
                                         <h:outputText value="#{managedOperationClient.isFacture ? lab.LCF_PAF_facture :lab.LCF_PBP_document}"/>
@@ -683,7 +683,7 @@
                                                 <p:contextMenu for="btn_option_reglement_acompte_head" event="left click" style="font-size: 0.8em">               
                                                     <p:menuitem icon="ui-icon-arrowthick-2-e-w" value="#{lab.LC_PFV_comptabiliser}" global="false" onclick="dlgComptabilisePieceAll.show()"/>
                                                     <p:menuitem value="#{lab.LCF_PRV_encaisser_valider}" actionListener="#{managedOperationClient.encaisserPiecesAll()}" icon="ui-icon-circle-check" />
-                                                        <p:menuitem value="#{lab.LP_PSO_mettre_en_attente}" actionListener="#{managedOperationClient.annulerPiecesAll(false)}" icon="ui-icon-circle-close" />
+                                                    <p:menuitem value="#{lab.LP_PSO_mettre_en_attente}" actionListener="#{managedOperationClient.annulerPiecesAll(false)}" icon="ui-icon-circle-close" />
                                                     <p:separator />
                                                     <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" oncomplete="dlgConfirmDeletePieces.show()"/>
                                                 </p:contextMenu>
@@ -709,7 +709,36 @@
                                 </p:outputPanel>
                             </div>
                             <div class="zone_bottom">
-
+                                <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                    <h:panelGrid columns="2" style="margin-left: -10px">
+                                        <h:panelGrid columns="2" >
+                                            <h:selectBooleanCheckbox value="#{managedOperationClient.addDateNotif}" style="margin-top: 2px;float: right">
+                                                <p:ajax event="valueChange" listener="#{managedOperationClient.findByDatesNotif()}" update="date_search_reglement_acompte data_reglement_acompte"/>
+                                            </h:selectBooleanCheckbox>
+                                            <h:panelGroup id="date_search_reglement_acompte">
+                                                <p:calendar value="#{managedOperationClient.dateDebutSearchNotif}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOperationClient.addDateNotif}" size="10" style="font-size: 0.8em">
+                                                    <p:ajax event="dateSelect" listener="#{managedOperationClient.findByDatesNotif()}" update="data_reglement_acompte"/>
+                                                </p:calendar>
+                                                <p:spacer width="5px" style="background: black"/>
+                                                <p:calendar value="#{managedOperationClient.dateFinSearchNotif}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOperationClient.addDateNotif}" size="10" style="font-size: 0.8em">
+                                                    <p:ajax event="dateSelect" listener="#{managedOperationClient.findByDatesNotif()}" update="data_reglement_acompte"/>
+                                                </p:calendar>
+                                            </h:panelGroup>
+                                        </h:panelGrid>
+                                        <h:inputText value="#{managedOperationClient.numeroSearchNotif}">
+                                            <p:ajax event="valueChange" update="data_reglement_acompte" listener="#{managedOperationClient.findByNumeroNotif()}"/>
+                                        </h:inputText>
+                                    </h:panelGrid>   
+                                    <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                        <p:commandButton actionListener="#{managedOperationClient.loadNotifAcompte(false, false)}" global="false" update="data_reglement_acompte" icon="ui-icon-circle-triangle-w" disabled="#{managedOperationClient.pVente.disPrev}"/>
+                                        <p:outputPanel ><p:outputLabel value="#{managedOperationClient.pVente.currentPage}/#{managedOperationClient.pVente.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                        <p:commandButton actionListener="#{managedOperationClient.loadNotifAcompte(true, false)}" global="false" update="data_reglement_acompte" icon="ui-icon-circle-triangle-e" disabled="#{managedOperationClient.pVente.disNext}"/>
+                                        <p:selectOneMenu value="#{managedOperationClient.max}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedOperationClient.choosePaginatorNotif}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                                            <f:selectItems value="#{managedOperationClient.paginations}"/>
+                                            <p:ajax event="valueChange" global="false" update="data_reglement_acompte"/>
+                                        </p:selectOneMenu>
+                                    </p:outputPanel> 
+                                </h:panelGrid>
                             </div>
                         </div>
                     </p:outputPanel>  
