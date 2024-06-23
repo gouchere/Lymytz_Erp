@@ -121,7 +121,7 @@ public class AccesRessource implements Serializable {
             compta_extourne_cheque, compta_virement_cancel_pass;
 
 // Points de vente
-    public boolean pv_view_all_societe, prod_gammes_update_num_ope;
+    public boolean pv_view_all_societe, pv_download_article_with_pr, pv_load_pr_article, prod_gammes_update_num_ope;
 
     /*Comptabilité*/
     public boolean compta_cancel_piece_valide, compta_od_statut_valid_to_edit, compta_od_statut_encours_to_edit, compta_od_annul_comptabilite,
@@ -2163,6 +2163,14 @@ public class AccesRessource implements Serializable {
 
     public boolean isCompta_od_view_all_agence() {
         return compta_od_view_all_agence;
+    }
+
+    public boolean isPv_load_pr_article() {
+        return pv_load_pr_article;
+    }
+
+    public boolean isPv_download_article_with_pr() {
+        return pv_download_article_with_pr;
     }
 
     public boolean isPv_view_all_societe() {
