@@ -116,6 +116,8 @@ public class YvsBaseConditionnementPoint extends YvsEntity implements Serializab
     @Transient
     private Double pr;
     @Transient
+    private double taux;
+    @Transient
     private boolean new_;
     @Transient
     private boolean select;
@@ -184,6 +186,14 @@ public class YvsBaseConditionnementPoint extends YvsEntity implements Serializab
 
     public void setPr(Double pr) {
         this.pr = pr;
+    }
+
+    public double getTaux() {
+        if (puv > 0) {
+            return ((getPuv() - getPr()) / getPuv()) * 100;
+        } else {
+            return 0d;
+        }
     }
 
     public Double getPrixMin() {
