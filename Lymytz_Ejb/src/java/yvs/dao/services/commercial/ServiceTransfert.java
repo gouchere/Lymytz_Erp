@@ -70,6 +70,9 @@ public class ServiceTransfert extends GenericService {
         if (lineContent.getId() == null || document.getId() == null) {
             return result.emptyDoc();
         }
+        if (!autoriser("tr_change_statut_line")) {
+            return result.operationNotAllowHere();        
+        }
         if (!chechAutorisationActionOnDepot(document, 2, currentUser.getUsers())) {
             return result.userNotAbility();
         }
