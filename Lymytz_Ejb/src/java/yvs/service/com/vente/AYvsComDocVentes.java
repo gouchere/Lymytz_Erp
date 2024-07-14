@@ -1722,9 +1722,9 @@ public class AYvsComDocVentes extends AbstractEntity {
                     if (pc.getStatutPiece() != Constantes.STATUT_DOC_PAYER) {
                         //Vérifie s'il s'agit d'une compensation de la cohérence des montants
                         if (pc.getNotifs() != null) {
-                            if (pc.getNotifs().getAcompte().getReste() < pc.getMontant()) {
+                            Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{pc.getNotifs().getAcompte()});
+                            if ((reste != null ? reste : 0) < pc.getMontant()) {
                                 if (msg) {
-
                                     return false;
                                 }
                             }

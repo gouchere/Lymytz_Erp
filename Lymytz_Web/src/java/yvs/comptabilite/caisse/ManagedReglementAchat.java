@@ -435,7 +435,9 @@ public class ManagedReglementAchat extends Managed implements Serializable {
         }
         bean.setAcompte(0);
         for (YvsComptaAcompteFournisseur f : acomptes) {
-            bean.setAcompte(bean.getAcompte() + f.getReste());
+            Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{f});
+            // (reste != null ? reste : 0);
+            bean.setAcompte(bean.getAcompte() + (reste != null ? reste : 0));
         }
     }
 
@@ -953,7 +955,7 @@ public class ManagedReglementAchat extends Managed implements Serializable {
                     int idx = w.getCaisses().indexOf(new YvsBaseCaisse(id));
                     if (idx >= 0) {
                         YvsBaseCaisse y = w.getCaisses().get(idx);
-                    pieceAvance.setCaisse(UtilCompta.buildBeanCaisse(y));
+                        pieceAvance.setCaisse(UtilCompta.buildBeanCaisse(y));
                     }
                 }
             }
@@ -1020,7 +1022,8 @@ public class ManagedReglementAchat extends Managed implements Serializable {
         List<YvsComptaCaissePieceAchat> re = new ArrayList<>();
         for (YvsComptaAcompteFournisseur c : list) {
             if (montant > 0) {
-                reste = c.getResteUnBind(pieceAvance.getId());
+                Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteUnBindForAcompteAndNotPiece", new String[]{"acompte", "piece"}, new Object[]{c, pieceAvance.getId()});
+                reste = (resteUnBind != null ? resteUnBind : 0);
                 if (reste <= montant) {
                     // génère la pièce de règlement qui correspond au reste
                     piece = buildPiece(reste, c);
@@ -1546,7 +1549,9 @@ public class ManagedReglementAchat extends Managed implements Serializable {
                         }
                         // Si le paiement se fait à partir d'une notification, il faut que les montants soient coherent
                         if (pc.getNotifs() != null) {
-                            if (pc.getMontant() > pc.getNotifs().getAcompte().getReste()) {
+                            Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{pc.getNotifs().getAcompte()});
+                            // (reste != null ? reste : 0);
+                            if (pc.getMontant() > (reste != null ? reste : 0)) {
                                 getErrorMessage("Le montant restant de l'acompte " + pc.getNotifs().getAcompte().getNumRefrence() + " Ne permet pas de régler la pièce de caisse !");
                                 return pc;
                             }
@@ -1594,7 +1599,9 @@ public class ManagedReglementAchat extends Managed implements Serializable {
                             }
                             boolean succes = true;
                             if (pc.getNotifs() != null) {
-                                if (pc.getMontant() <= pc.getNotifs().getAcompte().getReste()) {
+                                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{pc.getNotifs().getAcompte()});
+                                // (reste != null ? reste : 0);
+                                if (pc.getMontant() <= (reste != null ? reste : 0)) {
                                     pieceAchat = pc;
                                     reglerPieceTresorerie(true);
                                     succes = false;
@@ -1841,7 +1848,9 @@ public class ManagedReglementAchat extends Managed implements Serializable {
                     boolean update = false;
                     //Vérifie s'il s'agit d'une compensation de la cohérence des montants
                     if (pc.getNotifs() != null) {
-                        if (pc.getNotifs().getAcompte().getReste() < pc.getMontant()) {
+                        Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{pc.getNotifs().getAcompte()});
+                        // (reste != null ? reste : 0);
+                        if ((reste != null ? reste : 0) < pc.getMontant()) {
                             if (msg) {
                                 getErrorMessage("Le montant de l'acompte ne permet pas le règlement totale de cette pièce !");
                                 return;
@@ -2189,11 +2198,13 @@ public class ManagedReglementAchat extends Managed implements Serializable {
             getErrorMessage("...Il s'agit de la facture d'un autre Fournisseur !");
             return;
         }
-        if (selectAcompte.getResteUnBind() < pieceAchat.getMontant()) {
+        Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteUnBindForAcompte", new String[]{"acompte"}, new Object[]{selectAcompte});
+        if ((resteUnBind != null ? resteUnBind : 0) < pieceAchat.getMontant()) {
             getErrorMessage("Cet acompte ne peut pas couvrir ce reglement");
             return;
         }
-        if (selectAcompte.getReste() < pieceAchat.getMontant()) {
+        Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectAcompte});
+        if ((reste != null ? reste : 0) < pieceAchat.getMontant()) {
             getErrorMessage("Le reste sur cet acompte ne peut pas couvrir ce reglement");
             return;
         }
@@ -3047,7 +3058,7 @@ public class ManagedReglementAchat extends Managed implements Serializable {
         paginator.addParam(p);
         loadAllPieces(true, true);
     }
-    
+
     public void addParamAgence() {
         ParametreRequete p = new ParametreRequete("y.achat.agence", "agence", null, "=", "AND");
         if (agenceSearch > 0) {

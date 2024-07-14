@@ -15,7 +15,6 @@
 //                $('body').find('.part_scroll').height($('body').height() - $('body').find('.part_fix').height() - $('body').find('.zone_find').height() - 135);
                 $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
                 collapseForm('acompte_fournisseur');
-                slideShow('zone_show_acompte_fournisseur', 250);
             });
             function _slideShow() {
             }
@@ -579,9 +578,9 @@
                                 </div>
                             </div>
                             <div style="clear: left"/>
-                            <div id="zone_show_acompte_fournisseur" style="border: solid 2px; height: 250px; padding: 2px; border-radius: 5px;margin-top: 5px">
+                            <div id="zone_show_acompte_fournisseur" style="border: solid 2px; height: 340px; padding: 2px; border-radius: 5px;margin-top: 5px">
                                 <span style="display: inline-block; background: #CCC; width: 100%;cursor: pointer" >
-                                    <span class="button_slide" onclick="slideShow('zone_show_acompte_fournisseur', 250)">[-]</span>
+                                    <span class="button_slide" onclick="slideShow('zone_show_acompte_fournisseur', 340)">[-]</span>
                                     <h:outputText value="#{lab.LCF_PAF_reglements_facture_doc_divers} "  title="#{lab.LCF_PAF_reglements_par_acompte} "></h:outputText>
                                     <p:commandButton  icon="ui-icon-eject" id="btn_type_facture"  global="false" />
 
@@ -594,7 +593,7 @@
                                         <p:menuitem value="Répartir le montant total" icon="ui-icon-arrowthickstop-1-e" actionListener="#{managedOperationFournisseur.openOrfindAndRegleFacture()}" />
                                     </p:contextMenu>
                                 </span>
-                                <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 210px; margin: auto;overflow-y: auto">
+                                <div class="zone_slide" style="width: 99.5%; border: solid 1px; height: 270px; margin: auto;overflow-y: auto">
                                     <p:outputPanel style="width: 100%; margin: auto; background: white" id="blog_reglement_acompte_fa">
                                         <h:panelGrid id="form_reglement_acompte_fa" columns="5" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="padding-top: 2px;padding-bottom: -5px">
                                             <h:outputText value="#{managedOperationFournisseur.isFacture ?'Facture':'Document'}"/>
@@ -632,8 +631,10 @@
                                             <p:ajax event="rowSelect" global="false" listener="#{managedOperationFournisseur.loadOnViewPiece}"/>
                                             <p:ajax event="rowUnselect" global="false" listener="#{managedOperationFournisseur.unLoadOnViewPiece}"/>
                                             <p:column headerText="N°" style="width: 7%" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(acom.statutPiece)}">
-                                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{men.new_}"/>
                                                 <span>#{Idx+1}</span>
+                                                <h:panelGroup style="float: right">
+                                                    <h:outputText title="#{lab.LC_PFA_comptabiliser}" value="C" rendered="#{acom.comptabilise}" styleClass="style_statut"/>
+                                                </h:panelGroup>
                                             </p:column>
                                             <p:column headerText="ID" style="width: 30px" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(acom.statutPiece)}">
                                                 <span>#{acom.id}</span>
@@ -661,8 +662,11 @@
                                             </p:column>
                                             <p:column style="width: 5%;text-align: center" styleClass="statut_#{managedOperationFournisseur.giveStringStatut(acom.statutPiece)}">
                                                 <f:facet name="header">
-                                                    <p:contextMenu for="btn_option_reglement_acompte_head" event="left click" style="font-size: 0.8em">               
+                                                    <p:contextMenu for="btn_option_reglement_acompte_head" event="left click" style="font-size: 0.8em">   
+                                                        <p:menuitem value="Vérifier la comptabilisation" actionListener="#{managedOperationFournisseur.verifyComptabilisation()}"
+                                                                    icon="ui-icon-circle-check" update="data_reglement_acompte_fa"/>              
                                                         <p:menuitem icon="ui-icon-arrowthick-2-e-w" value="#{lab.LC_PFV_comptabiliser}" global="false" onclick="dlgComptabilisePieceAll.show()"/>
+                                                        <p:separator />
                                                         <p:menuitem value="#{lab.LCF_PRV_encaisser_valider}" actionListener="#{managedOperationFournisseur.encaisserPiecesAll()}" icon="ui-icon-circle-check" />
                                                         <p:menuitem value="#{lab.LP_PSO_mettre_en_attente}" actionListener="#{managedOperationFournisseur.annulerPiecesAll(false)}" icon="ui-icon-circle-close" />
                                                         <p:separator />
@@ -691,7 +695,36 @@
                                     </p:outputPanel>
                                 </div>
                                 <div class="zone_bottom">
-
+                                    <h:panelGrid columns="2" style="width: 100%" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                        <h:panelGrid columns="2" style="margin-left: -10px">
+                                            <h:panelGrid columns="2" >
+                                                <h:selectBooleanCheckbox value="#{managedOperationFournisseur.addDateNotif}" style="margin-top: 2px;float: right">
+                                                    <p:ajax event="valueChange" listener="#{managedOperationFournisseur.findByDatesNotif()}" update="date_search_reglement_acompte data_reglement_acompte_fa"/>
+                                                </h:selectBooleanCheckbox>
+                                                <h:panelGroup id="date_search_reglement_acompte">
+                                                    <p:calendar value="#{managedOperationFournisseur.dateDebutSearchNotif}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOperationFournisseur.addDateNotif}" size="10" style="font-size: 0.8em">
+                                                        <p:ajax event="dateSelect" listener="#{managedOperationFournisseur.findByDatesNotif()}" update="data_reglement_acompte_fa"/>
+                                                    </p:calendar>
+                                                    <p:spacer width="5px" style="background: black"/>
+                                                    <p:calendar value="#{managedOperationFournisseur.dateFinSearchNotif}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedOperationFournisseur.addDateNotif}" size="10" style="font-size: 0.8em">
+                                                        <p:ajax event="dateSelect" listener="#{managedOperationFournisseur.findByDatesNotif()}" update="data_reglement_acompte_fa"/>
+                                                    </p:calendar>
+                                                </h:panelGroup>
+                                            </h:panelGrid>
+                                            <h:inputText value="#{managedOperationFournisseur.numeroSearchNotif}">
+                                                <p:ajax event="valueChange" update="data_reglement_acompte_fa" listener="#{managedOperationFournisseur.findByNumeroNotif()}"/>
+                                            </h:inputText>
+                                        </h:panelGrid>   
+                                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                            <p:commandButton actionListener="#{managedOperationFournisseur.loadNotifAcompte(false, false)}" global="false" update="data_reglement_acompte_fa" icon="ui-icon-circle-triangle-w" disabled="#{managedOperationFournisseur.pAchat.disPrev}"/>
+                                            <p:outputPanel ><p:outputLabel value="#{managedOperationFournisseur.pAchat.currentPage}/#{managedOperationFournisseur.pAchat.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                            <p:commandButton actionListener="#{managedOperationFournisseur.loadNotifAcompte(true, false)}" global="false" update="data_reglement_acompte_fa" icon="ui-icon-circle-triangle-e" disabled="#{managedOperationFournisseur.pAchat.disNext}"/>
+                                            <p:selectOneMenu value="#{managedOperationFournisseur.max}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedOperationFournisseur.choosePaginatorNotif}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px">
+                                                <f:selectItems value="#{managedOperationFournisseur.paginations}"/>
+                                                <p:ajax event="valueChange" global="false" update="data_reglement_acompte_fa"/>
+                                            </p:selectOneMenu>
+                                        </p:outputPanel> 
+                                    </h:panelGrid>
                                 </div>
                             </div>
                         </p:outputPanel>

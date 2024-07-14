@@ -129,24 +129,24 @@ public class YvsComptaAcompteClient extends YvsEntity implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsBaseCaisse caisse;
     @JoinColumn(name = "parent", referencedColumnName = "id")
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
-    private YvsComptaAcompteClient parent;    
+    private YvsComptaAcompteClient parent;
     @JoinColumn(name = "author", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsUsersAgence author;
 
-    @OneToOne(mappedBy = "acompte",fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "acompte", fetch = FetchType.LAZY)
     private YvsComptaContentJournalAcompteClient pieceContenu;
-
-    @OneToMany(mappedBy = "acompte", fetch = FetchType.LAZY)
-    private List<YvsComptaNotifReglementVente> notifs;
-    @OneToMany(mappedBy = "acompteClient", fetch = FetchType.LAZY)
-    private List<YvsComptaNotifReglementDocDivers> notifsDivers;
     
     @OneToMany(mappedBy = "pieceVente", fetch = FetchType.LAZY)
     private List<YvsComptaPhaseAcompteVente> phasesReglement;
-    
+
+    @Transient
+    private List<YvsComptaNotifReglementVente> notifs;
+    @Transient
+    private List<YvsComptaNotifReglementDocDivers> notifsDivers;
+
     @Transient
     private YvsComptaJournaux journal;
     @Transient
@@ -158,7 +158,7 @@ public class YvsComptaAcompteClient extends YvsEntity implements Serializable {
     @Transient
     private boolean errorComptabilise;
     @Transient
-    private double reste, resteUnBind;
+    private Double reste, resteUnBind;
 
     public YvsComptaAcompteClient() {
         notifs = new ArrayList<>();
@@ -293,39 +293,19 @@ public class YvsComptaAcompteClient extends YvsEntity implements Serializable {
         this.model = model;
     }
 
-    public double getResteUnBind() {
-        resteUnBind = getMontant();
-        for (YvsComptaNotifReglementVente r : notifs) {
-            resteUnBind -= r.getPieceVente().getMontant();
-        }
-        return resteUnBind;
+    public Double getResteUnBind() {
+        return resteUnBind != null ? resteUnBind : 0D;
     }
 
-    public double getResteUnBind(long idPiece) {
-        resteUnBind = getMontant();
-        for (YvsComptaNotifReglementVente r : notifs) {
-            if (r.getPieceVente().getId() != idPiece) {
-                resteUnBind -= r.getPieceVente().getMontant();
-            }
-        }
-        return resteUnBind;
-    }
-
-    public void setResteUnBind(double resteUnBind) {
+    public void setResteUnBind(Double resteUnBind) {
         this.resteUnBind = resteUnBind;
     }
 
-    public double getReste() {
-        reste = getMontant();
-        for (YvsComptaNotifReglementVente r : notifs) {
-            if (r.getPieceVente().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
-                reste -= r.getPieceVente().getMontant();
-            }
-        }
-        return reste;
+    public Double getReste() {
+        return reste != null ? reste : 0D;
     }
 
-    public void setReste(double reste) {
+    public void setReste(Double reste) {
         this.reste = reste;
     }
 
