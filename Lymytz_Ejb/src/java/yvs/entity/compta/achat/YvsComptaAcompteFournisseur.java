@@ -138,13 +138,15 @@ public class YvsComptaAcompteFournisseur implements Serializable {
 
     @OneToOne(mappedBy = "acompte", fetch = FetchType.LAZY)
     private YvsComptaContentJournalAcompteFournisseur pieceContenu;
-
-    @OneToMany(mappedBy = "acompte",fetch = FetchType.LAZY)
-    private List<YvsComptaNotifReglementAchat> notifs;
-    @OneToMany(mappedBy = "acompteFournisseur", fetch = FetchType.LAZY)
-    private List<YvsComptaNotifReglementDocDivers> yvsComptaNotifReglementDocDiversList;
+    
     @OneToMany(mappedBy = "pieceAchat", fetch = FetchType.LAZY)
     private List<YvsComptaPhaseAcompteAchat> phasesReglement;
+
+    @Transient
+    private List<YvsComptaNotifReglementAchat> notifs;
+    @Transient
+    private List<YvsComptaNotifReglementDocDivers> notifsDivers;
+
     @Transient
     private YvsComptaJournaux journal;
     @Transient
@@ -156,10 +158,11 @@ public class YvsComptaAcompteFournisseur implements Serializable {
     @Transient
     private boolean errorComptabilise;
     @Transient
-    private double reste, resteUnBind;
+    private Double reste, resteUnBind;
 
     public YvsComptaAcompteFournisseur() {
         notifs = new ArrayList<>();
+        notifsDivers = new ArrayList<>();
         phasesReglement = new ArrayList<>();
     }
 
@@ -328,29 +331,19 @@ public class YvsComptaAcompteFournisseur implements Serializable {
         this.journal = journal;
     }
 
-    public double getResteUnBind() {
-        resteUnBind = getMontant();
-        for (YvsComptaNotifReglementAchat r : notifs) {
-            resteUnBind -= r.getPieceAchat().getMontant();
-        }
-        return resteUnBind;
+    public Double getResteUnBind() {
+        return resteUnBind != null ? resteUnBind : 0D;
     }
 
-    public void setResteUnBind(double resteUnBind) {
+    public void setResteUnBind(Double resteUnBind) {
         this.resteUnBind = resteUnBind;
     }
 
-    public double getReste() {
-        reste = getMontant();
-        for (YvsComptaNotifReglementAchat r : notifs) {
-            if (r.getPieceAchat().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
-                reste -= r.getPieceAchat().getMontant();
-            }
-        }
-        return reste;
+    public Double getReste() {
+        return reste != null ? reste : 0D;
     }
 
-    public void setReste(double reste) {
+    public void setReste(Double reste) {
         this.reste = reste;
     }
 
@@ -458,24 +451,14 @@ public class YvsComptaAcompteFournisseur implements Serializable {
         return "Etp. " + getPhaseValide() + " / " + getPhasesReglement().size();
     }
 
-    public double getResteUnBind(long idPiece) {
-        resteUnBind = getMontant();
-        for (YvsComptaNotifReglementAchat r : notifs) {
-            if (r.getPieceAchat().getId() != idPiece) {
-                resteUnBind -= r.getPieceAchat().getMontant();
-            }
-        }
-        return resteUnBind;
-    }
-
     @XmlTransient
     @JsonIgnore
-    public List<YvsComptaNotifReglementDocDivers> getYvsComptaNotifReglementDocDiversList() {
-        return yvsComptaNotifReglementDocDiversList;
+    public List<YvsComptaNotifReglementDocDivers> getNotifsDivers() {
+        return notifsDivers;
     }
 
-    public void setYvsComptaNotifReglementDocDiversList(List<YvsComptaNotifReglementDocDivers> yvsComptaNotifReglementDocDiversList) {
-        this.yvsComptaNotifReglementDocDiversList = yvsComptaNotifReglementDocDiversList;
+    public void setNotifsDivers(List<YvsComptaNotifReglementDocDivers> notifsDivers) {
+        this.notifsDivers = notifsDivers;
     }
 
 }

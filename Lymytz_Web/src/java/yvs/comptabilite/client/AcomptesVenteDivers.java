@@ -7,6 +7,7 @@ package yvs.comptabilite.client;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import yvs.entity.base.YvsBaseModeReglement;
@@ -172,8 +173,9 @@ public class AcomptesVenteDivers implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 89 * hash + (int) (this.id ^ (this.id >>> 32));
+        int hash = 7;
+        hash = 43 * hash + (int) (this.id ^ (this.id >>> 32));
+        hash = 43 * hash + Objects.hashCode(this.type);
         return hash;
     }
 
@@ -187,6 +189,9 @@ public class AcomptesVenteDivers implements Serializable {
         }
         final AcomptesVenteDivers other = (AcomptesVenteDivers) obj;
         if (this.id != other.id) {
+            return false;
+        }
+        if (!Objects.equals(this.type, other.type)) {
             return false;
         }
         return true;

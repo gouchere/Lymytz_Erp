@@ -45,6 +45,10 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsComptaNotifReglementVente.findSumByClient", query = "SELECT SUM(y.pieceVente.montant) FROM YvsComptaNotifReglementVente y WHERE y.acompte.client = :client AND y.pieceVente.statutPiece = :statut"),
     @NamedQuery(name = "YvsComptaNotifReglementVente.findSumByClientDates", query = "SELECT SUM(y.pieceVente.montant) FROM YvsComptaNotifReglementVente y WHERE y.acompte.client = :client AND y.pieceVente.statutPiece = 'P' AND y.pieceVente.datePaiement BETWEEN :dateDebut AND :dateFin"),
     @NamedQuery(name = "YvsComptaNotifReglementVente.findSumByClientDatesAgence", query = "SELECT SUM(y.pieceVente.montant) FROM YvsComptaNotifReglementVente y WHERE y.acompte.caisse.journal.agence = :agence AND y.acompte.client = :client AND y.pieceVente.statutPiece = 'P' AND y.pieceVente.datePaiement BETWEEN :dateDebut AND :dateFin"),
+    
+    @NamedQuery(name = "YvsComptaNotifReglementVente.findResteForAcompte", query = "SELECT y.acompte.montant - SUM(y.pieceVente.montant) FROM YvsComptaNotifReglementVente y WHERE y.acompte = :acompte AND y.pieceVente.statutPiece = 'P' GROUP BY y.acompte.id"),
+    @NamedQuery(name = "YvsComptaNotifReglementVente.findResteUnBindForAcompte", query = "SELECT y.acompte.montant - SUM(y.pieceVente.montant) FROM YvsComptaNotifReglementVente y WHERE y.acompte = :acompte GROUP BY y.acompte.id"),
+    @NamedQuery(name = "YvsComptaNotifReglementVente.findResteUnBindForAcompteAndNotPiece", query = "SELECT y.acompte.montant - SUM(y.pieceVente.montant) FROM YvsComptaNotifReglementVente y WHERE y.acompte = :acompte AND y.pieceVente.id != :piece GROUP BY y.acompte.id"),
 
     @NamedQuery(name = "YvsComptaNotifReglementVente.findPieceByAcompte", query = "SELECT DISTINCT y.pieceVente FROM YvsComptaNotifReglementVente y WHERE y.acompte = :acompte"),
     @NamedQuery(name = "YvsComptaNotifReglementVente.findByAcompte", query = "SELECT y FROM YvsComptaNotifReglementVente y JOIN FETCH y.pieceVente JOIN FETCH y.pieceVente.vente WHERE y.acompte = :acompte"),

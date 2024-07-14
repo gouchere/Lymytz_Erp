@@ -14,8 +14,6 @@ import javax.faces.bean.SessionScoped;
 import yvs.base.compta.ModeDeReglement;
 import yvs.commercial.client.Client;
 import yvs.comptabilite.caisse.Caisses;
-import yvs.entity.compta.YvsComptaNotifReglementDocDivers;
-import yvs.entity.compta.YvsComptaNotifReglementVente;
 import yvs.entity.compta.vente.YvsComptaPhaseAcompteVente;
 import yvs.util.Constantes;
 
@@ -43,15 +41,11 @@ public class AcompteClient implements Serializable {
     private Client client = new Client();
     private Caisses caisse = new Caisses();
     private ModeDeReglement mode = new ModeDeReglement();
-    private List<YvsComptaNotifReglementVente> notifs;
     private List<YvsComptaPhaseAcompteVente> phasesReglement;
     private List<AcomptesVenteDivers> venteDiverses;
-    private List<YvsComptaNotifReglementDocDivers> notifs_doc;
     private String firstEtape = "VALIDER";
 
     public AcompteClient() {
-        notifs = new ArrayList<>();
-        notifs_doc = new ArrayList<>();
         phasesReglement = new ArrayList<>();
         venteDiverses = new ArrayList<>();
     }
@@ -165,14 +159,6 @@ public class AcompteClient implements Serializable {
         this.caisse = caisse;
     }
 
-    public List<YvsComptaNotifReglementVente> getNotifs() {
-        return notifs;
-    }
-
-    public void setNotifs(List<YvsComptaNotifReglementVente> notifs) {
-        this.notifs = notifs;
-    }
-
     public double getReste() {
         return reste;
     }
@@ -227,14 +213,6 @@ public class AcompteClient implements Serializable {
 
     public void setPhasesReglement(List<YvsComptaPhaseAcompteVente> phasesReglement) {
         this.phasesReglement = phasesReglement;
-    }
-
-    public List<YvsComptaNotifReglementDocDivers> getNotifs_doc() {
-        return notifs_doc;
-    }
-
-    public void setNotifs_doc(List<YvsComptaNotifReglementDocDivers> notifs_doc) {
-        this.notifs_doc = notifs_doc;
     }
 
     public List<AcomptesVenteDivers> getVenteDiverses() {
