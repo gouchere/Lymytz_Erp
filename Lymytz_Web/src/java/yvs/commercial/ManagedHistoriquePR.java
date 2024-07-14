@@ -27,7 +27,7 @@ import yvs.util.ParametreRequete;
  */
 @ManagedBean
 @SessionScoped
-public class ManagedHistoriquePR extends Managed<Serializable, YvsHistoriquePr> implements Serializable {
+public class ManagedHistoriquePR extends Managed<YvsHistoriquePr, YvsHistoriquePr> implements Serializable {
 
     private List<YvsHistoriquePr> historiques;
     private String tabIds;
@@ -100,11 +100,23 @@ public class ManagedHistoriquePR extends Managed<Serializable, YvsHistoriquePr> 
         this.tabIds = tabIds;
     }
 
+    public List<YvsBaseConditionnement> getConditionnements() {
+        return conditionnements;
+    }
+
+    public void setConditionnements(List<YvsBaseConditionnement> conditionnements) {
+        this.conditionnements = conditionnements;
+    }
+
     public void loadAll(boolean avance, boolean init) {
         historiques.clear();
         if ((articleSearch != null ? articleSearch.trim().length() > 0 : false) || (depotSearch > 0)) {
             historiques = paginator.executeDynamicQuery("YvsHistoriquePr", "y.dateEvaluation DESC", avance, init, (int) imax, dao);
         }
+    }
+
+    public void avancer(boolean avance) {
+        loadAll(avance, false);
     }
 
     public void gotoPagePaginator() {
@@ -165,13 +177,14 @@ public class ManagedHistoriquePR extends Managed<Serializable, YvsHistoriquePr> 
             if ((tabIds != null) ? !tabIds.equals("") : false) {
                 String[] tab = tabIds.split("-");
                 for (String ids : tab) {
-                    int index = Integer.valueOf(ids);
-                    if (index > -1 && index < historiques.size()) {
-                        YvsHistoriquePr bean = historiques.get(index);
+                    long id = Long.valueOf(ids);
+                    if (historiques.contains(new YvsHistoriquePr(id))) {
+                        YvsHistoriquePr bean = historiques.get(historiques.indexOf(new YvsHistoriquePr(id)));
                         dao.delete(bean);
                         historiques.remove(bean);
                     }
                 }
+                tabIds = "";
                 succes();
             }
         } catch (Exception ex) {
@@ -217,17 +230,17 @@ public class ManagedHistoriquePR extends Managed<Serializable, YvsHistoriquePr> 
     }
 
     @Override
-    public Serializable recopieView() {
+    public YvsHistoriquePr recopieView() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public boolean controleFiche(Serializable bean) {
+    public boolean controleFiche(YvsHistoriquePr bean) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void populateView(Serializable bean) {
+    public void populateView(YvsHistoriquePr bean) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
