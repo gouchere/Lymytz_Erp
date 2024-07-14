@@ -23,6 +23,8 @@ import yvs.dao.JDBC;
  */
 public class PaginatorResult<T extends Serializable> {
 
+    Logger logger=Logger.getLogger(PaginatorResult.class.getName());
+    
     public boolean IS_JDBC = false;
     JDBC<T> jdbc;
     T entity;
@@ -276,11 +278,6 @@ public class PaginatorResult<T extends Serializable> {
         } else {
             setIdebut(getIdebut() - ((init) ? 0 : imax));
         }
-//        if (avancer) {
-//            setIdebut((init) ? 0:(getIdebut() + imax));
-//        } else {
-//            setIdebut((init) ? 0:(getIdebut() - imax));
-//        }
         if (getIdebut() < 0) {
             setIdebut(0);
         }
@@ -430,13 +427,11 @@ public class PaginatorResult<T extends Serializable> {
                 alias = field.replace("(", " ").replace(")", "");
             }
         }
-//        queryIds = (!params.isEmpty()) ? buildDynamicQuery(params, "SELECT " + alias + "." + fieldId + " FROM " + entity + " WHERE") : buildDynamicQuery(params, "SELECT " + alias + "." + fieldId + " FROM " + entity);
 //        //Ajouter les critère de tri
         if (paramsOrder != null ? paramsOrder.trim().length() > 0 : false) {
             nameQueri = nameQueri + " ORDER BY " + paramsOrder;
-//            queryIds = queryIds + " ORDER BY " + paramsOrder;
         }
-        System.err.println("Query :" + nameQueri);
+        logger.info(String.format("Query : %s", nameQueri));
         return pagineResult(avance, init, imax);
     }
 

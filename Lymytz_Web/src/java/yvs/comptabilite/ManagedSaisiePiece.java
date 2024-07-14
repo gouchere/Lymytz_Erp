@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
@@ -119,7 +120,6 @@ import yvs.entity.grh.salaire.YvsGrhDetailPrelevementEmps;
 import yvs.entity.grh.salaire.YvsGrhOrdreCalculSalaire;
 import yvs.entity.mutuelle.YvsMutPeriodeExercice;
 import yvs.entity.param.YvsAgences;
-import yvs.entity.param.YvsSocietes;
 import yvs.entity.produits.YvsBaseArticles;
 import yvs.entity.stat.export.YvsStatExportEtat;
 import yvs.entity.tiers.YvsBaseTiers;
@@ -230,6 +230,8 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     private Date dateExtourne = new Date();
     private long caisseUpgrade;
     private ServiceComptabilite service;
+
+    private Profil profilFilter;
 
     public ManagedSaisiePiece() {
         listePiece = new ArrayList<>();
@@ -1039,14 +1041,14 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     }
 
     public void loadAllLettrage(boolean avancer, boolean init) {
-        int idx = 0;
-        if (groupBy.equals("C")) {
+        int idx;
+        if ("C".equals(groupBy)) {
             idx = p_contenu.getParams().indexOf(new ParametreRequete("compte"));
             if (idx < 0) {
                 return;
             }
         }
-        if (groupBy.equals("T")) {
+        if ("T".equals(groupBy)) {
             idx = p_contenu.getParams().indexOf(new ParametreRequete("tiers"));
             if (idx < 0) {
                 return;
@@ -2429,12 +2431,14 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     }
 
     public double giveSoePieces(List<YvsComptaContentJournal> contenus) {
-        double re, cr = 0, db = 0;
-        for (YvsComptaContentJournal cc : contenus) {
-            db += cc.getDebit();
-            cr += cc.getCredit();
+        double re = 0, cr = 0, db = 0;
+        if (contenus != null) {
+            for (YvsComptaContentJournal cc : contenus) {
+                db += cc.getDebit();
+                cr += cc.getCredit();
+            }
+            re = db - cr;
         }
-        re = db - cr;
         return arrondi(re, 3);
     }
 
@@ -10218,6 +10222,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     public void chooseProfilLetter(SelectEvent ev) {
         if (ev != null) {
             Profil y = (Profil) ev.getObject();
+            this.profilFilter = y;
             ParametreRequete p = new ParametreRequete(null, "tiers", tiersSearch, "=", "AND");
             p.getOtherExpression().add(new ParametreRequete("y.compteTiers", "tiers", y.getType().equals(yvs.dao.salaire.service.Constantes.BASE_TIERS_EMPLOYE) ? y.getIdTiers() : y.getId(), "=", "AND"));
             p.getOtherExpression().add(new ParametreRequete("y.tableTiers", "tableTiers", y.getTableTiers(), "=", "AND"));
@@ -10335,15 +10340,15 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                 tiersLetter = UtilTiers.buildBeanTiers(y);
                 if (tiersLetter.getProfils().size() > 0) {
                     //Recupere le profil correspondant au code entré
-                    Profil profil = findOneProfil(tiersLetter, tiersSearch);
-                    if (profil == null) {// S'il n'existe pas un seul profil on ouvre la boite de dialogue des profil
+                    this.profilFilter = findOneProfil(tiersLetter, tiersSearch);
+                    if (this.profilFilter == null) {// S'il n'existe pas un seul profil on ouvre la boite de dialogue des profil
                         openDialog("dlgProfilTiers");
                         update("table_profils_tiers_letter");
                         return;
                     } else {// S'il existe un seul profil on ajoute le profil dans la liste des parametres
                         p = new ParametreRequete(null, "tiers", tiersSearch, "=", "AND");
-                        p.getOtherExpression().add(new ParametreRequete("y.compteTiers", "tiers", profil.getType().equals(yvs.dao.salaire.service.Constantes.BASE_TIERS_EMPLOYE) ? profil.getIdTiers() : profil.getId(), "=", "AND"));
-                        p.getOtherExpression().add(new ParametreRequete("y.tableTiers", "tableTiers", profil.getTableTiers(), "=", "AND"));
+                        p.getOtherExpression().add(new ParametreRequete("y.compteTiers", "tiers", this.profilFilter.getType().equals(yvs.dao.salaire.service.Constantes.BASE_TIERS_EMPLOYE) ? this.profilFilter.getIdTiers() : this.profilFilter.getId(), "=", "AND"));
+                        p.getOtherExpression().add(new ParametreRequete("y.tableTiers", "tableTiers", this.profilFilter.getTableTiers(), "=", "AND"));
                     }
                 } else {
                     p = new ParametreRequete("y.compteTiers", "tiers", 0, "=", "AND");
@@ -11607,11 +11612,81 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         }
         int i = 0;
         for (Object[] line : pieces) {
-            System.err.println("Ligne  " + (i++) + " / " + pieces.size());
             lettre = nextLettre(exo);
             dao.requeteLibre(queryUpdate, new Options[]{new Options(lettre, 1), new Options(currentAgence.getSociete().getId(), 2), new Options(selectCompte.getId(), 3), new Options(agenceSearch, 4), new Options(exerciceSearch, 5), new Options((String) line[0], 6)});
         }
         succes();
 
+    }
+
+    public void filtreLesOperationMalLettre() {
+        // Récupérer les lettres non equilibré
+        String query = null;
+        Options[] params = null;
+        List<String> lettres;
+        if (null != groupBy) {
+            switch (groupBy) {
+                case "T":
+                    query = "SELECT c.lettrage FROM yvs_compta_content_journal c INNER JOIN yvs_compta_pieces_comptable p ON p.id=c.piece "
+                            + "INNER JOIN yvs_compta_journaux j ON j.id=p.journal "
+                            + "INNER JOIN yvs_agences a ON a.id=j.agence "
+                            + "WHERE a.societe=? AND (c.compte_tiers=? and c.table_tiers=?) "
+                            + "AND a.id=? AND p.exercice=? AND TRIM(COALESCE(lettrage,''))!='' "
+                            + "GROUP BY c.lettrage HAVING(SUM(c.debit-c.credit)!=0)";
+                    params = new Options[]{
+                        new Options(currentAgence.getSociete().getId(), 1),
+                        new Options(this.profilFilter.getIdTiers(), 2),
+                        new Options(this.profilFilter.getTableTiers(), 3),
+                        new Options(currentAgence.getId(), 4),
+                        new Options(exerciceSearch, 5)};
+                    break;
+                case "C":
+                    query = "SELECT c.lettrage FROM yvs_compta_content_journal c INNER JOIN yvs_compta_pieces_comptable p ON p.id=c.piece "
+                            + "INNER JOIN yvs_compta_journaux j ON j.id=p.journal "
+                            + "INNER JOIN yvs_agences a ON a.id=j.agence "
+                            + "WHERE a.societe=? AND c.compte_general=? AND a.id=? AND p.exercice=? AND TRIM(COALESCE(lettrage,''))!='' "
+                            + "GROUP BY c.lettrage HAVING(SUM(c.debit-c.credit)!=0)";
+                    params = new Options[]{
+                        new Options(currentAgence.getSociete().getId(), 1),
+                        new Options(selectCompte.getId(), 2),
+                        new Options(currentAgence.getId(), 3),
+                        new Options(exerciceSearch, 4)};
+                    break;
+            }
+        }
+        if (query != null) {
+            lettres = dao.loadListBySqlQuery(query, params);
+            if (!lettres.isEmpty()) {
+                ParametreRequete p = new ParametreRequete("y.lettrage", "lettrage", lettres, "IN", "AND");
+                p_contenu.addParam(p);
+                loadAllLettrage(true, true);
+                contenusLettrer.clear();
+                contenusLettrer.addAll(contenus);
+                openDialog("dlg_op_mal_lettre");
+                update("data_operation_mal_lettre");
+            }
+        }
+    }
+
+    public void annulerLeLettrageDesOperationDesequilibre() {
+        List<Long> ids = new ArrayList<>();
+        StringBuilder joinedList = new StringBuilder();
+        for (int i = 0; i < contenusLettrer.size(); i++) {
+            joinedList.append(contenusLettrer.get(i).getId());
+            if (i < contenusLettrer.size() - 1) {
+                joinedList.append(",");
+            }
+        }
+        try {
+            String queryUpdate = "UPDATE yvs_compta_content_journal SET lettrage=null WHERE id IN (" + joinedList.toString() + ")";
+            dao.requeteLibre(queryUpdate, new Options[]{});
+            succes();
+        } catch (Exception ex) {
+            log.log(Level.SEVERE, "Erreur lors de l'annulation du lettrage", ex);
+            getErrorMessage("Impossible d'effectuer l'opération !");
+            return;
+        }
+        contenusLettrer.clear();
+        succes();
     }
 }
