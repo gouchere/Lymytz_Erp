@@ -1711,10 +1711,10 @@ public class UtilCompta {
             r.setReferenceExterne(y.getReferenceExterne());
             r.setPhasesReglement(y.getPhasesReglement());
             for (YvsComptaNotifReglementVente c : y.getNotifs()) {
-                r.getVenteDiverses().add(buildBeanAcomptesVenteDivers(c));
+                r.getVentesEtDivers().add(buildBeanAcomptesVenteDivers(c));
             }
             for (YvsComptaNotifReglementDocDivers c : y.getNotifsDivers()) {
-                r.getVenteDiverses().add(buildBeanAcomptesVenteDivers(c));
+                r.getVentesEtDivers().add(buildBeanAcomptesVenteDivers(c));
             }
             if (dao != null) {
                 Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{y});
@@ -1866,10 +1866,10 @@ public class UtilCompta {
             r.setPhasesReglement(y.getPhasesReglement());
             r.setDatePaiement(y.getDatePaiement());
             for (YvsComptaNotifReglementAchat c : y.getNotifs()) {
-                r.getAchatDiverses().add(buildBeanAcomptesAchatDivers(c));
+                r.getAchatsEtDivers().add(buildBeanAcomptesAchatDivers(c));
             }
             for (YvsComptaNotifReglementDocDivers c : y.getNotifsDivers()) {
-                r.getAchatDiverses().add(buildBeanAcomptesAchatDivers(c));
+                r.getAchatsEtDivers().add(buildBeanAcomptesAchatDivers(c));
             }
             if (dao != null) {
                 Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{y});

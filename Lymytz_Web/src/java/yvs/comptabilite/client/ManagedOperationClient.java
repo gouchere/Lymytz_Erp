@@ -766,15 +766,15 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
     }
 
     public void loadNotifAcompte(boolean avance, boolean init) {
-        compte.getVenteDiverses().clear();
+        compte.getVentesEtDivers().clear();
         if (selectCompte != null ? selectCompte.getId() > 0 : false) {
             loadNotifVenteAcompte(avance, init);
             loadNotifDiversAcompte(avance, init);
             for (YvsComptaNotifReglementVente c : selectCompte.getNotifs()) {
-                compte.getVenteDiverses().add(buildBeanAcomptesVenteDivers(c));
+                compte.getVentesEtDivers().add(buildBeanAcomptesVenteDivers(c));
             }
             for (YvsComptaNotifReglementDocDivers c : selectCompte.getNotifsDivers()) {
-                compte.getVenteDiverses().add(buildBeanAcomptesVenteDivers(c));
+                compte.getVentesEtDivers().add(buildBeanAcomptesVenteDivers(c));
             }
         } else {
             getErrorMessage("Vous devez selectionner un acompte");
@@ -1287,11 +1287,11 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                             y = (YvsComptaNotifReglementVente) dao.save1(y);
                         }
                         AcomptesVenteDivers b = UtilCompta.buildBeanAcomptesVenteDivers(y);
-                        int idx = compte.getVenteDiverses().indexOf(b);
+                        int idx = compte.getVentesEtDivers().indexOf(b);
                         if (idx > -1) {
-                            compte.getVenteDiverses().set(idx, b);
+                            compte.getVentesEtDivers().set(idx, b);
                         } else {
-                            compte.getVenteDiverses().add(0, b);
+                            compte.getVentesEtDivers().add(0, b);
                         }
                         idx = selectCompte.getNotifs().indexOf(y);
                         if (idx > -1) {
@@ -1345,11 +1345,11 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                                 y = (YvsComptaNotifReglementDocDivers) dao.save1(y);
                             }
                             AcomptesVenteDivers b = UtilCompta.buildBeanAcomptesVenteDivers(y);
-                            int idx = compte.getVenteDiverses().indexOf(b);
+                            int idx = compte.getVentesEtDivers().indexOf(b);
                             if (idx > -1) {
-                                compte.getVenteDiverses().set(idx, b);
+                                compte.getVentesEtDivers().set(idx, b);
                             } else {
-                                compte.getVenteDiverses().add(0, b);
+                                compte.getVentesEtDivers().add(0, b);
                             }
                             idx = selectCompte.getNotifs().indexOf(y);
                             if (idx > -1) {
@@ -1418,11 +1418,11 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                     y = (YvsComptaNotifReglementVente) dao.save1(y);
                 }
                 AcomptesVenteDivers b = UtilCompta.buildBeanAcomptesVenteDivers(y);
-                int idx = compte.getVenteDiverses().indexOf(b);
+                int idx = compte.getVentesEtDivers().indexOf(b);
                 if (idx > -1) {
-                    compte.getVenteDiverses().set(idx, b);
+                    compte.getVentesEtDivers().set(idx, b);
                 } else {
-                    compte.getVenteDiverses().add(0, b);
+                    compte.getVentesEtDivers().add(0, b);
                 }
                 idx = selectCompte.getNotifs().indexOf(y);
                 if (idx > -1) {
@@ -1483,14 +1483,14 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                 }
                 int idx = 0;
 
-                if (compte.getVenteDiverses() != null ? !compte.getVenteDiverses().isEmpty() : false) {
+                if (compte.getVentesEtDivers() != null ? !compte.getVentesEtDivers().isEmpty() : false) {
                     AcomptesVenteDivers a = UtilCompta.buildBeanAcomptesVenteDivers(y);
-                    idx = compte.getVenteDiverses().indexOf(a);
+                    idx = compte.getVentesEtDivers().indexOf(a);
                     if (idx > -1) {
-                        compte.getVenteDiverses().set(idx, a);
+                        compte.getVentesEtDivers().set(idx, a);
 
                     } else {
-                        compte.getVenteDiverses().add(0, a);
+                        compte.getVentesEtDivers().add(0, a);
                     }
                 }
                 if (selectCompte.getNotifsDivers() != null ? !selectCompte.getNotifsDivers().isEmpty() : false) {
@@ -1545,7 +1545,7 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
 
     private Double validePieceExist(Double montantReste) {
         if (montantReste > 0) {
-            for (AcomptesVenteDivers a : compte.getVenteDiverses()) {
+            for (AcomptesVenteDivers a : compte.getVentesEtDivers()) {
                 setMontantTotalDoc(a.getNotifs().getPieceVente().getVente());
                 double montantResteAPayer = a.getNotifs().getPieceVente().getVente().getMontantResteApayer();
                 if (montantResteAPayer > 0) {
@@ -1837,7 +1837,7 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                 }
 
                 AcomptesVenteDivers b = UtilCompta.buildBeanAcomptesVenteDivers(y);
-                compte.getVenteDiverses().remove(b);
+                compte.getVentesEtDivers().remove(b);
                 selectCompte.getNotifs().remove(y);
 
                 int idx = acomptes.indexOf(selectCompte);
@@ -1882,7 +1882,7 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                 }
 
                 AcomptesVenteDivers b = UtilCompta.buildBeanAcomptesVenteDivers(y);
-                compte.getVenteDiverses().remove(b);
+                compte.getVentesEtDivers().remove(b);
                 selectCompte.getNotifsDivers().remove(y);
 
                 int idx = acomptes.indexOf(selectCompte);
@@ -2687,8 +2687,8 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
 
     public void encaisserPiece(YvsComptaNotifReglementVente y) {
         if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
-            Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
-            double montant = y.getPieceVente().getMontant() + (reste != null ? reste : 0);
+            Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
+            double montant = y.getPieceVente().getMontant() + (totalPayer != null ? totalPayer : 0);
             if (montant > compte.getMontant()) {
                 getErrorMessage("Vous ne pouvez pas valider ce montant.. car la somme des pièces excedera le montant de l'acompte");
                 return;
@@ -2698,10 +2698,8 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
             y.getPieceVente().setDateValide(new Date());
             y.getPieceVente().setMouvement(Constantes.MOUV_CAISS_ENTREE.charAt(0));
             changeStatutPiece(y, Constantes.STATUT_DOC_PAYER);
-            ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
-            );
-            if (y.getPieceVente()
-                    .getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
+            ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
+            if (y.getPieceVente().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
                 if (dao.isComptabilise(y.getPieceVente().getVente().getId(), Constantes.SCR_VENTE)) {
                     if (w != null) {
                         w.comptabiliserCaisseVente(y.getPieceVente(), false, false);
@@ -2722,8 +2720,8 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
             if (a.getType().equals("OD_V")) {
                 YvsComptaNotifReglementDocDivers z = a.getNotif_divers();
                 if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
-                    Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
-                    double montant = z.getPieceDocDivers().getMontant() + (reste != null ? reste : 0);
+                    Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
+                    double montant = z.getPieceDocDivers().getMontant() + (totalPayer != null ? totalPayer : 0);
                     if (montant > compte.getMontant()) {
                         getErrorMessage("Vous ne pouvez pas valider ce montant.. car la somme des pièces excedera le montant de l'acompte");
                         return;
@@ -2733,32 +2731,26 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                     z.getPieceDocDivers().setDateValider(new Date());
                     z.getPieceDocDivers().setMouvement(Constantes.MOUV_CAISS_ENTREE);
                     changeStatutPiece(z, Constantes.STATUT_DOC_PAYER);
-                    ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
-                    );
+                    ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
                     ManagedDocDivers d = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
-
-                    if (z.getPieceDocDivers()
-                            .getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
+                    if (z.getPieceDocDivers().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
                         if (dao.isComptabilise(z.getPieceDocDivers().getDocDivers().getId(), Constantes.SCR_VENTE)) {
                             if (w != null) {
                                 w.comptabiliserCaisseDivers(z.getPieceDocDivers(), false, false);
                             }
                         }
                     }
-                    if (d
-                            != null) {
+                    if (d != null) {
                         d.equilibreOne(z.getPieceDocDivers().getDocDivers());
                     }
 
                     AcomptesVenteDivers ad = UtilCompta.buildBeanAcomptesVenteDivers(z);
-                    int index = compte.getVenteDiverses().indexOf(ad);
-                    if (index
-                            > -1) {
-                        compte.getVenteDiverses().set(index, ad);
+                    int index = compte.getVentesEtDivers().indexOf(ad);
+                    if (index > -1) {
+                        compte.getVentesEtDivers().set(index, ad);
                     }
 
-                    update(
-                            "data_reglement_acompte");
+                    update("data_reglement_acompte");
                 } else {
                     getErrorMessage("Cette acompte n'est pas encore encaissé");
                 }
@@ -2768,7 +2760,7 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
     }
 
     public void verifyComptabilisation() {
-        for (AcomptesVenteDivers a : compte.getVenteDiverses()) {
+        for (AcomptesVenteDivers a : compte.getVentesEtDivers()) {
             isComptabilisePiece(a);
         }
     }
@@ -2817,7 +2809,7 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                     acomptes.set(idx, selectCompte);
                 }
                 //modifie la vue
-                for (AcomptesVenteDivers a : compte.getVenteDiverses()) {
+                for (AcomptesVenteDivers a : compte.getVentesEtDivers()) {
                     if (a.getNotifs().equals(y)) {
                         a.setNotifs(y);
                         a.setStatutPiece(y.getPieceVente().getStatutPiece().toString());
@@ -2835,8 +2827,8 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
 
                 Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
                 Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteUnBindForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
-                compte.setReste(reste);
-                compte.setResteUnBlind(resteUnBind);
+                compte.setReste((reste != null ? reste : 0));
+                compte.setResteUnBlind((resteUnBind != null ? resteUnBind : 0));
                 Map<String, String> statuts = dao.getEquilibreVente(y.getPieceVente().getVente().getId());
                 if (statuts != null) {
                     y.getPieceVente().getVente().setStatutLivre(statuts.get("statut_livre"));
@@ -2874,14 +2866,14 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                 }
                 Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
                 Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteUnBindForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
-                compte.setReste(reste);
-                compte.setResteUnBlind(resteUnBind);
+                compte.setReste((reste != null ? reste : 0));
+                compte.setResteUnBlind((resteUnBind != null ? resteUnBind : 0));
                 w.equilibreOne(y.getPieceDocDivers().getDocDivers());
                 equilibre(selectCompte);
                 AcomptesVenteDivers a = UtilCompta.buildBeanAcomptesVenteDivers(y);
-                int index = compte.getVenteDiverses().indexOf(a);
+                int index = compte.getVentesEtDivers().indexOf(a);
                 if (index > -1) {
-                    compte.getVenteDiverses().set(index, a);
+                    compte.getVentesEtDivers().set(index, a);
                 }
                 update("data_reglement_acompte");
             }
@@ -4116,7 +4108,7 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
 
     public void comptabilisePieceAll() {
         try {
-            for (AcomptesVenteDivers piece : compte.getVenteDiverses()) {
+            for (AcomptesVenteDivers piece : compte.getVentesEtDivers()) {
                 comptabilisePiece(piece, false);
             }
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -4141,9 +4133,9 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                         succes = w.comptabiliserCaisseDivers(piece.getNotif_divers().getPieceDocDivers(), msg, msg);
                     }
                     piece.setComptabilise(succes);
-                    int index = compte.getVenteDiverses().indexOf(piece);
+                    int index = compte.getVentesEtDivers().indexOf(piece);
                     if (index > -1) {
-                        compte.getVenteDiverses().set(index, piece);
+                        compte.getVentesEtDivers().set(index, piece);
                     }
                 }
             }
@@ -4165,9 +4157,9 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                     }
                     if (succes) {
                         piece.setComptabilise(false);
-                        int index = compte.getVenteDiverses().indexOf(piece);
+                        int index = compte.getVentesEtDivers().indexOf(piece);
                         if (index > -1) {
-                            compte.getVenteDiverses().set(index, piece);
+                            compte.getVentesEtDivers().set(index, piece);
                         }
                     }
                 }
