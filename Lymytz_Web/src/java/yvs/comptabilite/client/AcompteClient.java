@@ -42,12 +42,12 @@ public class AcompteClient implements Serializable {
     private Caisses caisse = new Caisses();
     private ModeDeReglement mode = new ModeDeReglement();
     private List<YvsComptaPhaseAcompteVente> phasesReglement;
-    private List<AcomptesVenteDivers> venteDiverses;
+    private List<AcomptesVenteDivers> ventesEtDivers;
     private String firstEtape = "VALIDER";
 
     public AcompteClient() {
         phasesReglement = new ArrayList<>();
-        venteDiverses = new ArrayList<>();
+        ventesEtDivers = new ArrayList<>();
     }
 
     public AcompteClient(long id) {
@@ -215,12 +215,12 @@ public class AcompteClient implements Serializable {
         this.phasesReglement = phasesReglement;
     }
 
-    public List<AcomptesVenteDivers> getVenteDiverses() {
-        return venteDiverses;
+    public List<AcomptesVenteDivers> getVentesEtDivers() {
+        return ventesEtDivers;
     }
 
-    public void setVenteDiverses(List<AcomptesVenteDivers> venteDiverses) {
-        this.venteDiverses = venteDiverses;
+    public void setVentesEtDivers(List<AcomptesVenteDivers> ventesEtDivers) {
+        this.ventesEtDivers = ventesEtDivers;
     }
 
     @Override

@@ -721,15 +721,15 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
     }
 
     public void loadNotifAcompte(boolean avance, boolean init) {
-        compte.getAchatDiverses().clear();
+        compte.getAchatsEtDivers().clear();
         if (selectCompte != null ? selectCompte.getId() > 0 : false) {
             loadNotifAchatAcompte(avance, init);
             loadNotifDiversAcompte(avance, init);
             for (YvsComptaNotifReglementAchat c : selectCompte.getNotifs()) {
-                compte.getAchatDiverses().add(UtilCompta.buildBeanAcomptesAchatDivers(c));
+                compte.getAchatsEtDivers().add(UtilCompta.buildBeanAcomptesAchatDivers(c));
             }
             for (YvsComptaNotifReglementDocDivers c : selectCompte.getNotifsDivers()) {
-                compte.getAchatDiverses().add(UtilCompta.buildBeanAcomptesAchatDivers(c));
+                compte.getAchatsEtDivers().add(UtilCompta.buildBeanAcomptesAchatDivers(c));
             }
         } else {
             getErrorMessage("Vous devez selectionner un acompte");
@@ -1218,11 +1218,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                             y = (YvsComptaNotifReglementAchat) dao.save1(y);
                         }
                         AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                        int idx = compte.getAchatDiverses().indexOf(a);
+                        int idx = compte.getAchatsEtDivers().indexOf(a);
                         if (idx > -1) {
-                            compte.getAchatDiverses().set(idx, a);
+                            compte.getAchatsEtDivers().set(idx, a);
                         } else {
-                            compte.getAchatDiverses().add(0, a);
+                            compte.getAchatsEtDivers().add(0, a);
                         }
                         idx = selectCompte.getNotifs().indexOf(y);
                         if (idx > -1) {
@@ -1281,14 +1281,14 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         }
                         int idx = 0;
 
-                        if (compte.getAchatDiverses() != null ? !compte.getAchatDiverses().isEmpty() : false) {
+                        if (compte.getAchatsEtDivers() != null ? !compte.getAchatsEtDivers().isEmpty() : false) {
                             AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                            idx = compte.getAchatDiverses().indexOf(a);
+                            idx = compte.getAchatsEtDivers().indexOf(a);
                             if (idx > -1) {
-                                compte.getAchatDiverses().set(idx, a);
+                                compte.getAchatsEtDivers().set(idx, a);
 
                             } else {
-                                compte.getAchatDiverses().add(0, a);
+                                compte.getAchatsEtDivers().add(0, a);
                             }
                         }
                         if (selectCompte.getNotifsDivers() != null ? !selectCompte.getNotifsDivers().isEmpty() : false) {
@@ -1358,11 +1358,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     y = (YvsComptaNotifReglementAchat) dao.save1(y);
                 }
                 AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                int idx = compte.getAchatDiverses().indexOf(a);
+                int idx = compte.getAchatsEtDivers().indexOf(a);
                 if (idx > -1) {
-                    compte.getAchatDiverses().set(idx, a);
+                    compte.getAchatsEtDivers().set(idx, a);
                 } else {
-                    compte.getAchatDiverses().add(0, a);
+                    compte.getAchatsEtDivers().add(0, a);
                 }
                 idx = selectCompte.getNotifs().indexOf(y);
                 if (idx > -1) {
@@ -1410,14 +1410,14 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 }
                 int idx = 0;
 
-                if (compte.getAchatDiverses() != null ? !compte.getAchatDiverses().isEmpty() : false) {
+                if (compte.getAchatsEtDivers() != null ? !compte.getAchatsEtDivers().isEmpty() : false) {
                     AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                    idx = compte.getAchatDiverses().indexOf(a);
+                    idx = compte.getAchatsEtDivers().indexOf(a);
                     if (idx > -1) {
-                        compte.getAchatDiverses().set(idx, a);
+                        compte.getAchatsEtDivers().set(idx, a);
 
                     } else {
-                        compte.getAchatDiverses().add(0, a);
+                        compte.getAchatsEtDivers().add(0, a);
                     }
                 }
                 if (selectCompte.getNotifsDivers() != null ? !selectCompte.getNotifsDivers().isEmpty() : false) {
@@ -1730,7 +1730,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 }
 
                 AcomptesAchatDivers b = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                compte.getAchatDiverses().remove(b);
+                compte.getAchatsEtDivers().remove(b);
                 selectCompte.getNotifs().remove(y);
 
                 int idx = acomptes.indexOf(selectCompte);
@@ -1774,7 +1774,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 }
 
                 AcomptesAchatDivers b = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                compte.getAchatDiverses().remove(b);
+                compte.getAchatsEtDivers().remove(b);
                 selectCompte.getNotifsDivers().remove(y);
 
                 int idx = acomptes.indexOf(selectCompte);
@@ -2009,7 +2009,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
     }
 
     public void verifyComptabilisation() {
-        for (AcomptesAchatDivers a : compte.getAchatDiverses()) {
+        for (AcomptesAchatDivers a : compte.getAchatsEtDivers()) {
             isComptabilisePiece(a);
         }
     }
@@ -2489,9 +2489,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
 
     public void encaisserPiece(YvsComptaNotifReglementAchat y) {
         if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
-            Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
+            Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
             // (reste != null ? reste : 0);
-            double montant = y.getPieceAchat().getMontant() + (reste != null ? reste : 0);
+            double montant = y.getPieceAchat().getMontant() + (totalPayer != null ? totalPayer : 0);
             if (montant > compte.getMontant()) {
                 getErrorMessage("Vous ne pouvez pas valider ce montant.. car la somme des pièces excedera le montant de l'acompte");
                 return;
@@ -2524,9 +2524,8 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             if (a.getType().equals("OD_A")) {
                 YvsComptaNotifReglementDocDivers z = a.getNotif_divers();
                 if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
-                    Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
-                    // (reste != null ? reste : 0);
-                    double montant = z.getPieceDocDivers().getMontant() + (reste != null ? reste : 0);
+                    Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
+                    double montant = z.getPieceDocDivers().getMontant() + (totalPayer != null ? totalPayer : 0);
                     if (montant > compte.getMontant()) {
                         getErrorMessage("Vous ne pouvez pas valider ce montant.. car la somme des pièces excedera le montant de l'acompte");
                         return;
@@ -2549,9 +2548,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         }
                     }
                     AcomptesAchatDivers ad = UtilCompta.buildBeanAcomptesAchatDivers(z);
-                    int index = compte.getAchatDiverses().indexOf(ad);
+                    int index = compte.getAchatsEtDivers().indexOf(ad);
                     if (index > -1) {
-                        compte.getAchatDiverses().set(index, ad);
+                        compte.getAchatsEtDivers().set(index, ad);
                     }
                     update("data_reglement_acompte_fa");
 
@@ -2621,9 +2620,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 w.equilibreOne(y.getPieceDocDivers().getDocDivers());
                 equilibre(selectCompte);
                 AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                int index = compte.getAchatDiverses().indexOf(a);
+                int index = compte.getAchatsEtDivers().indexOf(a);
                 if (index > -1) {
-                    compte.getAchatDiverses().set(index, a);
+                    compte.getAchatsEtDivers().set(index, a);
                 }
                 update("data_reglement_acompte_fa");
             }
@@ -2647,7 +2646,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     acomptes.set(idx, selectCompte);
                 }
                 //modifie la vue
-                for (AcomptesAchatDivers a : compte.getAchatDiverses()) {
+                for (AcomptesAchatDivers a : compte.getAchatsEtDivers()) {
                     if (a.getNotifs().equals(y)) {
                         a.setNotifs(y);
                         a.setStatutPiece(y.getPieceAchat().getStatutPiece().toString());
@@ -3879,7 +3878,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
 
     public void comptabilisePieceAll() {
         try {
-            for (AcomptesAchatDivers piece : compte.getAchatDiverses()) {
+            for (AcomptesAchatDivers piece : compte.getAchatsEtDivers()) {
                 comptabilisePiece(piece, false);
             }
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3904,9 +3903,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         succes = w.comptabiliserCaisseDivers(piece.getNotif_divers().getPieceDocDivers(), msg, msg);
                     }
                     piece.setComptabilise(succes);
-                    int index = compte.getAchatDiverses().indexOf(piece);
+                    int index = compte.getAchatsEtDivers().indexOf(piece);
                     if (index > -1) {
-                        compte.getAchatDiverses().set(index, piece);
+                        compte.getAchatsEtDivers().set(index, piece);
                     }
                 }
             }
@@ -3928,9 +3927,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     }
                     if (succes) {
                         piece.setComptabilise(false);
-                        int index = compte.getAchatDiverses().indexOf(piece);
+                        int index = compte.getAchatsEtDivers().indexOf(piece);
                         if (index > -1) {
-                            compte.getAchatDiverses().set(index, piece);
+                            compte.getAchatsEtDivers().set(index, piece);
                         }
                     }
                 }

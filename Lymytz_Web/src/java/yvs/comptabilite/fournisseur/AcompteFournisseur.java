@@ -44,11 +44,11 @@ public class AcompteFournisseur implements Serializable {
     private ModeDeReglement mode = new ModeDeReglement();
     private List<YvsComptaPhaseAcompteAchat> phasesReglement;
     private String firstEtape = "VALIDER";
-    private List<AcomptesAchatDivers> achatDiverses;
+    private List<AcomptesAchatDivers> achatsEtDivers;
 
     public AcompteFournisseur() {
         phasesReglement = new ArrayList<>();
-        achatDiverses = new ArrayList<>();
+        achatsEtDivers = new ArrayList<>();
     }
 
     public AcompteFournisseur(long id) {
@@ -216,12 +216,12 @@ public class AcompteFournisseur implements Serializable {
         this.firstEtape = firstEtape;
     }
 
-    public List<AcomptesAchatDivers> getAchatDiverses() {
-        return achatDiverses;
+    public List<AcomptesAchatDivers> getAchatsEtDivers() {
+        return achatsEtDivers;
     }
 
-    public void setAchatDiverses(List<AcomptesAchatDivers> achatDiverses) {
-        this.achatDiverses = achatDiverses;
+    public void setAchatsEtDivers(List<AcomptesAchatDivers> achatsEtDivers) {
+        this.achatsEtDivers = achatsEtDivers;
     }
 
     public void setDatePaiement(Date datePaiement) {
