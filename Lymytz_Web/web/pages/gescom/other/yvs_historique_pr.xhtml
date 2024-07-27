@@ -11,7 +11,7 @@
         #{navigations.naviguationApps('Historique PR','modGescom', 'smenHistoriquePR', true, managedHistoriquePR)}
     </ui:define> 
     <ui:define name="contents">
-        #{managedHistoriquePR.doNothing()}
+        #{managedHistoriquePR.choosePrSearch()}
         #{managedDepot.loadAllDepot()}
         <script type="text/javascript">
             $(function() {
@@ -56,13 +56,13 @@
                                 <span>#{hist.id}</span>
                             </p:column>
                             <p:column headerText="Article">
-                                <span>#{managedHistoriquePR.getArticleName(hist)}</span>
+                                <span>#{hist.conditionnement.article.designation} [#{hist.conditionnement.unite.reference}]</span>
                             </p:column>
                             <p:column headerText="Date evaluation" style="text-align: center;width: 20%">
                                 <h:outputText value="#{hist.dateEvaluation}" converter="DATE"/>
                             </p:column>
                             <p:column headerText="#{lab.LC_PCP_depot}">
-                                <span>#{managedHistoriquePR.getDepotName(hist)}</span> 
+                                <span>#{hist.depot.designation}</span> 
                             </p:column>
                             <p:column headerText="P.R" style="text-align: right;width: 20%">
                                 <h:outputText value="#{hist.pr}" converter="DNA"/>
@@ -127,34 +127,43 @@
                 <div class="yvs_form_historique_pr display_auteur" align="right"  style="font-style: italic;">
 
                 </div>
-                <h:panelGrid columns="3" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
-                    <h:outputText value="Date" />
-                    <h:outputText value="Article" />
-                    <h:outputText value="Depot" />
-                    <h:panelGrid columns="2" style="font-size: 0.8em;margin-top: 3px" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
-                        <h:selectBooleanCheckbox value="#{managedHistoriquePR.dateSearch}" style="margin-top: 2px;float: right">
+                <h:panelGrid columns="4" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                    <h:panelGroup>
+                        <h:selectBooleanCheckbox value="#{managedHistoriquePR.dateSearch}">
                             <p:ajax event="valueChange" listener="#{managedHistoriquePR.chooseDateSearch()}" update="blog_date_search_historique_pr :main_historique_pr:data_historique_pr"/>
                         </h:selectBooleanCheckbox>
-                        <h:panelGrid columns="2" style="float: right;margin-top: 3px">
-                            <h:panelGroup id="blog_date_search_historique_pr">
-                                <p:calendar value="#{managedHistoriquePR.dateDebutSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedHistoriquePR.dateSearch}" size="10" style="font-size: 0.8em">
-                                    <p:ajax event="dateSelect" listener="#{managedHistoriquePR.chooseDateSearch()}" update=":main_historique_pr:data_historique_pr"/>
-                                </p:calendar>
-                                <p:spacer width="5px" style="background: black"/>
-                                <p:calendar value="#{managedHistoriquePR.dateFinSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedHistoriquePR.dateSearch}" size="10" style="font-size: 0.8em">
-                                    <p:ajax event="dateSelect" listener="#{managedHistoriquePR.chooseDateSearch()}" update=":main_historique_pr:data_historique_pr"/>
-                                </p:calendar>
-                            </h:panelGroup>
-                        </h:panelGrid>
-                    </h:panelGrid>
+                        <h:outputText value="Date" />
+                    </h:panelGroup>
+                    <h:outputText value="Article" />
+                    <h:outputText value="Depot" />
+                    <h:panelGroup>
+                        <h:outputText value="PR" style="float:left;margin-top: 2px"/>
+                        <h:selectOneMenu value="#{managedHistoriquePR.operateurPrSearch}" style="float:right;margin-right: 5px;">
+                            <f:selectItem itemLabel="#{lab.LC_PRA_egale}" itemValue="="/>
+                            <f:selectItem itemLabel="Supérieur" itemValue=">"/>
+                            <p:ajax event="valueChange" update=":main_historique_pr:data_historique_pr" listener="#{managedHistoriquePR.choosePrSearch()}" />
+                        </h:selectOneMenu>  
+                    </h:panelGroup>
+                    <h:panelGroup id="blog_date_search_historique_pr">
+                        <p:calendar value="#{managedHistoriquePR.dateDebutSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedHistoriquePR.dateSearch}" size="10" style="font-size: 0.9em">
+                            <p:ajax event="dateSelect" listener="#{managedHistoriquePR.chooseDateSearch()}" update=":main_historique_pr:data_historique_pr"/>
+                        </p:calendar>
+                        <p:spacer width="5px" style="background: black"/>
+                        <p:calendar value="#{managedHistoriquePR.dateFinSearch}" navigator="true" pattern="dd-MM-yyyy" disabled="#{!managedHistoriquePR.dateSearch}" size="10" style="font-size: 0.9em">
+                            <p:ajax event="dateSelect" listener="#{managedHistoriquePR.chooseDateSearch()}" update=":main_historique_pr:data_historique_pr"/>
+                        </p:calendar>
+                    </h:panelGroup>
                     <h:inputText value="#{managedHistoriquePR.articleSearch}">
                         <p:ajax event="blur" listener="#{managedHistoriquePR.searchArticle()}" update=":main_historique_pr:data_historique_pr"/>
                     </h:inputText>
                     <h:selectOneMenu value="#{managedHistoriquePR.depotSearch}" id="_select_depot_historique_pr" style="width: 100%">
                         <f:selectItem itemLabel="" itemValue="0"/>
                         <f:selectItems value="#{managedDepot.depots_all}" var="de" itemLabel="#{de.designation}" itemValue="#{de.id}"/>
-                        <p:ajax event="valueChange" listener="#{managedHistoriquePR.chooseDepotSeach()}" update=":main_historique_pr:data_historique_pr"/>
+                        <p:ajax event="valueChange" listener="#{managedHistoriquePR.chooseDepotSearch()}" update=":main_historique_pr:data_historique_pr"/>
                     </h:selectOneMenu>
+                    <h:inputText value="#{managedHistoriquePR.prSearch}" style="width: 120px">
+                        <p:ajax event="blur" listener="#{managedHistoriquePR.choosePrSearch()}" update=":main_historique_pr:data_historique_pr"/>
+                    </h:inputText>
                 </h:panelGrid>
             </div>
         </h:form>

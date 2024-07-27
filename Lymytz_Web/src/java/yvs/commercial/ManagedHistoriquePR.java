@@ -14,9 +14,7 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.event.ValueChangeEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
-import yvs.commercial.depot.ManagedDepot;
 import yvs.entity.base.YvsBaseConditionnement;
-import yvs.entity.base.YvsBaseDepots;
 import yvs.entity.commercial.YvsHistoriquePr;
 import yvs.util.Managed;
 import yvs.util.ParametreRequete;
@@ -37,6 +35,8 @@ public class ManagedHistoriquePR extends Managed<YvsHistoriquePr, YvsHistoriqueP
     private boolean dateSearch;
     private String articleSearch;
     private long depotSearch;
+    private Double prSearch = 0D;
+    private String operateurPrSearch = ">";
     private Date dateDebutSearch = new Date(), dateFinSearch = new Date();
 
     public ManagedHistoriquePR() {
@@ -66,6 +66,22 @@ public class ManagedHistoriquePR extends Managed<YvsHistoriquePr, YvsHistoriqueP
 
     public void setArticleSearch(String articleSearch) {
         this.articleSearch = articleSearch;
+    }
+
+    public String getOperateurPrSearch() {
+        return operateurPrSearch;
+    }
+
+    public void setOperateurPrSearch(String operateurPrSearch) {
+        this.operateurPrSearch = operateurPrSearch;
+    }
+
+    public Double getPrSearch() {
+        return prSearch;
+    }
+
+    public void setPrSearch(Double prSearch) {
+        this.prSearch = prSearch;
     }
 
     public long getDepotSearch() {
@@ -133,10 +149,7 @@ public class ManagedHistoriquePR extends Managed<YvsHistoriquePr, YvsHistoriqueP
     public void chooseDateSearch() {
         ParametreRequete p;
         if (dateSearch) {
-            p = new ParametreRequete("y.dateEvaluation", "dateEvaluation", dateDebutSearch);
-            p.setOperation("BETWEEN");
-            p.setPredicat("AND");
-            p.setOtherObjet(dateFinSearch);
+            p = new ParametreRequete("y.dateEvaluation", "dateEvaluation", dateDebutSearch, dateFinSearch, "BETWEEN", "AND");
         } else {
             p = new ParametreRequete("y.dateEvaluation", "dateEvaluation", null);
         }
@@ -147,25 +160,33 @@ public class ManagedHistoriquePR extends Managed<YvsHistoriquePr, YvsHistoriqueP
     public void searchArticle() {
         ParametreRequete p;
         if (articleSearch != null ? articleSearch.trim().length() > 0 : false) {
-            List<Long> ids = dao.loadListByNameQueries("YvsBaseConditionnement.findIdLikeArticle", new String[]{"article", "societe"}, new Object[]{articleSearch + "%", currentAgence.getSociete()});
-            p = new ParametreRequete("y.conditionnement", "conditionnement", ids);
-            p.setOperation("IN");
-            p.setPredicat("AND");
+            p = new ParametreRequete(null, "refArt", articleSearch, "LIKE", "AND");
+            p.getOtherExpression().add(new ParametreRequete("y.conditionnement.article.refArt", "refArt", articleSearch + "%", "LIKE", "OR"));
+            p.getOtherExpression().add(new ParametreRequete("y.conditionnement.article.designation", "refArt", articleSearch + "%", "LIKE", "OR"));
         } else {
-            p = new ParametreRequete("y.conditionnement", "conditionnement", null);
+            p = new ParametreRequete("y.conditionnement.id", "conditionnement", null);
         }
         paginator.addParam(p);
         loadAll(true, true);
     }
 
-    public void chooseDepotSeach() {
+    public void chooseDepotSearch() {
         ParametreRequete p;
         if (depotSearch > 0) {
-            p = new ParametreRequete("y.depot", "depot", depotSearch);
-            p.setOperation("=");
-            p.setPredicat("AND");
+            p = new ParametreRequete("y.depot.id", "depot", depotSearch, "=", "AND");
         } else {
-            p = new ParametreRequete("y.depot", "depot", null);
+            p = new ParametreRequete("y.depot.id", "depot", null);
+        }
+        paginator.addParam(p);
+        loadAll(true, true);
+    }
+
+    public void choosePrSearch() {
+        ParametreRequete p;
+        if (prSearch != null && prSearch > -1) {
+            p = new ParametreRequete("y.pr", "pr", prSearch, operateurPrSearch, "AND");
+        } else {
+            p = new ParametreRequete("y.pr", "pr", null);
         }
         paginator.addParam(p);
         loadAll(true, true);
@@ -187,41 +208,10 @@ public class ManagedHistoriquePR extends Managed<YvsHistoriquePr, YvsHistoriqueP
                 tabIds = "";
                 succes();
             }
-        } catch (Exception ex) {
+        } catch (NumberFormatException ex) {
             System.err.println("Error Suppresion : " + ex.getMessage());
             getErrorMessage("Suppresion Impossible !");
         }
-    }
-
-    public String getArticleName(YvsHistoriquePr item) {
-        YvsBaseConditionnement bean = null;
-        if (item != null ? item.getConditionnement() > 0 : false) {
-            int index = conditionnements.indexOf(new YvsBaseConditionnement(item.getConditionnement()));
-            if (index > -1) {
-                bean = conditionnements.get(index);
-            }
-            if (bean == null) {
-                bean = (YvsBaseConditionnement) dao.loadOneByNameQueries("YvsBaseConditionnement.findById", new String[]{"id"}, new Object[]{item.getConditionnement()});
-                conditionnements.add(bean);
-            }
-        }
-        if (bean != null ? bean.getId() > 0 : false) {
-            return bean.getArticle().getDesignation() + " [" + bean.getUnite().getReference() + "]";
-        }
-        return "--Inexistant--";
-    }
-
-    public String getDepotName(YvsHistoriquePr item) {
-        if (item != null ? item.getDepot() > 0 : false) {
-            ManagedDepot service = (ManagedDepot) giveManagedBean("managedDepot");
-            if (service != null) {
-                int index = service.getDepots_all().indexOf(new YvsBaseDepots(item.getDepot()));
-                if (index > -1) {
-                    return service.getDepots_all().get(index).getDesignation();
-                }
-            }
-        }
-        return "--Inexistant--";
     }
 
     @Override
