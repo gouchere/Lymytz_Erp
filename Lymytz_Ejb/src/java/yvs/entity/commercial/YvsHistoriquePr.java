@@ -10,9 +10,12 @@ import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
@@ -21,6 +24,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlRootElement;
+import yvs.entity.base.YvsBaseConditionnement;
+import yvs.entity.base.YvsBaseDepots;
 
 /**
  *
@@ -46,10 +51,12 @@ public class YvsHistoriquePr implements Serializable {
     private Date dateEvaluation;
     @Column(name = "pr")
     private Double pr;
-    @Column(name = "conditionnement")
-    private Long conditionnement;
-    @Column(name = "depot")
-    private Long depot;
+    @JoinColumn(name = "conditionnement", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private YvsBaseConditionnement conditionnement;
+    @JoinColumn(name = "depot", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private YvsBaseDepots depot;
     @Transient
     private boolean select;
 
@@ -84,19 +91,19 @@ public class YvsHistoriquePr implements Serializable {
         this.pr = pr;
     }
 
-    public Long getConditionnement() {
-        return conditionnement != null ? conditionnement : 0;
+    public YvsBaseConditionnement getConditionnement() {
+        return conditionnement;
     }
 
-    public void setConditionnement(Long conditionnement) {
+    public void setConditionnement(YvsBaseConditionnement conditionnement) {
         this.conditionnement = conditionnement;
     }
 
-    public Long getDepot() {
-        return depot != null ? depot : 0;
+    public YvsBaseDepots getDepot() {
+        return depot;
     }
 
-    public void setDepot(Long depot) {
+    public void setDepot(YvsBaseDepots depot) {
         this.depot = depot;
     }
 
