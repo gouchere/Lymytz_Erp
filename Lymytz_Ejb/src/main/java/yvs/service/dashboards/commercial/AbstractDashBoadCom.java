@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.entity.param.YvsSocietes;
 import yvs.entity.produits.group.YvsBaseFamilleArticle;
 
@@ -23,10 +23,10 @@ import yvs.entity.produits.group.YvsBaseFamilleArticle;
  */
 public abstract class AbstractDashBoadCom {
 
-    DaoInterfaceWs dao;
+    DaoInterfaceLocal dao;
     protected DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
 
-    public AbstractDashBoadCom(DaoInterfaceWs dao) {
+    public AbstractDashBoadCom(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 
