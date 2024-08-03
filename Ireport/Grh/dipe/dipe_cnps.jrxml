@@ -28,7 +28,7 @@
 		<defaultValueExpression><![CDATA["Avril 2017"]]></defaultValueExpression>
 	</parameter>
 	<parameter name="HEADER" class="java.lang.Long" isForPrompting="false">
-		<defaultValueExpression><![CDATA[169l]]></defaultValueExpression>
+		<defaultValueExpression><![CDATA[170l]]></defaultValueExpression>
 	</parameter>
 	<parameter name="ID_SOCIETE" class="java.lang.Long" isForPrompting="false">
 		<defaultValueExpression><![CDATA[2290l]]></defaultValueExpression>
@@ -53,13 +53,14 @@ FROM
      "public"."yvs_stat_grh_etat" yvs_stat_grh_etat INNER JOIN "public"."yvs_stat_grh_element_dipe" yvs_stat_grh_element_dipe ON yvs_stat_grh_etat."id" = yvs_stat_grh_element_dipe."etat"
      INNER JOIN "public"."yvs_grh_detail_bulletin" yvs_grh_detail_bulletin ON yvs_stat_grh_element_dipe."element_salaire" = yvs_grh_detail_bulletin."element_salaire"
      INNER JOIN "public"."yvs_grh_bulletins" yvs_grh_bulletins ON yvs_grh_detail_bulletin."bulletin" = yvs_grh_bulletins."id"
+     INNER JOIN "public"."yvs_grh_header_bulletin" yvs_grh_header_bulletin ON yvs_grh_header_bulletin."bulletin" = yvs_grh_bulletins."id"
      INNER JOIN "public"."yvs_grh_contrat_emps" yvs_grh_contrat_emps ON yvs_grh_bulletins."contrat" = yvs_grh_contrat_emps."id"
      INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
 WHERE
      yvs_stat_grh_etat."code" = 'DIPE_CNPS'
  AND yvs_stat_grh_etat."societe" = $P{ID_SOCIETE}
  AND yvs_grh_bulletins."entete" = $P{HEADER}
- AND yvs_grh_employes."agence"::character varying IN (select val from regexp_split_to_table($P{AGENCES},',') val)
+ AND yvs_grh_header_bulletin."agence"::character varying IN (select val from regexp_split_to_table($P{AGENCES},',') val)
  AND yvs_stat_grh_element_dipe."ordre" > 0
  AND ((COALESCE(yvs_grh_detail_bulletin."taux_salarial", 0) <= 0 AND COALESCE(yvs_grh_detail_bulletin."taux_patronal", 0) <= 0) OR
 		(COALESCE(yvs_grh_detail_bulletin."taux_salarial", 0) <= 0 AND COALESCE(yvs_grh_detail_bulletin."taux_patronal", 0) > 0) OR
@@ -82,13 +83,14 @@ FROM
      "public"."yvs_stat_grh_etat" yvs_stat_grh_etat INNER JOIN "public"."yvs_stat_grh_element_dipe" yvs_stat_grh_element_dipe ON yvs_stat_grh_etat."id" = yvs_stat_grh_element_dipe."etat"
      INNER JOIN "public"."yvs_grh_detail_bulletin" yvs_grh_detail_bulletin ON yvs_stat_grh_element_dipe."element_salaire" = yvs_grh_detail_bulletin."element_salaire"
      INNER JOIN "public"."yvs_grh_bulletins" yvs_grh_bulletins ON yvs_grh_detail_bulletin."bulletin" = yvs_grh_bulletins."id"
+     INNER JOIN "public"."yvs_grh_header_bulletin" yvs_grh_header_bulletin ON yvs_grh_header_bulletin."bulletin" = yvs_grh_bulletins."id"
      INNER JOIN "public"."yvs_grh_contrat_emps" yvs_grh_contrat_emps ON yvs_grh_bulletins."contrat" = yvs_grh_contrat_emps."id"
      INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
 WHERE
      yvs_stat_grh_etat."code" = 'DIPE_CNPS'
  AND yvs_stat_grh_etat."societe" = $P{ID_SOCIETE}
  AND yvs_grh_bulletins."entete" = $P{HEADER}
- AND yvs_grh_employes."agence"::character varying IN (select val from regexp_split_to_table($P{AGENCES},',') val)
+ AND yvs_grh_header_bulletin."agence"::character varying IN (select val from regexp_split_to_table($P{AGENCES},',') val)
  AND yvs_stat_grh_element_dipe."ordre" > 0
  AND (COALESCE(yvs_grh_detail_bulletin."taux_salarial", 0) > 0 AND COALESCE(yvs_grh_detail_bulletin."taux_patronal", 0) > 0)
 GROUP BY
@@ -109,13 +111,14 @@ FROM
      "public"."yvs_stat_grh_etat" yvs_stat_grh_etat INNER JOIN "public"."yvs_stat_grh_element_dipe" yvs_stat_grh_element_dipe ON yvs_stat_grh_etat."id" = yvs_stat_grh_element_dipe."etat"
      INNER JOIN "public"."yvs_grh_detail_bulletin" yvs_grh_detail_bulletin ON yvs_stat_grh_element_dipe."element_salaire" = yvs_grh_detail_bulletin."element_salaire"
      INNER JOIN "public"."yvs_grh_bulletins" yvs_grh_bulletins ON yvs_grh_detail_bulletin."bulletin" = yvs_grh_bulletins."id"
+     INNER JOIN "public"."yvs_grh_header_bulletin" yvs_grh_header_bulletin ON yvs_grh_header_bulletin."bulletin" = yvs_grh_bulletins."id"
      INNER JOIN "public"."yvs_grh_contrat_emps" yvs_grh_contrat_emps ON yvs_grh_bulletins."contrat" = yvs_grh_contrat_emps."id"
      INNER JOIN "public"."yvs_grh_employes" yvs_grh_employes ON yvs_grh_contrat_emps."employe" = yvs_grh_employes."id"
 WHERE
      yvs_stat_grh_etat."code" = 'DIPE_CNPS'
  AND yvs_stat_grh_etat."societe" = $P{ID_SOCIETE}
  AND yvs_grh_bulletins."entete" = $P{HEADER}
- AND yvs_grh_employes."agence"::character varying IN (select val from regexp_split_to_table($P{AGENCES},',') val)
+ AND yvs_grh_header_bulletin."agence"::character varying IN (select val from regexp_split_to_table($P{AGENCES},',') val)
  AND yvs_stat_grh_element_dipe."ordre" > 0
  AND (COALESCE(yvs_grh_detail_bulletin."taux_salarial", 0) > 0 AND COALESCE(yvs_grh_detail_bulletin."taux_patronal", 0) > 0)
 GROUP BY
@@ -256,8 +259,7 @@ ORDER BY yvs_stat_grh_element_dipe_ordre ASC]]>
 				<reportElement x="350" y="0" width="156" height="20" uuid="799b544d-47c1-4bcb-a6e3-55d338b757d9"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle"/>
 				<textFieldExpression><![CDATA[($F{yvs_grh_detail_bulletin_retenu_salariale}!=null?$F{yvs_grh_detail_bulletin_retenu_salariale}:0.0)
-+($F{yvs_grh_detail_bulletin_montant_employeur}!=null?$F{yvs_grh_detail_bulletin_montant_employeur}:0.0)
-+($F{yvs_grh_detail_bulletin_montant_payer}!=null?$F{yvs_grh_detail_bulletin_montant_payer}:0.0)]]></textFieldExpression>
++($F{yvs_grh_detail_bulletin_montant_employeur}!=null?$F{yvs_grh_detail_bulletin_montant_employeur}:0.0)]]></textFieldExpression>
 			</textField>
 			<textField>
 				<reportElement x="250" y="0" width="93" height="20" uuid="8b307d94-f0fd-4830-acac-225833219dc6"/>
