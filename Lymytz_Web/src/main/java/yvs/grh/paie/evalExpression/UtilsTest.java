@@ -5,18 +5,19 @@
  */
 package yvs.grh.paie.evalExpression;
 
-import java.io.Serializable;import yvs.entity.compta.YvsBaseCaisse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
 import yvs.dao.DaoInterfaceLocal;
 import yvs.entity.grh.salaire.YvsGrhElementSalaire;
 import yvs.entity.grh.salaire.YvsGrhElementStructure;
 import yvs.util.Constantes;
+
+import javax.ejb.EJB;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.SessionScoped;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
