@@ -1,21 +1,24 @@
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
- */
+ *//*
+
 package yvs.dao;
 
 import java.io.Serializable;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 
+*/
 /**
  *
  * @author GOUCHERE YVES
  * @param <T>
  *
- */
-@Stateless
-public class DaoGenericWs<T extends Serializable> extends AbstractDao<T> implements DaoInterfaceWs<T> {
+ *//*
+
+//@Stateless
+public class DaoGenericWs<T extends Serializable> extends AbstractDao<T> implements DaoInterfaceLocal<T> {
 
     String entityName;
     // Add business logic below. (Right-click in editor and choose
@@ -42,3 +45,4 @@ public class DaoGenericWs<T extends Serializable> extends AbstractDao<T> impleme
 
   
 }
+*/

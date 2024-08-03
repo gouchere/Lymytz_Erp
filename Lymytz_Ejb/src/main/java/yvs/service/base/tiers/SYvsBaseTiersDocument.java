@@ -5,7 +5,7 @@
  */
 package yvs.service.base.tiers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsBaseTiersDocument extends AYvsBaseTiersDocument implements IYvs
     public SYvsBaseTiersDocument() {
     }
 
-    public SYvsBaseTiersDocument(DaoInterfaceWs dao) {
+    public SYvsBaseTiersDocument(DaoInterfaceLocal dao) {
         super(dao);
     }
 

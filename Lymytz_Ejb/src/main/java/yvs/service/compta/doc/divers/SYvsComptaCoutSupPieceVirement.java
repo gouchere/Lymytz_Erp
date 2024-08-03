@@ -6,7 +6,7 @@
 
 package yvs.service.compta.doc.divers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsComptaCoutSupPieceVirement extends AYvsComptaCoutSupPieceVireme
     public SYvsComptaCoutSupPieceVirement() {
     }
 
-    public SYvsComptaCoutSupPieceVirement(DaoInterfaceWs dao) {
+    public SYvsComptaCoutSupPieceVirement(DaoInterfaceLocal dao) {
         super(dao);
     }
     

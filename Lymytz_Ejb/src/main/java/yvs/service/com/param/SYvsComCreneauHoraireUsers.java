@@ -5,7 +5,7 @@
  */
 package yvs.service.com.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsComCreneauHoraireUsers extends AYvsComCreneauHoraireUsers imple
     public SYvsComCreneauHoraireUsers() {
     }
 
-    public SYvsComCreneauHoraireUsers(DaoInterfaceWs dao) {
+    public SYvsComCreneauHoraireUsers(DaoInterfaceLocal dao) {
         super(dao);
     }
 

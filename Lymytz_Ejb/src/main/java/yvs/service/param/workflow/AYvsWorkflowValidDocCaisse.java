@@ -7,7 +7,7 @@ package yvs.service.param.workflow;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.param.workflow.YvsWorkflowValidDocCaisse;
 import yvs.service.AbstractEntity;
@@ -21,7 +21,7 @@ public class AYvsWorkflowValidDocCaisse extends AbstractEntity {
     public AYvsWorkflowValidDocCaisse() {
     }
 
-    public AYvsWorkflowValidDocCaisse(DaoInterfaceWs dao) {
+    public AYvsWorkflowValidDocCaisse(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

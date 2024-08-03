@@ -6,7 +6,7 @@
 
 package yvs.service.com.vente;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsComProformaVente extends AYvsComProformaVente implements IYvsCo
     public SYvsComProformaVente() {
     }
 
-    public SYvsComProformaVente(DaoInterfaceWs dao) {
+    public SYvsComProformaVente(DaoInterfaceLocal dao) {
         super(dao);
     }
     

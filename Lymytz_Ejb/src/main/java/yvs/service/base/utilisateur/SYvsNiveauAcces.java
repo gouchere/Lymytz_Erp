@@ -6,7 +6,7 @@
 
 package yvs.service.base.utilisateur;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsNiveauAcces extends AYvsNiveauAcces implements IYvsNiveauAcces 
     public SYvsNiveauAcces() {
     }
 
-    public SYvsNiveauAcces(DaoInterfaceWs dao) {
+    public SYvsNiveauAcces(DaoInterfaceLocal dao) {
         super(dao);
     }
     

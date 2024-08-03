@@ -5,7 +5,7 @@
  */
 package yvs.service.com.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsComLotReception extends AYvsComLotReception implements IYvsComL
     public SYvsComLotReception() {
     }
 
-    public SYvsComLotReception(DaoInterfaceWs dao) {
+    public SYvsComLotReception(DaoInterfaceLocal dao) {
         super(dao);
     }
 

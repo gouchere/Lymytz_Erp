@@ -5,7 +5,7 @@
  */
 package yvs.service.com.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsBasePointVente extends AYvsBasePointVente implements IYvsBasePo
     public SYvsBasePointVente() {
     }
 
-    public SYvsBasePointVente(DaoInterfaceWs dao) {
+    public SYvsBasePointVente(DaoInterfaceLocal dao) {
         super(dao);
     }
 

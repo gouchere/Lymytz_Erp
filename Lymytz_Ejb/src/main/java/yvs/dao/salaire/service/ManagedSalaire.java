@@ -16,7 +16,7 @@ import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
-import static org.apache.taglibs.standard.resources.Resources.getMessage;
+
 import yvs.dao.DaoInterfaceLocal;
 import yvs.entity.grh.personnel.YvsGrhContratEmps;
 import yvs.entity.grh.param.YvsParametreGrh;
@@ -29,7 +29,6 @@ import yvs.entity.param.YvsSocietes;
 import yvs.entity.users.YvsUsersAgence;
 
 /**
- *
  * @author LYMYTZ classe qui permet d'analyser et d'evaluer une expression
  * mathématique
  */
@@ -77,6 +76,7 @@ public class ManagedSalaire implements Serializable {
         tabMotCle.put("SINONSI", UniteLexicale.SINON);
         tabMotCle.put("FINSI", UniteLexicale.FINSI);
     }
+
     YvsGrhContratEmps contrat;
 
     public int nombreBulletinSave = 0;
@@ -105,7 +105,7 @@ public class ManagedSalaire implements Serializable {
                 return bs;
             }
         } else {
-            getMessage("Erreur, L'employé ne dispose d'aucun contrat", FacesMessage.SEVERITY_ERROR);
+            Logger.getLogger(ManagedSalaire.class.getName()).log(Level.SEVERE, "Erreur, L'employé ne dispose d'aucun contrat");
         }
         return null;
     }
@@ -223,6 +223,7 @@ public class ManagedSalaire implements Serializable {
         head.setModePaiement((contrat.getModePaiement() != null) ? contrat.getModePaiement().getDesignation() : null);
         return head;
     }
+
     String month;
 
     private String giveReference() {

@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.context.FacesContext;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.Constantes;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.base.YvsBaseExercice;
@@ -29,7 +29,7 @@ public class AYvsComptaCaissePieceDivers extends AbstractEntity {
     public AYvsComptaCaissePieceDivers() {
     }
 
-    public AYvsComptaCaissePieceDivers(DaoInterfaceWs dao) {
+    public AYvsComptaCaissePieceDivers(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
     public static DateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy");

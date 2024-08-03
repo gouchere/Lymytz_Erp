@@ -6,7 +6,7 @@
 
 package yvs.service.base.comptabilite;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsComptaJournaux extends AYvsComptaJournaux implements IYvsCompta
     public SYvsComptaJournaux() {
     }
 
-    public SYvsComptaJournaux(DaoInterfaceWs dao) {
+    public SYvsComptaJournaux(DaoInterfaceLocal dao) {
         super(dao);
     }
     

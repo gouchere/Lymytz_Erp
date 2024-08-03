@@ -6,7 +6,7 @@
 
 package yvs.service.com.vente;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.entity.commercial.vente.YvsComCoutSupDocVente;
 
 /**
@@ -18,7 +18,7 @@ public class SYvsComCoutSupDocVente extends AYvsComCoutSupDocVente implements IY
     public SYvsComCoutSupDocVente() {
     }
 
-    public SYvsComCoutSupDocVente(DaoInterfaceWs dao) {
+    public SYvsComCoutSupDocVente(DaoInterfaceLocal dao) {
         super(dao);
     }
     

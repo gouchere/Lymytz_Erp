@@ -6,7 +6,7 @@
 
 package yvs.service.base.emplacements;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsComLiaisonDepot extends AYvsComLiaisonDepot implements IYvsComL
     public SYvsComLiaisonDepot() {
     }
 
-    public SYvsComLiaisonDepot(DaoInterfaceWs dao) {
+    public SYvsComLiaisonDepot(DaoInterfaceLocal dao) {
         super(dao);
     }
     

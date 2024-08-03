@@ -6,7 +6,7 @@
 
 package yvs.service.base.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsBaseTaxes extends AYvsBaseTaxes implements IYvsBaseTaxes{
     public SYvsBaseTaxes() {
     }
 
-    public SYvsBaseTaxes(DaoInterfaceWs dao) {
+    public SYvsBaseTaxes(DaoInterfaceLocal dao) {
         super(dao);
     }
     

@@ -6,7 +6,7 @@
 package yvs.service.com.vente;
 
 import yvs.dao.DaoInterfaceLocal;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.entity.users.YvsNiveauAcces;
 
 /**

@@ -8,7 +8,7 @@ package yvs.service.dashboards.commercial;
 
 import java.util.List;
 import yvs.dao.DaoInterfaceLocal;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ import yvs.dao.DaoInterfaceWs;
  */
 public class DashBoadComImplV1 extends AbstractDashBoadCom implements IDashBoardCom{
 
-    public DashBoadComImplV1(DaoInterfaceWs dao) { 
+    public DashBoadComImplV1(DaoInterfaceLocal dao) {
         super(dao);
     }
         

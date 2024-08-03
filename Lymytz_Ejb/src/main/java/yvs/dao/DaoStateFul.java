@@ -44,8 +44,6 @@ public class DaoStateFul<T extends Serializable> implements DaoInterfaceStateFul
 
     @Resource
     private UserTransaction utx;
-    @EJB
-    DaoInterfaceLocal dao;
 
     public DaoStateFul() {
     }

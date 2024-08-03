@@ -8,7 +8,7 @@ package yvs.service.base.utilisateur;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.users.YvsNiveauUsers;
 import yvs.entity.users.YvsUsers;
@@ -25,7 +25,7 @@ public class AYvsUsers extends AbstractEntity {
     public AYvsUsers() {
     }
 
-    public AYvsUsers(DaoInterfaceWs dao) {
+    public AYvsUsers(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

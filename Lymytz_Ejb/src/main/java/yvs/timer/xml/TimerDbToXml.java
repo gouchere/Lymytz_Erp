@@ -2,7 +2,8 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
- */
+ *//*
+
 package yvs.timer.xml;
 
 import java.io.BufferedWriter;
@@ -25,10 +26,12 @@ import yvs.entity.synchro.YvsSynchroTables;
 import yvs.init.Chemins;
 import yvs.timer.InterfaceTimerLocal;
 
+*/
 /**
  *
  * @author LYMYTZ-PC
- */
+ *//*
+
 @Singleton
 public class TimerDbToXml implements InterfaceTimerLocal {
 
@@ -157,3 +160,4 @@ public class TimerDbToXml implements InterfaceTimerLocal {
         return false;
     }
 }
+*/

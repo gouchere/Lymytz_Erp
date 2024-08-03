@@ -5,7 +5,7 @@
  */
 package yvs.service.base.tiers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsBaseFournisseur extends AYvsBaseFournisseur implements IYvsBase
     public SYvsBaseFournisseur()  {
     }
 
-    public SYvsBaseFournisseur(DaoInterfaceWs dao) {
+    public SYvsBaseFournisseur(DaoInterfaceLocal dao) {
         super(dao);
     }
 

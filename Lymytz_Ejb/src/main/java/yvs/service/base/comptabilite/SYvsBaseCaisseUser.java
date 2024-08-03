@@ -6,7 +6,7 @@
 
 package yvs.service.base.comptabilite;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsBaseCaisseUser extends AYvsBaseCaisseUser implements IYvsBaseCa
     public SYvsBaseCaisseUser() {
     }
 
-    public SYvsBaseCaisseUser(DaoInterfaceWs dao) {
+    public SYvsBaseCaisseUser(DaoInterfaceLocal dao) {
         super(dao);
     }
     

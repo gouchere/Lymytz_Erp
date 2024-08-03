@@ -5,7 +5,7 @@
  */
 package yvs.service.com.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsComCommissionCommerciaux extends AYvsComCommissionCommerciaux i
     public SYvsComCommissionCommerciaux() {
     }
 
-    public SYvsComCommissionCommerciaux(DaoInterfaceWs dao) {
+    public SYvsComCommissionCommerciaux(DaoInterfaceLocal dao) {
         super(dao);
     }
 

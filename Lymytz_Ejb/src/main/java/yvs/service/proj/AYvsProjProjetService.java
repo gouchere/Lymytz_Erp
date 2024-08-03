@@ -7,7 +7,7 @@ package yvs.service.proj;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.proj.projet.YvsProjProjetService;
 import yvs.service.AbstractEntity;
@@ -21,7 +21,7 @@ public class AYvsProjProjetService extends AbstractEntity {
     public AYvsProjProjetService() {
     }
 
-    public AYvsProjProjetService(DaoInterfaceWs dao) {
+    public AYvsProjProjetService(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

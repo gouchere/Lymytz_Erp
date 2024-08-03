@@ -6,7 +6,7 @@
 
 package yvs.service.base.produit;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsDictionnaire extends AYvsDictionnaire implements IYvsDictionnai
     public SYvsDictionnaire() {
     }
 
-    public SYvsDictionnaire(DaoInterfaceWs dao) {
+    public SYvsDictionnaire(DaoInterfaceLocal dao) {
         super(dao);
     }
     

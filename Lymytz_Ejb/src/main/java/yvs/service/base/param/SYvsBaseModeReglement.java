@@ -6,7 +6,7 @@
 
 package yvs.service.base.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsBaseModeReglement extends AYvsBaseModeReglement implements IYvs
     public SYvsBaseModeReglement() {
     }
 
-    public SYvsBaseModeReglement(DaoInterfaceWs dao) {
+    public SYvsBaseModeReglement(DaoInterfaceLocal dao) {
         super(dao);
     }
     

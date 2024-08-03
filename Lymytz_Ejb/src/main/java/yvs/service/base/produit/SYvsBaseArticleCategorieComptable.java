@@ -6,7 +6,7 @@
 
 package yvs.service.base.produit;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsBaseArticleCategorieComptable extends AYvsBaseArticleCategorieC
     public SYvsBaseArticleCategorieComptable() {
     }
 
-    public SYvsBaseArticleCategorieComptable(DaoInterfaceWs dao) {
+    public SYvsBaseArticleCategorieComptable(DaoInterfaceLocal dao) {
         super(dao);
     }
     

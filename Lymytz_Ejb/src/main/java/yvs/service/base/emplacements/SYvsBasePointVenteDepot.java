@@ -6,7 +6,7 @@
 
 package yvs.service.base.emplacements;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsBasePointVenteDepot extends AYvsBasePointVenteDepot implements 
     public SYvsBasePointVenteDepot() {
     }
 
-    public SYvsBasePointVenteDepot(DaoInterfaceWs dao) {
+    public SYvsBasePointVenteDepot(DaoInterfaceLocal dao) {
         super(dao);
     }
     

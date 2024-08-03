@@ -7,7 +7,7 @@ package yvs.service.base.param;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.grh.presence.YvsGrhTrancheHoraire;
 import yvs.service.AbstractEntity;
@@ -21,7 +21,7 @@ public class AYvsGrhTrancheHoraire extends AbstractEntity {
     public AYvsGrhTrancheHoraire() {
     }
 
-    public AYvsGrhTrancheHoraire(DaoInterfaceWs dao) {
+    public AYvsGrhTrancheHoraire(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

@@ -7,7 +7,7 @@ package yvs.service.compta.doc.divers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.compta.YvsComptaBielletage;
 import yvs.service.AbstractEntity;
@@ -22,7 +22,7 @@ public class AYvsComptaBielletage extends AbstractEntity {
     public AYvsComptaBielletage() {
     }
 
-    public AYvsComptaBielletage(DaoInterfaceWs dao) {
+    public AYvsComptaBielletage(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
     IEntitySax IEntitiSax = new IEntitySax();

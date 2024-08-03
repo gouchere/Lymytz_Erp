@@ -6,7 +6,7 @@
 
 package yvs.service.com.rrr;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsComRabais extends AYvsComRabais implements IYvsComRabais{
     public SYvsComRabais() {
     }
 
-    public SYvsComRabais(DaoInterfaceWs dao) {
+    public SYvsComRabais(DaoInterfaceLocal dao) {
         super(dao);
     }
     
