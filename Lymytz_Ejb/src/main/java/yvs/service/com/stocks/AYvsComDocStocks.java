@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import yvs.dao.DaoInterfaceLocal;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Options;
 import yvs.dao.Util;
 import yvs.dao.salaire.service.Constantes;
@@ -41,7 +41,7 @@ public class AYvsComDocStocks extends AbstractEntity {
     public AYvsComDocStocks() {
     }
 
-    public AYvsComDocStocks(DaoInterfaceWs dao) {
+    public AYvsComDocStocks(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
     IEntitySax IEntitiSax = new IEntitySax();

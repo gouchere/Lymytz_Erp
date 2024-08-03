@@ -6,7 +6,7 @@
 
 package yvs.service.param.workflow;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsWorkflowValidFactureVente extends AYvsWorkflowValidFactureVente
     public SYvsWorkflowValidFactureVente() {
     }
 
-    public SYvsWorkflowValidFactureVente(DaoInterfaceWs dao) {
+    public SYvsWorkflowValidFactureVente(DaoInterfaceLocal dao) {
         super(dao);
     }
      

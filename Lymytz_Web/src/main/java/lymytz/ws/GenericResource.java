@@ -76,7 +76,7 @@ import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import net.sf.jasperreports.export.SimpleXlsxReportConfiguration;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Options;
 import yvs.dao.Util;
 import yvs.dao.salaire.service.ResultatAction;
@@ -157,7 +157,7 @@ public class GenericResource {
     @Context
     protected ServletContext resource;
     @EJB
-    protected DaoInterfaceWs dao;
+    protected DaoInterfaceLocal dao;
 
     @Resource(name = "lymytz_erp", mappedName = "lymytz_erp")
     protected DataSource ds;

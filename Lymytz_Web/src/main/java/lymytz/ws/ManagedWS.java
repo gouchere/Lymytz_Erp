@@ -30,7 +30,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import org.apache.commons.lang3.SerializationUtils;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.entity.base.YvsBaseCategorieComptable;
 import yvs.entity.commercial.client.YvsComClient;
 import yvs.entity.grh.param.YvsParametreGrh;
@@ -53,7 +53,7 @@ import yvs.entity.users.YvsUsersAgence;
 public abstract class ManagedWS implements Serializable {
 
     @EJB
-    public DaoInterfaceWs dao;
+    public DaoInterfaceLocal dao;
     String[] champ;
     Object[] val;
 

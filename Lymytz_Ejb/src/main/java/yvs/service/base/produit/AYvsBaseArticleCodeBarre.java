@@ -7,7 +7,7 @@ package yvs.service.base.produit;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.produits.YvsBaseArticleCodeBarre;
 
@@ -22,7 +22,7 @@ public class AYvsBaseArticleCodeBarre extends AbstractEntity {
     public AYvsBaseArticleCodeBarre() {
     }
 
-    public AYvsBaseArticleCodeBarre(DaoInterfaceWs dao) {
+    public AYvsBaseArticleCodeBarre(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

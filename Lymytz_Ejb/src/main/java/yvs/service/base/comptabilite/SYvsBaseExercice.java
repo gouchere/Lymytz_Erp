@@ -5,7 +5,7 @@
  */
 package yvs.service.base.comptabilite;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsBaseExercice extends AYvsBaseExercice implements IYvsBaseExerci
     public SYvsBaseExercice() {
     }
 
-    public SYvsBaseExercice(DaoInterfaceWs dao) {
+    public SYvsBaseExercice(DaoInterfaceLocal dao) {
         super(dao);
     }
  

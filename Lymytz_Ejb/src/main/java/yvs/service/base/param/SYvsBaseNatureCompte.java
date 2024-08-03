@@ -6,7 +6,7 @@
 
 package yvs.service.base.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.entity.compta.YvsBaseNatureCompte;
 
 /**
@@ -18,7 +18,7 @@ public class SYvsBaseNatureCompte extends AYvsBaseNatureCompte implements IYvsBa
     public SYvsBaseNatureCompte() {
     }
 
-    public SYvsBaseNatureCompte(DaoInterfaceWs dao) {
+    public SYvsBaseNatureCompte(DaoInterfaceLocal dao) {
         super(dao);
     }
     

@@ -17,10 +17,6 @@ import javax.persistence.EntityManager;
 @Stateless
 public class DaoGeneric<T extends Serializable> extends AbstractDao<T> implements DaoInterfaceLocal<T> {
 
-    String entityName;
-    // Add business logic below. (Right-click in editor and choose
-    // "Insert Code > Add Business Method")
-
     public DaoGeneric() {
     }
 

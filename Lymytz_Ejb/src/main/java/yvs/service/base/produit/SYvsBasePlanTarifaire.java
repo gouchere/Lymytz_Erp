@@ -6,7 +6,7 @@
 
 package yvs.service.base.produit;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsBasePlanTarifaire extends AYvsBasePlanTarifaire implements IYvs
     public SYvsBasePlanTarifaire() {
     }
 
-    public SYvsBasePlanTarifaire(DaoInterfaceWs dao) {
+    public SYvsBasePlanTarifaire(DaoInterfaceLocal dao) {
         super(dao);
     }
     

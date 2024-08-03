@@ -5,7 +5,7 @@
  */
 package yvs.service.base.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsBaseTypeDocDivers extends AYvsBaseTypeDocDivers implements IYvs
     public SYvsBaseTypeDocDivers() {
     }
 
-    public SYvsBaseTypeDocDivers(DaoInterfaceWs dao) {
+    public SYvsBaseTypeDocDivers(DaoInterfaceLocal dao) {
         super(dao);
     }
 

@@ -22,9 +22,8 @@ import yvs.timer.InterfaceTimerLocal;
  *
  * @author LYMYTZ-PC
  */
-@Singleton
-public class TimerAddMensualite implements InterfaceTimerLocal {
-
+public class TimerAddMensualite {
+/*
     @EJB
     public DaoInterfaceLocal dao;
 
@@ -88,5 +87,5 @@ public class TimerAddMensualite implements InterfaceTimerLocal {
             ex.printStackTrace();
         }
         return false;
-    }
+    }*/
 }

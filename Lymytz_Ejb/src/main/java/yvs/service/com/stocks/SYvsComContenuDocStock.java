@@ -5,7 +5,7 @@
  */
 package yvs.service.com.stocks;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsComContenuDocStock extends AYvsComContenuDocStock implements IY
     public SYvsComContenuDocStock() {
     }
 
-    public SYvsComContenuDocStock(DaoInterfaceWs dao) {
+    public SYvsComContenuDocStock(DaoInterfaceLocal dao) {
         super(dao);
     }
 

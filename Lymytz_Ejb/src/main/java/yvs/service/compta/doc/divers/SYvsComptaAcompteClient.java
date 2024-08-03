@@ -5,7 +5,7 @@
  */
 package yvs.service.compta.doc.divers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.compta.YvsComptaAcompteClient;
 
@@ -18,7 +18,7 @@ public class SYvsComptaAcompteClient extends AYvsComptaAcompteClient implements 
     public SYvsComptaAcompteClient() {
     }
 
-    public SYvsComptaAcompteClient(DaoInterfaceWs dao) {
+    public SYvsComptaAcompteClient(DaoInterfaceLocal dao) {
         super(dao);
     }
 

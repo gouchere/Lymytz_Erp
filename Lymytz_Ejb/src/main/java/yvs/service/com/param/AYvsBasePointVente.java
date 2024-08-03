@@ -7,7 +7,7 @@ package yvs.service.com.param;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.base.YvsBasePointVente;
 import yvs.entity.param.YvsAgences;
@@ -22,7 +22,7 @@ public class AYvsBasePointVente extends AbstractEntity {
     public AYvsBasePointVente() {
     }
 
-    public AYvsBasePointVente(DaoInterfaceWs dao) {
+    public AYvsBasePointVente(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

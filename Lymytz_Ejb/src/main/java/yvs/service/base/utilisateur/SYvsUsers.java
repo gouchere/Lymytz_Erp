@@ -5,7 +5,7 @@
  */
 package yvs.service.base.utilisateur;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsUsers extends AYvsUsers implements IYvsUsers  {
     public SYvsUsers() {
     }
 
-    public SYvsUsers(DaoInterfaceWs dao) {
+    public SYvsUsers(DaoInterfaceLocal dao) {
         super(dao);
     }
 

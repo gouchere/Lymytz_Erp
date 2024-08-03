@@ -53,7 +53,6 @@ public class MailReceived {
         props.put("mail.imap.auth", "false");
         if (ssl) {
             // Connection SSL
-            Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
             props.put("mail.imap.socketFactory.class", SSL_FACTORY);
             props.put("mail.imap.socketFactory.fallback", "false");
             props.put("mail.imap.auth", "true");

@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Options;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.commercial.achat.YvsComLotReception;
@@ -25,7 +25,7 @@ public class AYvsComLotReception extends AbstractEntity {
     public AYvsComLotReception() {
     }
 
-    public AYvsComLotReception(DaoInterfaceWs dao) {
+    public AYvsComLotReception(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

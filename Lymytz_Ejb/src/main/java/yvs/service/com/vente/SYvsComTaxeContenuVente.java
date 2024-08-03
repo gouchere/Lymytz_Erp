@@ -6,7 +6,7 @@
 
 package yvs.service.com.vente;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsComTaxeContenuVente extends AYvsComTaxeContenuVente implements 
     public SYvsComTaxeContenuVente() {
     }
 
-    public SYvsComTaxeContenuVente(DaoInterfaceWs dao) {
+    public SYvsComTaxeContenuVente(DaoInterfaceLocal dao) {
         super(dao);
     }
     

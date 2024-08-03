@@ -8,7 +8,7 @@ package yvs.service.base.produit;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.base.YvsBaseArticleDepot;
 import yvs.entity.base.YvsBaseDepots;
@@ -24,7 +24,7 @@ public class AYvsBaseArticleDepot extends AbstractEntity {
     public AYvsBaseArticleDepot() {
     }
 
-    public AYvsBaseArticleDepot(DaoInterfaceWs dao) {
+    public AYvsBaseArticleDepot(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

@@ -5,7 +5,7 @@
  */
 package yvs.service.grh.presence;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.service.AbstractEntity;
 
 /**
@@ -17,7 +17,7 @@ public class AYvsGrhPresence extends AbstractEntity {
     public AYvsGrhPresence() {
     }
 
-    public AYvsGrhPresence(DaoInterfaceWs dao) {
+    public AYvsGrhPresence(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

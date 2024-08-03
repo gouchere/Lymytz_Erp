@@ -6,7 +6,7 @@
 
 package yvs.service.base.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsGrhTypeCout extends AYvsGrhTypeCout implements IYvsGrhTypeCout{
     public SYvsGrhTypeCout() {
     }
 
-    public SYvsGrhTypeCout(DaoInterfaceWs dao) {
+    public SYvsGrhTypeCout(DaoInterfaceLocal dao) {
         super(dao);
     }
     

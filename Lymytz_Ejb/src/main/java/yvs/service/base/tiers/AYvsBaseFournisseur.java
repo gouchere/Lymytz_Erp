@@ -7,7 +7,7 @@ package yvs.service.base.tiers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.base.YvsBaseFournisseur;
 import yvs.entity.tiers.YvsBaseTiers;
@@ -22,7 +22,7 @@ public class AYvsBaseFournisseur extends AbstractEntity {
     public AYvsBaseFournisseur() {
     }
 
-    public AYvsBaseFournisseur(DaoInterfaceWs dao) {
+    public AYvsBaseFournisseur(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

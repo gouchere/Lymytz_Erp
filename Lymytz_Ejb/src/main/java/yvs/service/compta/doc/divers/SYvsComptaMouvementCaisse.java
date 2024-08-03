@@ -5,7 +5,7 @@
  */
 package yvs.service.compta.doc.divers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsComptaMouvementCaisse extends AYvsComptaMouvementCaisse impleme
     public SYvsComptaMouvementCaisse() {
     }
 
-    public SYvsComptaMouvementCaisse(DaoInterfaceWs dao) {
+    public SYvsComptaMouvementCaisse(DaoInterfaceLocal dao) {
         super(dao);
     }
 
