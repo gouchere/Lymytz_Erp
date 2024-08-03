@@ -7,7 +7,7 @@ package yvs.service.com.achat;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.Constantes;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.compta.YvsComptaCaissePieceAchat;
@@ -23,7 +23,7 @@ public class AYvsComptaCaissePieceAchat extends AbstractEntity {
     public AYvsComptaCaissePieceAchat() {
     }
     
-    public AYvsComptaCaissePieceAchat(DaoInterfaceWs dao) {
+    public AYvsComptaCaissePieceAchat(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
     

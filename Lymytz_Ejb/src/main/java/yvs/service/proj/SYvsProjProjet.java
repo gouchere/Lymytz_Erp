@@ -5,7 +5,7 @@
  */
 package yvs.service.proj;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsProjProjet extends AYvsProjProjet implements IYvsProjProjet {
     public SYvsProjProjet() {
     }
 
-    public SYvsProjProjet(DaoInterfaceWs dao) {
+    public SYvsProjProjet(DaoInterfaceLocal dao) {
         super(dao);
     }
 

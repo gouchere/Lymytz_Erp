@@ -7,7 +7,7 @@ package yvs.service.com.vente;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Options;
 import yvs.dao.Util;
 import yvs.dao.salaire.service.Constantes;
@@ -31,7 +31,7 @@ public class AYvsComContenuDocVente extends AbstractEntity {
     public AYvsComContenuDocVente() {
     }
     
-    public AYvsComContenuDocVente(DaoInterfaceWs dao) {
+    public AYvsComContenuDocVente(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
     
@@ -173,7 +173,7 @@ public class AYvsComContenuDocVente extends AbstractEntity {
                     Boolean requiere_lot = (Boolean) dao.loadObjectBySqlQuery(query, new Options[]{new Options(contenu.getArticle().getId(), 1), new Options(depot.getId(), 2)});
                     contenu.getArticle().setUseLotInDepot(requiere_lot);
                     if (contenu.getArticle().isUseLotInDepot()) {
-                        IYvsComLotReception service = new SYvsComLotReception((DaoInterfaceWs) dao);
+                        IYvsComLotReception service = new SYvsComLotReception((DaoInterfaceLocal) dao);
                         if (service != null) {
                             contenu.setLots(service.loadList(depot.getId(), contenu.getConditionnement().getId(), null, 0, 0));
                         }

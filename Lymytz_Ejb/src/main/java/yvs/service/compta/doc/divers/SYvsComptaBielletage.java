@@ -5,7 +5,7 @@
  */
 package yvs.service.compta.doc.divers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsComptaBielletage extends AYvsComptaBielletage implements IYvsCo
     public SYvsComptaBielletage() {
     }
 
-    public SYvsComptaBielletage(DaoInterfaceWs dao) {
+    public SYvsComptaBielletage(DaoInterfaceLocal dao) {
         super(dao);
     }
 

@@ -5,7 +5,7 @@
  */
 package yvs.service.com.achat;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsComptaCaissePieceAchat extends AYvsComptaCaissePieceAchat imple
     public SYvsComptaCaissePieceAchat() {
     }
 
-    public SYvsComptaCaissePieceAchat(DaoInterfaceWs dao) {
+    public SYvsComptaCaissePieceAchat(DaoInterfaceLocal dao) {
         super(dao);
     }
 

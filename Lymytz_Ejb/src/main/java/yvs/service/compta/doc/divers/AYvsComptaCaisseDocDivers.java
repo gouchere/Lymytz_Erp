@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.context.FacesContext;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Fonctions;
 import yvs.dao.salaire.service.Constantes;
 import yvs.dao.salaire.service.ResultatAction;
@@ -59,7 +59,7 @@ public class AYvsComptaCaisseDocDivers extends AbstractEntity {
     public AYvsComptaCaisseDocDivers() {
     }
 
-    public AYvsComptaCaisseDocDivers(DaoInterfaceWs dao) {
+    public AYvsComptaCaisseDocDivers(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
     IEntitySax IEntitiSax = new IEntitySax();

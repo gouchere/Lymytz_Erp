@@ -5,7 +5,6 @@
  */
 package yvs.users.messagerie;
 
-import com.sun.istack.logging.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
@@ -62,6 +62,7 @@ import yvs.util.Util;
 @SessionScoped
 public class ManagedConversation extends Managed<Conversation, YvsMsgConversation> implements Serializable {
 
+    private final Logger logger=Logger.getLogger(ManagedConversation.class.getName());
     @ManagedProperty(value = "#{conversation}")
     private Conversation conversation;
     private Conversation conversationSelect = new Conversation();
@@ -2145,7 +2146,7 @@ public class ManagedConversation extends Managed<Conversation, YvsMsgConversatio
             return false;
         } catch (Exception ex) {
             getErrorMessage(action + " Impossible !");
-            Logger.getLogger(ManagedConversation.class).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
             return false;
         }
     }
@@ -2908,7 +2909,7 @@ public class ManagedConversation extends Managed<Conversation, YvsMsgConversatio
             succes();
         } catch (Exception ex) {
             getErrorMessage("Suppression Impossible !");
-            Logger.getLogger(ManagedConversation.class).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -2932,7 +2933,7 @@ public class ManagedConversation extends Managed<Conversation, YvsMsgConversatio
             succes();
         } catch (Exception ex) {
             getErrorMessage("Suppression Impossible !");
-            Logger.getLogger(ManagedConversation.class).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
     }
 

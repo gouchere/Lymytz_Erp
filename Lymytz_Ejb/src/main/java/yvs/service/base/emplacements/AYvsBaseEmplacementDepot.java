@@ -7,7 +7,7 @@ package yvs.service.base.emplacements;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.base.YvsBaseArticleDepot;
 import yvs.entity.base.YvsBaseDepots;
@@ -23,7 +23,7 @@ public class AYvsBaseEmplacementDepot extends AbstractEntity {
     public AYvsBaseEmplacementDepot() {
     }
 
-    public AYvsBaseEmplacementDepot(DaoInterfaceWs dao) {
+    public AYvsBaseEmplacementDepot(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

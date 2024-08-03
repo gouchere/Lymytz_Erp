@@ -6,7 +6,7 @@
 
 package yvs.service.grh.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.service.AbstractEntity;
 
 /**
@@ -18,7 +18,7 @@ public class AYvsJoursOuvres extends AbstractEntity  {
     public AYvsJoursOuvres() {
     }
 
-    public AYvsJoursOuvres(DaoInterfaceWs dao) {
+    public AYvsJoursOuvres(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 }

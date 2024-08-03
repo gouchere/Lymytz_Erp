@@ -6,7 +6,7 @@
 
 package yvs.service.compta.doc.divers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsComptaCaisseDocDivers extends AYvsComptaCaisseDocDivers impleme
     public SYvsComptaCaisseDocDivers() {
     }
 
-    public SYvsComptaCaisseDocDivers(DaoInterfaceWs dao) {
+    public SYvsComptaCaisseDocDivers(DaoInterfaceLocal dao) {
         super(dao);
     }
     

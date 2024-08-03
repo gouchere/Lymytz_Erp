@@ -5,7 +5,7 @@
  */
 package yvs.service.base.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsComCategoriePersonnel extends AYvsComCategoriePersonnel impleme
     public SYvsComCategoriePersonnel() {
     }
 
-    public SYvsComCategoriePersonnel(DaoInterfaceWs dao) {
+    public SYvsComCategoriePersonnel(DaoInterfaceLocal dao) {
         super(dao);
     }
 

@@ -7,7 +7,7 @@ package yvs.service.base.comptabilite;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.base.YvsBaseCaisseUser;
 import yvs.service.AbstractEntity;
@@ -21,7 +21,7 @@ public class AYvsBaseCaisseUser extends AbstractEntity {
     public AYvsBaseCaisseUser() {
     }
 
-    public AYvsBaseCaisseUser(DaoInterfaceWs dao) {
+    public AYvsBaseCaisseUser(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

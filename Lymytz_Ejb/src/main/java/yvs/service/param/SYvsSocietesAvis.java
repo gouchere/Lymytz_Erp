@@ -6,7 +6,7 @@
 
 package yvs.service.param;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsSocietesAvis extends AYvsSocietesAvis implements IYvsSocietesAv
     public SYvsSocietesAvis() {
     }
 
-    public SYvsSocietesAvis(DaoInterfaceWs dao) {
+    public SYvsSocietesAvis(DaoInterfaceLocal dao) {
         super(dao);
     }    
     

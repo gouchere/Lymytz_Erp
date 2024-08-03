@@ -2,7 +2,8 @@
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
- */
+ *//*
+
 package yvs.timer.commercial;
 
 import java.util.ArrayList;
@@ -18,10 +19,12 @@ import yvs.entity.commercial.YvsComParametre;
 import yvs.entity.param.YvsSocietes;
 import yvs.timer.InterfaceTimerLocal;
 
+*/
 /**
  *
  * @author LYMYTZ-PC
- */
+ *//*
+
 @Singleton
 public class TimerDeactiveClient implements InterfaceTimerLocal {
 
@@ -99,3 +102,4 @@ public class TimerDeactiveClient implements InterfaceTimerLocal {
         return null;
     }
 }
+*/

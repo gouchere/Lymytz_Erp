@@ -6,7 +6,7 @@
 
 package yvs.service.base.comptabilite;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsComptaPlanAnalytique extends AYvsComptaPlanAnalytique implement
     public SYvsComptaPlanAnalytique() {
     }
 
-    public SYvsComptaPlanAnalytique(DaoInterfaceWs dao) {
+    public SYvsComptaPlanAnalytique(DaoInterfaceLocal dao) {
         super(dao);
     }
     

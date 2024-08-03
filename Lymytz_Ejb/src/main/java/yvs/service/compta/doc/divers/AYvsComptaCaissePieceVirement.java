@@ -7,7 +7,7 @@ package yvs.service.compta.doc.divers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Util;
 import yvs.dao.salaire.service.Constantes;
 import yvs.dao.salaire.service.ResultatAction;
@@ -27,7 +27,7 @@ public class AYvsComptaCaissePieceVirement extends AbstractEntity {
     public AYvsComptaCaissePieceVirement() {
     }
 
-    public AYvsComptaCaissePieceVirement(DaoInterfaceWs dao) {
+    public AYvsComptaCaissePieceVirement(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
     IEntitySax IEntitiSax = new IEntitySax();

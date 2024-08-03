@@ -9,7 +9,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Util;
 import yvs.entity.grh.personnel.YvsGrhEmployes;
 import yvs.entity.grh.presence.YvsGrhPresence;
@@ -24,7 +24,7 @@ public class SYvsGrhTrancheHoraire extends AYvsGrhTrancheHoraire implements IYvs
     public SYvsGrhTrancheHoraire() {
     }
 
-    public SYvsGrhTrancheHoraire(DaoInterfaceWs dao) {
+    public SYvsGrhTrancheHoraire(DaoInterfaceLocal dao) {
         super(dao);
     }
 

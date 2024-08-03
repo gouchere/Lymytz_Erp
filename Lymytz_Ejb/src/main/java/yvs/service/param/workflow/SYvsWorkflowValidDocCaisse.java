@@ -6,7 +6,7 @@
 
 package yvs.service.param.workflow;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsWorkflowValidDocCaisse extends AYvsWorkflowValidDocCaisse imple
     public SYvsWorkflowValidDocCaisse() {
     }
 
-    public SYvsWorkflowValidDocCaisse(DaoInterfaceWs dao) {
+    public SYvsWorkflowValidDocCaisse(DaoInterfaceLocal dao) {
         super(dao);
     }
     

@@ -6,7 +6,7 @@
 
 package yvs.service.base.tiers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsComCategorieTarifaire extends AYvsComCategorieTarifaire impleme
     public SYvsComCategorieTarifaire()  {
     }
 
-    public SYvsComCategorieTarifaire(DaoInterfaceWs dao) {
+    public SYvsComCategorieTarifaire(DaoInterfaceLocal dao) {
         super(dao);
     }
     
