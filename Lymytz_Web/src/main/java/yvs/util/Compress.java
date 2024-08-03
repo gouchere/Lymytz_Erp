@@ -35,7 +35,7 @@ public class Compress {
         Path jarfile = Paths.get(pathFile);
         Path mf;
         try {
-            FileSystem fs = FileSystems.newFileSystem(jarfile, null);
+            FileSystem fs = FileSystems.newFileSystem(jarfile, (ClassLoader) null);
             mf = fs.getPath("META-INF", "MANIFEST.MF");
         } catch (IOException ex) {
             Logger.getLogger(Compress.class.getName()).log(Level.SEVERE, null, ex);
@@ -60,7 +60,7 @@ public class Compress {
     public static boolean extract(String pathSource, String pathCible) {
         Path jarfile = Paths.get(pathSource);
         try {
-            FileSystem fs = FileSystems.newFileSystem(jarfile, null);
+            FileSystem fs = FileSystems.newFileSystem(jarfile, (ClassLoader) null);
             // Path du fichier cible
             final Path cible = Paths.get(pathCible);
             Files.deleteIfExists(cible);
