@@ -253,7 +253,7 @@ import yvs.util.Util;
  *
  * @author lymytz
  */
-public class UtilCom {
+public class UtilCom { 
 
     public static ProformaVenteContenu buildBeanProformaVenteContenu(YvsComProformaVenteContenu y) {
         ProformaVenteContenu p = new ProformaVenteContenu();

@@ -256,7 +256,7 @@ public class UtilFormules implements Serializable {
             if (lx.nature == UniteLexicale.ID_VAR) {
                 //si le lexème est une variable, recherche sa valeur.
                 //Si  la variable commence par ABS (invocation de la fonction valeur absolu)
-                if (!lx.nom.startsWith("ABS")) {
+                if (!lx.nom.startsWith("ABS") && !lx.nom.startsWith("TRUNC")) {
                     String str = findVar(lx);
                     if (str == null) {
                         erreurs.add(new Options(lx.code, "Impossible de localiser la variable "));
@@ -264,8 +264,12 @@ public class UtilFormules implements Serializable {
                     }
                     newExpression += " " + str;
                 } else {
-                    //extraire l'expression à évaluer
-                    newExpression += " " + evalueFonctionABS(lx.nom.substring(3, lx.nom.length()), "");
+                    if(lx.nom.startsWith("ABS")){
+                        //extraire l'expression à évaluer
+                        newExpression += " " + evalueFonctionABS(lx.nom.substring(3, lx.nom.length()), "");
+                    }else if(lx.nom.startsWith("TRUNC")){
+                        newExpression += " " + evalueAndTruncate(lx.nom.substring(3, lx.nom.length()), "");
+                    }
                 }
             } else if (lx.nature == UniteLexicale.MOT_CLE) {
                 newExpression += " ";
@@ -433,6 +437,28 @@ public class UtilFormules implements Serializable {
                     String re = evalueExpression(convertECPToEPOST(formule.trim()));
                     if (!re.trim().isEmpty()) {
                         return Math.abs(Double.valueOf(re));
+                    }
+                }
+            } else {
+                return 0;
+            }
+        } else {
+            //une erreur dans l'expression algébrique a empêcher la générattion de la table des lexèmes
+            return 0;
+        }
+        return 0;
+    }
+
+    private double evalueAndTruncate(String exp, String codeElt) {
+        List<Lexemes> tab = buildLexemeToLexeme(exp, codeElt);
+        if (tab != null) {
+            String formule = rewriteExpression(tab);
+            if (formule != null) {
+                if (!formule.trim().equals("")) {
+                    formule += " #";
+                    String re = evalueExpression(convertECPToEPOST(formule.trim()));
+                    if (!re.trim().isEmpty()) {
+                        return Math.floor((Double.valueOf(re)));
                     }
                 }
             } else {
@@ -846,7 +872,7 @@ public class UtilFormules implements Serializable {
                 break;
             case Constantes.S_ANCIENETE:
                 if (contrat != null) {
-                    if (contrat.getEmploye().getDateEmbauche() != null) {
+                    if (contrat.getDateDebut() != null) {
                         result = Constantes.calculNbYear(contrat.getDateDebut(), fin);
                     }
                 }
