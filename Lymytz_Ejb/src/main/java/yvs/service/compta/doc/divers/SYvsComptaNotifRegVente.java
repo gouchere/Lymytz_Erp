@@ -5,7 +5,7 @@
  */
 package yvs.service.compta.doc.divers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsComptaNotifRegVente extends AYvsComptaNotifRegVente implements 
     public SYvsComptaNotifRegVente() {
     }
 
-    public SYvsComptaNotifRegVente(DaoInterfaceWs dao) {
+    public SYvsComptaNotifRegVente(DaoInterfaceLocal dao) {
         super(dao);
     }
 

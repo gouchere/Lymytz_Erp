@@ -7,7 +7,7 @@ package yvs.service.base.param;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.Constantes;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.compta.YvsBaseNatureCompte;
@@ -23,7 +23,7 @@ public class AYvsBaseNatureCompte extends AbstractEntity {
     public AYvsBaseNatureCompte() {
     }
 
-    public AYvsBaseNatureCompte(DaoInterfaceWs dao) {
+    public AYvsBaseNatureCompte(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

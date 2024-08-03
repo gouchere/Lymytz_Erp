@@ -6,7 +6,7 @@
 package yvs.service.base.produit;
 
 import yvs.dao.DaoInterfaceLocal;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.base.YvsBaseArticleAnalytique;
 

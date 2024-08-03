@@ -6,7 +6,7 @@
 
 package yvs.service.base.produit;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -17,7 +17,7 @@ public class SYvsBaseArticlePack extends AYvsBaseArticlePack implements IYvsBase
     public SYvsBaseArticlePack() {
     }
 
-    public SYvsBaseArticlePack(DaoInterfaceWs dao) {
+    public SYvsBaseArticlePack(DaoInterfaceLocal dao) {
         super(dao);
     }
     

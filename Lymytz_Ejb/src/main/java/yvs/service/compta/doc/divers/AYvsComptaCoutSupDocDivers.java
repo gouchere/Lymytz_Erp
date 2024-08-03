@@ -5,7 +5,7 @@
  */
 package yvs.service.compta.doc.divers;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.service.AbstractEntity;
 
 /**
@@ -17,7 +17,7 @@ public class AYvsComptaCoutSupDocDivers extends AbstractEntity {
     public AYvsComptaCoutSupDocDivers() {
     }
 
-    public AYvsComptaCoutSupDocDivers(DaoInterfaceWs dao) {
+    public AYvsComptaCoutSupDocDivers(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

@@ -41,7 +41,6 @@ public class MailSender {
 //        props.put("mail.smtp.auth", "false");
         if (ssl) {
             // Connection SSL
-            Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
             props.put("mail.smtp.socketFactory.class", SSL_FACTORY);
             props.put("mail.smtp.socketFactory.fallback", "false");
             props.put("mail.smtp.auth", "true");

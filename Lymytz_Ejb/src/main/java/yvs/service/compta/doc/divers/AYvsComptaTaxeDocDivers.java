@@ -7,7 +7,7 @@ package yvs.service.compta.doc.divers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.commercial.achat.YvsComTaxeContenuAchat;
 import yvs.entity.compta.divers.YvsComptaTaxeDocDivers;
@@ -23,7 +23,7 @@ public class AYvsComptaTaxeDocDivers extends AbstractEntity {
     public AYvsComptaTaxeDocDivers() {
     }
 
-    public AYvsComptaTaxeDocDivers(DaoInterfaceWs dao) {
+    public AYvsComptaTaxeDocDivers(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

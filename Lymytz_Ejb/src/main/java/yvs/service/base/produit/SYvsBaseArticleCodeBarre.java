@@ -5,7 +5,7 @@
  */
 package yvs.service.base.produit;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsBaseArticleCodeBarre extends AYvsBaseArticleCodeBarre implement
     public SYvsBaseArticleCodeBarre()  {
     }
 
-    public SYvsBaseArticleCodeBarre(DaoInterfaceWs dao) {
+    public SYvsBaseArticleCodeBarre(DaoInterfaceLocal dao) {
         super(dao);
     }
 

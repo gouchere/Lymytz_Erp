@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import yvs.dao.DaoInterfaceLocal;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Options;
 import yvs.dao.Util;
 import yvs.dao.salaire.service.Constantes;
@@ -95,7 +95,7 @@ import yvs.service.param.workflow.IYvsWorkflowValidFactureVente;
  */
 public class AYvsComDocVentes extends AbstractEntity {
 
-    public AYvsComDocVentes(DaoInterfaceWs dao) {
+    public AYvsComDocVentes(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
     public static DateFormat ldf = new SimpleDateFormat("EEEE, dd MMMM yyyy");

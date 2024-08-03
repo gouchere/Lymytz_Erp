@@ -11,7 +11,7 @@ import javax.ejb.Local;
  *
  * @author LYMYTZ-PC
  */
-@Local
+//@Local
 public interface InterfaceTimerLocal {
     
     public void myTimer();

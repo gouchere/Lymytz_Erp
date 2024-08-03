@@ -6,7 +6,7 @@
 
 package yvs.service.base.produit;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -15,7 +15,7 @@ import yvs.dao.DaoInterfaceWs;
 public class SYvsBaseUniteMesure extends AYvsBaseUniteMesure implements IYvsBaseUniteMesure {
 
     
-    public SYvsBaseUniteMesure(DaoInterfaceWs dao) {
+    public SYvsBaseUniteMesure(DaoInterfaceLocal dao) {
         super(dao);
     }
 

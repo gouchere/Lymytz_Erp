@@ -7,7 +7,7 @@ package yvs.service.com.vente;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.commercial.vente.YvsComContenuDocVenteEtat;
 import yvs.service.AbstractEntity;
@@ -21,7 +21,7 @@ public class AYvsComContenuDocVenteEtat extends AbstractEntity {
     public AYvsComContenuDocVenteEtat() {
     }
 
-    public AYvsComContenuDocVenteEtat(DaoInterfaceWs dao) {
+    public AYvsComContenuDocVenteEtat(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

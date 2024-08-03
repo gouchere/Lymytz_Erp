@@ -5,7 +5,7 @@
  */
 package yvs.service.base.emplacements;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.commercial.creneau.YvsComCreneauDepot;
 import yvs.service.AbstractEntity;
@@ -19,7 +19,7 @@ public class AYvsComCreneauDepot extends AbstractEntity {
     public AYvsComCreneauDepot() {
     }
 
-    public AYvsComCreneauDepot(DaoInterfaceWs dao) {
+    public AYvsComCreneauDepot(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

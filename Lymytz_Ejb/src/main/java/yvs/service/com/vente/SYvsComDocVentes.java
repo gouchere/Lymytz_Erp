@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Options;
 import yvs.dao.Util;
 import yvs.dao.salaire.service.Constantes;
@@ -37,7 +37,7 @@ public class SYvsComDocVentes extends AYvsComDocVentes implements IYvsComDocVent
     public SYvsComDocVentes() {
     }
 
-    public SYvsComDocVentes(DaoInterfaceWs dao) {
+    public SYvsComDocVentes(DaoInterfaceLocal dao) {
         super(dao);
     }
 

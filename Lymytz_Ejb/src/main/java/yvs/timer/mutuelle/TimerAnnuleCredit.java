@@ -19,10 +19,9 @@ import yvs.timer.InterfaceTimerLocal;
  *
  * @author LYMYTZ-PC
  */
-@Singleton
-public class TimerAnnuleCredit implements InterfaceTimerLocal {
+public class TimerAnnuleCredit {
 
-    @EJB
+  /*  @EJB
     public DaoInterfaceLocal dao;
 
     @Schedule(dayOfMonth = "*", month = "*", year = "*", hour = "23", dayOfWeek = "6", minute = "59", persistent = false)
@@ -71,5 +70,5 @@ public class TimerAnnuleCredit implements InterfaceTimerLocal {
             ex.printStackTrace();
         }
         return false;
-    }
+    }*/
 }

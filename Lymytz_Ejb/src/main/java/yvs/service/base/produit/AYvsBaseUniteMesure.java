@@ -7,7 +7,7 @@ package yvs.service.base.produit;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.base.YvsBaseUniteMesure;
 import yvs.entity.produits.YvsBaseArticles;
@@ -22,7 +22,7 @@ public class AYvsBaseUniteMesure extends AbstractEntity {
     public AYvsBaseUniteMesure() {
     }
 
-    public AYvsBaseUniteMesure(DaoInterfaceWs dao) {
+    public AYvsBaseUniteMesure(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

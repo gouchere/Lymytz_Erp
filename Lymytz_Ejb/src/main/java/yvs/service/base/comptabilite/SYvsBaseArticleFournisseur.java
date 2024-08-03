@@ -5,7 +5,7 @@
  */
 package yvs.service.base.comptabilite;
 
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 
 /**
  *
@@ -16,7 +16,7 @@ public class SYvsBaseArticleFournisseur extends AYvsBaseArticleFournisseur imple
     public SYvsBaseArticleFournisseur() {
     }
 
-    public SYvsBaseArticleFournisseur(DaoInterfaceWs dao) {
+    public SYvsBaseArticleFournisseur(DaoInterfaceLocal dao) {
         super(dao);
     }
  

@@ -7,7 +7,7 @@ package yvs.service.base.tiers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.tiers.YvsBaseTiers;
 import yvs.entity.tiers.YvsBaseTiersTelephone;
@@ -22,7 +22,7 @@ public class AYvsBaseTiers extends AbstractEntity {
     public AYvsBaseTiers() {
     }
 
-    public AYvsBaseTiers(DaoInterfaceWs dao) {
+    public AYvsBaseTiers(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

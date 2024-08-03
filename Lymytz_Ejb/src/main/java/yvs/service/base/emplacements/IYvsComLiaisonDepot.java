@@ -6,7 +6,7 @@
 package yvs.service.base.emplacements;
 
 import yvs.dao.DaoInterfaceLocal;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.commercial.YvsComLiaisonDepot;
 

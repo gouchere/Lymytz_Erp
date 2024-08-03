@@ -8,7 +8,7 @@ package yvs.service.com.param;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.base.YvsBaseDepots;
 import yvs.entity.commercial.creneau.YvsComCreneauDepot;
@@ -25,7 +25,7 @@ public class AYvsComCreneauHoraireUsers extends AbstractEntity {
     public AYvsComCreneauHoraireUsers() {
     }
 
-    public AYvsComCreneauHoraireUsers(DaoInterfaceWs dao) {
+    public AYvsComCreneauHoraireUsers(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 

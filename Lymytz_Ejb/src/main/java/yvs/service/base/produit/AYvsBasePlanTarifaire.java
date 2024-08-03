@@ -8,7 +8,7 @@ package yvs.service.base.produit;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import yvs.dao.DaoInterfaceWs;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.entity.commercial.client.YvsBaseCategorieClient;
 import yvs.entity.commercial.client.YvsBasePlanTarifaire;
@@ -29,7 +29,7 @@ public class AYvsBasePlanTarifaire extends AbstractEntity {
     public AYvsBasePlanTarifaire() {
     }
 
-    public AYvsBasePlanTarifaire(DaoInterfaceWs dao) {
+    public AYvsBasePlanTarifaire(DaoInterfaceLocal dao) {
         this.dao = dao;
     }
 
