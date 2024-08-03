@@ -24,7 +24,7 @@ public class GroupeProduitConverter implements Converter {
 
     List<CategorieTarifaire> list;
     @EJB
-    DaoInterfaceLocal dao;
+    DaoInterfaceLocal<YvsBaseCategorieClient> dao;
 
     public GroupeProduitConverter() {
         list = new ArrayList<>();
@@ -41,16 +41,9 @@ public class GroupeProduitConverter implements Converter {
     @Override
     public String getAsString(FacesContext context, UIComponent component, Object value) {
         return value.toString();
-//        if (value != null) {
-//            CategorieTarifaire c = (CategorieTarifaire) value;
-//            return c.getDesignation();
-//        } else {
-//            return "";
-//        }
     }
 
     private CategorieTarifaire loadCategorie(String ref) {
-        System.out.println(dao);
         String[] ch = {"designation"};
         Object[] val = {ref};
         dao.setEntityClass(YvsBaseCategorieClient.class);
