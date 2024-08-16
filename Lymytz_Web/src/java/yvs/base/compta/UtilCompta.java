@@ -119,6 +119,8 @@ import yvs.grh.UtilGrh;
 import yvs.mutuelle.UtilMut;
 import yvs.parametrage.agence.UtilAgence;
 import yvs.production.UtilProd;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteClient;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteFournisseur;
 import yvs.users.Users;
 import yvs.users.UtilUsers;
 import yvs.util.Constantes;
@@ -1717,7 +1719,7 @@ public class UtilCompta {
                 r.getVentesEtDivers().add(buildBeanAcomptesVenteDivers(c));
             }
             if (dao != null) {
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{y});
+                Double reste = AYvsComptaAcompteClient.findResteForAcompte(y, dao);
                 y.setReste(reste);
             }
             r.setReste(y.getReste());
@@ -1872,7 +1874,7 @@ public class UtilCompta {
                 r.getAchatsEtDivers().add(buildBeanAcomptesAchatDivers(c));
             }
             if (dao != null) {
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{y});
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(y, dao);
                 y.setReste(reste);
             }
             r.setReste(y.getReste());

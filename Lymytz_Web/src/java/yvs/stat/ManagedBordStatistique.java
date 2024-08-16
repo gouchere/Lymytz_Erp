@@ -80,6 +80,8 @@ import yvs.mutuelle.ManagedExercice;
 import yvs.production.ManagedParamProd;
 import yvs.production.UtilProd;
 import yvs.production.base.ManagedSiteProduction;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteClient;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteFournisseur;
 import yvs.users.ManagedUser;
 import yvs.users.Users;
 import yvs.users.UtilUsers;
@@ -3778,7 +3780,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         }
         synthese.setSoldeAcompte(0);
         for (YvsComptaAcompteClient f : synthese.getAcomptes()) {
-            Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{f});
+            Double reste = AYvsComptaAcompteClient.findResteForAcompte(f, dao);
             f.setReste((reste != null ? reste : 0));
             synthese.setSoldeAcompte(synthese.getSoldeAcompte() + f.getReste());
         }
@@ -4088,7 +4090,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         }
         syntheseF.setSoldeAcompte(0);
         for (YvsComptaAcompteFournisseur f : syntheseF.getAcomptes()) {
-            Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{f});
+            Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(f, dao);
             f.setReste((reste != null ? reste : 0));
             syntheseF.setSoldeAcompte(syntheseF.getSoldeAcompte() + f.getReste());
         }
