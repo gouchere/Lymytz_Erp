@@ -869,8 +869,7 @@ public class AYvsComptaCaisseDocDivers extends AbstractEntity {
                         List<YvsComptaContentJournal> list = new ArrayList<>();
                         list.addAll(debits);
                         list.addAll(credits);
-                        YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                        if (x.getSolde() == 0) {
+                        if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                             lettrageCompte(list, currentUser);
                         }
                     }
@@ -1001,8 +1000,7 @@ public class AYvsComptaCaisseDocDivers extends AbstractEntity {
                         List<YvsComptaContentJournal> list = new ArrayList<>();
                         list.addAll(debits);
                         list.addAll(credits);
-                        YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                        if (x.getSolde() == 0) {
+                        if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                             lettrageCompte(list, currentUser);
                         }
                     }

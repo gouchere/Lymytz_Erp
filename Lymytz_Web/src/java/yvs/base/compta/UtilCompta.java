@@ -130,7 +130,7 @@ import yvs.util.Constantes;
  * @author hp Elite 8300
  */
 public class UtilCompta {
-    
+
     public static ParametreCompta buildBeanParametre(YvsComptaParametre y) {
         ParametreCompta p = new ParametreCompta();
         if (y != null) {
@@ -158,7 +158,7 @@ public class UtilCompta {
         }
         return p;
     }
-    
+
     public static YvsComptaParametre buildParametre(ParametreCompta y, YvsSocietes ste, YvsUsersAgence ua) {
         YvsComptaParametre p = new YvsComptaParametre();
         if (y != null) {
@@ -195,7 +195,7 @@ public class UtilCompta {
         }
         return p;
     }
-    
+
     public static PlanDecoupage buildBeanPlanAbonnement(YvsComptaPlanAbonnement y) {
         PlanDecoupage r = new PlanDecoupage();
         if (y != null) {
@@ -211,7 +211,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaPlanAbonnement buildBeanPlanAbonnement(PlanDecoupage y, YvsUsersAgence ua, YvsSocietes ste) {
         YvsComptaPlanAbonnement r = new YvsComptaPlanAbonnement();
         if (y != null) {
@@ -233,7 +233,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static List<Comptes> buildBeanCompte(List<YvsBasePlanComptable> list) {
         List<Comptes> result = new ArrayList<>();
         for (YvsBasePlanComptable c : list) {
@@ -241,7 +241,7 @@ public class UtilCompta {
         }
         return result;
     }
-    
+
     public static Comptes buildSimpleBeanCompte(YvsBasePlanComptable cp) {
         Comptes c = new Comptes();
         if (cp != null) {
@@ -258,7 +258,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static Comptes buildBeanCompte(YvsBasePlanComptable cp) {
         Comptes c = buildSimpleBeanCompte(cp);
         if (cp != null) {
@@ -274,7 +274,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static YvsBasePlanComptable buildEntityCompte(Comptes cp) {
         YvsBasePlanComptable c = null;
         c = new YvsBasePlanComptable();
@@ -299,7 +299,7 @@ public class UtilCompta {
         c.setDateUpdate(new Date());
         return c;
     }
-    
+
     public static PlanAnalytique buildBeanPlanAnalytique(YvsComptaPlanAnalytique ca) {
         PlanAnalytique c = new PlanAnalytique();
         if (ca != null) {
@@ -313,7 +313,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static YvsComptaPlanAnalytique buildPlanAnalytique(PlanAnalytique ca, YvsUsersAgence ua, YvsSocietes st) {
         YvsComptaPlanAnalytique c = new YvsComptaPlanAnalytique();
         if (ca != null) {
@@ -330,7 +330,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static CentreAnalytique buildBeanCentreAnalytique(YvsComptaCentreAnalytique ca) {
         CentreAnalytique c = new CentreAnalytique();
         if (ca != null) {
@@ -348,7 +348,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static YvsComptaCentreAnalytique buildCentreAnalytique(CentreAnalytique ca, YvsUsersAgence ua) {
         YvsComptaCentreAnalytique c = new YvsComptaCentreAnalytique();
         if (ca != null) {
@@ -372,7 +372,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static LiaisonCentres buildBeanRepartition(YvsComptaRepartitionAnalytique ca) {
         LiaisonCentres c = new LiaisonCentres();
         if (ca != null) {
@@ -385,7 +385,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static YvsComptaRepartitionAnalytique buildRepartition(LiaisonCentres ca, YvsUsersAgence ua) {
         YvsComptaRepartitionAnalytique c = new YvsComptaRepartitionAnalytique();
         if (ca != null) {
@@ -407,7 +407,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static CategorieComptable buildBeanCategorieComptable(YvsBaseCategorieComptable y) {
         CategorieComptable c = new CategorieComptable();
         if (y != null) {
@@ -419,7 +419,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static List<CategorieComptable> buildBeanListCategorieComptable(List<YvsBaseCategorieComptable> list) {
         List<CategorieComptable> r = new ArrayList<>();
         if (list != null) {
@@ -434,7 +434,7 @@ public class UtilCompta {
      *DEBUT GESTION TAXES
      *
      */
-    
+
     public static Taxes buildBeanTaxes(YvsBaseTaxes y) {
         Taxes t = new Taxes();
         if (y != null) {
@@ -453,7 +453,7 @@ public class UtilCompta {
         }
         return t;
     }
-    
+
     public static YvsBaseTaxes buildTaxes(Taxes y, YvsSocietes s, YvsUsersAgence ua) {
         YvsBaseTaxes t = new YvsBaseTaxes();
         if (y != null) {
@@ -476,7 +476,7 @@ public class UtilCompta {
         }
         return t;
     }
-    
+
     public static List<Taxes> buildBeanListTaxes(List<YvsBaseTaxes> list) {
         List<Taxes> r = new ArrayList<>();
         for (YvsBaseTaxes a : list) {
@@ -484,7 +484,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static Journaux buildBeanJournaux(YvsComptaJournaux y) {
         Journaux j = new Journaux();
         if (y != null) {
@@ -501,7 +501,7 @@ public class UtilCompta {
         }
         return j;
     }
-    
+
     public static YvsComptaJournaux buildBeanJournaux(Journaux y) {
         YvsComptaJournaux j = new YvsComptaJournaux();
         if (y != null) {
@@ -517,11 +517,11 @@ public class UtilCompta {
         }
         return j;
     }
-    
+
     public static ModeDeReglement buildBeanModeReglement(YvsBaseModeReglement y) {
         return UtilCom.buildBeanModeReglement(y);
     }
-    
+
     public static List<ModeDeReglement> buildBeanListModelReglement(List<YvsBaseModeReglement> list) {
         List<ModeDeReglement> r = new ArrayList<>();
         if (list != null) {
@@ -531,7 +531,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static List<Comptes> buildBeanListComptes(List<YvsBasePlanComptable> param) {
         List<Comptes> result = new ArrayList<>();
         if (param != null) {
@@ -542,7 +542,7 @@ public class UtilCompta {
         }
         return result;
     }
-    
+
     public static ModePaiement buildBeanModePaiement(YvsModePaiement y) {
         ModePaiement m = new ModePaiement();
         if (y != null) {
@@ -553,7 +553,7 @@ public class UtilCompta {
         }
         return m;
     }
-    
+
     public static List<ModePaiement> buildBeanListModePaiement(List<YvsModePaiement> list) {
         List<ModePaiement> r = new ArrayList<>();
         if (list != null) {
@@ -563,7 +563,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static NatureCompte buildBeanNatureCompte(YvsBaseNatureCompte nat) {
         NatureCompte r = new NatureCompte();
         if (nat != null) {
@@ -584,7 +584,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsBaseNatureCompte buildNatureCompte(NatureCompte nat, YvsUsersAgence currentUser, YvsSocietes currentScte) {
         YvsBaseNatureCompte r = new YvsBaseNatureCompte();
         if (nat != null) {
@@ -605,7 +605,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static CoutSupVirement buildBeanCoutSupVirement(YvsComptaCoutSupPieceVirement y) {
         CoutSupVirement r = new CoutSupVirement();
         if (y != null) {
@@ -618,7 +618,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCoutSupPieceVirement buildCoutSupVirement(CoutSupVirement y, YvsUsersAgence ua) {
         YvsComptaCoutSupPieceVirement r = new YvsComptaCoutSupPieceVirement();
         if (y != null) {
@@ -637,7 +637,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static CoutSupDocDivers buildBeanCoutSupDocDivers(YvsComptaCoutSupDocDivers y) {
         CoutSupDocDivers r = new CoutSupDocDivers();
         if (y != null) {
@@ -653,7 +653,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCoutSupDocDivers buildCoutSupDocDivers(CoutSupDocDivers y, YvsUsersAgence ua) {
         YvsComptaCoutSupDocDivers r = new YvsComptaCoutSupDocDivers();
         if (y != null) {
@@ -675,7 +675,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static TaxeDocDivers buildBeanTaxeDocDivers(YvsComptaTaxeDocDivers y) {
         TaxeDocDivers r = new TaxeDocDivers();
         if (y != null) {
@@ -688,7 +688,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaTaxeDocDivers buildTaxeDocDivers(TaxeDocDivers y, YvsUsersAgence ua) {
         YvsComptaTaxeDocDivers r = new YvsComptaTaxeDocDivers();
         if (y != null) {
@@ -707,7 +707,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static CentreCoutVirement buildBeanCentreVirement(YvsComptaCentreCoutVirement y) {
         CentreCoutVirement r = new CentreCoutVirement();
         if (y != null) {
@@ -720,7 +720,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCentreCoutVirement buildCentreVirement(CentreCoutVirement y, YvsUsersAgence ua) {
         YvsComptaCentreCoutVirement r = new YvsComptaCentreCoutVirement();
         if (y != null) {
@@ -739,7 +739,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static CentreContenuAchat buildBeanCentreContenuAchat(YvsComptaCentreContenuAchat y) {
         CentreContenuAchat r = new CentreContenuAchat();
         if (y != null) {
@@ -752,7 +752,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCentreContenuAchat buildCentreContenuAchat(CentreContenuAchat y, YvsUsersAgence ua) {
         YvsComptaCentreContenuAchat r = new YvsComptaCentreContenuAchat();
         if (y != null) {
@@ -771,7 +771,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static CentreDocDivers buildBeanCentreDocDivers(YvsComptaCentreDocDivers y) {
         CentreDocDivers r = new CentreDocDivers();
         if (y != null) {
@@ -784,7 +784,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCentreDocDivers buildCentreDocDivers(CentreDocDivers y, YvsUsersAgence ua) {
         YvsComptaCentreDocDivers r = new YvsComptaCentreDocDivers();
         if (y != null) {
@@ -803,7 +803,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static CentreMission buildBeanCentreMission(YvsComptaCentreMission y) {
         CentreMission r = new CentreMission();
         if (y != null) {
@@ -816,7 +816,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCentreMission buildCentreMission(CentreMission y, YvsUsersAgence ua) {
         YvsComptaCentreMission r = new YvsComptaCentreMission();
         if (y != null) {
@@ -835,7 +835,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static TiersDivers buildBeanTiersDivers(YvsComptaCaisseDocDiversTiers y) {
         TiersDivers d = new TiersDivers();
         if (y != null) {
@@ -848,7 +848,7 @@ public class UtilCompta {
         }
         return d;
     }
-    
+
     public static YvsComptaCaisseDocDiversTiers buildTiersDivers(TiersDivers y) {
         YvsComptaCaisseDocDiversTiers d = new YvsComptaCaisseDocDiversTiers();
         if (y != null) {
@@ -868,7 +868,7 @@ public class UtilCompta {
         }
         return d;
     }
-    
+
     public static DocCaissesDivers buildSimpleBeanDocCaisse(YvsComptaCaisseDocDivers y) {
         DocCaissesDivers d = new DocCaissesDivers();
         if (y != null) {
@@ -896,7 +896,7 @@ public class UtilCompta {
         }
         return d;
     }
-    
+
     public static DocCaissesDivers buildBeanDocCaisse(YvsComptaCaisseDocDivers y) {
         DocCaissesDivers d = new DocCaissesDivers();
         if (y != null) {
@@ -941,11 +941,11 @@ public class UtilCompta {
         }
         return d;
     }
-    
+
     public static YvsComptaCaisseDocDivers buildDocDivers(DocCaissesDivers y) {
         return buildDocDivers(y, null, null);
     }
-    
+
     public static YvsComptaCaisseDocDivers buildDocDivers(DocCaissesDivers y, YvsUsersAgence ua, YvsSocietes st) {
         YvsComptaCaisseDocDivers d = new YvsComptaCaisseDocDivers();
         if (y != null) {
@@ -1001,7 +1001,7 @@ public class UtilCompta {
         }
         return d;
     }
-    
+
     public static AbonnementDocDivers buildBeanAbonnement(YvsComptaAbonementDocDivers y) {
         AbonnementDocDivers r = new AbonnementDocDivers();
         if (y != null) {
@@ -1017,7 +1017,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaAbonementDocDivers buildAbonnement(AbonnementDocDivers y, YvsUsersAgence ua) {
         YvsComptaAbonementDocDivers r = new YvsComptaAbonementDocDivers();
         if (y != null) {
@@ -1039,7 +1039,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static Caisses buildBeanCaisse(YvsBaseCaisse ca) {
         Caisses c = buildSimpleBeanCaisse(ca);
         if (c != null && ca != null) {
@@ -1057,7 +1057,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static Caisses buildSimpleBeanCaisse_(YvsBaseCaisse ca) {
         Caisses c = new Caisses();
         if (ca != null) {
@@ -1077,7 +1077,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static Caisses buildSimpleBeanCaisse(YvsBaseCaisse ca) {
         Caisses c = buildSimpleBeanCaisse_(ca);
         if (ca != null) {
@@ -1086,7 +1086,7 @@ public class UtilCompta {
         }
         return c;
     }
-    
+
     public static YvsBaseCaisse buildBeanCaisse(Caisses ca) {
         YvsBaseCaisse c = new YvsBaseCaisse();
         if (ca != null) {
@@ -1150,7 +1150,7 @@ public class UtilCompta {
         }
         return p;
     }
-    
+
     public static PieceTresorerie buildBeanTresoreri(YvsComptaCaissePieceVirement mvt) {
         PieceTresorerie p = new PieceTresorerie();
         if (mvt != null) {
@@ -1197,13 +1197,13 @@ public class UtilCompta {
         }
         return p;
     }
-    
+
     public static YvsComptaCaissePieceVirement buildTresoreri(PieceTresorerie y, YvsUsersAgence ua) {
         YvsBaseCaisse source = new YvsBaseCaisse(y.getCaisse().getId(), y.getCaisse().getIntitule());
         YvsBaseCaisse cible = new YvsBaseCaisse(y.getOtherCaisse().getId(), y.getOtherCaisse().getIntitule());
         return buildTresoreri(y, source, cible, ua);
     }
-    
+
     public static YvsComptaCaissePieceVirement buildTresoreri(PieceTresorerie y, YvsBaseCaisse source, YvsBaseCaisse cible, YvsUsersAgence ua) {
         YvsComptaCaissePieceVirement r = new YvsComptaCaissePieceVirement();
         if (y != null) {
@@ -1243,7 +1243,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static List<PieceTresorerie> buildSimpleBeanPieceTresorerie(List<YvsComptaMouvementCaisse> l) {
         List<PieceTresorerie> re = new ArrayList<>();
         for (YvsComptaMouvementCaisse mv : l) {
@@ -1251,7 +1251,7 @@ public class UtilCompta {
         }
         return re;
     }
-    
+
     public static PieceTresorerie buildSimpleBeanTresoreri(YvsComptaCaissePieceDivers y) {
         PieceTresorerie r = new PieceTresorerie();
         if (y != null) {
@@ -1277,7 +1277,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static PieceTresorerie buildBeanTresoreri(YvsComptaCaissePieceDivers y) {
         PieceTresorerie r = new PieceTresorerie();
         if (y != null) {
@@ -1290,7 +1290,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static PieceTresorerie buildSimpleBeanTresoreri(YvsComptaCaissePieceVente y) {
         PieceTresorerie r = new PieceTresorerie();
         if (y != null) {
@@ -1316,7 +1316,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static PieceTresorerie buildBeanTresoreri(YvsComptaCaissePieceVente y) {
         PieceTresorerie r = new PieceTresorerie();
         if (y != null) {
@@ -1330,7 +1330,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCaissePieceVente buildTresoreriVente(PieceTresorerie y, YvsUsersAgence ua) {
         YvsComptaCaissePieceVente r = new YvsComptaCaissePieceVente();
         if (y != null) {
@@ -1369,7 +1369,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static PieceTresorerie buildBeanTresoreri(YvsComptaCaissePieceAchat y) {
         PieceTresorerie r = new PieceTresorerie();
         if (y != null) {
@@ -1401,7 +1401,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCaissePieceAchat buildTresoreriAchat(PieceTresorerie y, YvsUsersAgence ua) {
         YvsComptaCaissePieceAchat r = new YvsComptaCaissePieceAchat();
         if (y != null) {
@@ -1438,7 +1438,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static PieceTresorerie buildBeanTresoreri(YvsComptaCaissePieceMission pv) {
         PieceTresorerie pieceCaisse = new PieceTresorerie();
         if (pv != null) {
@@ -1460,7 +1460,7 @@ public class UtilCompta {
         }
         return pieceCaisse;
     }
-    
+
     public static PieceTresorerie buildBeanTresoreri(YvsComptaCaissePieceCommission pv) {
         PieceTresorerie pieceCaisse = new PieceTresorerie();
         if (pv != null) {
@@ -1479,7 +1479,7 @@ public class UtilCompta {
         }
         return pieceCaisse;
     }
-    
+
     public static YvsComptaCaissePieceCommission buildTresoreriCommission(PieceTresorerie y, YvsUsersAgence u) {
         YvsComptaCaissePieceCommission r = new YvsComptaCaissePieceCommission();
         if (y != null) {
@@ -1507,7 +1507,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaModeleSaisie buildBeanModel(ModelesSasie bean) {
         if (bean != null) {
             YvsComptaModeleSaisie model = new YvsComptaModeleSaisie(bean.getId());
@@ -1519,7 +1519,7 @@ public class UtilCompta {
         }
         return null;
     }
-    
+
     public static ModelesSasie buildBeanModel(YvsComptaModeleSaisie bean) {
         if (bean != null) {
             ModelesSasie model = new ModelesSasie();
@@ -1532,7 +1532,7 @@ public class UtilCompta {
         }
         return new ModelesSasie();
     }
-    
+
     public static ContentModeleSaisie buildBeanContentModel(YvsComptaContentModeleSaisi bean) {
         ContentModeleSaisie cm = new ContentModeleSaisie();
         if (bean != null) {
@@ -1558,8 +1558,8 @@ public class UtilCompta {
         }
         return cm;
     }
-    
-    public static PiecesCompta buildBeanPieceCompta(YvsComptaPiecesComptable y) {
+
+    public static PiecesCompta buildBeanPieceCompta(YvsComptaPiecesComptable y, DaoInterfaceLocal dao) {
         PiecesCompta r = new PiecesCompta();
         if (y != null) {
             r.setId(y.getId());
@@ -1571,12 +1571,15 @@ public class UtilCompta {
             r.setExercice(UtilMut.buildBeanExercice(y.getExercice()));
             r.setJournal(buildBeanJournaux(y.getJournal()));
             r.setModel(buildBeanModel(y.getModel()));
+            if (dao != null) {
+                y.setDebits((Double) dao.loadObjectByNameQueries("YvsComptaContentJournal.findDebitByPiece", new String[]{"piece"}, new Object[]{y}));
+                y.setCredits((Double) dao.loadObjectByNameQueries("YvsComptaContentJournal.findCreditByPiece", new String[]{"piece"}, new Object[]{y}));
+            }
             r.setSolde(y.getSolde());
-            r.getContentsPieces().addAll(y.getContentsPiece());
         }
         return r;
     }
-    
+
     public static YvsComptaPiecesComptable buildPieceCompta(PiecesCompta y, YvsUsersAgence ua) {
         YvsComptaPiecesComptable r = new YvsComptaPiecesComptable();
         if (y != null) {
@@ -1600,7 +1603,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static ContentPieceCompta buildBeanContentPiece(YvsComptaContentJournal y) {
         ContentPieceCompta r = new ContentPieceCompta();
         if (y != null) {
@@ -1613,7 +1616,7 @@ public class UtilCompta {
             r.setDebit(y.getDebit());
             r.setCredit(y.getCredit());
             r.setEcheance(y.getEcheance());
-            r.setPiece(buildBeanPieceCompta(y.getPiece()));
+            r.setPiece(buildBeanPieceCompta(y.getPiece(), null));
             r.setRefExterne(y.getRefExterne());
             r.setTableExterne(y.getTableExterne());
             r.setSolde(y.getSolde());
@@ -1625,7 +1628,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaContentJournal buildContentPiece(ContentPieceCompta y, YvsUsersAgence ua) {
         YvsComptaContentJournal r = new YvsComptaContentJournal();
         if (y != null) {
@@ -1656,7 +1659,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static ContentAnalytique buildBeanContentPiece(YvsComptaContentAnalytique y) {
         ContentAnalytique r = new ContentAnalytique();
         if (y != null) {
@@ -1671,7 +1674,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaContentAnalytique buildContentPiece(ContentAnalytique y, YvsUsersAgence ua) {
         YvsComptaContentAnalytique r = new YvsComptaContentAnalytique();
         if (y != null) {
@@ -1692,7 +1695,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static AcompteClient buildBeanAcompteClient(YvsComptaAcompteClient y, DaoInterfaceLocal dao) {
         AcompteClient r = new AcompteClient();
         if (y != null) {
@@ -1726,7 +1729,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaAcompteClient buildAcompteClient(AcompteClient y, YvsUsersAgence ua) {
         YvsComptaAcompteClient r = new YvsComptaAcompteClient();
         if (y != null) {
@@ -1755,7 +1758,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static CreditClient buildBeanCreditClient(YvsComptaCreditClient y) {
         CreditClient r = new CreditClient();
         if (y != null) {
@@ -1775,7 +1778,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCreditClient buildCreditClient(CreditClient y, YvsUsersAgence ua) {
         YvsComptaCreditClient r = new YvsComptaCreditClient();
         if (y != null) {
@@ -1802,7 +1805,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static ReglementCredit buildBeanReglementCredit(YvsComptaReglementCreditClient y) {
         ReglementCredit r = new ReglementCredit();
         if (y != null) {
@@ -1820,7 +1823,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaReglementCreditClient buildReglementCredit(ReglementCredit y, YvsUsersAgence ua) {
         YvsComptaReglementCreditClient r = new YvsComptaReglementCreditClient();
         if (y != null) {
@@ -1846,7 +1849,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static AcompteFournisseur buildBeanAcompteFournisseur(YvsComptaAcompteFournisseur y, DaoInterfaceLocal dao) {
         AcompteFournisseur r = new AcompteFournisseur();
         if (y != null) {
@@ -1881,7 +1884,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaAcompteFournisseur buildAcompteFournisseur(AcompteFournisseur y, YvsUsersAgence ua) {
         YvsComptaAcompteFournisseur r = new YvsComptaAcompteFournisseur();
         if (y != null) {
@@ -1911,7 +1914,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static CreditFournisseur buildBeanCreditFournisseur(YvsComptaCreditFournisseur y) {
         CreditFournisseur r = new CreditFournisseur();
         if (y != null) {
@@ -1931,7 +1934,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCreditFournisseur buildCreditFournisseur(CreditFournisseur y, YvsUsersAgence ua) {
         YvsComptaCreditFournisseur r = new YvsComptaCreditFournisseur();
         if (y != null) {
@@ -1958,11 +1961,11 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaCaissePieceDivers buildPieceCaisse(PieceTresorerie y, YvsUsersAgence u) {
         return buildTresoreriDocDivers(y, u);
     }
-    
+
     public static YvsComptaCaissePieceDivers buildTresoreriDocDivers(PieceTresorerie y, YvsUsersAgence ua) {
         YvsComptaCaissePieceDivers r = new YvsComptaCaissePieceDivers();
         if (y != null) {
@@ -2001,7 +2004,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static ReglementCredit buildBeanReglementCredit(YvsComptaReglementCreditFournisseur y) {
         ReglementCredit r = new ReglementCredit();
         if (y != null) {
@@ -2019,7 +2022,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaReglementCreditFournisseur buildReglementCreditF(ReglementCredit y, YvsUsersAgence ua) {
         YvsComptaReglementCreditFournisseur r = new YvsComptaReglementCreditFournisseur();
         if (y != null) {
@@ -2045,7 +2048,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static JustifierBon buildBeanJustificatif(YvsComptaJustificatifBon y) {
         JustifierBon r = new JustifierBon();
         if (y != null) {
@@ -2056,7 +2059,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaJustificatifBon buildJustificatif(JustifierBon y, YvsUsersAgence ua) {
         YvsComptaJustificatifBon r = new YvsComptaJustificatifBon();
         if (y != null) {
@@ -2073,7 +2076,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static BonProvisoire buildBeanBonProvisoire(YvsComptaBonProvisoire y) {
         BonProvisoire r = new BonProvisoire();
         if (y != null) {
@@ -2150,7 +2153,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsComptaBonProvisoire buildBonProvisoire(BonProvisoire y, YvsUsersAgence ua) {
         YvsComptaBonProvisoire r = new YvsComptaBonProvisoire();
         if (y != null) {
@@ -2192,7 +2195,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static JustifierBon buildBeanJustifierBon(YvsComptaJustificatifBon c) {
         JustifierBon ju = new JustifierBon();
         ju.setDateJustifier(c.getPiece().getDateValider());
@@ -2209,7 +2212,7 @@ public class UtilCompta {
         ju.setType("OD");
         return ju;
     }
-    
+
     public static JustifierBon buildBeanJustifierBon(YvsComptaJustifBonAchat c) {
         JustifierBon ju = new JustifierBon();
         ju.setDateJustifier(c.getPiece().getDatePaiement());
@@ -2226,7 +2229,7 @@ public class UtilCompta {
         ju.setType("FA");
         return ju;
     }
-    
+
     public static JustifierBon buildBeanJustifierBon(YvsComptaJustifBonMission c) {
         JustifierBon ju = new JustifierBon();
         ju.setDateJustifier(c.getMission().getDatePaiement());
@@ -2242,9 +2245,9 @@ public class UtilCompta {
         ju.setTiers(c.getMission().getMission().getEmploye().getCompteTiers());
         ju.setType("MI");
         return ju;
-        
+
     }
-    
+
     public static AcomptesVenteDivers buildBeanAcomptesVenteDivers(YvsComptaNotifReglementVente c) {
         AcomptesVenteDivers p = new AcomptesVenteDivers();
         p.setId(c.getId());
@@ -2268,7 +2271,7 @@ public class UtilCompta {
         p.setType("VENTE");
         return p;
     }
-    
+
     public static AcomptesVenteDivers buildBeanAcomptesVenteDivers(YvsComptaNotifReglementDocDivers c) {
         AcomptesVenteDivers p = new AcomptesVenteDivers();
         p.setId(c.getId());
@@ -2291,9 +2294,9 @@ public class UtilCompta {
         }
         p.setType("OD_V");
         return p;
-        
+
     }
-    
+
     public static AcomptesAchatDivers buildBeanAcomptesAchatDivers(YvsComptaNotifReglementAchat c) {
         AcomptesAchatDivers p = new AcomptesAchatDivers();
         p.setId(c.getId());
@@ -2316,7 +2319,7 @@ public class UtilCompta {
         p.setType("ACHAT");
         return p;
     }
-    
+
     public static AcomptesAchatDivers buildBeanAcomptesAchatDivers(YvsComptaNotifReglementDocDivers c) {
         AcomptesAchatDivers p = new AcomptesAchatDivers();
         p.setId(c.getId());
@@ -2339,7 +2342,7 @@ public class UtilCompta {
         p.setType("OD_A");
         return p;
     }
-    
+
     public static YvsComMensualiteFactureVente buildMensualiteVente(MensualiteFactureVente y, YvsUsersAgence ua) {
         YvsComMensualiteFactureVente r = new YvsComMensualiteFactureVente();
         if (y != null) {
@@ -2364,7 +2367,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static MensualiteFactureVente buildBeanMensualiteVente(YvsComMensualiteFactureVente y) {
         MensualiteFactureVente r = new MensualiteFactureVente();
         if (y != null) {
@@ -2383,7 +2386,7 @@ public class UtilCompta {
         }
         return r;
     }
-    
+
     public static YvsBaseTypeDocDivers buildBeanTypeDoc(TypeDocDivers bean, YvsUsersAgence ua) {
         YvsBaseTypeDocDivers y = new YvsBaseTypeDocDivers();
         if (bean != null) {
@@ -2402,7 +2405,7 @@ public class UtilCompta {
         }
         return y;
     }
-    
+
     public static TypeDocDivers buildBeanTypeDoc(YvsBaseTypeDocDivers bean) {
         TypeDocDivers y = new TypeDocDivers();
         if (bean != null) {

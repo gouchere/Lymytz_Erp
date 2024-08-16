@@ -156,6 +156,8 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     private YvsComptaContentAnalytique selectContentAnal;
     private YvsBasePlanComptable selectCompte;
 
+    public PaginatorResult<YvsComptaContentJournal> paginatorContenu = new PaginatorResult<>();
+
     private List<YvsAgences> agencesSelect;
     private boolean actionAgence = true, updatePiece = false;
     private Date datePiece = new Date();
@@ -212,6 +214,9 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     private Comptes compteDeLetter = new Comptes();
     private Comptes compteChange = new Comptes();
     private Journaux journalChange = new Journaux();
+
+    private String compteContenuSearch, tiersContenuSearch, lettrageContenuSearch;
+    private Double debitSearch = null, creditSearch = null;
 
     private long journalContentSearch, journalSearch;
     private String compteSearch, tiersSearch, numeroSearch, referenceSearch, lettrageSearch, mouvementSearch;
@@ -894,6 +899,54 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         this.initForm = initForm;
     }
 
+    public PaginatorResult<YvsComptaContentJournal> getPaginatorContenu() {
+        return paginatorContenu;
+    }
+
+    public void setPaginatorContenu(PaginatorResult<YvsComptaContentJournal> paginatorContenu) {
+        this.paginatorContenu = paginatorContenu;
+    }
+
+    public String getCompteContenuSearch() {
+        return compteContenuSearch;
+    }
+
+    public void setCompteContenuSearch(String compteContenuSearch) {
+        this.compteContenuSearch = compteContenuSearch;
+    }
+
+    public String getTiersContenuSearch() {
+        return tiersContenuSearch;
+    }
+
+    public void setTiersContenuSearch(String tiersContenuSearch) {
+        this.tiersContenuSearch = tiersContenuSearch;
+    }
+
+    public String getLettrageContenuSearch() {
+        return lettrageContenuSearch;
+    }
+
+    public void setLettrageContenuSearch(String lettrageContenuSearch) {
+        this.lettrageContenuSearch = lettrageContenuSearch;
+    }
+
+    public Double getCreditSearch() {
+        return creditSearch;
+    }
+
+    public void setCreditSearch(Double creditSearch) {
+        this.creditSearch = creditSearch;
+    }
+
+    public Double getDebitSearch() {
+        return debitSearch;
+    }
+
+    public void setDebitSearch(Double debitSearch) {
+        this.debitSearch = debitSearch;
+    }
+
     public Long getExerciceSearch() {
         return exerciceSearch;
     }
@@ -998,6 +1051,28 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
             execute("collapseList('saisieJ')");
         }
         update("table_pc_comptable");
+    }
+
+    public void clearParamsContenuForPiece() {
+        paginatorContenu.getParams().clear();
+        loadAllContenuForPiece(true, true);
+    }
+
+    public void loadAllContenuForPiece(boolean avancer, boolean init) {
+        List<YvsComptaContentJournal> lists = new ArrayList<>();
+        if (selectPiece != null ? selectPiece.getId() > 0 : false) {
+            ParametreRequete p = new ParametreRequete("y.piece", "piece", selectPiece, "=", "AND");
+            paginator.addParam(p);
+            lists = paginatorContenu.executeDynamicQuery("YvsComptaContentJournal", "y.jour", avancer, init, dao);
+            Collections.sort(lists);
+        }
+        pieceCompta.setContentsPieces(lists);
+        update("table_content_Pcomptable");
+    }
+
+    public void choosePaginatorContenuForPiece(ValueChangeEvent ev) {
+        paginatorContenu.choosePaginator(ev);
+        loadAllContenuForPiece(true, true);
     }
 
     public void clearParamsContenu() {
@@ -1432,7 +1507,6 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
 
     @Override
     public void populateView(PiecesCompta bean) {
-        Collections.sort(bean.getContentsPieces());
         cloneObject(pieceCompta, bean);
         Calendar c = Calendar.getInstance();
         if (bean.getDatePiece() != null) {
@@ -1442,6 +1516,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         if (bean.getJournal() != null) {
             _giveSoldeJournal(bean.getJournal().getId());
         }
+        loadAllContenuForPiece(true, true);
         resetFicheContent();
         update("cancel_saisieJ");
         update("save_saisieJ");
@@ -2179,7 +2254,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     @Override
     public void onSelectObject(YvsComptaPiecesComptable y) {
         selectPiece = y;
-        populateView(UtilCompta.buildBeanPieceCompta(y));
+        populateView(UtilCompta.buildBeanPieceCompta(y, dao));
     }
 
     @Override
@@ -7876,8 +7951,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                     List<YvsComptaContentJournal> list = new ArrayList<>();
                     list.addAll(debits);
                     list.addAll(credits);
-                    YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                    if (x.getSolde() == 0) {
+                    if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                         YvsBaseExercice exo = giveExercice(y.getEnteteDoc().getDateEntete());
                         if (exo != null ? exo.getId() < 1 : true) {
                             return null;
@@ -7996,8 +8070,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                     List<YvsComptaContentJournal> list = new ArrayList<>();
                     list.addAll(debits);
                     list.addAll(credits);
-                    YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                    if (x.getSolde() == 0) {
+                    if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                         YvsBaseExercice exo = giveExercice(y.getDateDoc());
                         if (exo != null ? exo.getId() < 1 : true) {
                             return null;
@@ -8134,8 +8207,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                         List<YvsComptaContentJournal> list = new ArrayList<>();
                         list.addAll(debits);
                         list.addAll(credits);
-                        YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                        if (x.getSolde() == 0) {
+                        if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                             YvsBaseExercice exo = giveExercice(y.getDateDoc());
                             if (exo != null ? exo.getId() < 1 : true) {
                                 return null;
@@ -8397,8 +8469,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                             List<YvsComptaContentJournal> list = new ArrayList<>();
                             list.addAll(debits);
                             list.addAll(credits);
-                            YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                            if (x.getSolde() == 0) {
+                            if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                 YvsBaseExercice exo = giveExercice(y.getDatePaiement());
                                 if (exo != null ? exo.getId() < 1 : true) {
                                     return null;
@@ -8515,8 +8586,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                             List<YvsComptaContentJournal> list = new ArrayList<>();
                             list.addAll(debits);
                             list.addAll(credits);
-                            YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                            if (x.getSolde() == 0) {
+                            if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                 YvsBaseExercice exo = giveExercice(y.getDatePaiement());
                                 if (exo != null ? exo.getId() < 1 : true) {
                                     return null;
@@ -8605,8 +8675,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                         List<YvsComptaContentJournal> list = new ArrayList<>();
                         list.addAll(debits);
                         list.addAll(credits);
-                        YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                        if (x.getSolde() == 0) {
+                        if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                             YvsBaseExercice exo = giveExercice(y.getDateValider());
                             if (exo != null ? exo.getId() < 1 : true) {
                                 return null;
@@ -8743,8 +8812,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                     List<YvsComptaContentJournal> list = new ArrayList<>();
                     list.addAll(debits);
                     list.addAll(credits);
-                    YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                    if (x.getSolde() == 0) {
+                    if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                         YvsBaseExercice exo = giveExercice(y.getDatePaiement());
                         if (exo != null ? exo.getId() < 1 : true) {
                             return null;
@@ -8845,8 +8913,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                 List<YvsComptaContentJournal> list = new ArrayList<>();
                 list.addAll(debits);
                 list.addAll(credits);
-                YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                if (x.getSolde() == 0) {
+                if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                     YvsBaseExercice exo = giveExercice(y.getDatePaiement());
                     if (exo != null ? exo.getId() < 1 : true) {
                         return null;
@@ -9036,8 +9103,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                         List<YvsComptaContentJournal> list = new ArrayList<>();
                         list.addAll(debits);
                         list.addAll(credits);
-                        YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                        if (x.getSolde() == 0) {
+                        if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                             YvsBaseExercice exo = giveExercice(y.getDatePaiement());
                             if (exo != null ? exo.getId() < 1 : true) {
                                 return null;
@@ -9161,8 +9227,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                                     List<YvsComptaContentJournal> list = new ArrayList<>();
                                     list.addAll(debits);
                                     list.addAll(credits);
-                                    YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                                    if (x.getSolde() == 0) {
+                                    if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                         YvsBaseExercice exo = giveExercice(y.getDatePaiement());
                                         if (exo != null ? exo.getId() < 1 : true) {
                                             return null;
@@ -9238,8 +9303,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                                     List<YvsComptaContentJournal> list = new ArrayList<>();
                                     list.addAll(debits);
                                     list.addAll(credits);
-                                    YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                                    if (x.getSolde() == 0) {
+                                    if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                         YvsBaseExercice exo = giveExercice(y.getDatePaiement());
                                         if (exo != null ? exo.getId() < 1 : true) {
                                             return null;

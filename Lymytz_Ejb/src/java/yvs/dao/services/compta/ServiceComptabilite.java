@@ -1294,8 +1294,7 @@ public class ServiceComptabilite extends GenericService {
                     List<YvsComptaContentJournal> list = new ArrayList<>();
                     list.addAll(debits);
                     list.addAll(credits);
-                    YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                    if (x.getSolde() == 0) {
+                    if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                         lettrageCompte(list, e);
                         result.addAll(list);
                     }
@@ -1355,8 +1354,7 @@ public class ServiceComptabilite extends GenericService {
                     List<YvsComptaContentJournal> list = new ArrayList<>();
                     list.addAll(debits);
                     list.addAll(credits);
-                    YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                    if (x.getSolde() == 0) {
+                    if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                         lettrageCompte(list, e);
                         result.addAll(list);
                     }
@@ -1420,8 +1418,7 @@ public class ServiceComptabilite extends GenericService {
                         List<YvsComptaContentJournal> list = new ArrayList<>();
                         list.addAll(debits);
                         list.addAll(credits);
-                        YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                        if (x.getSolde() == 0) {
+                        if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                             lettrageCompte(list, e);
                             result.addAll(list);
                         }
@@ -1461,8 +1458,7 @@ public class ServiceComptabilite extends GenericService {
                             List<YvsComptaContentJournal> list = new ArrayList<>();
                             list.addAll(debits);
                             list.addAll(credits);
-                            YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                            if (x.getSolde() == 0) {
+                            if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                 lettrageCompte(list, e);
                                 result.addAll(list);
                             }
@@ -1503,8 +1499,7 @@ public class ServiceComptabilite extends GenericService {
                             List<YvsComptaContentJournal> list = new ArrayList<>();
                             list.addAll(debits);
                             list.addAll(credits);
-                            YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                            if (x.getSolde() == 0) {
+                            if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                 lettrageCompte(list, e);
                                 result.addAll(list);
                             }
@@ -1565,8 +1560,7 @@ public class ServiceComptabilite extends GenericService {
                         List<YvsComptaContentJournal> list = new ArrayList<>();
                         list.addAll(debits);
                         list.addAll(credits);
-                        YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                        if (x.getSolde() == 0) {
+                        if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                             lettrageCompte(list, e);
                             result.addAll(list);
                         }
@@ -1616,8 +1610,7 @@ public class ServiceComptabilite extends GenericService {
                     List<YvsComptaContentJournal> list = new ArrayList<>();
                     list.addAll(debits);
                     list.addAll(credits);
-                    YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                    if (x.getSolde() == 0) {
+                    if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                         lettrageCompte(list, e);
                         result.addAll(list);
                     }
@@ -1659,8 +1652,7 @@ public class ServiceComptabilite extends GenericService {
                 List<YvsComptaContentJournal> list = new ArrayList<>();
                 list.addAll(debits);
                 list.addAll(credits);
-                YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                if (x.getSolde() == 0) {
+                if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                     lettrageCompte(list, e);
                     result.addAll(list);
                 }
@@ -1705,8 +1697,7 @@ public class ServiceComptabilite extends GenericService {
                         List<YvsComptaContentJournal> list = new ArrayList<>();
                         list.addAll(debits);
                         list.addAll(credits);
-                        YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                        if (x.getSolde() == 0) {
+                        if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                             lettrageCompte(list, e);
                             result.addAll(list);
                         }
@@ -1971,8 +1962,7 @@ public class ServiceComptabilite extends GenericService {
                                 List<YvsComptaContentJournal> list = new ArrayList<>();
                                 list.addAll(debits);
                                 list.addAll(credits);
-                                YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                                if (x.getSolde() == 0) {
+                                if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                     lettrageCompte(list, e);
                                 }
                             }
@@ -2041,8 +2031,7 @@ public class ServiceComptabilite extends GenericService {
                                 List<YvsComptaContentJournal> list = new ArrayList<>();
                                 list.addAll(debits);
                                 list.addAll(credits);
-                                YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                                if (x.getSolde() == 0) {
+                                if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                     lettrageCompte(list, e);
                                 }
                             }
