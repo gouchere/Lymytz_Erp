@@ -52,8 +52,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsComptaPiecesComptable.findByJournalDates", query = "SELECT y FROM YvsComptaPiecesComptable y WHERE y.journal =:journal AND y.datePiece BETWEEN :dateDebut AND :dateFin ORDER BY y.numPiece DESC"),
     @NamedQuery(name = "YvsComptaPiecesComptable.findByDatePiece", query = "SELECT y FROM YvsComptaPiecesComptable y WHERE y.datePiece = :datePiece"),
     @NamedQuery(name = "YvsComptaPiecesComptable.findByDateSaisie", query = "SELECT y FROM YvsComptaPiecesComptable y WHERE y.dateSaisie = :dateSaisie"),
-    @NamedQuery(name = "YvsComptaPiecesComptable.findFirstDate", query = "SELECT y.datePiece FROM YvsComptaPiecesComptable y WHERE y.journal.agence.societe = :societe ORDER BY y.datePiece"),
-})
+    @NamedQuery(name = "YvsComptaPiecesComptable.findFirstDate", query = "SELECT y.datePiece FROM YvsComptaPiecesComptable y WHERE y.journal.agence.societe = :societe ORDER BY y.datePiece"),})
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class YvsComptaPiecesComptable extends YvsEntity implements Serializable {
 
@@ -96,7 +95,7 @@ public class YvsComptaPiecesComptable extends YvsEntity implements Serializable 
     @JoinColumn(name = "model", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsComptaModeleSaisie model;
-    @OneToMany(mappedBy = "piece", fetch = FetchType.LAZY)
+    @Transient
     private List<YvsComptaContentJournal> contentsPiece;
     @Transient
     private List<YvsComptaCaissePieceCoutDivers> piecesCout;
@@ -111,15 +110,15 @@ public class YvsComptaPiecesComptable extends YvsEntity implements Serializable 
     @Transient
     private boolean select;
     @Transient
-    private double solde;
+    private Double solde;
     @Transient
     private double total;
     @Transient
     private double couts;
     @Transient
-    private double credits;
+    private Double credits;
     @Transient
-    private double debits;
+    private Double debits;
     @Transient
     private String compte;
     @Transient
@@ -178,6 +177,14 @@ public class YvsComptaPiecesComptable extends YvsEntity implements Serializable 
         this.intitule = p.intitule;
     }
 
+    public Long getId() {
+        return id != null ? id : 0;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getIntitule() {
         return intitule;
     }
@@ -208,42 +215,6 @@ public class YvsComptaPiecesComptable extends YvsEntity implements Serializable 
 
     public void setDateSave(Date dateSave) {
         this.dateSave = dateSave;
-    }
-
-    public boolean isSelect() {
-        return select;
-    }
-
-    public void setSelect(boolean select) {
-        this.select = select;
-    }
-
-    public double getCredits() {
-        return credits;
-    }
-
-    public void setCredits(double credits) {
-        this.credits = credits;
-    }
-
-    public double getDebits() {
-        return debits;
-    }
-
-    public void setDebits(double debits) {
-        this.debits = debits;
-    }
-
-    public void setSolde(double solde) {
-        this.solde = solde;
-    }
-
-    public Long getId() {
-        return id != null ? id : 0;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getNumPiece() {
@@ -310,17 +281,36 @@ public class YvsComptaPiecesComptable extends YvsEntity implements Serializable 
         this.extourne = extourne;
     }
 
-    @XmlTransient
-    @JsonIgnore
-    public double getSolde() {
-        debits = 0;
-        credits = 0;
-        for (YvsComptaContentJournal y : contentsPiece) {
-            debits += y.getDebit();
-            credits += y.getCredit();
-        }
-        solde = getDebits() - getCredits();
-        return solde;
+    public boolean isSelect() {
+        return select;
+    }
+
+    public void setSelect(boolean select) {
+        this.select = select;
+    }
+
+    public Double getCredits() {
+        return credits != null ? credits : 0D;
+    }
+
+    public void setCredits(Double credits) {
+        this.credits = credits;
+    }
+
+    public Double getDebits() {
+        return debits != null ? debits : 0D;
+    }
+
+    public void setDebits(Double debits) {
+        this.debits = debits;
+    }
+
+    public void setSolde(Double solde) {
+        this.solde = solde;
+    }
+
+    public Double getSolde() {
+        return solde != null ? solde : (getDebits() - getCredits());
     }
 
     public YvsComptaModeleSaisie getModel() {
@@ -468,5 +458,16 @@ public class YvsComptaPiecesComptable extends YvsEntity implements Serializable 
             }
         }
         return sum;
+    }
+
+    public static Double getSolde(List<YvsComptaContentJournal> list) {
+        double credit = 0;
+        double debit = 0;
+        for (YvsComptaContentJournal y : list) {
+            debit += y.getDebit();
+            credit += y.getCredit();
+        }
+        double solde = debit - credit;
+        return solde;
     }
 }
