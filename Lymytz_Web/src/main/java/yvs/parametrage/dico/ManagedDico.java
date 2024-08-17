@@ -12,6 +12,7 @@ import java.util.List;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.event.ValueChangeEvent;
+
 import org.primefaces.event.NodeSelectEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
@@ -24,13 +25,14 @@ import yvs.entity.param.YvsDictionnaire;
 import yvs.entity.param.YvsDictionnaireInformations;
 import yvs.entity.produits.YvsBaseArticles;
 import yvs.grh.UtilGrh;
+
 import static yvs.grh.UtilGrh.buildBeanDictionnaire;
+
 import yvs.util.Constantes;
 import yvs.util.Managed;
 import yvs.util.ParametreRequete;
 
 /**
- *
  * @author GOUCHERE YVES
  */
 @ManagedBean(name = "Mdico")
@@ -312,20 +314,19 @@ public class ManagedDico extends Managed<Dictionnaire, YvsDictionnaire> implemen
         if (dictionnaire.getParent() == null) {
             dictionnaire.setParent(new Dictionnaire());
         }
-        loadParents(selectDico, selectDico.getTitre());
+        if (selectDico != null) {
+            loadParents(selectDico, selectDico.getTitre());
+        }
     }
 
     public void load(boolean avance, boolean init) {
-//        paginator.addParam(new ParametreRequete("y.societe", "societe", currentAgence.getSociete(), "=", "AND"));
         String table = "YvsDictionnaire y LEFT JOIN FETCH y.parent";
         dictionnaires = paginator.executeDynamicQuery("y", "y", table, "y.libele", avance, init, (int) imax, dao);
-//        root = buildTreeDico();
         update("data_dictionnaire_list");
         update("data_dictionnaire");
     }
 
     public void loadAllDicoActif(boolean avance, boolean init) {
-//        paginator.addParam(new ParametreRequete("y.societe", "societe", currentAgence.getSociete(), "=", "AND"));
         paginator.addParam(new ParametreRequete("y.actif", "actif", true, "=", "AND"));
         dictionnaires = paginator.executeDynamicQuery("YvsDictionnaire", "y.libele", avance, init, (int) imax, dao);
     }
@@ -491,8 +492,6 @@ public class ManagedDico extends Managed<Dictionnaire, YvsDictionnaire> implemen
     @Override
     public void populateView(Dictionnaire bean) {
         cloneObject(dictionnaire, bean);
-//        YvsBaseTarifPointLivraison y = (YvsBaseTarifPointLivraison) dao.loadOneByNameQueries("YvsBaseTarifPointLivraison.findByLieuxSociete", new String[]{"societe", "lieux"}, new Object[]{currentAgence.getSociete(), new YvsDictionnaire(bean.getId())});
-//        tarif = UtilGrh.buildBeanTarifLieux(y);
         update("form_dictionnaire");
     }
 
