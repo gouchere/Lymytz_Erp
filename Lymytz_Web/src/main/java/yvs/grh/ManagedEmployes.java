@@ -813,6 +813,7 @@ public class ManagedEmployes extends Managed<Employe, YvsGrhEmployes> implements
 
     public void handleFileUpload(FileUploadEvent event) {
         try {
+            Logger.getLogger(getClass().getName()).log(Level.INFO, "Enregistrement de la photos de l'employé...");
             InputStream is = event.getFile().getInputstream();
             String extension = Util.getExtension(event.getFile().getFileName());
             byte[] bytes = IOUtils.toByteArray(is);
@@ -820,6 +821,7 @@ public class ManagedEmployes extends Managed<Employe, YvsGrhEmployes> implements
             employe.setPhotos(file);
             employe.setPhotoExtension(extension);
             getInfoMessage("Charger !");
+            Logger.getLogger(getClass().getName()).log(Level.INFO, "La photos de l'employé a été chargé avec succès");
         } catch (IOException ex) {
             getErrorMessage("Action impossible!!!");
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
