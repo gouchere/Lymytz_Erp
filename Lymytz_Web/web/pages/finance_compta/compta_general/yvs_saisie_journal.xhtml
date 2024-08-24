@@ -669,62 +669,112 @@
                         </h:panelGrid>
                     </div>
                     <div style="margin-left: 22%" class="table_content">
-                        <p:dataTable id="table_content_Pcomptable" value="#{piecesCompta.contentsPieces}" var="icontent"
-                                     selectionMode="single" rowIndexVar="line_c" rowKey="#{icontent.id}" style="overflow-y: auto;max-height: 79.5%">   
-                            <p:ajax event="rowSelect" global="false" listener="#{managedSaisiePiece.loadOnViewContent}"  />
-                            <p:ajax event="rowUnselect" global="false" listener="#{managedSaisiePiece.unLoadOnViewContent}"  />
-                            <p:column headerText="N°" width="30" style="text-align: center">
-                                <span title="#{icontent.libelle}">#{line_c+1}</span>   
-                                <h:panelGroup style="float: right;margin-right: 5px">
-                                    <p:commandLink value="#{icontent.analytiques.size() gt 0 ? icontent.analytiques.size():'A'}" title="#{lab.LCF_PSL_saisir_affectation}" actionListener="#{managedSaisiePiece.loadContentJournal(icontent)}"
-                                                   update=":main_affectation:blog_affectation :main_affectation:title_affectation" oncomplete="dlgAffectation.show()" rendered="#{icontent.compteGeneral.saisieAnalytique}"
-                                                   style="font-weight: bold;border: 1px solid #666; border-radius: 4px;padding: 2px;background: #0099ff;color: white;font-size: 0.8em"/>
-                                </h:panelGroup>
-                            </p:column>
-                            <p:column headerText="Id " width="15" style="text-align: center">
-                                <span title="#{icontent.id}">#{icontent.id}</span>   
-                                <h:panelGroup style="float: right;margin-right: 5px">
-                                    <h:outputText title="Report" value="R" rendered="#{icontent.report}" styleClass="style_statut_blue"/>
-                                </h:panelGroup>
-                            </p:column>
-                            <p:column headerText="#{lab.L_jour}" width="15" style="text-align: center">
-                                <span title="#{icontent.libelle}">#{icontent.jour}</span>   
-                            </p:column>
-                            <p:column headerText="#{lab.L_reference}" width="100">
-                                <span title="#{icontent.libelle}">#{icontent.numRef}</span>                                
-                            </p:column>                        
-                            <p:column headerText="#{lab.LCF_PSS_compte_g}" filterBy="#{icontent.compteGeneral.numCompte}" style="text-align: center">
-                                <span title="#{icontent.compteGeneral.intitule}">#{icontent.compteGeneral.numCompte}</span>                                
-                            </p:column>
-                            <p:column headerText="#{lab.LCF_PSS_compte_t}" width="80" style="text-align: center">
-                                <span title="#{managedSaisiePiece.findNameTiers(icontent.compteTiers, icontent.tableTiers, 'N')}">
-                                    #{managedSaisiePiece.findNameTiers(icontent.compteTiers, icontent.tableTiers, 'R')}
-                                </span>                                
-                            </p:column>
-                            <p:column headerText="#{lab.LCF_PSL_debit}" filterBy="#{icontent.debit}" style="text-align: right">
-                                <h:panelGroup style="float: left" rendered="#{icontent.debit gt 0}">
-                                    <h:outputText title="#{lab.LCF_PLC_lettrage}" value="#{icontent.lettrage}" rendered="#{icontent.lettrage != null ? icontent.lettrage ne '': false}" styleClass="style_statut"/>
-                                </h:panelGroup>     
-                                <h:outputText value="#{icontent.debit}" converter="DNS"  title="#{icontent.libelle}"/>
-                            </p:column>
-                            <p:column headerText="#{lab.LCF_PSL_credit}" filterBy="#{icontent.credit}" style="text-align: right">
-                                <h:panelGroup style="float: left" rendered="#{icontent.credit gt 0}">
-                                    <h:outputText title="#{lab.LCF_PLC_lettrage}" value="#{icontent.lettrage}" rendered="#{icontent.lettrage != null ? icontent.lettrage ne '': false}" styleClass="style_statut"/>
-                                </h:panelGroup>     
-                                <h:outputText value="#{icontent.credit}" converter="DNS"  title="#{icontent.libelle}"/>
-                            </p:column>
-                            <p:column headerText="#{lab.LCF_PSL_echeance}" width="80" style="text-align: center">
-                                <h:outputText value="#{icontent.echeance}" converter="DATE"  title="#{icontent.libelle}"/>
-                            </p:column>
-                            <p:column headerText=" " width="10" style="text-align: center">
-                                <p:contextMenu for="btn_option_content_saisie_journal" event="left click" style="font-size: 0.8em">
-                                    <p:menuitem value="#{lab.L_aller_a}" icon="ui-icon-arrowthick-1-e" actionListener="#{managedSaisiePiece.onSelectedDistant(icontent)}"
-                                                title="#{lab.L_aller_a} '#{icontent.tableExterne}' #{lab.LCF_PSL_pour_element} (#{icontent.refExterne})"/>
-                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedSaisiePiece.setSelectContent(icontent)}" oncomplete="dlgConfirmDeleteContent.show()"/>
-                                </p:contextMenu>   
-                                <p:commandButton icon="ui-icon-gear" style="width: 19px; height: 19px" id="btn_option_content_saisie_journal" global="false"/>
-                            </p:column>
-                        </p:dataTable>
+                        <p:outputPanel id="table_content_Pcomptable">
+                            <p:dataTable value="#{piecesCompta.contentsPieces}" var="icontent" selectionMode="single" rowIndexVar="line_c" rowKey="#{icontent.id}" style="overflow-y: auto;max-height: 79.5%">   
+                                <p:ajax event="rowSelect" global="false" listener="#{managedSaisiePiece.loadOnViewContent}"  />
+                                <p:ajax event="rowUnselect" global="false" listener="#{managedSaisiePiece.unLoadOnViewContent}"  />
+                                <p:column headerText="N°" width="30" style="text-align: center">
+                                    <span title="#{icontent.libelle}">#{line_c+1}</span>   
+                                    <h:panelGroup style="float: right;margin-right: 5px">
+                                        <p:commandLink value="#{icontent.analytiques.size() gt 0 ? icontent.analytiques.size():'A'}" title="#{lab.LCF_PSL_saisir_affectation}" actionListener="#{managedSaisiePiece.loadContentJournal(icontent)}"
+                                                       update=":main_affectation:blog_affectation :main_affectation:title_affectation" oncomplete="dlgAffectation.show()" rendered="#{icontent.compteGeneral.saisieAnalytique}"
+                                                       style="font-weight: bold;border: 1px solid #666; border-radius: 4px;padding: 2px;background: #0099ff;color: white;font-size: 0.8em"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column headerText="Id " width="15" style="text-align: center">
+                                    <span title="#{icontent.id}">#{icontent.id}</span>   
+                                    <h:panelGroup style="float: right;margin-right: 5px">
+                                        <h:outputText title="Report" value="R" rendered="#{icontent.report}" styleClass="style_statut_blue"/>
+                                    </h:panelGroup>
+                                </p:column>
+                                <p:column headerText="#{lab.L_jour}" width="15" style="text-align: center">
+                                    <span title="#{icontent.libelle}">#{icontent.jour}</span>   
+                                </p:column>
+                                <p:column headerText="#{lab.L_reference}" width="100">
+                                    <span title="#{icontent.libelle}">#{icontent.numRef}</span>                                
+                                </p:column>                        
+                                <p:column headerText="#{lab.LCF_PSS_compte_g}" style="text-align: center">
+                                    <span title="#{icontent.compteGeneral.intitule}">#{icontent.compteGeneral.numCompte}</span>                                
+                                </p:column>
+                                <p:column headerText="#{lab.LCF_PSS_compte_t}" width="80" style="text-align: center">
+                                    <span title="#{managedSaisiePiece.findNameTiers(icontent.compteTiers, icontent.tableTiers, 'N')}">
+                                        #{managedSaisiePiece.findNameTiers(icontent.compteTiers, icontent.tableTiers, 'R')}
+                                    </span>                                
+                                </p:column>
+                                <p:column headerText="#{lab.LCF_PSL_debit}" style="text-align: right">
+                                    <h:panelGroup style="float: left" rendered="#{icontent.debit gt 0}">
+                                        <h:outputText title="#{lab.LCF_PLC_lettrage}" value="#{icontent.lettrage}" rendered="#{icontent.lettrage != null ? icontent.lettrage ne '': false}" styleClass="style_statut"/>
+                                    </h:panelGroup>     
+                                    <h:outputText value="#{icontent.debit}" converter="DNS"  title="#{icontent.libelle}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LCF_PSL_credit}" style="text-align: right">
+                                    <h:panelGroup style="float: left" rendered="#{icontent.credit gt 0}">
+                                        <h:outputText title="#{lab.LCF_PLC_lettrage}" value="#{icontent.lettrage}" rendered="#{icontent.lettrage != null ? icontent.lettrage ne '': false}" styleClass="style_statut"/>
+                                    </h:panelGroup>     
+                                    <h:outputText value="#{icontent.credit}" converter="DNS"  title="#{icontent.libelle}"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LCF_PSL_echeance}" width="80" style="text-align: center">
+                                    <h:outputText value="#{icontent.echeance}" converter="DATE"  title="#{icontent.libelle}"/>
+                                </p:column>
+                                <p:column headerText=" " width="10" style="text-align: center">
+                                    <p:contextMenu for="btn_option_content_saisie_journal" event="left click" style="font-size: 0.8em">
+                                        <p:menuitem value="#{lab.L_aller_a}" icon="ui-icon-arrowthick-1-e" actionListener="#{managedSaisiePiece.onSelectedDistant(icontent)}"
+                                                    title="#{lab.L_aller_a} '#{icontent.tableExterne}' #{lab.LCF_PSL_pour_element} (#{icontent.refExterne})"/>
+                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedSaisiePiece.setSelectContent(icontent)}" oncomplete="dlgConfirmDeleteContent.show()"/>
+                                    </p:contextMenu>   
+                                    <p:commandButton icon="ui-icon-gear" style="width: 19px; height: 19px" id="btn_option_content_saisie_journal" global="false"/>
+                                </p:column>
+                            </p:dataTable>
+                            <h:panelGrid columns="8" style="float: left; font-size: 0.8em" cellpadding="0" cellspacing="0">
+                                <span>&nbsp;</span>
+                                <h:outputText value="#{lab.L_compte}" />
+                                <h:outputText value="#{lab.LCF_PLC_tiers}" />
+                                <h:outputText value="#{lab.LCF_PLC_lettrage}" />
+                                <h:outputText value="#{lab.LCF_PLC_lettrer}" />
+                                <h:outputText value="Debit" />
+                                <h:outputText value="Credit" />
+                                <h:outputText value="Mouvement" />
+                                <p:commandButton icon="ui-icon-bullet" style="width: 22px; height: 22px;" title="#{lab.LCF_PLC_initialiser_filtres}"
+                                                 actionListener="#{managedSaisiePiece.clearParamsContenuForPiece()}" disabled="#{piecesCompta.id lt 1}"/>
+                                <h:inputText value="#{managedSaisiePiece.compteContenuSearch}" style="min-width: 120px" disabled="#{piecesCompta.id lt 1}">
+                                    <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamCompteContentForPiece()}" />
+                                </h:inputText>
+                                <h:inputText value="#{managedSaisiePiece.tiersContenuSearch}" style="min-width: 120px" disabled="#{piecesCompta.id lt 1}">
+                                    <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamTiersContentForPiece()}" />
+                                </h:inputText>
+                                <h:inputText value="#{managedSaisiePiece.lettrageContenuSearch}" style="width: 100px" disabled="#{piecesCompta.id lt 1}">
+                                    <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamLettrageContentForPiece()}" />
+                                </h:inputText>
+                                <h:selectOneMenu value="#{managedSaisiePiece.lettrerContenuSearch}" disabled="#{piecesCompta.id lt 1}">
+                                    <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                                    <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}"/>
+                                    <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}"/>
+                                    <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamLettrerContentForPiece()}"   />
+                                </h:selectOneMenu>
+                                <h:inputText value="#{managedSaisiePiece.debitContenuSearch}" style="width: 100px" disabled="#{piecesCompta.id lt 1}">
+                                    <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamDebitContentForPiece()}" />
+                                </h:inputText>
+                                <h:inputText value="#{managedSaisiePiece.creditContenuSearch}" style="width: 100px" disabled="#{piecesCompta.id lt 1}">
+                                    <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamCreditContentForPiece()}" />
+                                </h:inputText>
+                                <h:selectOneMenu value="#{managedSaisiePiece.mouvementContenuSearch}" disabled="#{piecesCompta.id lt 1}">
+                                    <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}"/>
+                                    <f:selectItem itemLabel="DEBIT" itemValue="D"/>
+                                    <f:selectItem itemLabel="CREDIT" itemValue="C"/>
+                                    <p:ajax event="valueChange" listener="#{managedSaisiePiece.addParamMouvementContentForPiece()}"   />
+                                </h:selectOneMenu>
+                            </h:panelGrid>
+                            <p:outputPanel autoUpdate="true" style="float: right" layout="block">
+                                <p:commandButton actionListener="#{managedSaisiePiece.loadAllContenuForPiece(false, false)}" global="false" update="table_content_Pcomptable" icon="ui-icon-circle-triangle-w" disabled="#{managedSaisiePiece.paginatorContenu.disPrev}"/>
+                                <p:outputPanel ><p:outputLabel value="#{managedSaisiePiece.paginatorContenu.currentPage}/#{managedSaisiePiece.paginatorContenu.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" /></p:outputPanel>
+                                <p:commandButton actionListener="#{managedSaisiePiece.loadAllContenuForPiece(true, false)}" global="false" update="table_content_Pcomptable" icon="ui-icon-circle-triangle-e" disabled="#{managedSaisiePiece.paginatorContenu.disNext}"/>
+                                <p:selectOneMenu value="#{managedSaisiePiece.paginatorContenu.rows}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedSaisiePiece.choosePaginatorContenuForPiece}"
+                                                 style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" disabled="#{piecesCompta.id lt 1}" >
+                                    <f:selectItems value="#{managedSaisiePiece.paginations}"/>
+                                    <p:ajax event="valueChange" global="false" update="table_content_Pcomptable form_btn_saisieJ"/>
+                                </p:selectOneMenu>
+                            </p:outputPanel>  
+                        </p:outputPanel>
                     </div>
                     <p:overlayPanel for="txt_solde_piece_compta" hideEffect="fade" style="width: 35%;background: black;color: white">
                         <p:outputPanel id="blog_form_montant_piece_compta" autoUpdate="true">
