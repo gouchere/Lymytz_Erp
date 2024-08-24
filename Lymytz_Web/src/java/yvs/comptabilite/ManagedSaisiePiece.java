@@ -215,8 +215,9 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     private Comptes compteChange = new Comptes();
     private Journaux journalChange = new Journaux();
 
-    private String compteContenuSearch, tiersContenuSearch, lettrageContenuSearch;
-    private Double debitSearch = null, creditSearch = null;
+    private String compteContenuSearch, tiersContenuSearch, lettrageContenuSearch, mouvementContenuSearch;
+    private Double debitContenuSearch = null, creditContenuSearch = null;
+    private Boolean lettrerContenuSearch = null;
 
     private long journalContentSearch, journalSearch;
     private String compteSearch, tiersSearch, numeroSearch, referenceSearch, lettrageSearch, mouvementSearch;
@@ -249,6 +250,14 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         if (currentUser != null) {
             fonction.loadInfos(currentAgence.getSociete(), currentAgence, currentUser, currentDepot, currentPoint, currentExo);
         }
+    }
+
+    public String getMouvementContenuSearch() {
+        return mouvementContenuSearch;
+    }
+
+    public void setMouvementContenuSearch(String mouvementContenuSearch) {
+        this.mouvementContenuSearch = mouvementContenuSearch;
     }
 
     public String getMouvementSearch() {
@@ -931,20 +940,28 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         this.lettrageContenuSearch = lettrageContenuSearch;
     }
 
-    public Double getCreditSearch() {
-        return creditSearch;
+    public Double getDebitContenuSearch() {
+        return debitContenuSearch;
     }
 
-    public void setCreditSearch(Double creditSearch) {
-        this.creditSearch = creditSearch;
+    public void setDebitContenuSearch(Double debitContenuSearch) {
+        this.debitContenuSearch = debitContenuSearch;
     }
 
-    public Double getDebitSearch() {
-        return debitSearch;
+    public Double getCreditContenuSearch() {
+        return creditContenuSearch;
     }
 
-    public void setDebitSearch(Double debitSearch) {
-        this.debitSearch = debitSearch;
+    public void setCreditContenuSearch(Double creditContenuSearch) {
+        this.creditContenuSearch = creditContenuSearch;
+    }
+
+    public Boolean getLettrerContenuSearch() {
+        return lettrerContenuSearch;
+    }
+
+    public void setLettrerContenuSearch(Boolean lettrerContenuSearch) {
+        this.lettrerContenuSearch = lettrerContenuSearch;
     }
 
     public Long getExerciceSearch() {
@@ -1054,6 +1071,13 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     }
 
     public void clearParamsContenuForPiece() {
+        compteContenuSearch = "";
+        tiersContenuSearch = "";
+        lettrageContenuSearch = "";
+        lettrerContenuSearch = null;
+        mouvementContenuSearch = null;
+        debitContenuSearch = null;
+        creditContenuSearch = null;
         paginatorContenu.getParams().clear();
         loadAllContenuForPiece(true, true);
     }
@@ -1062,17 +1086,12 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         List<YvsComptaContentJournal> lists = new ArrayList<>();
         if (selectPiece != null ? selectPiece.getId() > 0 : false) {
             ParametreRequete p = new ParametreRequete("y.piece", "piece", selectPiece, "=", "AND");
-            paginator.addParam(p);
+            paginatorContenu.addParam(p);
             lists = paginatorContenu.executeDynamicQuery("YvsComptaContentJournal", "y.jour", avancer, init, dao);
             Collections.sort(lists);
         }
         pieceCompta.setContentsPieces(lists);
         update("table_content_Pcomptable");
-    }
-
-    public void choosePaginatorContenuForPiece(ValueChangeEvent ev) {
-        paginatorContenu.choosePaginator(ev);
-        loadAllContenuForPiece(true, true);
     }
 
     public void clearParamsContenu() {
@@ -1163,6 +1182,11 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     public void choosePaginatorContenu(ValueChangeEvent ev) {
         super.choosePaginator(ev);
         loadAllContenu(true, true);
+    }
+
+    public void choosePaginatorContenuForPiece(ValueChangeEvent ev) {
+        paginatorContenu.choosePaginator(ev);
+        loadAllContenuForPiece(true, true);
     }
 
     private YvsComptaPiecesComptable buildPieceCompta(PiecesCompta p) {
@@ -10181,9 +10205,17 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         }
     }
 
+    public void addParamCompteContentForPiece() {
+        ParametreRequete p = new ParametreRequete("y.compteGeneral", "compte", null, "=", "AND");
+        if (compteContenuSearch != null ? compteContenuSearch.trim().length() > 0 : false) {
+            p = new ParametreRequete("y.compteGeneral.numCompte", "compte", compteContenuSearch + "%", "LIKE", "AND");
+        }
+        paginatorContenu.addParam(p);
+        loadAllContenuForPiece(true, true);
+    }
+
     public void parcoursInAllCompte(boolean avancer) {
-        ManagedCompte w = (ManagedCompte) giveManagedBean(ManagedCompte.class
-        );
+        ManagedCompte w = (ManagedCompte) giveManagedBean(ManagedCompte.class);
         if (w != null) {
             w.setOffset((avancer) ? (w.getOffset() + 1) : (w.getOffset() - 1));
             if (w.getOffset() < 0 || w.getOffset() >= (w.paginator.getNbPage() * w.getNbMax())) {
@@ -10395,6 +10427,88 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         }
     }
 
+    private ParametreRequete getParamTiersContent(String tiersSearch) {
+        ParametreRequete p = new ParametreRequete("y.compteTiers", "tiers", null, "=", "AND");
+        if (tiersSearch == null || tiersSearch.trim().isEmpty()) {
+            return p;
+        }
+        //Recherche de la liste des tiers correspondant au code entré
+        List<YvsBaseTiers> list = dao.loadNameQueries("YvsBaseTiers.findLikeCode", new String[]{"societe", "code"}, new Object[]{currentAgence.getSociete(), tiersSearch.toUpperCase() + "%"});
+        if (list != null ? !list.isEmpty() : false) {
+            List<Long> clients = new ArrayList<>();
+            List<Long> fournisseurs = new ArrayList<>();
+            List<Long> tiers = new ArrayList<>();
+            Tiers y;
+            Profil profil;
+            for (YvsBaseTiers entity : list) {
+                y = UtilTiers.buildBeanTiers(entity);
+                if (y.getProfils().size() > 0) {
+                    profil = findOneProfil(y, tiersSearch);
+                    if (profil == null) {// S'il n'existe pas un seul profil on ajoute tous les profils dans la liste des paramètres
+                        for (int j = 0; j < y.getProfils().size(); j++) {
+                            profil = y.getProfils().get(j);
+                            switch (profil.getType()) {
+                                case yvs.dao.salaire.service.Constantes.BASE_TIERS_TIERS:
+                                    tiers.add(profil.getId());
+                                    break;
+                                case yvs.dao.salaire.service.Constantes.BASE_TIERS_CLIENT:
+                                    clients.add(profil.getId());
+                                    break;
+                                case yvs.dao.salaire.service.Constantes.BASE_TIERS_FOURNISSEUR:
+                                    fournisseurs.add(profil.getId());
+                                    break;
+                                case yvs.dao.salaire.service.Constantes.BASE_TIERS_EMPLOYE:
+                                    tiers.add(profil.getIdTiers());
+                                    break;
+                            }
+                        }
+                    } else {// S'il existe un seul profil on ajoute le profil dans la liste des parametres
+                        switch (profil.getType()) {
+                            case yvs.dao.salaire.service.Constantes.BASE_TIERS_TIERS:
+                                tiers.add(profil.getId());
+                                break;
+                            case yvs.dao.salaire.service.Constantes.BASE_TIERS_CLIENT:
+                                clients.add(profil.getId());
+                                break;
+                            case yvs.dao.salaire.service.Constantes.BASE_TIERS_FOURNISSEUR:
+                                fournisseurs.add(profil.getId());
+                                break;
+                            case yvs.dao.salaire.service.Constantes.BASE_TIERS_EMPLOYE:
+                                tiers.add(profil.getIdTiers());
+                                break;
+                        }
+                    }
+                }
+            }
+            if (tiers.isEmpty() && clients.isEmpty() && fournisseurs.isEmpty()) {
+                p = new ParametreRequete("y.compteTiers", "tiers", -1, "=", "AND");
+            } else {
+                p = new ParametreRequete(null, "tiers", tiersSearch, "=", "AND");
+                if (!tiers.isEmpty()) {
+                    ParametreRequete pp = new ParametreRequete(null, "idTiers", tiersSearch, "=", "OR");
+                    pp.getOtherExpression().add(new ParametreRequete("y.compteTiers", "idTiers", tiers, "IN", "AND"));
+                    pp.getOtherExpression().add(new ParametreRequete("y.tableTiers", "tableTiers", yvs.dao.salaire.service.Constantes.BASE_TIERS_TIERS, "=", "AND"));
+                    p.getOtherExpression().add(pp);
+                }
+                if (!clients.isEmpty()) {
+                    ParametreRequete pp = new ParametreRequete(null, "idClients", tiersSearch, "=", "OR");
+                    pp.getOtherExpression().add(new ParametreRequete("y.compteTiers", "idClients", clients, "IN", "AND"));
+                    pp.getOtherExpression().add(new ParametreRequete("y.tableTiers", "tableTiers", yvs.dao.salaire.service.Constantes.BASE_TIERS_CLIENT, "=", "AND"));
+                    p.getOtherExpression().add(pp);
+                }
+                if (!fournisseurs.isEmpty()) {
+                    ParametreRequete pp = new ParametreRequete(null, "idFsseurs", tiersSearch, "=", "OR");
+                    pp.getOtherExpression().add(new ParametreRequete("y.compteTiers", "idFsseurs", fournisseurs, "IN", "AND"));
+                    pp.getOtherExpression().add(new ParametreRequete("y.tableTiers", "tableTiers", yvs.dao.salaire.service.Constantes.BASE_TIERS_FOURNISSEUR, "=", "AND"));
+                    p.getOtherExpression().add(pp);
+                }
+            }
+        } else {
+            p = new ParametreRequete("y.compteTiers", "tiers", -1, "=", "AND");
+        }
+        return p;
+    }
+
     public void addParamTiersContent() {
         ParametreRequete p = new ParametreRequete("y.compteTiers", "tiers", null, "=", "AND");
         if (operation != null ? "L".equals(operation) : false) {
@@ -10421,86 +10535,16 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
             p_contenu.addParam(p);
             loadAllLettrage(true, true);
         } else {
-            if (tiersSearch != null ? tiersSearch.trim().length() > 0 : false) {
-                //Recherche de la liste des tiers correspondant au code entré
-                List<YvsBaseTiers> list = dao.loadNameQueries("YvsBaseTiers.findLikeCode", new String[]{"societe", "code"}, new Object[]{currentAgence.getSociete(), tiersSearch.toUpperCase() + "%"});
-                if (list != null ? !list.isEmpty() : false) {
-                    List<Long> clients = new ArrayList<>();
-                    List<Long> fournisseurs = new ArrayList<>();
-                    List<Long> tiers = new ArrayList<>();
-                    Tiers y;
-                    Profil profil;
-                    for (YvsBaseTiers entity : list) {
-                        y = UtilTiers.buildBeanTiers(entity);
-                        if (y.getProfils().size() > 0) {
-                            profil = findOneProfil(y, tiersSearch);
-                            if (profil == null) {// S'il n'existe pas un seul profil on ajoute tous les profils dans la liste des paramètres
-                                for (int j = 0; j < y.getProfils().size(); j++) {
-                                    profil = y.getProfils().get(j);
-                                    switch (profil.getType()) {
-                                        case yvs.dao.salaire.service.Constantes.BASE_TIERS_TIERS:
-                                            tiers.add(profil.getId());
-                                            break;
-                                        case yvs.dao.salaire.service.Constantes.BASE_TIERS_CLIENT:
-                                            clients.add(profil.getId());
-                                            break;
-                                        case yvs.dao.salaire.service.Constantes.BASE_TIERS_FOURNISSEUR:
-                                            fournisseurs.add(profil.getId());
-                                            break;
-                                        case yvs.dao.salaire.service.Constantes.BASE_TIERS_EMPLOYE:
-                                            tiers.add(profil.getIdTiers());
-                                            break;
-                                    }
-                                }
-                            } else {// S'il existe un seul profil on ajoute le profil dans la liste des parametres
-                                switch (profil.getType()) {
-                                    case yvs.dao.salaire.service.Constantes.BASE_TIERS_TIERS:
-                                        tiers.add(profil.getId());
-                                        break;
-                                    case yvs.dao.salaire.service.Constantes.BASE_TIERS_CLIENT:
-                                        clients.add(profil.getId());
-                                        break;
-                                    case yvs.dao.salaire.service.Constantes.BASE_TIERS_FOURNISSEUR:
-                                        fournisseurs.add(profil.getId());
-                                        break;
-                                    case yvs.dao.salaire.service.Constantes.BASE_TIERS_EMPLOYE:
-                                        tiers.add(profil.getIdTiers());
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                    if (tiers.isEmpty() && clients.isEmpty() && fournisseurs.isEmpty()) {
-                        p = new ParametreRequete("y.compteTiers", "tiers", -1, "=", "AND");
-                    } else {
-                        p = new ParametreRequete(null, "tiers", tiersSearch, "=", "AND");
-                        if (!tiers.isEmpty()) {
-                            ParametreRequete pp = new ParametreRequete(null, "idTiers", tiersSearch, "=", "OR");
-                            pp.getOtherExpression().add(new ParametreRequete("y.compteTiers", "idTiers", tiers, "IN", "AND"));
-                            pp.getOtherExpression().add(new ParametreRequete("y.tableTiers", "tableTiers", yvs.dao.salaire.service.Constantes.BASE_TIERS_TIERS, "=", "AND"));
-                            p.getOtherExpression().add(pp);
-                        }
-                        if (!clients.isEmpty()) {
-                            ParametreRequete pp = new ParametreRequete(null, "idClients", tiersSearch, "=", "OR");
-                            pp.getOtherExpression().add(new ParametreRequete("y.compteTiers", "idClients", clients, "IN", "AND"));
-                            pp.getOtherExpression().add(new ParametreRequete("y.tableTiers", "tableTiers", yvs.dao.salaire.service.Constantes.BASE_TIERS_CLIENT, "=", "AND"));
-                            p.getOtherExpression().add(pp);
-                        }
-                        if (!fournisseurs.isEmpty()) {
-                            ParametreRequete pp = new ParametreRequete(null, "idFsseurs", tiersSearch, "=", "OR");
-                            pp.getOtherExpression().add(new ParametreRequete("y.compteTiers", "idFsseurs", fournisseurs, "IN", "AND"));
-                            pp.getOtherExpression().add(new ParametreRequete("y.tableTiers", "tableTiers", yvs.dao.salaire.service.Constantes.BASE_TIERS_FOURNISSEUR, "=", "AND"));
-                            p.getOtherExpression().add(pp);
-                        }
-                    }
-                } else {
-                    p = new ParametreRequete("y.compteTiers", "tiers", -1, "=", "AND");
-                }
-
-            }
+            p = getParamTiersContent(tiersSearch);
             p_contenu.addParam(p);
             loadAllContenu(true, true);
         }
+    }
+
+    public void addParamTiersContentForPiece() {
+        ParametreRequete p = getParamTiersContent(tiersContenuSearch);
+        paginatorContenu.addParam(p);
+        loadAllContenuForPiece(true, true);
     }
 
     public void addParamReferenceContent() {
@@ -10533,6 +10577,24 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         }
     }
 
+    public void addParamDebitContentForPiece() {
+        ParametreRequete p = new ParametreRequete("y.debit", "debit", null, "=", "AND");
+        if (debitContenuSearch != null ? debitContenuSearch > -1 : false) {
+            p = new ParametreRequete("y.debit", "credit", debitContenuSearch, "=", "AND");
+        }
+        paginatorContenu.addParam(p);
+        loadAllContenuForPiece(true, true);
+    }
+
+    public void addParamCreditContentForPiece() {
+        ParametreRequete p = new ParametreRequete("y.credit", "credit", null, "=", "AND");
+        if (creditContenuSearch != null ? creditContenuSearch > -1 : false) {
+            p = new ParametreRequete("y.credit", "credit", creditContenuSearch, "=", "AND");
+        }
+        paginatorContenu.addParam(p);
+        loadAllContenuForPiece(true, true);
+    }
+
     public void addParamLettrageContent() {
         ParametreRequete p = new ParametreRequete("y.lettrage", "lettrage", null, "=", "AND");
         if (lettrageSearch != null ? lettrageSearch.trim().length() > 0 : false) {
@@ -10544,6 +10606,15 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         } else {
             loadAllContenu(true, true);
         }
+    }
+
+    public void addParamLettrageContentForPiece() {
+        ParametreRequete p = new ParametreRequete("y.lettrage", "lettrage", null, "=", "AND");
+        if (lettrageContenuSearch != null ? lettrageContenuSearch.trim().length() > 0 : false) {
+            p = new ParametreRequete("UPPER(y.lettrage)", "lettrage", lettrageSearch.toUpperCase(), "=", "AND");
+        }
+        paginatorContenu.addParam(p);
+        loadAllContenuForPiece(true, true);
     }
 
     public void addParamMouvementContent() {
@@ -10561,6 +10632,17 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         }
     }
 
+    public void addParamMouvementContentForPiece() {
+        ParametreRequete p = new ParametreRequete("y.debit", "mouvement", null, "=", "AND");
+        if (mouvementContenuSearch != null ? mouvementContenuSearch.trim().length() > 0 : false) {
+            p = new ParametreRequete(null, "mouvement", 0, ">", "AND");
+            p.getOtherExpression().add(new ParametreRequete((mouvementContenuSearch.equals("D") ? "y.debit" : "y.credit"), "mouvement", 0, ">", "AND"));
+            p.getOtherExpression().add(new ParametreRequete((mouvementContenuSearch.equals("D") ? "y.debit" : "y.credit"), "mouvement", "IS NOT NULL", "IS NOT NULL", "AND"));
+        }
+        paginatorContenu.addParam(p);
+        loadAllContenuForPiece(true, true);
+    }
+
     public void addParamLettrerContent() {
         ParametreRequete p = new ParametreRequete("y.lettrage", "lettrage", null, "=", "AND");
         if (lettrerSearch != null) {
@@ -10572,6 +10654,15 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         } else {
             loadAllContenu(true, true);
         }
+    }
+
+    public void addParamLettrerContentForPiece() {
+        ParametreRequete p = new ParametreRequete("y.lettrage", "lettrage", null, "=", "AND");
+        if (lettrerContenuSearch != null) {
+            p = new ParametreRequete("COALESCE(y.lettrage, '')", "lettrage", "0", (lettrerContenuSearch ? ">" : "<"), "AND");
+        }
+        paginatorContenu.addParam(p);
+        loadAllContenuForPiece(true, true);
     }
 
     public void addParamExercices(ValueChangeEvent ev) {
@@ -10611,8 +10702,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         }
     }
 
-    public
-            void onSelectedDistant(YvsComptaContentJournal y) {
+    public void onSelectedDistant(YvsComptaContentJournal y) {
         switch (y.getTableExterne()) {
             case Constantes.SCR_SALAIRE: {
                 ManagedSalaire w = (ManagedSalaire) giveManagedBean(ManagedSalaire.class
