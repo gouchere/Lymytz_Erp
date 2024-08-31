@@ -1599,14 +1599,9 @@ public class ServiceComptabilite extends GenericService {
                     isLettrer = debits.get(0).getLettrage();
                 } else {
                     List<Long> ids = dao.loadNameQueries("YvsComptaNotifReglementAchat.findIdFactureByAcompte", new String[]{"acompte"}, new Object[]{y});
-                    if (ids != null ? ids.isEmpty() : true) {
-                        ids = new ArrayList<Long>() {
-                            {
-                                add(-1L);
-                            }
-                        };
+                    if (ids != null && !ids.isEmpty()) {
+                        credits = dao.loadNameQueries("YvsComptaContentJournal.findByDebitExternesDates", new String[]{"ids", "table", "dateDebut", "dateFin"}, new Object[]{ids, Constantes.SCR_ACHAT, e.getDateDebut(), e.getDateFin()});
                     }
-                    credits = dao.loadNameQueries("YvsComptaContentJournal.findByDebitExternesDates", new String[]{"ids", "table", "dateDebut", "dateFin"}, new Object[]{ids, Constantes.SCR_ACHAT, e.getDateDebut(), e.getDateFin()});
                 }
             }
             if (credits != null ? !credits.isEmpty() : false) {
@@ -1649,7 +1644,9 @@ public class ServiceComptabilite extends GenericService {
             } else {
                 String nameQueri = y.getNature().equals('D') ? "YvsComptaNotifReglementVente.findIdFactureByAcompte" : "YvsComptaNotifReglementVente.findIdPieceByAcompte";
                 List<Long> ids = dao.loadNameQueries(nameQueri, new String[]{"acompte"}, new Object[]{y});
-                debits = dao.loadNameQueries("YvsComptaContentJournal.findByDebitExternesDates", new String[]{"ids", "table", "dateDebut", "dateFin"}, new Object[]{ids, (y.getNature().equals('D') ? Constantes.SCR_VENTE : Constantes.SCR_CAISSE_VENTE), e.getDateDebut(), e.getDateFin()});
+                if (ids != null && !ids.isEmpty()) {
+                    debits = dao.loadNameQueries("YvsComptaContentJournal.findByDebitExternesDates", new String[]{"ids", "table", "dateDebut", "dateFin"}, new Object[]{ids, (y.getNature().equals('D') ? Constantes.SCR_VENTE : Constantes.SCR_CAISSE_VENTE), e.getDateDebut(), e.getDateFin()});
+                }
             }
         }
         if (debits != null ? !debits.isEmpty() : false) {
