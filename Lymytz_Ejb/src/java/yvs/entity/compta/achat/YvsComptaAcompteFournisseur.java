@@ -30,6 +30,7 @@ import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlTransient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import yvs.dao.YvsEntity;
 import yvs.dao.salaire.service.Constantes;
 import yvs.entity.base.YvsBaseFournisseur;
 import yvs.entity.base.YvsBaseModeReglement;
@@ -77,7 +78,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsComptaAcompteFournisseur.findByFournisseur", query = "SELECT y FROM YvsComptaAcompteFournisseur y WHERE y.fournisseur = :fournisseur ORDER BY y.dateAcompte DESC"),
     @NamedQuery(name = "YvsComptaAcompteFournisseur.countByParent", query = "SELECT COUNT(y) FROM YvsComptaAcompteFournisseur y WHERE y.parent=:piece"),
     @NamedQuery(name = "YvsComptaAcompteFournisseur.findSumByFournisseur", query = "SELECT SUM(y.montant) FROM YvsComptaAcompteFournisseur y WHERE y.fournisseur = :fournisseur AND y.statut = :statut")})
-public class YvsComptaAcompteFournisseur implements Serializable {
+public class YvsComptaAcompteFournisseur extends YvsEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

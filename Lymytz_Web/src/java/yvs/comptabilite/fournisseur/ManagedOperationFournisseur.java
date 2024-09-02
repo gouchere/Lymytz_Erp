@@ -62,6 +62,7 @@ import yvs.entity.param.YvsAgences;
 import yvs.grh.UtilGrh;
 import yvs.grh.bean.ManagedTypeCout;
 import yvs.grh.bean.TypeCout;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteFournisseur;
 import yvs.util.Constantes;
 import yvs.util.Managed;
 import yvs.util.PaginatorResult;
@@ -1468,7 +1469,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         if (isFacture) {
             if (compte.getId() > 0 && compte.getFournisseur().getId() > 0) {
                 //Montant restant sur l'acompte
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(selectCompte, dao);
                 // (reste != null ? reste : 0);
                 double montantResteAcompte = (reste != null ? reste : 0);
                 double montantResteAPayer = 0;
@@ -1519,7 +1520,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         } else {
             if (compte.getId() > 0 && compte.getFournisseur().getId() > 0) {
                 //Montant restant sur l'acompte
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(selectCompte, dao);
                 // (reste != null ? reste : 0);
                 double montantResteAcompte = (reste != null ? reste : 0);
                 double montantResteAPayer = 0;
@@ -2001,9 +2002,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
 
     public void loadAllReste() {
         for (YvsComptaAcompteFournisseur y : acomptes) {
-            Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{y});
+            Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(y, dao);
             y.setReste((reste != null ? reste : 0));
-            Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteUnBindForAcompte", new String[]{"acompte"}, new Object[]{y});
+            Double resteUnBind = AYvsComptaAcompteFournisseur.findResteUnBindForAcompte(y, dao);
             y.setResteUnBind((resteUnBind != null ? resteUnBind : 0));
         }
     }
@@ -2613,8 +2614,8 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     }
                 }
                 // (reste != null ? reste : 0);
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
-                Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteUnBindForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(selectCompte, dao);
+                Double resteUnBind = AYvsComptaAcompteFournisseur.findResteUnBindForAcompte(selectCompte, dao);
                 compte.setReste((reste != null ? reste : 0));
                 compte.setResteUnBlind((resteUnBind != null ? resteUnBind : 0));
                 w.equilibreOne(y.getPieceDocDivers().getDocDivers());
@@ -2662,8 +2663,8 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     }
                 }
                 // (reste != null ? reste : 0);
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
-                Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findResteUnBindForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(selectCompte, dao);
+                Double resteUnBind = AYvsComptaAcompteFournisseur.findResteUnBindForAcompte(selectCompte, dao);
                 compte.setReste((reste != null ? reste : 0));
                 compte.setResteUnBlind((resteUnBind != null ? resteUnBind : 0));
                 Map<String, String> statuts = dao.getEquilibreAchat(y.getPieceAchat().getAchat().getId());

@@ -64,6 +64,7 @@ import yvs.entity.param.YvsAgences;
 import yvs.grh.UtilGrh;
 import yvs.grh.bean.ManagedTypeCout;
 import yvs.grh.bean.TypeCout;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteClient;
 import yvs.util.Constantes;
 import yvs.util.Managed;
 import yvs.util.PaginatorResult;
@@ -1460,13 +1461,10 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
             piece.setDatePaiementPrevu(compte.getDateAcompte());
 
             YvsComptaCaissePieceDivers r = UtilCompta.buildPieceCaisse(piece, currentUser);
-            ManagedDocDivers service = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class
-            );
+            ManagedDocDivers service = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
 
             r = service.createNewPieceCaisse(piece.getDocDivers(), r, true);
-            if (r
-                    != null ? r.getId()
-                    > 0 : false) {
+            if (r != null ? r.getId() > 0 : false) {
                 champ = new String[]{"piece", "acompte"};
                 val = new Object[]{r, selectCompte};
                 nameQueri = "YvsComptaNotifReglementDocDivers.findOne";
@@ -1488,7 +1486,6 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                     idx = compte.getVentesEtDivers().indexOf(a);
                     if (idx > -1) {
                         compte.getVentesEtDivers().set(idx, a);
-
                     } else {
                         compte.getVentesEtDivers().add(0, a);
                     }
@@ -1516,16 +1513,10 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                         }
                     }
                 }
-
                 service.equilibreOne(UtilCompta.buildDocDivers(piece.getDocDivers()));
-
             }
-
             succes();
-
-            update(
-                    "data_reglement_acompte");
-
+            update("data_reglement_acompte");
             return true;
         }
 
@@ -1575,9 +1566,9 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
         if (isFacture) {
             if (compte.getId() > 0 && compte.getClient().getId() > 0) {
                 //Montant restant sur l'acompte
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
+                Double reste = AYvsComptaAcompteClient.findResteForAcompte(selectCompte, dao);
                 double montantResteAcompte = (reste != null ? reste : 0);
-                double montantResteAPayer = 0;
+                double resteFacture = 0;
                 montantResteAcompte = validePieceExist(montantResteAcompte);
                 if (montantResteAcompte > 0) {
                     //Récupère les factures non payé du client
@@ -1595,12 +1586,12 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                             if (montantResteAcompte > 0) {
                                 doc = UtilCom.buildBeanDocVente(d);
                                 setMontantTotalDoc(doc);
-                                montantResteAPayer = doc.getMontantResteApayer();
-                                if (montantResteAPayer > 0) {
+                                resteFacture = doc.getMontantResteApayer();
+                                if (resteFacture > 0) {
                                     cloneObject(piece.getDocVente(), doc);
                                     piece.setNumRefExterne(d.getNumDoc());
-                                    if (montantResteAcompte > montantResteAPayer) {
-                                        montant = montantResteAPayer;
+                                    if (montantResteAcompte > resteFacture) {
+                                        montant = resteFacture;
                                     } else {
                                         montant = montantResteAcompte;
                                     }
@@ -1623,7 +1614,7 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
         } else {
             if (compte.getId() > 0 && compte.getClient().getId() > 0) {
                 //Montant restant sur l'acompte
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
+                Double reste = AYvsComptaAcompteClient.findResteForAcompte(selectCompte, dao);
                 double montantResteAcompte = (reste != null ? reste : 0);
                 double montantResteAPayer = 0;
                 if (montantResteAcompte > 0) {
@@ -2181,9 +2172,9 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
 
     public void loadAllReste() {
         for (YvsComptaAcompteClient y : acomptes) {
-            Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{y});
+            Double reste = AYvsComptaAcompteClient.findResteForAcompte(y, dao);
             y.setReste((reste != null ? reste : 0));
-            Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteUnBindForAcompte", new String[]{"acompte"}, new Object[]{y});
+            Double resteUnBind = AYvsComptaAcompteClient.findResteUnBindForAcompte(y, dao);
             y.setResteUnBind((resteUnBind != null ? resteUnBind : 0));
         }
     }
@@ -2825,8 +2816,8 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                     }
                 }
 
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
-                Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteUnBindForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
+                Double reste = AYvsComptaAcompteClient.findResteForAcompte(selectCompte, dao);
+                Double resteUnBind = AYvsComptaAcompteClient.findResteUnBindForAcompte(selectCompte, dao);
                 compte.setReste((reste != null ? reste : 0));
                 compte.setResteUnBlind((resteUnBind != null ? resteUnBind : 0));
                 Map<String, String> statuts = dao.getEquilibreVente(y.getPieceVente().getVente().getId());
@@ -2864,8 +2855,8 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
                         update("table_regFV");
                     }
                 }
-                Double reste = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
-                Double resteUnBind = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findResteUnBindForAcompte", new String[]{"acompte"}, new Object[]{selectCompte});
+                Double reste = AYvsComptaAcompteClient.findResteForAcompte(selectCompte, dao);
+                Double resteUnBind = AYvsComptaAcompteClient.findResteUnBindForAcompte(selectCompte, dao);
                 compte.setReste((reste != null ? reste : 0));
                 compte.setResteUnBlind((resteUnBind != null ? resteUnBind : 0));
                 w.equilibreOne(y.getPieceDocDivers().getDocDivers());
@@ -3774,13 +3765,10 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
         return l;
     }
 
-    public
-            void onSelectDistantFacture(YvsComDocVentes y) {
+    public void onSelectDistantFacture(YvsComDocVentes y) {
         if (y != null ? y.getId() > 0 : false) {
-            ManagedFactureVente s = (ManagedFactureVente) giveManagedBean(ManagedFactureVente.class
-            );
-            if (s
-                    != null) {
+            ManagedFactureVente s = (ManagedFactureVente) giveManagedBean(ManagedFactureVente.class);
+            if (s != null) {
                 s.onSelectObject(y);
                 Navigations n = (Navigations) giveManagedBean(Navigations.class);
                 if (n != null) {
@@ -3792,19 +3780,15 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
 
     public void onSelectDistantFactures(AcomptesVenteDivers a) {
         YvsComDocVentes y = new YvsComDocVentes();
-
         if (a.getNotifs() != null ? a.getNotifs().getId() > 0 : false) {
             y = a.getNotifs().getPieceVente().getVente();
             onSelectDistantFacture(y);
         } else {
-
             if (a.getNotif_divers() != null ? a.getNotif_divers().getId() > 0 : false) {
                 YvsComptaCaisseDocDivers z = new YvsComptaCaisseDocDivers();
                 z = a.getNotif_divers().getPieceDocDivers().getDocDivers();
-                ManagedDocDivers m = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class
-                );
-                if (m
-                        != null) {
+                ManagedDocDivers m = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
+                if (m != null) {
                     m.onSelectObject(z);
                     Navigations n = (Navigations) giveManagedBean(Navigations.class);
                     if (n != null) {
