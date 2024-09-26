@@ -35,6 +35,16 @@
             });
         </script>
 
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog widgetVar="dlgUploadImgXLS" width="300" height="100" closeOnEscape="true"
+                      dynamic="true" resizable="false">
+                <p:fileUpload sizeLimit="1000000"  id="file_import_02"  mode="advanced" dragDropSupport="true" 
+                              allowTypes="/(\.|\/)(xls|xls?x)$/" fileUploadListener="#{managedBonAvoirVente.handleFileUploadXLS}"
+                              uploadLabel="#{lab.L_envoyer}" label="#{lab.L_parcourir}" auto="true"
+                              oncomplete="dlgUploadImgXLS.hide()"> 
+                </p:fileUpload>
+            </p:dialog>
+        </h:form>
         <h:form prependId="false" id="main-agence">
             <p:dialog widgetVar="dlgAgenceForPoint" header="Selectionner une agence" width="50%" closeOnEscape="true"> 
                 <p:dataTable value="#{managedAgence.agences}" var="ag" rowKey="#{ag.id}" selectionMode="single" id="table_agence" rowIndexVar="line_ag">
@@ -1012,55 +1022,62 @@
                                                 </div>                                                             
                                             </f:facet>       
                                         </h:panelGrid> 
-                                        <h:inputHidden id="input_hide_contenu_avoir_vente" value="#{managedBonAvoirVente.tabIds_article}"/>
-                                        <p:dataTable id="data_contenu_avoir_vente" value="#{managedBonAvoirVente.contenus}" var="artf" rowKey="#{artf.id}" 
-                                                     rowIndexVar="artfIdx" selection="#{managedBonAvoirVente.selectContenus}">
-                                            <p:ajax event="rowSelect" global="false" listener="#{managedBonAvoirVente.loadOnViewContenu}" update=":main_avoir_vente:tabView_fav:form_contenu_avoir_vente"/>
-                                            <p:ajax event="rowUnselect" global="false" listener="#{managedBonAvoirVente.unLoadOnViewContenu}" update=":main_avoir_vente:tabView_fav:form_contenu_avoir_vente"/>
-                                            <p:column style="width: 7%" headerText="N°">
-                                                <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{artf.new_}"/>
-                                                <span title="#{artf.dateSave.toString()}">#{artfIdx+1}</span>
-                                                <h:graphicImage title="#{lab.L_suiviEnStock}" library="img"  name="bookmark.png" width="15" height="15" rendered="#{artf.mouvStock}" style="float: right"/>
-                                            </p:column>
-                                            <p:column  style="width: 15%">
-                                                <span title="#{artf.dateSave.toString()}">#{artf.article.refArt}</span>
-                                            </p:column>
-                                            <p:column headerText="#{lab.L_article}">
-                                                <span title="#{artf.dateSave.toString()}">#{artf.article.designation}</span>
-                                            </p:column>
-                                            <p:column headerText="#{lab.L_qte}" style="text-align: right;width: 10%">
-                                                <h:outputText value="#{artf.quantite}" converter="#{managedBonAvoirVente.converterStock}"/>
-                                                <span title="#{artf.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{artf.conditionnement.unite.reference}</span>
-                                            </p:column>
-                                            <p:column headerText="#{lab.L_prix}" style="text-align: right;width: 12%">
-                                                <h:outputText value="#{artf.prix}" converter="#{managedBonAvoirVente.converter}"/>
-                                            </p:column>
-                                            <p:column headerText="#{lab.L_rem}" style="text-align: right;width: 10%">
-                                                <h:outputText value="#{artf.remise}" converter="DNS"/>
-                                            </p:column>
-                                            <p:column headerText="#{lab.LCF_PBAA_taxes}" style="text-align: right;width: 10%">
-                                                <h:outputText value="#{artf.taxe}" converter="DNS"/>
-                                            </p:column>
-                                            <p:column headerText="#{lab.L_total}" style="text-align: right;width: 14%">
-                                                <h:outputText value="#{artf.prixTotal}" converter="#{managedBonAvoirVente.converter}"/>
-                                            </p:column>
-                                            <p:column style="width: 10px;text-align: center">
-                                                <f:facet name="header">
-                                                    <p:contextMenu for="btn_option_contenu_avoir_vente_head" event="left click" style="font-size: 0.8em;width: 200px">
-                                                        <p:menuitem value="#{lab.LC_PFV_maitenance}" icon="ui-icon-carat-2-e-w" actionListener="#{managedBonAvoirVente.onCorrectifPrixTotal()}" update="data_contenu_avoir_vente"/>
-                                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedBonAvoirVente.deleteBeanArticles(false)}"/>
+                                        <p:outputPanel id="blog_contenu_avoir_vente">
+                                            <h:inputHidden id="input_hide_contenu_avoir_vente" value="#{managedBonAvoirVente.tabIds_article}"/>
+                                            <p:dataTable id="data_contenu_avoir_vente" value="#{managedBonAvoirVente.contenus}" var="artf" rowKey="#{artf.id}" 
+                                                         rowIndexVar="artfIdx" selection="#{managedBonAvoirVente.selectContenus}">
+                                                <p:ajax event="rowSelect" global="false" listener="#{managedBonAvoirVente.loadOnViewContenu}" update=":main_avoir_vente:tabView_fav:form_contenu_avoir_vente"/>
+                                                <p:ajax event="rowUnselect" global="false" listener="#{managedBonAvoirVente.unLoadOnViewContenu}" update=":main_avoir_vente:tabView_fav:form_contenu_avoir_vente"/>
+                                                <p:column style="width: 7%;color:#{artf.hasMessageError?'red':''}" headerText="N°">
+                                                    <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{artf.new_}"/>
+                                                    <span title="#{artf.dateSave.toString()}">#{artfIdx+1}</span>
+                                                    <h:graphicImage title="#{lab.L_suiviEnStock}" library="img"  name="bookmark.png" width="15" height="15" rendered="#{artf.mouvStock}" style="float: right"/>
+                                                    <h:graphicImage title="#{artf.messageError}" library="img" name="comment.png" width="15" height="15" rendered="#{artf.hasMessageError}" style="float: right"/>
+                                                </p:column>
+                                                <p:column  style="width: 15%;color:#{artf.hasMessageError?'red':''}">
+                                                    <span title="#{artf.dateSave.toString()}">#{artf.article.refArt}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_article}" style="color:#{artf.hasMessageError?'red':''}">
+                                                    <span title="#{artf.dateSave.toString()}">#{artf.article.designation}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_qte}" style="text-align: right;width: 10%;color:#{artf.hasMessageError?'red':''}">
+                                                    <h:outputText value="#{artf.quantite}" converter="#{managedBonAvoirVente.converterStock}"/>
+                                                    <span title="#{artf.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{artf.conditionnement.unite.reference}</span>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_prix}" style="text-align: right;width: 12%;color:#{artf.hasMessageError?'red':''}">
+                                                    <h:outputText value="#{artf.prix}" converter="#{managedBonAvoirVente.converter}"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_rem}" style="text-align: right;width: 10%;color:#{artf.hasMessageError?'red':''}">
+                                                    <h:outputText value="#{artf.remise}" converter="DNS"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.LCF_PBAA_taxes}" style="text-align: right;width: 10%;color:#{artf.hasMessageError?'red':''}">
+                                                    <h:outputText value="#{artf.taxe}" converter="DNS"/>
+                                                </p:column>
+                                                <p:column headerText="#{lab.L_total}" style="text-align: right;width: 14%;color:#{artf.hasMessageError?'red':''}">
+                                                    <h:outputText value="#{artf.prixTotal}" converter="#{managedBonAvoirVente.converter}"/>
+                                                </p:column>
+                                                <p:column style="width: 10px;text-align: center">
+                                                    <f:facet name="header">
+                                                        <p:contextMenu for="btn_option_contenu_avoir_vente_head" event="left click" style="font-size: 0.8em;width: 200px">
+                                                            <p:menuitem value="#{lab.LC_PFV_maitenance}" icon="ui-icon-carat-2-e-w" actionListener="#{managedBonAvoirVente.onCorrectifPrixTotal()}" update="data_contenu_avoir_vente"/>
+                                                            <p:menuitem value="Importer" icon="ui-icon-arrowthickstop-1-s" global="false" onclick="dlgUploadImgXLS.show()"/>
+                                                            <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedBonAvoirVente.deleteBeanArticles(false)}"/>
+                                                        </p:contextMenu>                           
+                                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_avoir_vente_head" type="button"/>
+                                                    </f:facet>
+                                                    <p:contextMenu for="btn_option_contenu_avoir_vente" event="left click" style="font-size: 0.8em;width: 200px" >
+                                                        <p:menuitem value="#{artf.mouvStock?lab.L_desactiver:lab.L_activer} #{lab.LCF_PBAV_le_suivi_stock}" icon="ui-icon-star" global="false" actionListener="#{managedBonAvoirVente.activeMouvStock(artf)}"
+                                                                    update="data_contenu_avoir_vente"/>
+                                                        <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedBonAvoirVente.deleteBeanArticle_(artf)}" oncomplete="dlgConfirmDeleteArticle_.show()"/>
                                                     </p:contextMenu>                           
-                                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_avoir_vente_head" type="button"/>
-                                                </f:facet>
-                                                <p:contextMenu for="btn_option_contenu_avoir_vente" event="left click" style="font-size: 0.8em;width: 200px" >
-                                                    <p:menuitem value="#{artf.mouvStock?lab.L_desactiver:lab.L_activer} #{lab.LCF_PBAV_le_suivi_stock}" icon="ui-icon-star" global="false" actionListener="#{managedBonAvoirVente.activeMouvStock(artf)}"
-                                                                update="data_contenu_avoir_vente"/>
-                                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedBonAvoirVente.deleteBeanArticle_(artf)}" oncomplete="dlgConfirmDeleteArticle_.show()"/>
-                                                </p:contextMenu>                           
-                                                <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_avoir_vente" type="button"/>
-                                            </p:column> 
-                                            <p:column selectionMode="multiple" style="width:16px;text-align:center"/>  
-                                        </p:dataTable>    
+                                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_avoir_vente" type="button"/>
+                                                </p:column> 
+                                                <p:column selectionMode="multiple" style="width:16px;text-align:center"/>  
+                                            </p:dataTable>  
+                                            <p:commandButton icon="ui-icon-disk" value="Enregistrer" style="float:right"
+                                                             oncomplete="collapseForm('contenu_avoir_vente')" rendered="#{managedBonAvoirVente.displayButtonSaveFromImport}"
+                                                             update="tabView_fav:blog_form_contenu_avoir_vente" actionListener="#{managedBonAvoirVente.saveContenusFromImport()}"/>    
+                                        </p:outputPanel>
                                     </p:outputPanel>
                                     <div style="clear: both"/>
                                 </p:tab>
