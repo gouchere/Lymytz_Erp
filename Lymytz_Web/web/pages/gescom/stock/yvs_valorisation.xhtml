@@ -454,18 +454,23 @@
                     <p:dataTable id="data_mouvement" value="#{managedValorisation.mouvements}" style="font-size: 0.8em"
                                  var="mouv" rowKey="#{mouv.id}" rowIndexVar="mouvIdx" selection="#{managedValorisation.selections}">
                         <f:facet name="header">
-                            <div align="right" style="width: 100%; color: black; font-weight: normal; font-size: 1em">
+                            <p:selectCheckboxMenu id="columnsDisplay" value="#{managedValorisation.columnsDisplay}" label="Choisir les colonnes" style="height: 22px;float: left;min-width: 200px" panelStyle="width: 30rem">
+                                <p:ajax event="toggleSelect" update="data_mouvement"/>
+                                <p:ajax event="change" update="data_mouvement"/>
+                                <f:selectItems value="#{managedValorisation.columnsName}"/>
+                            </p:selectCheckboxMenu>
+                            <div align="right" style="height: 22px;width: 100%; color: black; font-weight: normal; font-size: 1em">
                                 <span>Stock initial :</span>
                                 <h:outputText value="#{managedValorisation.stockInit}" converter="#{managedValorisation.converterStock}" style="font-weight: normal"/>
                             </div>
                         </f:facet>
-                        <p:column headerText="N°" exportable="false" width="15" >
+                        <p:column headerText="N°" exportable="false" width="15">
                             <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{mouv.new_}"/>
                             <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
                                 <h:outputText value="#{mouvIdx+1}"/>
                             </span>
                         </p:column>                        
-                        <p:column headerText="#{lab.L_reference}" exportable="true">
+                        <p:column headerText="#{lab.L_reference}" exportable="true" rendered="#{managedValorisation.displayReference}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.L_reference}"/>
                             </f:facet>
@@ -473,7 +478,7 @@
                                 <h:outputText value="#{mouv.article.refArt}" style="font-weight: bold"/>
                             </span>
                         </p:column>
-                        <p:column headerText="#{lab.L_article}" exportable="true">
+                        <p:column headerText="#{lab.L_article}" exportable="true" rendered="#{managedValorisation.displayDesignation}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.L_article}"/>
                             </f:facet>
@@ -481,7 +486,7 @@
                                 <h:outputText value="#{managedValorisation.resumeText(mouv.article.designation,25)}" title="#{mouv.article.designation}"/>
                             </span>
                         </p:column>
-                        <p:column headerText="#{lab.L_date} " exportable="true" style="width: 10%;text-align: center">
+                        <p:column headerText="#{lab.L_date} " exportable="true" style="width: 10%;text-align: center" rendered="#{managedValorisation.displayDate}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.L_date}"/>
                             </f:facet>
@@ -489,7 +494,7 @@
                                 <h:outputText value="#{mouv.dateDoc}" converter="DDMMYYYY"/>
                             </span>
                         </p:column>
-                        <p:column headerText="#{lab.L_depot}" exportable="true" style="width: 12%;">
+                        <p:column headerText="#{lab.L_depot}" exportable="true" style="width: 12%;" rendered="#{managedValorisation.displayDepot}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.L_depot}"/>
                             </f:facet>
@@ -497,7 +502,7 @@
                                 <h:outputText value="#{managedValorisation.resumeText(mouv.depot.designation,20)}" title="#{mouv.depot.designation}"/>
                             </span>
                         </p:column>
-                        <p:column headerText="#{lab.L_tranche}" exportable="true" style="width: 12%;">
+                        <p:column headerText="#{lab.L_tranche}" exportable="true" style="width: 12%;" rendered="#{managedValorisation.displayTranche}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.L_tranche}"/>
                             </f:facet>
@@ -505,7 +510,7 @@
                                 <h:outputText value="#{mouv.tranche.titre}"/>
                             </span>
                         </p:column>
-                        <p:column headerText="#{lab.LC_PMS_operation}" exportable="true" style="width: 10%;text-align: center">
+                        <p:column headerText="#{lab.LC_PMS_operation}" exportable="true" style="width: 10%;text-align: center" rendered="#{managedValorisation.displayOperation}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.LC_PMS_operation}"/>
                             </f:facet>
@@ -513,10 +518,18 @@
                                 <h:outputText value="#{mouv.description}"/>
                             </span>
                         </p:column>
-                        <p:column headerText="#{lab.LC_PES_lot}" style="text-align: center;width: 10%" rendered="#{managedValorisation.currentParam.useLotReception}">
+                        <p:column headerText="Numéro Doc." exportable="true" style="width: 10%;text-align: center" rendered="#{managedValorisation.displayNumDoc}">
+                            <f:facet name="header">        
+                                <p:outputLabel value="Numéro Doc."/>
+                            </f:facet>
+                            <span title="#{managedValorisation.currentParam.useLotReception ? managedValorisation.resumeText(mouv.article.designation,25) : 'Lot N° '.concat(mouv.lot.lot.numero)}" >
+                                <h:outputText value="#{mouv.numDoc}"/>
+                            </span>
+                        </p:column>
+                        <p:column headerText="#{lab.LC_PES_lot}" style="text-align: center;width: 10%" rendered="#{managedValorisation.currentParam.useLotReception and managedValorisation.displayLot}">
                             <span>#{mouv.lot.lot.numero}</span>
                         </p:column>
-                        <p:column headerText="#{lab.LC_PMS_cout_entree}" exportable="true" style="width: 8%;text-align: right">
+                        <p:column headerText="#{lab.LC_PMS_cout_entree}" exportable="true" style="width: 8%;text-align: right" rendered="#{managedValorisation.displayCoutEntree}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.LC_PMS_cout_entree}"/>
                             </f:facet>
@@ -524,7 +537,7 @@
                                 <h:outputText value="#{mouv.coutEntree}" converter="DNS"/>
                             </span>
                         </p:column>
-                        <p:column headerText="#{lab.LC_PMS_cout_moyen}" exportable="true" style="width: 8%;text-align: right">
+                        <p:column headerText="#{lab.LC_PMS_cout_moyen}" exportable="true" style="width: 8%;text-align: right" rendered="#{managedValorisation.displayCoutMoyen}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.LC_PMS_cout_moyen}"/>
                             </f:facet>
@@ -533,7 +546,7 @@
                                 <h:outputText value="NDF" title="#{labLC_PMS_pr_non_defini}" rendered="#{!mouv.calculPr}" style="color: #993300"/>
                             </span>
                         </p:column>
-                        <p:column headerText="#{lab.L_quantite}" exportable="true" style="width: 10%;text-align: right">
+                        <p:column headerText="#{lab.L_quantite}" exportable="true" style="width: 10%;text-align: right" rendered="#{managedValorisation.displayQuantite}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.L_quantite}"/>
                             </f:facet>
@@ -542,7 +555,7 @@
                             </span>
                             <h:outputText title="#{mouv.conditionnement.unite.libelle}" value="#{mouv.conditionnement.unite.reference}" style="font-size: 0.6em;color: #003399"/>
                         </p:column>
-                        <p:column headerText="#{lab.LC_PMS_stocks}" exportable="true" style="width: 8%;text-align: right">  
+                        <p:column headerText="#{lab.LC_PMS_stocks}" exportable="true" style="width: 8%;text-align: right" rendered="#{managedValorisation.displayStock}">  
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.LC_PMS_stocks}"/>
                             </f:facet>
@@ -551,7 +564,7 @@
                                 <h:outputText value="#{managedValorisation.previousStock(mouvIdx)}" converter="#{managedValorisation.getConverterMouv(mouv)}"/>
                             </span>
                         </p:column> 
-                        <p:column headerText="#{lab.LC_PMS_cout_stock}" exportable="true" style="width: 8%;text-align: right">
+                        <p:column headerText="#{lab.LC_PMS_cout_stock}" exportable="true" style="width: 8%;text-align: right" rendered="#{managedValorisation.displayCoutStock}">
                             <f:facet name="header">        
                                 <p:outputLabel value="#{lab.LC_PMS_cout_stock}"/>
                             </f:facet>
@@ -854,5 +867,6 @@
                 </div>
             </div>
         </h:form>
+        #{managedValorisation.doNothing()}  
     </ui:define>
 </ui:composition>
