@@ -91,6 +91,8 @@ public class YvsComptaJournaux extends YvsEntity implements Serializable {
     private YvsAgences agence;
     @Transient
     private boolean new_;
+    @Transient
+    private boolean select;
 
     public YvsComptaJournaux() {
     }
@@ -196,6 +198,14 @@ public class YvsComptaJournaux extends YvsEntity implements Serializable {
 
     public boolean isNew_() {
         return new_;
+    }
+
+    public boolean isSelect() {
+        return select;
+    }
+
+    public void setSelect(boolean select) {
+        this.select = select;
     }
 
     public boolean getDefaultFor() {
