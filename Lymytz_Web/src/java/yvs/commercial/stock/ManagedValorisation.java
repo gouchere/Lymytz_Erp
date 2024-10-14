@@ -7,7 +7,9 @@ package yvs.commercial.stock;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,7 +21,9 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.event.ValueChangeEvent;
+import org.primefaces.component.selectcheckboxmenu.SelectCheckboxMenu;
 import org.primefaces.event.SelectEvent;
+import org.primefaces.event.ToggleSelectEvent;
 import org.primefaces.event.UnselectEvent;
 import yvs.commercial.depot.ArticleDepot;
 import yvs.base.produits.Articles;
@@ -104,6 +108,25 @@ public class ManagedValorisation extends ManagedCommercial<MouvementStock, YvsBa
     private double prevStock = 0;
     private double stockInit = 0;
 
+    private final String Reference = "Reference de l'article", Designation = "Designation de l'article", Date = "Date du mouvement", Depot = "Depot du mouvement", Tranche = "Tranche du mouvement", Operation = "Operation du mouvement", Lot = "Lot de reception",
+            CoutEntree = "Cout d'entree", CoutMoyen = "Cout moyen", Quantite = "Quantit'e", Stock = "Stock", CoutStock = "Cout du stock", NumDoc = "Numéro du document";
+
+    private String[] columnsName = new String[]{Reference, Designation, Date, Depot, Tranche, Operation, Lot, CoutEntree, CoutMoyen, Quantite, Stock, CoutStock, NumDoc};
+    private List<String> columnsDisplay = new ArrayList<>(Arrays.asList(
+            Reference,
+            Designation,
+            Date,
+            Depot,
+            Tranche,
+            Lot,
+            Operation,
+            CoutEntree,
+            CoutMoyen,
+            Quantite,
+            Stock,
+            CoutStock
+    ));
+
     public ManagedValorisation() {
         mouvements = new ArrayList<>();
         transferts = new ArrayList<>();
@@ -113,6 +136,74 @@ public class ManagedValorisation extends ManagedCommercial<MouvementStock, YvsBa
         tranches = new ArrayList<>();
         historiques = new ArrayList<>();
         selections = new ArrayList<>();
+    }
+
+    public String[] getColumnsName() {
+        return columnsName;
+    }
+
+    public void setColumnsName(String[] columnsName) {
+        this.columnsName = columnsName;
+    }
+
+    public List<String> getColumnsDisplay() {
+        return columnsDisplay;
+    }
+
+    public void setColumnsDisplay(List<String> columnsDisplay) {
+        this.columnsDisplay = columnsDisplay;
+    }
+
+    public boolean isDisplayLot() {
+        return columnsDisplay.contains(Lot);
+    }
+
+    public boolean isDisplayReference() {
+        return columnsDisplay.contains(Reference);
+    }
+
+    public boolean isDisplayDesignation() {
+        return columnsDisplay.contains(Designation);
+    }
+
+    public boolean isDisplayDate() {
+        return columnsDisplay.contains(Date);
+    }
+
+    public boolean isDisplayDepot() {
+        return columnsDisplay.contains(Depot);
+    }
+
+    public boolean isDisplayTranche() {
+        return columnsDisplay.contains(Tranche);
+    }
+
+    public boolean isDisplayOperation() {
+        return columnsDisplay.contains(Operation);
+    }
+
+    public boolean isDisplayCoutEntree() {
+        return columnsDisplay.contains(CoutEntree);
+    }
+
+    public boolean isDisplayCoutMoyen() {
+        return columnsDisplay.contains(CoutMoyen);
+    }
+
+    public boolean isDisplayQuantite() {
+        return columnsDisplay.contains(Quantite);
+    }
+
+    public boolean isDisplayStock() {
+        return columnsDisplay.contains(Stock);
+    }
+
+    public boolean isDisplayCoutStock() {
+        return columnsDisplay.contains(CoutStock);
+    }
+
+    public boolean isDisplayNumDoc() {
+        return columnsDisplay.contains(NumDoc);
     }
 
     public List<YvsBaseMouvementStock> getSelections() {
