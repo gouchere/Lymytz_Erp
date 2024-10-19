@@ -7,6 +7,7 @@ package yvs.production;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -5627,7 +5628,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
     }
 
-    public void printProgram() {
+    public void printProgram(String categorie) {
         String ids = null;
         if (programs != null) {
             for (OrdreFabrication program : programs) {
@@ -5640,7 +5641,8 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         Map<String, Object> param = new HashMap<>();
         param.put("AGENCE", currentAgence.getId().intValue());
         param.put("NAME_AUTEUR", currentUser.getUsers().getNomUsers());
-        param.put("TITLE_RAPPORT", "PRODUCTIONS");
+        param.put("TITLE_RAPPORT", "PRODUCTION" + (asString(categorie) ? " DES " + giveNameCategorie(categorie) : ""));
+        param.put("CATEGORIE", asString(categorie) ? categorie : null);
         param.put("LOGO", returnLogo());
         param.put("SUBREPORT_DIR", SUBREPORT_DIR(true));
         param.put("IDS", ids);
