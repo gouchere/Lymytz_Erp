@@ -811,6 +811,10 @@ public class YvsComContenuDocAchat extends YvsEntity implements Serializable {
         this.compte = compte;
     }
 
+    public boolean isHasMessageError() {
+        return messageError != null ? !messageError.trim().equals("") : false;
+    }
+
     public String getMessageError() {
         return messageError;
     }
