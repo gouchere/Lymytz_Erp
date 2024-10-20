@@ -11098,12 +11098,18 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                 getErrorMessage("Aucun exercice trouvé pour la date du " + formatDate.format(date));
                 return;
             }
-            String lettrage = nextLettre(exo);
             for (YvsComptaContentJournal c : lettrages) {
-                if (c.getLettrage() != null ? c.getLettrage().trim().length() > 0 : false) {
+                if (!Objects.equals(c.getPiece().getExercice().getId(), exo.getId())) {
+                    getErrorMessage("Vous ne pouvez pas lettrer des ecritures dans des exercices différents");
+                    return;
+                }
+                if (asString(c.getLettrage())) {
                     getErrorMessage("Impossible de lettrer ces lignes", "car il existe des lignes déjà lettrées");
                     return;
                 }
+            }
+            String lettrage = nextLettre(exo);
+            for (YvsComptaContentJournal c : lettrages) {
                 c.setLettrage(lettrage);
                 c.setAuthor(currentUser);
                 c.setDateUpdate(new Date());
