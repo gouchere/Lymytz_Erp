@@ -1,0 +1,3 @@
+ALTER TABLE yvs_com_parametre ADD COLUMN display_prix_revient_on_stock_page boolean DEFAULT false;
+ALTER TABLE yvs_com_parametre ADD COLUMN display_reste_a_livrer_on_stock_page boolean DEFAULT false;
+ALTER TABLE yvs_com_parametre ADD COLUMN display_avg_puv_on_stock_page boolean DEFAULT false;
