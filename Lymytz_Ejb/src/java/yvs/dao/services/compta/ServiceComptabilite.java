@@ -377,6 +377,7 @@ public class ServiceComptabilite extends GenericService {
             }
         } catch (Exception ex) {
             getException("saveNewPieceComptable Error..", ex);
+            return new ResultatAction().fail(ex.getMessage());
         }
         return null;
     }
@@ -1233,6 +1234,11 @@ public class ServiceComptabilite extends GenericService {
         String lettrage = "";
         try {
             if (contenus != null ? !contenus.isEmpty() : false) {
+                for (YvsComptaContentJournal c : contenus) {
+                    if (!Objects.equals(c.getPiece().getExercice().getId(), exercice.getId())) {
+                        return lettrage;
+                    }
+                }
                 lettrage = nextLettre(exercice);
                 for (YvsComptaContentJournal c : contenus) {
                     c.setLettrage(lettrage);
@@ -4909,6 +4915,7 @@ public class ServiceComptabilite extends GenericService {
                         }
                         y.setComptabilised(reponse);
                         y.setComptabilise(reponse);
+                        return result;
                     } else {
                         return result.documentNotValide();
                     }
