@@ -3342,7 +3342,7 @@ public class ManagedBonAvoirVente extends ManagedCommercial<DocVente, YvsComDocV
                             continue;
                         }
                         conditionnement = (YvsBaseConditionnement) dao.loadOneByNameQueries("YvsBaseConditionnement.findByArticleUnite", new String[]{"article", "unite"}, new Object[]{article, unite});
-                        if (unite != null ? unite.getId() < 1 : true) {
+                        if (conditionnement != null ? conditionnement.getId() < 1 : true) {
                             bean.setMessageError("Aucun conditionnement trouve pour l'unite sur l'article");
                             continu = false;
                             continue;
