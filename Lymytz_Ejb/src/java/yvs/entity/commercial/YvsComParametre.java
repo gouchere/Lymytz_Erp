@@ -83,6 +83,12 @@ public class YvsComParametre extends YvsEntity implements Serializable {
     private Double seuilClient;
     @Column(name = "duree_inactiv")
     private Integer dureeInactiv;
+    @Column(name = "display_prix_revient_on_stock_page")
+    private Boolean displayPrixRevient;
+    @Column(name = "display_reste_a_livrer_on_stock_page")
+    private Boolean displayResteALivrer;
+    @Column(name = "display_avg_puv_on_stock_page")
+    private Boolean displayAvgPuv;
     @Column(name = "jour_usine")
     private Integer jourUsine = 30;
     @Column(name = "jour_debut_mois")
@@ -131,6 +137,30 @@ public class YvsComParametre extends YvsEntity implements Serializable {
 
     public void setDateSave(Date dateSave) {
         this.dateSave = dateSave;
+    }
+
+    public Boolean getDisplayPrixRevient() {
+        return displayPrixRevient != null ? displayPrixRevient : false;
+    }
+
+    public void setDisplayPrixRevient(Boolean displayPrixRevient) {
+        this.displayPrixRevient = displayPrixRevient;
+    }
+
+    public Boolean getDisplayResteALivrer() {
+        return displayResteALivrer != null ? displayResteALivrer : false;
+    }
+
+    public void setDisplayResteALivrer(Boolean displayResteALivrer) {
+        this.displayResteALivrer = displayResteALivrer;
+    }
+
+    public Boolean getDisplayAvgPuv() {
+        return displayAvgPuv != null ? displayAvgPuv : false;
+    }
+
+    public void setDisplayAvgPuv(Boolean displayAvgPuv) {
+        this.displayAvgPuv = displayAvgPuv;
     }
 
     public Integer getDureeInactiv() {
