@@ -69,6 +69,8 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotArticle", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.article = :article"),
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotTrancheArticle", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.tranche = :tranche AND y.article = :article"),
     @NamedQuery(name = "YvsBaseMouvementStock.countMvtOtherTypeJ", query = "SELECT COUNT(y) FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.dateDoc = :dateDoc AND y.tranche.typeJournee!=:typeJ "),
+    
+    @NamedQuery(name = "YvsBaseMouvementStock.findReport", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.tranche = :tranche AND y.conditionnement = :conditionnement AND y.dateDoc = :dateDoc AND y.numDoc = 'REPORT' "),
 
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotDate", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.dateDoc = :dateDoc ORDER BY y.id DESC"),
     @NamedQuery(name = "YvsBaseMouvementStock.findByDepotDateArticle", query = "SELECT y FROM YvsBaseMouvementStock y WHERE y.depot = :depot AND y.dateDoc = :dateDoc AND y.article = :article"),
