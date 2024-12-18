@@ -75,7 +75,7 @@ import yvs.util.enume.Nombre;
  */
 @ManagedBean
 @SessionScoped
-public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocAchats> implements Serializable {
+public class ManagedBonRetourAchat extends ManagedCommercial<DocAchat, YvsComDocAchats> implements Serializable {
 
     private DocAchat docAchat = new DocAchat();
     private DocAchat docSelect = new DocAchat();
@@ -101,7 +101,7 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
     private String statut = null, numFacture, fournisseurF, typeGenerer;
     private long livreur_, trancheSearch, depotSearch, agenceSearch;
 
-    public ManagedBonAvoirAchat() {
+    public ManagedBonRetourAchat() {
         documents = new ArrayList<>();
         contenus = new ArrayList<>();
         contenus_fa = new ArrayList<>();
@@ -2622,7 +2622,7 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
                     update("blog_contenu_retour_achat");
                 }
             } catch (IOException | InvalidFormatException ex) {
-                Logger.getLogger(ManagedBonAvoirAchat.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ManagedBonRetourAchat.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -2661,7 +2661,7 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
                         bean.setPrixTotal(bean.getPrixTotal() + (article.getPuvTtc() ? 0 : bean.getTaxe()));
                     }
                 } catch (Exception ex) {
-                    Logger.getLogger(ManagedBonAvoirAchat.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(ManagedBonRetourAchat.class.getName()).log(Level.SEVERE, null, ex);
                     bean.setMessageError(ex.getLocalizedMessage());
                     continu = false;
                 }
@@ -2680,7 +2680,7 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
                         succes();
                         actionOpenOrResetAfter(this);
                     } catch (Exception ex) {
-                        Logger.getLogger(ManagedBonAvoirAchat.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(ManagedBonRetourAchat.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
                 displayButtonSaveFromImport = false;

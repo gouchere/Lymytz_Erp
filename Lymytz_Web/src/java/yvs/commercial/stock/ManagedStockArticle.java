@@ -1143,7 +1143,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
                     y.setStockInitial(dao.stocks(a.getArticle().getId(), trancheSearch, a.getDepot().getId(), 0, 0, dateSearch, c.getId(), 0));
                     y.setStock(y.getStockInitial());
                     y.setPrixRevient(findLastPr(a.getArticle().getId(), a.getDepot().getId(), dateSearch, c.getId()));
-                    if (all) {                        
+                    if (all) {
                         String query = "SELECT AVG(COALESCE(cout_entree, 0)) FROM yvs_base_mouvement_stock WHERE conditionnement = ? AND depot = ? AND date_doc <= ?";
                         Double prixEntree = (Double) dao.loadObjectBySqlQuery(query, new Options[]{new Options(c.getId(), 1), new Options(a.getDepot().getId(), 2), new Options(dateSearch, 3)});
                         y.setPrixEntree(prixEntree != null ? prixEntree : 0);
@@ -3246,6 +3246,53 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
                     article.setDepotPr(UtilProd.buildBeanDepot(depotPr));
                 }
             }
+        }
+    }
+
+    public void getReportStock() {
+        try {
+            if (trancheSearch < 1) {
+                getErrorMessage("Vous devez selectionner une tranche horaire");
+                return;
+            }
+            if (dateSearch == null) {
+                getErrorMessage("Vous devez selectionner une date");
+                return;
+            }
+            if (articles_stock != null ? articles_stock.isEmpty() : true) {
+                getErrorMessage("Vous devez calculer le(s) stock(s) de(s) article(s)");
+                return;
+            }
+            YvsBaseMouvementStock entity, find;
+            for (YvsBaseArticleDepot data : articles_stock) {
+                champ = new String[]{"depot", "tranche", "conditionnement", "dateDoc"};
+                val = new Object[]{data.getDepot(), new YvsGrhTrancheHoraire(trancheSearch), data.getConditionnement(), dateSearch};
+                find = (YvsBaseMouvementStock) dao.loadOneByNameQueries("YvsBaseMouvementStock.findReport", champ, val);
+                if (find != null ? find.getId() > 0 : false) {
+                    continue;
+                }
+                entity = new YvsBaseMouvementStock();
+                entity.setArticle(data.getArticle());
+                entity.setConditionnement(data.getConditionnement());
+                entity.setDepot(data.getDepot());
+                entity.setTranche(new YvsGrhTrancheHoraire(trancheSearch));
+                entity.setQuantite(Math.abs(data.getStockInitial()));
+                entity.setCout(data.getPrixRevient());
+                entity.setCoutEntree(data.getPrixEntree());
+                entity.setCoutStock(data.getPrixEntree());
+                entity.setAuthor(data.getAuthor());
+                entity.setDateDoc(dateSearch);
+                entity.setDateMouvement(new Date());
+                entity.setDateSave(new Date());
+                entity.setMouvement(data.getStockInitial() >= 0 ? "E" : "S");
+                entity.setDescription("REPORT");
+                entity.setNumDoc("REPORT");
+                entity.setTypeDoc("REPORT");
+                dao.save(entity);
+            }
+            succes();
+        } catch (Exception ex) {
+            log.log(Level.SEVERE, ex.getMessage());
         }
     }
 }
