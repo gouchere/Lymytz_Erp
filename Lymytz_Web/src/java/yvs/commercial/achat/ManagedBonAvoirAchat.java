@@ -8,6 +8,7 @@ package yvs.commercial.achat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -63,6 +64,7 @@ import yvs.grh.presence.TrancheHoraire;
 import yvs.parametrage.ManagedImportExport;
 import yvs.production.UtilProd;
 import yvs.util.Constantes;
+import static yvs.util.Managed.Lnf;
 import static yvs.util.Managed.ldf;
 import static yvs.util.Managed.time;
 import yvs.util.ParametreRequete;
@@ -733,8 +735,11 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
         displayButtonSaveFromImport = false;
 
         resetFicheArticle();
-        update("blog_form_avoir_achat");
-        update("blog_form_retour_achat");
+        if (type.equals(Constantes.TYPE_FAA)) {
+            update("blog_form_avoir_achat");
+        } else {
+            update("blog_form_retour_achat");
+        }
     }
 
     public void resetFicheArticle() {
