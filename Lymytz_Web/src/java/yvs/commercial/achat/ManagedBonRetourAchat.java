@@ -711,7 +711,6 @@ public class ManagedBonRetourAchat extends ManagedCommercial<DocAchat, YvsComDoc
         contenus.clear();
         contenus_fa.clear();
         selectDoc = null;
-        selectDoc = null;
 
         resetFicheArticle();
         if (type.equals(Constantes.TYPE_FAA)) {
