@@ -56,11 +56,11 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsBaseConditionnementPoint.findOne", query = "SELECT y FROM YvsBaseConditionnementPoint y WHERE y.article = :article AND y.conditionnement = :unite"),
     @NamedQuery(name = "YvsBaseConditionnementPoint.findArticlePointUnite", query = "SELECT y FROM YvsBaseConditionnementPoint y WHERE y.article.article = :article AND y.article.point = :point AND y.conditionnement = :unite"),
     @NamedQuery(name = "YvsBaseConditionnementPoint.findConditionnementAgence", query = "SELECT y FROM YvsBaseConditionnementPoint y WHERE y.article.point.agence = :agence AND y.conditionnement = :unite"),
-    
+
     @NamedQuery(name = "YvsBaseConditionnementPoint.countVenteByArticle", query = "SELECT COUNT(y) FROM YvsBaseConditionnementPoint y WHERE y.article.article = :article AND y.conditionnement.byVente = TRUE"),
-    
+
     @NamedQuery(name = "YvsBaseConditionnementPoint.findPointByArticle", query = "SELECT DISTINCT y.article.point FROM YvsBaseConditionnementPoint y WHERE y.article.article = :article"),
-    
+
     @NamedQuery(name = "YvsBaseConditionnementPoint.findCritereVenteByArticle", query = "SELECT DISTINCT y.conditionnement FROM YvsBaseConditionnementPoint y WHERE y.article.article = :article AND y.conditionnement.byVente = TRUE"),
     @NamedQuery(name = "YvsBaseConditionnementPoint.findConditionnement", query = "SELECT DISTINCT(y.conditionnement) FROM YvsBaseConditionnementPoint y JOIN FETCH y.conditionnement.article JOIN FETCH y.conditionnement.unite WHERE y.article.article = :article AND y.article.point = :point"),
     @NamedQuery(name = "YvsBaseConditionnementPoint.findConditionnementByPoint", query = "SELECT DISTINCT(y.conditionnement) FROM YvsBaseConditionnementPoint y JOIN FETCH y.conditionnement.article JOIN FETCH y.conditionnement.unite WHERE y.conditionnement.byVente = TRUE AND y.article.point = :point ORDER BY y.article.article.designation  ")})
@@ -113,6 +113,10 @@ public class YvsBaseConditionnementPoint extends YvsEntity implements Serializab
     private Boolean changePrix = false;
     @Column(name = "actif")
     private Boolean actif;
+    @Transient
+    private Double pr;
+    @Transient
+    private double taux;
     @Transient
     private boolean new_;
     @Transient
@@ -174,6 +178,22 @@ public class YvsBaseConditionnementPoint extends YvsEntity implements Serializab
 
     public void setPuv(Double puv) {
         this.puv = puv;
+    }
+
+    public Double getPr() {
+        return pr != null ? pr : 0;
+    }
+
+    public void setPr(Double pr) {
+        this.pr = pr;
+    }
+
+    public double getTaux() {
+        if (puv > 0) {
+            return ((getPuv() - getPr()) / getPuv()) * 100;
+        } else {
+            return 0d;
+        }
     }
 
     public Double getPrixMin() {

@@ -52,7 +52,7 @@ public class AccesRessource implements Serializable {
     public boolean param_empl_vu_, param_empl_up_, param_empl_del_, param_empl_add_;
     public boolean employe_save_new, employe_active, employe_up_date_embauch, employe_up_convention;
     public boolean grh_view_all_employe;
-    public boolean grh_update_contrat,grh_valid_bulletin,grh_cancel_valid_bulletin,grh_compile_bulletin,grh_delete_bulletin;
+    public boolean grh_update_contrat, grh_valid_bulletin, grh_cancel_valid_bulletin, grh_compile_bulletin, grh_delete_bulletin;
     //page présence
     public boolean point_viewListEmps, point_viewFormMode, point_changeDateForm, point_savePointageInPast, point_savePointageInLongPast, point_validPointage, point_valide_fiche, point_invalide_fiche, point_validFicheAllScte, point_validFicheAgence, point_validFicheDepartement, point_validFicheEquipe,
             point_validPointageHs, point_validPointageHc, point_modifPointage, point_delLinePointage, point_invalidPointage, point_pointageManuel, point_viewRecapPointage, point_update_fiche_presence, point_delete_fiche_presence,
@@ -111,7 +111,7 @@ public class AccesRessource implements Serializable {
 
 //Page de gestion des pièces de caisses
     public boolean p_caiss_view_all, p_caiss_view_all_societe, p_caiss_payer_acompte,
-            p_caiss_view_all_limit_time, compta_del_reg_cout_cheque, compta_annule_lettrage_not_equilib,compta_change_compte_content,
+            p_caiss_view_all_limit_time, compta_del_reg_cout_cheque, compta_annule_lettrage_not_equilib, compta_change_compte_content,
             p_caiss_view_all_user, p_caiss_payer, p_caiss_cancel_already_pay, compta_reg_fv_change_caissier,
             p_caiss_delete_payer, compta_del_reg_retenue, compta_od_save_all_type, compta_od_view_all_type;
 
@@ -119,7 +119,7 @@ public class AccesRessource implements Serializable {
             compta_extourne_cheque, compta_virement_cancel_pass;
 
 // Points de vente
-    public boolean pv_view_all_societe, prod_gammes_update_num_ope;
+    public boolean pv_view_all_societe, pv_load_pr_article, pv_download_article_with_pr, prod_gammes_update_num_ope;
 
     /*Comptabilité*/
     public boolean compta_cancel_piece_valide, compta_od_statut_valid_to_edit, compta_od_statut_encours_to_edit, compta_od_annul_comptabilite,
@@ -2163,6 +2163,14 @@ public class AccesRessource implements Serializable {
         return compta_od_view_all_agence;
     }
 
+    public boolean isPv_load_pr_article() {
+        return pv_load_pr_article;
+    }
+
+    public boolean isPv_download_article_with_pr() {
+        return pv_download_article_with_pr;
+    }
+
     public boolean isPv_view_all_societe() {
         return pv_view_all_societe;
     }
@@ -2409,7 +2417,5 @@ public class AccesRessource implements Serializable {
     public boolean isGrh_delete_bulletin() {
         return grh_delete_bulletin;
     }
-    
-    
 
 }

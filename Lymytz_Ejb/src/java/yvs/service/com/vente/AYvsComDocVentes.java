@@ -87,6 +87,7 @@ import yvs.entity.users.YvsUsersAgence;
 import yvs.service.AbstractEntity;
 import yvs.service.IEntitySax;
 import yvs.service.UtilRebuild;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteClient;
 import yvs.service.param.workflow.IYvsWorkflowValidFactureVente;
 
 /**
@@ -827,8 +828,7 @@ public class AYvsComDocVentes extends AbstractEntity {
                     List<YvsComptaContentJournal> list = new ArrayList<>();
                     list.addAll(debits);
                     list.addAll(credits);
-                    YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                    if (x.getSolde() == 0) {
+                    if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                         lettrageCompte(list, currentUser, currentScte);
                         result.addAll(list);
                     }
@@ -1722,9 +1722,9 @@ public class AYvsComDocVentes extends AbstractEntity {
                     if (pc.getStatutPiece() != Constantes.STATUT_DOC_PAYER) {
                         //Vérifie s'il s'agit d'une compensation de la cohérence des montants
                         if (pc.getNotifs() != null) {
-                            if (pc.getNotifs().getAcompte().getReste() < pc.getMontant()) {
+                            Double reste = AYvsComptaAcompteClient.findResteForAcompte(pc.getNotifs().getAcompte(), dao);
+                            if ((reste != null ? reste : 0) < pc.getMontant()) {
                                 if (msg) {
-
                                     return false;
                                 }
                             }
@@ -2574,8 +2574,7 @@ public class AYvsComDocVentes extends AbstractEntity {
                             List<YvsComptaContentJournal> list = new ArrayList<>();
                             list.addAll(debits);
                             list.addAll(credits);
-                            YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                            if (x.getSolde() == 0) {
+                            if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                 lettrageCompte(list, currentUser, currentScte);
                             }
                         }
@@ -2869,8 +2868,7 @@ public class AYvsComDocVentes extends AbstractEntity {
                             List<YvsComptaContentJournal> list = new ArrayList<>();
                             list.addAll(debits);
                             list.addAll(credits);
-                            YvsComptaPiecesComptable x = new YvsComptaPiecesComptable(list);
-                            if (x.getSolde() == 0) {
+                            if (YvsComptaPiecesComptable.getSolde(list) == 0) {
                                 lettrageCompte(list, currentUser, currentScte);
                             }
                         }
@@ -3919,5 +3917,4 @@ public class AYvsComDocVentes extends AbstractEntity {
         }
         return new ResultatAction<>(false, null, 0L, "Action impossible!!!");
     }
-
 }

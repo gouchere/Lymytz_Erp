@@ -12,8 +12,6 @@ import yvs.base.CodeAcces;
 import yvs.base.tiers.Tiers;
 import yvs.base.tresoreri.ModePaiement;
 import yvs.commercial.UtilCom;
-import static yvs.commercial.UtilCom.buildSimpleBeanClient;
-import static yvs.commercial.UtilCom.buildSimpleBeanDocAchat;
 import yvs.commercial.achat.ContenuDocAchat;
 import yvs.commercial.param.TypeDocDivers;
 import yvs.commercial.vente.DocVente;
@@ -22,7 +20,6 @@ import yvs.comptabilite.ContentAnalytique;
 import yvs.comptabilite.ContentModeleSaisie;
 import yvs.comptabilite.ContentPieceCompta;
 import yvs.comptabilite.ModelesSasie;
-import yvs.comptabilite.ParametreCompta;
 import yvs.comptabilite.ParametreCompta;
 import yvs.comptabilite.PiecesCompta;
 import yvs.comptabilite.analytique.CentreContenuAchat;
@@ -48,6 +45,7 @@ import yvs.comptabilite.tresorerie.JustifierBon;
 import yvs.comptabilite.tresorerie.PieceTresorerie;
 import yvs.comptabilite.tresorerie.TaxeDocDivers;
 import yvs.comptabilite.tresorerie.TiersDivers;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.entity.base.YvsBaseCategorieComptable;
 import yvs.entity.base.YvsBaseCodeAcces;
 import yvs.entity.base.YvsBaseExercice;
@@ -121,6 +119,8 @@ import yvs.grh.UtilGrh;
 import yvs.mutuelle.UtilMut;
 import yvs.parametrage.agence.UtilAgence;
 import yvs.production.UtilProd;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteClient;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteFournisseur;
 import yvs.users.Users;
 import yvs.users.UtilUsers;
 import yvs.util.Constantes;
@@ -1559,7 +1559,7 @@ public class UtilCompta {
         return cm;
     }
 
-    public static PiecesCompta buildBeanPieceCompta(YvsComptaPiecesComptable y) {
+    public static PiecesCompta buildBeanPieceCompta(YvsComptaPiecesComptable y, DaoInterfaceLocal dao) {
         PiecesCompta r = new PiecesCompta();
         if (y != null) {
             r.setId(y.getId());
@@ -1571,8 +1571,11 @@ public class UtilCompta {
             r.setExercice(UtilMut.buildBeanExercice(y.getExercice()));
             r.setJournal(buildBeanJournaux(y.getJournal()));
             r.setModel(buildBeanModel(y.getModel()));
+            if (dao != null) {
+                y.setDebits((Double) dao.loadObjectByNameQueries("YvsComptaContentJournal.findDebitByPiece", new String[]{"piece"}, new Object[]{y}));
+                y.setCredits((Double) dao.loadObjectByNameQueries("YvsComptaContentJournal.findCreditByPiece", new String[]{"piece"}, new Object[]{y}));
+            }
             r.setSolde(y.getSolde());
-            r.getContentsPieces().addAll(y.getContentsPiece());
         }
         return r;
     }
@@ -1613,7 +1616,7 @@ public class UtilCompta {
             r.setDebit(y.getDebit());
             r.setCredit(y.getCredit());
             r.setEcheance(y.getEcheance());
-            r.setPiece(buildBeanPieceCompta(y.getPiece()));
+            r.setPiece(buildBeanPieceCompta(y.getPiece(), null));
             r.setRefExterne(y.getRefExterne());
             r.setTableExterne(y.getTableExterne());
             r.setSolde(y.getSolde());
@@ -1693,7 +1696,7 @@ public class UtilCompta {
         return r;
     }
 
-    public static AcompteClient buildBeanAcompteClient(YvsComptaAcompteClient y) {
+    public static AcompteClient buildBeanAcompteClient(YvsComptaAcompteClient y, DaoInterfaceLocal dao) {
         AcompteClient r = new AcompteClient();
         if (y != null) {
             r.setId(y.getId());
@@ -1709,18 +1712,20 @@ public class UtilCompta {
             r.setComptabilise(y.getComptabilise());
             r.setStatutNotif(y.getStatutNotif());
             r.setRepartirAutomatique(y.getRepartirAutomatique());
-            r.setReste(y.getReste());
-            r.setNotifs(y.getNotifs());
-            r.setNotifs_doc(y.getNotifsDivers());
             r.setDateSave(y.getDateSave());
             r.setReferenceExterne(y.getReferenceExterne());
             r.setPhasesReglement(y.getPhasesReglement());
             for (YvsComptaNotifReglementVente c : y.getNotifs()) {
-                r.getVenteDiverses().add(buildBeanAcomptesVenteDivers(c));
+                r.getVentesEtDivers().add(buildBeanAcomptesVenteDivers(c));
             }
             for (YvsComptaNotifReglementDocDivers c : y.getNotifsDivers()) {
-                r.getVenteDiverses().add(buildBeanAcomptesVenteDivers(c));
+                r.getVentesEtDivers().add(buildBeanAcomptesVenteDivers(c));
             }
+            if (dao != null) {
+                Double reste = AYvsComptaAcompteClient.findResteForAcompte(y, dao);
+                y.setReste(reste);
+            }
+            r.setReste(y.getReste());
         }
         return r;
     }
@@ -1845,7 +1850,7 @@ public class UtilCompta {
         return r;
     }
 
-    public static AcompteFournisseur buildBeanAcompteFournisseur(YvsComptaAcompteFournisseur y) {
+    public static AcompteFournisseur buildBeanAcompteFournisseur(YvsComptaAcompteFournisseur y, DaoInterfaceLocal dao) {
         AcompteFournisseur r = new AcompteFournisseur();
         if (y != null) {
             r.setId(y.getId());
@@ -1862,19 +1867,20 @@ public class UtilCompta {
             r.setComptabilise(y.getComptabilise());
             r.setStatutNotif(y.getStatutNotif());
             r.setRepartirAutomatique(y.getRepartirAutomatique());
-            r.setReste(y.getReste());
-            r.setNotifs(y.getNotifs());
             r.setDateSave(y.getDateSave());
             r.setPhasesReglement(y.getPhasesReglement());
             r.setDatePaiement(y.getDatePaiement());
             for (YvsComptaNotifReglementAchat c : y.getNotifs()) {
-                r.getAchatDiverses().add(buildBeanAcomptesAchatDivers(c));
+                r.getAchatsEtDivers().add(buildBeanAcomptesAchatDivers(c));
             }
-
-            for (YvsComptaNotifReglementDocDivers c : y.getYvsComptaNotifReglementDocDiversList()) {
-                r.getAchatDiverses().add(buildBeanAcomptesAchatDivers(c));
+            for (YvsComptaNotifReglementDocDivers c : y.getNotifsDivers()) {
+                r.getAchatsEtDivers().add(buildBeanAcomptesAchatDivers(c));
             }
-
+            if (dao != null) {
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(y, dao);
+                y.setReste(reste);
+            }
+            r.setReste(y.getReste());
         }
         return r;
     }
@@ -1902,7 +1908,7 @@ public class UtilCompta {
             r.setNew_(true);
             r.setDateSave(y.getDateSave());
             r.setReferenceExterne(y.getReferenceExterne());
-            r.setDatePaiement(y.getStatut()!=Constantes.STATUT_DOC_PAYER? null:y.getDatePaiement());
+            r.setDatePaiement(y.getStatut() != Constantes.STATUT_DOC_PAYER ? null : y.getDatePaiement());
             r.setDateUpdate(new Date());
             r.setDatePaiement(y.getDatePaiement());
         }

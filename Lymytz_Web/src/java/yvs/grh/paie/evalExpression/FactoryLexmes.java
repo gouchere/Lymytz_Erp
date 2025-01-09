@@ -82,7 +82,7 @@ public class FactoryLexmes {
                 avancer();
             }
         }
-        if (r.toString().equals("ABS")) {
+        if (r.toString().equals("ABS") || r.toString().equals("TRUNC")) {
             r.append(decompose());
         }
         return new String(r);

@@ -32,6 +32,16 @@
             }
         </script>
 
+        <h:form prependId="false" enctype="multipart/form-data">
+            <p:dialog widgetVar="dlgUploadImgXLS" width="300" height="100" closeOnEscape="true"
+                      dynamic="true" resizable="false">
+                <p:fileUpload sizeLimit="1000000"  id="file_import_02"  mode="advanced" dragDropSupport="true" 
+                              allowTypes="/(\.|\/)(xls|xls?x)$/" fileUploadListener="#{managedBonAvoirAchat.handleFileUploadXLS}"
+                              uploadLabel="#{lab.L_envoyer}" label="#{lab.L_parcourir}" auto="true"
+                              oncomplete="dlgUploadImgXLS.hide()"> 
+                </p:fileUpload>
+            </p:dialog>
+        </h:form>
         <h:form prependId="false" id="main-agence">
             <p:dialog widgetVar="dlgAgenceForDepot" header="Selectionner une agence" width="50%" closeOnEscape="true"> 
                 <p:dataTable value="#{managedAgence.agences}" var="ag" rowKey="#{ag.id}" selectionMode="single" id="table_agence" rowIndexVar="line_ag">
@@ -909,18 +919,19 @@
                                                      rowIndexVar="artfIdx" selection="#{managedBonRetourAchat.selectContenus}">
                                             <p:ajax event="rowSelect" listener="#{managedBonRetourAchat.loadOnViewContenu}" update=":main_retour_achat:form_contenu_retour_achat"/>
                                             <p:ajax event="rowUnselect" listener="#{managedBonRetourAchat.unLoadOnViewContenu}" update=":main_retour_achat:form_contenu_retour_achat"/>
-                                            <p:column style="width: 30px" headerText="N°">
+                                            <p:column style="width: 30px" headerText="N°">                               
                                                 <h:graphicImage library="img" name="redo.png" width="15" height="15" rendered="#{artf.new_}"/>
                                                 <span title="#{managedBonRetourAchat.currentParam.useLotReception ? managedBonRetourAchat.ldf.format(artf.dateSave) : 'Lot N° '.concat(artf.lot.numero)}" >
                                                     #{artfIdx+1}
                                                 </span>
+                                                <h:graphicImage title="#{artf.messageError}" library="img" name="comment.png" width="15" height="15" rendered="#{artf.hasMessageError}" style="float: right"/>
                                             </p:column>
-                                            <p:column headerText="#{lab.L_reference}" width="100">
+                                            <p:column headerText="#{lab.L_reference}" width="100" style="color:#{artf.hasMessageError?'red':''}">
                                                 <span title="#{artf.article.refArt}" >
                                                     #{artf.article.refArt}
                                                 </span>
                                             </p:column>
-                                            <p:column headerText="#{lab.L_article}">
+                                            <p:column headerText="#{lab.L_article}" style="color:#{artf.hasMessageError?'red':''}">
                                                 <span title="#{artf.article.designation}" >
                                                     #{artf.article.designation}
                                                 </span>
@@ -960,6 +971,7 @@
                                                 <f:facet name="header">
                                                     <p:contextMenu for="btn_option_contenu_retour_achat_head" event="left click" style="font-size: 0.8em;width: 200px">
                                                         <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" global="false" actionListener="#{managedBonRetourAchat.deleteBeanArticles(false)}"/>
+                                                        <p:menuitem value="Importer" icon="ui-icon-arrowthickstop-1-s" global="false" onclick="dlgUploadImgXLS.show()"/>
                                                     </p:contextMenu>                           
                                                     <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_option_contenu_retour_achat_head" type="button"/>
                                                 </f:facet>
@@ -970,6 +982,9 @@
                                             </p:column> 
                                             <p:column selectionMode="multiple" style="width:16px;text-align:center"/>  
                                         </p:dataTable>
+                                        <p:commandButton icon="ui-icon-disk" value="Enregistrer" style="float:right"
+                                                         oncomplete="collapseForm('contenu_retour_achat')" rendered="#{managedBonAvoirAchat.displayButtonSaveFromImport}"
+                                                         update="blog_form_contenu_retour_achat" actionListener="#{managedBonAvoirAchat.saveContenusFromImport()}"/> 
                                     </p:outputPanel>                     
                                 </h:panelGrid>
                             </p:outputPanel>

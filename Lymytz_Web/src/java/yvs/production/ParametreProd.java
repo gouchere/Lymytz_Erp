@@ -27,6 +27,7 @@ public class ParametreProd implements Serializable {
     private boolean numCmdeRequis;
     private boolean declarationProportionnel;
     private boolean declareWhenFinishOf;
+    private boolean valoriseFromOf;
     private int limiteVuOf = 1;
     private int limiteCreateOf = 1;
     private String valoriserBy = "V";
@@ -74,6 +75,14 @@ public class ParametreProd implements Serializable {
 
     public void setNumCmdeRequis(boolean numCmdeRequis) {
         this.numCmdeRequis = numCmdeRequis;
+    }
+
+    public boolean isValoriseFromOf() {
+        return valoriseFromOf;
+    }
+
+    public void setValoriseFromOf(boolean valoriseFromOf) {
+        this.valoriseFromOf = valoriseFromOf;
     }
 
     public boolean isNumCmdeRequis() {

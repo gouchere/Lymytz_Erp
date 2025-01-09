@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.faces.bean.ManagedBean;
@@ -111,7 +113,7 @@ public class ManagedPointVente extends ManagedCommercial<PointVente, YvsBasePoin
     private List<YvsBaseDepots> depots;
 
     private String tabIds, tabIds_liaison, tabIds_article, tabIds_creneau;
-    private boolean listArt;
+    private boolean listArt, displayPR;
 
     private String categorie;
     private long famille, agenceFind;
@@ -131,6 +133,14 @@ public class ManagedPointVente extends ManagedCommercial<PointVente, YvsBasePoin
         creneaux = new ArrayList<>();
         criteres = new ArrayList<>();
         listRabais = new ArrayList<>();
+    }
+
+    public boolean isDisplayPR() {
+        return displayPR;
+    }
+
+    public void setDisplayPR(boolean displayPR) {
+        this.displayPR = displayPR;
     }
 
     public String getTypeSearch() {
@@ -630,6 +640,7 @@ public class ManagedPointVente extends ManagedCommercial<PointVente, YvsBasePoin
             p.setPredicat("AND");
             pa.addParam(p);
             pointVente.setArticles(pa.executeDynamicQuery("YvsBaseConditionnementPoint", "y.article.article.designation, y.article.article.refArt", avance, init, (int) max, dao));
+            displayPRArticle();
         } else {
             getErrorMessage("Vous devez selectionner un point de vente");
         }
@@ -1526,6 +1537,49 @@ public class ManagedPointVente extends ManagedCommercial<PointVente, YvsBasePoin
             } else {
                 getErrorMessage("Vous devez selectionner des éléments");
             }
+        } catch (Exception ex) {
+            getErrorMessage("Opération Impossible !");
+            log.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void displayPRArticle() {
+        try {
+            if (!autoriser("pv_load_pr_article")) {
+                return;
+            }
+            if (pointVente != null ? pointVente.getId() < 1 : true) {
+                getErrorMessage("Vous devez selectionner un point de vente");
+                return;
+            }
+            setDisplayPR(true);
+            Date date = new Date();
+            for (YvsBaseConditionnementPoint ad : pointVente.getArticles()) {
+                ad.setPr(dao.getPr(ad.getArticle().getArticle().getId(), 0, 0, date, ad.getConditionnement().getId()));
+            }
+        } catch (Exception ex) {
+            getErrorMessage("Opération Impossible !");
+            log.log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void downloadListeArticle() {
+        try {
+            if (!autoriser("pv_load_pr_article") || !autoriser("pv_download_article_with_pr")) {
+                openNotAcces();
+                return;
+            }
+            if (pointVente != null ? pointVente.getId() < 1 : true) {
+                getErrorMessage("Vous devez selectionner un point de vente");
+                return;
+            }
+            Map<String, Object> param = new HashMap<>();
+            param.put("AUTEUR", currentUser.getUsers().getNomUsers());
+            param.put("LOGO", returnLogo());
+            param.put("POINT", (int) pointVente.getId());
+            param.put("DATE", new Date());
+            param.put("SUBREPORT_DIR", SUBREPORT_DIR());
+            executeReport("liste_article_point", param);
         } catch (Exception ex) {
             getErrorMessage("Opération Impossible !");
             log.log(Level.SEVERE, null, ex);

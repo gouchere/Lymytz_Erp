@@ -1011,7 +1011,6 @@ public class ManagedTiers extends ManagedCommercial<Tiers, YvsBaseTiers> impleme
                 List<YvsBaseTiers> list = new ArrayList<>();
                 YvsBaseTiers bean;
                 for (Long ids : l) {
-                    long id = Long.valueOf(ids);
                     bean = listTiers.get(ids.intValue());
                     list.add(bean);
                     bean.setAuthor(currentUser);
@@ -1021,6 +1020,7 @@ public class ManagedTiers extends ManagedCommercial<Tiers, YvsBaseTiers> impleme
                         resetFiche();
                     }
                 }
+                listTiers.removeAll(list);
                 succes();
                 tabIds = "";
                 update("data_tiers");

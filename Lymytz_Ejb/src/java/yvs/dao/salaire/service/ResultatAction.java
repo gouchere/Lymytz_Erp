@@ -200,6 +200,10 @@ public class ResultatAction<T extends Serializable> implements Serializable {
         return new ResultatAction(false, 04, "Le depot '" + depot + "' n'est pas paramètré pour les opérations '" + operation + "'", Constantes.MOD_COM, Constantes.TYPE_FT_NAME);
     }
 
+    public ResultatAction operationNotAllowHere() {
+        return new ResultatAction(false, 041, "Vous n'êtes pas autorisé à modifier le statut d'une ligne de transfert", Constantes.MOD_COM, Constantes.TYPE_FT_NAME);
+    }
+
     public ResultatAction userNotAbility() {
         return new ResultatAction(false, 05, "Vous ne pouvez pas modifier ce transfert...car vous n'êtes pas habilité à le faire", Constantes.MOD_COM, Constantes.TYPE_FT_NAME);
     }
@@ -294,15 +298,15 @@ public class ResultatAction<T extends Serializable> implements Serializable {
     }
 
     public ResultatAction emptyCompteGeneral() {
-        return new ResultatAction(false, 100, "Vous devez precisez le compte général", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
+        return new ResultatAction(false, 100, "Vous devez preciser le compte général", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
     }
 
     public ResultatAction emptyCompteTiers() {
-        return new ResultatAction(false, 100, "Vous devez precisez le compte tiers", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
+        return new ResultatAction(false, 100, "Vous devez preciser le compte tiers", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
     }
 
     public ResultatAction emptyEcheancier() {
-        return new ResultatAction(false, 100, "Vous devez precisez l'échéancier", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
+        return new ResultatAction(false, 100, "Vous devez preciser l'échéancier", Constantes.MOD_COFI, Constantes.TYPE_PIECE_COMPTABLE_NAME);
     }
 
     public ResultatAction emptyJournal() {

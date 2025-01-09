@@ -5,17 +5,23 @@
  */
 package yvs.commercial.achat;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.event.ValueChangeEvent;
 import lymytz.navigue.Navigations;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.primefaces.event.FileUploadEvent;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
 import yvs.base.compta.UtilCompta;
@@ -23,13 +29,9 @@ import yvs.base.produits.Articles;
 import yvs.base.produits.Conditionnement;
 import yvs.base.produits.ManagedArticles;
 import yvs.base.tiers.Tiers;
-import yvs.commercial.UtilCom;
-import yvs.dao.Options;
-import yvs.entity.grh.presence.YvsGrhTrancheHoraire;
-import yvs.util.Constantes;
-import yvs.util.Util;
 import yvs.commercial.ManagedCommercial;
 import static yvs.commercial.ManagedCommercial.currentParam;
+import yvs.commercial.UtilCom;
 import yvs.commercial.depot.ManagedDepot;
 import yvs.commercial.fournisseur.Fournisseur;
 import yvs.commercial.fournisseur.ManagedFournisseur;
@@ -37,11 +39,13 @@ import yvs.commercial.param.ManagedTypeDocDivers;
 import yvs.commercial.param.TypeDocDivers;
 import yvs.commercial.stock.CoutSupDoc;
 import yvs.comptabilite.ManagedSaisiePiece;
+import yvs.dao.Options;
 import yvs.entity.base.YvsBaseArticleDepot;
 import yvs.entity.base.YvsBaseConditionnement;
 import yvs.entity.base.YvsBaseDepots;
 import yvs.entity.base.YvsBaseFournisseur;
 import yvs.entity.base.YvsBaseTypeDocCategorie;
+import yvs.entity.base.YvsBaseUniteMesure;
 import yvs.entity.commercial.YvsComParametre;
 import yvs.entity.commercial.YvsComParametreAchat;
 import yvs.entity.commercial.achat.YvsComContenuDocAchat;
@@ -51,13 +55,20 @@ import yvs.entity.compta.YvsBasePlanComptable;
 import yvs.entity.compta.YvsBaseTypeDocDivers;
 import yvs.entity.compta.YvsComptaContentJournal;
 import yvs.entity.compta.YvsComptaPiecesComptable;
+import yvs.entity.grh.presence.YvsGrhTrancheHoraire;
 import yvs.entity.param.YvsAgences;
 import yvs.entity.produits.YvsBaseArticles;
+import yvs.etats.excell.Document;
+import yvs.etats.excell.Row;
 import yvs.grh.presence.TrancheHoraire;
+import yvs.parametrage.ManagedImportExport;
 import yvs.production.UtilProd;
+import yvs.util.Constantes;
+import static yvs.util.Managed.Lnf;
 import static yvs.util.Managed.ldf;
 import static yvs.util.Managed.time;
 import yvs.util.ParametreRequete;
+import yvs.util.Util;
 import yvs.util.enume.Nombre;
 
 /**
@@ -83,7 +94,7 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
     private List<YvsBaseDepots> depots_retour;
 
     private String tabIds, tabIds_article, type = Constantes.TYPE_FAA;
-    private boolean existFacture, update, selectArt;
+    private boolean existFacture, update, selectArt, displayButtonSaveFromImport;
     private boolean recalculTaxe, memoriserDeleteContenu = false;
 
     //Parametre recherche
@@ -99,6 +110,14 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
         tranches_retour = new ArrayList<>();
         depots_retour = new ArrayList<>();
         selectContenus = new ArrayList<>();
+    }
+
+    public boolean isDisplayButtonSaveFromImport() {
+        return displayButtonSaveFromImport;
+    }
+
+    public void setDisplayButtonSaveFromImport(boolean displayButtonSaveFromImport) {
+        this.displayButtonSaveFromImport = displayButtonSaveFromImport;
     }
 
     public List<YvsComContenuDocAchat> getSelectContenus() {
@@ -456,7 +475,7 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
         }
         p = new ParametreRequete("y.typeDoc", "typeDoc", type, "=", "AND");
         paginator.addParam(p);
-        documents = paginator.executeDynamicQuery("y", "y", "YvsComDocAchats y JOIN FETCH y.depotReception JOIN FETCH y.fournisseur LEFT JOIN FETCH y.documentLie JOIN FETCH y.agence", "y.dateDoc DESC, y.numDoc DESC", avance, init, (int) imax, dao);
+        documents = paginator.executeDynamicQuery("y", "y", "YvsComDocAchats y JOIN FETCH y.fournisseur LEFT JOIN FETCH y.depotReception LEFT JOIN FETCH y.documentLie JOIN FETCH y.agence", "y.dateDoc DESC, y.numDoc DESC", avance, init, (int) imax, dao);
         if (type.equals(Constantes.TYPE_FAA)) {
             update("data_avoir_achat");
         } else {
@@ -712,6 +731,8 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
         contenus_fa.clear();
         selectDoc = null;
         selectDoc = null;
+
+        displayButtonSaveFromImport = false;
 
         resetFicheArticle();
         if (type.equals(Constantes.TYPE_FAA)) {
@@ -1977,9 +1998,9 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
     public boolean validerOrder(YvsComDocAchats y) {
         if (validerOrder(y, UtilCom.buildBeanDocAchat(y))) {
             if (type.equals(Constantes.TYPE_FAA)) {
-                update("data_avoir_vente");
+                update("data_avoir_achat");
             } else {
-                update("data_retour_vente");
+                update("data_retour_achat");
             }
             return true;
         }
@@ -2544,5 +2565,131 @@ public class ManagedBonAvoirAchat extends ManagedCommercial<DocAchat, YvsComDocA
         }
         paginator.addParam(p);
         loadAllFacture(true, true);
+    }
+
+    private YvsComContenuDocAchat getContenuFormData(Long id, Row maRow) {
+        // QTE | QUANTITE - REFERENCE - DESIGNATION - UNITE - PRIX - REMISE - TAXE
+        YvsComContenuDocAchat bean = null;
+        try {
+            if (maRow != null ? maRow.size() > 0 : false) {
+                bean = new YvsComContenuDocAchat(id);
+                bean.setQuantiteCommande((Double) maRow.getValue("QUANTITE", "QTE"));
+                bean.setQuantiteRecu(bean.getQuantiteCommande());
+                bean.setArticle(new YvsBaseArticles(null, (String) maRow.getValue("REFERENCE"), (String) maRow.getValue("DESIGNATION")));
+                bean.setConditionnement(new YvsBaseConditionnement(null, new YvsBaseUniteMesure(null, (String) maRow.getValue("UNITE"), (String) maRow.getValue("UNITE"))));
+                bean.setPrixAchat((Double) maRow.getValue("PRIX"));
+                bean.setRemise((Double) maRow.getValue("REMISE"));
+                bean.setTaxe((Double) maRow.getValue("TAXE"));
+                bean.setPrixTotal((bean.getQuantiteCommande() * bean.getPrixAchat()) - bean.getRemise());
+                bean.setDateSave(new Date());
+                bean.setDateUpdate(new Date());
+                bean.setDateContenu(new Date());
+                bean.setAuthor(currentUser);
+                bean.setStatut(Constantes.ETAT_EDITABLE);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(ManagedImportExport.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return bean;
+    }
+
+    private void getDataFromFileExcel(InputStream monFileInputStream) throws IOException, InvalidFormatException {
+        if (monFileInputStream != null) {
+            if (docAchat.getId() > 0 && contenus.size() > 0) {
+                getErrorMessage("Vous ne pouvez pas importer dans un document qui possede du contenu ");
+                return;
+            }
+            contenus.clear();
+            Document document = Document.create(monFileInputStream);
+            int sizeRow = document.size();
+            YvsComContenuDocAchat bean;
+            long id = -1;
+            for (int i = 0; i < sizeRow; i++) {
+                Row maRow = document.getRow(i);
+                bean = getContenuFormData(id--, maRow);
+                if (bean != null) {
+                    contenus.add(bean);
+                }
+            }
+            if (contenus.size() > 0) {
+                displayButtonSaveFromImport = true;
+            }
+        }
+    }
+
+    public void handleFileUploadXLS(FileUploadEvent ev) {
+        if (ev != null) {
+            try {
+                getDataFromFileExcel(ev.getFile().getInputstream());
+                if (type.equals(Constantes.TYPE_FAA)) {
+                    update("blog_contenu_avoir_achat");
+                } else {
+                    update("blog_contenu_retour_achat");
+                }
+            } catch (IOException | InvalidFormatException ex) {
+                Logger.getLogger(ManagedBonAvoirAchat.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    public void saveContenusFromImport() {
+        docAchat.setTypeDoc(type);
+        boolean success = controleFiche(docAchat);
+        if (success) {
+            YvsBaseArticles article;
+            YvsBaseUniteMesure unite;
+            YvsBaseConditionnement conditionnement;
+            boolean continu = true;
+            for (YvsComContenuDocAchat bean : contenus) {
+                try {
+                    if (bean.getId() < 1) {
+                        article = (YvsBaseArticles) dao.loadOneByNameQueries("YvsBaseArticles.findByCodeL", new String[]{"societe", "code"}, new Object[]{currentAgence.getSociete(), bean.getArticle().getRefArt()});
+                        if (article != null ? article.getId() < 1 : true) {
+                            bean.setMessageError("Article inconnu pour la reference indiquee");
+                            continu = false;
+                            continue;
+                        }
+                        unite = (YvsBaseUniteMesure) dao.loadOneByNameQueries("YvsBaseUniteMesure.findByNumType", new String[]{"societe", "reference", "type"}, new Object[]{currentAgence.getSociete(), bean.getConditionnement().getUnite().getReference(), Constantes.UNITE_QUANTITE});
+                        if (unite != null ? unite.getId() < 1 : true) {
+                            bean.setMessageError("Unite de mesure inconnu pour la reference indiquee");
+                            continu = false;
+                            continue;
+                        }
+                        conditionnement = (YvsBaseConditionnement) dao.loadOneByNameQueries("YvsBaseConditionnement.findByArticleUnite", new String[]{"article", "unite"}, new Object[]{article, unite});
+                        if (unite != null ? unite.getId() < 1 : true) {
+                            bean.setMessageError("Aucun conditionnement trouve pour l'unite sur l'article");
+                            continu = false;
+                            continue;
+                        }
+                        bean.setArticle(article);
+                        bean.setConditionnement(conditionnement);
+                        bean.setPrixTotal(bean.getPrixTotal() + (article.getPuvTtc() ? 0 : bean.getTaxe()));
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(ManagedBonAvoirAchat.class.getName()).log(Level.SEVERE, null, ex);
+                    bean.setMessageError(ex.getLocalizedMessage());
+                    continu = false;
+                }
+            }
+            if (continu) {
+                continu = docAchat.getId() < 1 ? _saveNew() : true;
+                if (continu) {
+                    try {
+                        YvsComContenuDocAchat en;
+                        for (YvsComContenuDocAchat bean : contenus) {
+                            bean.setId(null);
+                            bean.setDocAchat(selectDoc);
+                            en = (YvsComContenuDocAchat) dao.save1(bean);
+                            bean.setId(en.getId());
+                        }
+                        succes();
+                        actionOpenOrResetAfter(this);
+                    } catch (Exception ex) {
+                        Logger.getLogger(ManagedBonAvoirAchat.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                displayButtonSaveFromImport = false;
+            }
+        }
     }
 }

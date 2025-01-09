@@ -14,8 +14,6 @@ import javax.faces.bean.SessionScoped;
 import yvs.base.compta.ModeDeReglement;
 import yvs.commercial.fournisseur.Fournisseur;
 import yvs.comptabilite.caisse.Caisses;
-import yvs.entity.compta.YvsComptaNotifReglementDocDivers;
-import yvs.entity.compta.achat.YvsComptaNotifReglementAchat;
 import yvs.entity.compta.achat.YvsComptaPhaseAcompteAchat;
 import yvs.util.Constantes;
 
@@ -44,16 +42,13 @@ public class AcompteFournisseur implements Serializable {
     private Fournisseur fournisseur = new Fournisseur();
     private Caisses caisse = new Caisses();
     private ModeDeReglement mode = new ModeDeReglement();
-    private List<YvsComptaNotifReglementAchat> notifs;
     private List<YvsComptaPhaseAcompteAchat> phasesReglement;
     private String firstEtape = "VALIDER";
-    private List<YvsComptaNotifReglementDocDivers> notifs_doc;
-    private List<AcomptesAchatDivers> achatDiverses;
+    private List<AcomptesAchatDivers> achatsEtDivers;
 
     public AcompteFournisseur() {
-        notifs = new ArrayList<>();
         phasesReglement = new ArrayList<>();
-        achatDiverses = new ArrayList<>();
+        achatsEtDivers = new ArrayList<>();
     }
 
     public AcompteFournisseur(long id) {
@@ -149,14 +144,6 @@ public class AcompteFournisseur implements Serializable {
         this.caisse = caisse;
     }
 
-    public List<YvsComptaNotifReglementAchat> getNotifs() {
-        return notifs;
-    }
-
-    public void setNotifs(List<YvsComptaNotifReglementAchat> notifs) {
-        this.notifs = notifs;
-    }
-
     public double getReste() {
         return reste;
     }
@@ -229,20 +216,12 @@ public class AcompteFournisseur implements Serializable {
         this.firstEtape = firstEtape;
     }
 
-    public List<YvsComptaNotifReglementDocDivers> getNotifs_doc() {
-        return notifs_doc;
+    public List<AcomptesAchatDivers> getAchatsEtDivers() {
+        return achatsEtDivers;
     }
 
-    public void setNotifs_doc(List<YvsComptaNotifReglementDocDivers> notifs_doc) {
-        this.notifs_doc = notifs_doc;
-    }
-
-    public List<AcomptesAchatDivers> getAchatDiverses() {
-        return achatDiverses;
-    }
-
-    public void setAchatDiverses(List<AcomptesAchatDivers> achatDiverses) {
-        this.achatDiverses = achatDiverses;
+    public void setAchatsEtDivers(List<AcomptesAchatDivers> achatsEtDivers) {
+        this.achatsEtDivers = achatsEtDivers;
     }
 
     public void setDatePaiement(Date datePaiement) {

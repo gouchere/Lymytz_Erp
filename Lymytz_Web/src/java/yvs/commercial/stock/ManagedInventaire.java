@@ -90,7 +90,7 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
     private String artSearch;
     private int max = 10;
 
-    private String articleSortie, articleEntree, usersSearch;
+    private String articleSortie, articleEntree, usersSearch, responsableSearch;
     private Boolean haveEcart = null;
     private boolean impactValeurInventaire = false, displayPrixEntree = false, displayPrixSortie = false, displayQteJustifEntree = false, displayQteJustifSortie = false;
     private double montantRetenu = 0;
@@ -124,6 +124,14 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
         articles = new ArrayList<>();
         alertes = new ArrayList<>();
         docsNoValid = new ArrayList<>();
+    }
+
+    public String getResponsableSearch() {
+        return responsableSearch;
+    }
+
+    public void setResponsableSearch(String responsableSearch) {
+        this.responsableSearch = responsableSearch;
     }
 
     public List<Object[]> getDocsNoValid() {
@@ -2234,6 +2242,19 @@ public class ManagedInventaire extends ManagedCommercial<DocStock, YvsComDocStoc
             p.setPredicat("AND");
         } else {
             p = new ParametreRequete("y.numDoc", "numDoc", null);
+        }
+        paginator.addParam(p);
+        loadAllInventaire(true, true);
+    }
+
+    public void searchByResponsable() {
+        ParametreRequete p;
+        if (responsableSearch != null ? responsableSearch.trim().length() > 0 : false) {
+            p = new ParametreRequete(null, "responsable", responsableSearch + "%", "LIKE", "AND");
+            p.getOtherExpression().add(new ParametreRequete("UPPER(y.editeur.nomUsers)", "responsable", responsableSearch.toUpperCase() + "%", "LIKE", "OR"));
+            p.getOtherExpression().add(new ParametreRequete("UPPER(y.editeur.codeUsers)", "responsable", responsableSearch.toUpperCase() + "%", "LIKE", "OR"));
+        } else {
+            p = new ParametreRequete("y.editeur.codeUsers", "responsable", null);
         }
         paginator.addParam(p);
         loadAllInventaire(true, true);

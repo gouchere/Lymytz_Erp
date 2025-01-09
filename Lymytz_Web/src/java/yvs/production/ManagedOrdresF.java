@@ -7,6 +7,7 @@ package yvs.production;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
 import yvs.base.produits.Articles;
 import yvs.base.produits.ManagedArticles;
+import static yvs.commercial.ManagedCommercial.currentParamVente;
 import yvs.commercial.UtilCom;
 import yvs.commercial.achat.ManagedLotReception;
 import yvs.commercial.creneau.ManagedTypeCreneau;
@@ -83,6 +85,7 @@ import yvs.entity.users.YvsUsers;
 import yvs.entity.users.YvsUsersAgence;
 import yvs.grh.UtilGrh;
 import yvs.grh.presence.TrancheHoraire;
+import static yvs.init.Initialisation.FILE_SEPARATOR;
 import yvs.parametrage.entrepot.Depots;
 import yvs.production.technique.GammeArticle;
 import yvs.production.technique.PosteCharge;
@@ -99,6 +102,7 @@ import yvs.util.Managed;
 import yvs.util.PaginatorResult;
 import yvs.util.ParametreRequete;
 import yvs.util.Util;
+import yvs.util.enume.Nombre;
 
 /**
  *
@@ -3381,7 +3385,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             onSelectObject(selectedOf);
             if (typePage.equals(Constantes.PROD_TYPE_PAGE_SUIVI)) {
                 qteAProduire = selectedOf.getResteADeclarer();
-                qteADeclarer=0;
+                qteADeclarer = 0;
             }
         }
     }
@@ -4113,7 +4117,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         selectedOf = y;
         loadDeclaration();
     }
-    
+
     private boolean controleQteDeclare(DeclarationProduction bean, boolean cloture) {
         // quantité déjà déclaré
         double totalDeclare = bean.getQuantite();
@@ -4434,7 +4438,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
         return valeur;
     }
-    
+
     public void recalculCurrentOrder() {
         recalculOrder(selectedOf);
     }
@@ -5573,11 +5577,23 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         update("data-programmation_of");
     }
 
+    public void resetFicheProgram() {
+        programs.clear();
+        resetProgram();
+    }
+
     public void terminerProgram() {
+        terminerProgram(true);
+    }
+
+    public void terminerProgram(boolean close) {
         try {
             int count = 0;
             List<YvsProdOperationsGamme> lop;
             for (OrdreFabrication bean : programs) {
+                if (bean.getId() > 0) {
+                    continue;
+                }
                 if (bean.getGamme() != null ? bean.getGamme().getId() > 0 : false) {
                     champ = new String[]{"gamme"};
                     val = new Object[]{new YvsProdGammeArticle(bean.getGamme().getId())};
@@ -5603,12 +5619,34 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                 succes();
             }
             ids = -10000;
-            programs.clear();
-            resetProgram();
+            if (close) {
+                resetFicheProgram();
+            }
         } catch (Exception ex) {
             getErrorMessage("Action Impossible!!!");
             getException("terminerProgram", ex);
         }
+    }
+
+    public void printProgram(String categorie) {
+        String ids = null;
+        if (programs != null) {
+            for (OrdreFabrication program : programs) {
+                ids = (ids != null) ? (ids + "," + program.getId()) : program.getId() + "";
+            }
+        }
+        if (!asString(ids)) {
+            return;
+        }
+        Map<String, Object> param = new HashMap<>();
+        param.put("AGENCE", currentAgence.getId().intValue());
+        param.put("NAME_AUTEUR", currentUser.getUsers().getNomUsers());
+        param.put("TITLE_RAPPORT", "PRODUCTION" + (asString(categorie) ? " DES " + giveNameCategorie(categorie) : ""));
+        param.put("CATEGORIE", asString(categorie) ? categorie : null);
+        param.put("LOGO", returnLogo());
+        param.put("SUBREPORT_DIR", SUBREPORT_DIR(true));
+        param.put("IDS", ids);
+        executeReport("program_production", param);
     }
 
     public void addComposantsOF(OrdreFabrication bean, List<YvsProdComposantOF> newList) {

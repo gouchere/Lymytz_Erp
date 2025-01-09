@@ -76,6 +76,8 @@ import yvs.grh.UtilGrh;
 import yvs.grh.bean.ContratEmploye;
 import yvs.grh.paie.ManagedRetenue;
 import static yvs.init.Initialisation.FILE_SEPARATOR;
+import yvs.service.com.vente.AYvsComDocVentes;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteClient;
 import yvs.users.Users;
 import yvs.users.UtilUsers;
 import yvs.util.Constantes;
@@ -730,6 +732,8 @@ public class ManagedReglementVente extends Managed implements Serializable {
         }
         bean.setAcompte(0);
         for (YvsComptaAcompteClient f : acomptes) {
+            Double reste = AYvsComptaAcompteClient.findResteForAcompte(f, dao);
+            f.setReste(reste);
             bean.setAcompte(bean.getAcompte() + f.getReste());
         }
     }
@@ -1188,7 +1192,7 @@ public class ManagedReglementVente extends Managed implements Serializable {
             if (service != null) {
                 if (id == -1) {
                     service.loadAll(true, 0);
-                } else if(id > 0) {
+                } else if (id > 0) {
                     int idx = service.getCaisses().indexOf(new YvsBaseCaisse(id));
                     if (idx >= 0) {
                         YvsBaseCaisse y = service.getCaisses().get(idx);
@@ -1677,7 +1681,9 @@ public class ManagedReglementVente extends Managed implements Serializable {
                                 }
                                 // Si le paiement se fait à partir d'une notification, il faut que les montants soient coherent
                                 if (pc.getNotifs() != null) {
-                                    if (pc.getMontant() > pc.getNotifs().getAcompte().getReste()) {
+                                    Double reste = AYvsComptaAcompteClient.findResteForAcompte(pc.getNotifs().getAcompte(), dao);
+                                    // (reste != null ? reste : 0);
+                                    if (pc.getMontant() > (reste != null ? reste : 0)) {
                                         getErrorMessage("Le montant restant de l'acompte " + pc.getNotifs().getAcompte().getNumRefrence() + " Ne permet pas de régler la pièce de caisse !");
                                         return pc;
                                     }
@@ -1724,7 +1730,8 @@ public class ManagedReglementVente extends Managed implements Serializable {
                                 }
                                 boolean succes = true;
                                 if (pc.getNotifs() != null) {
-                                    if (pc.getMontant() <= pc.getNotifs().getAcompte().getReste()) {
+                                    Double reste = AYvsComptaAcompteClient.findResteForAcompte(pc.getNotifs().getAcompte(), dao);
+                                    if (pc.getMontant() <= (reste != null ? reste : 0)) {
                                         pieceVente = pc;
                                         reglerPieceTresorerie(true);
                                         succes = false;
@@ -1912,7 +1919,9 @@ public class ManagedReglementVente extends Managed implements Serializable {
                                     }
                                     // Si le paiement se fait à partir d'une notification, il faut que les montants soient coherent
                                     if (pc.getNotifs() != null) {
-                                        if (pc.getMontant() > pc.getNotifs().getAcompte().getReste()) {
+                                        Double reste = AYvsComptaAcompteClient.findResteForAcompte(pc.getNotifs().getAcompte(), dao);
+                                        // (reste != null ? reste : 0);
+                                        if (pc.getMontant() > (reste != null ? reste : 0)) {
                                             getErrorMessage("Le montant restant de l'acompte " + pc.getNotifs().getAcompte().getNumRefrence() + " Ne permet pas de régler la pièce de caisse !");
                                             return false;
                                         }
@@ -2362,7 +2371,9 @@ public class ManagedReglementVente extends Managed implements Serializable {
                     if (pc.getStatutPiece() != Constantes.STATUT_DOC_PAYER) {
                         //Vérifie s'il s'agit d'une compensation de la cohérence des montants
                         if (pc.getNotifs() != null) {
-                            if (pc.getNotifs().getAcompte().getReste() < pc.getMontant()) {
+                            Double reste = AYvsComptaAcompteClient.findResteForAcompte(pc.getNotifs().getAcompte(), dao);
+                            // (reste != null ? reste : 0);
+                            if ((reste != null ? reste : 0) < pc.getMontant()) {
                                 if (msg) {
                                     getErrorMessage("Le montant de l'acompte ne permet pas le règlement totale de cette pièce !");
                                     return false;
@@ -2676,7 +2687,8 @@ public class ManagedReglementVente extends Managed implements Serializable {
         List<YvsComptaCaissePieceVente> re = new ArrayList<>();
         for (YvsComptaAcompteClient c : list) {
             if (montant > 0) {
-                reste = c.getResteUnBind(pieceAvance.getId());
+                Double resteUnBind = AYvsComptaAcompteClient.findResteUnBindForAcompteAndNotPiece(c, pieceAvance.getId(), dao);
+                reste = (resteUnBind != null ? resteUnBind : 0);
                 if (reste <= montant) {
                     // génère la pièce de règlement qui correspond au reste
                     piece = buildPiece(reste, c);
@@ -2748,11 +2760,15 @@ public class ManagedReglementVente extends Managed implements Serializable {
             getErrorMessage("...Il s'agit de la facture d'un autre Client !");
             return;
         }
-        if (selectAcompte.getResteUnBind() < pieceVente.getMontant()) {
+        Double resteUnBind = AYvsComptaAcompteClient.findResteUnBindForAcompte(selectAcompte, dao);
+        // (resteUnBind != resteUnBind ? reste : 0);
+        if ((resteUnBind != null ? resteUnBind : 0) < pieceVente.getMontant()) {
             getErrorMessage("Cet acompte ne peut pas couvrir ce reglement");
             return;
         }
-        if (selectAcompte.getReste() < pieceVente.getMontant()) {
+        Double reste = AYvsComptaAcompteClient.findResteForAcompte(selectAcompte, dao);
+        // (reste != null ? reste : 0);
+        if ((reste != null ? reste : 0) < pieceVente.getMontant()) {
             getErrorMessage("Le reste sur cet acompte ne peut pas couvrir ce reglement");
             return;
         }

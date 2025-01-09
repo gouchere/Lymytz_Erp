@@ -62,6 +62,7 @@ import yvs.entity.param.YvsAgences;
 import yvs.grh.UtilGrh;
 import yvs.grh.bean.ManagedTypeCout;
 import yvs.grh.bean.TypeCout;
+import yvs.service.compta.doc.divers.AYvsComptaAcompteFournisseur;
 import yvs.util.Constantes;
 import yvs.util.Managed;
 import yvs.util.PaginatorResult;
@@ -75,7 +76,7 @@ import yvs.util.Util;
 @ManagedBean
 @SessionScoped
 public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, YvsComptaAcompteFournisseur> implements Serializable {
-    
+
     private AcompteFournisseur compte = new AcompteFournisseur();
     private List<YvsComptaAcompteFournisseur> acomptes, versements;
     private YvsComptaAcompteFournisseur selectCompte = new YvsComptaAcompteFournisseur();
@@ -87,7 +88,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
     boolean suspendCompte;
     public boolean date_up = false;
     private Date dateDebut_ = new Date(), dateFin_ = new Date();
-    
+
     private PaginatorResult<YvsComptaCreditFournisseur> paginators = new PaginatorResult<>();
     private CreditFournisseur credit = new CreditFournisseur();
     private List<YvsComptaCreditFournisseur> credits, redevances;
@@ -100,7 +101,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
     private boolean suspendCredit;
     private boolean needConfirmationCredit;
     private boolean trouberOD = true;
-    
+
     private String operation = "C";
     private boolean addDate;
     private Date dateDebut = new Date(), dateFin = new Date();
@@ -109,20 +110,27 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
     private long caisseSearch, agenceSearch;
     private Boolean comptaSearch;
     private long nbrComptaSearch;
-    
+
+    private PaginatorResult<YvsComptaNotifReglementAchat> pAchat = new PaginatorResult<>();
+    private PaginatorResult<YvsComptaNotifReglementDocDivers> pDivers = new PaginatorResult<>();
+    private long max = 10;
+    private String numeroSearchNotif;
+    private boolean addDateNotif;
+    private Date dateDebutSearchNotif = new Date(), dateFinSearchNotif = new Date();
+
     private String tabIds;
     private boolean memory_choix_delete_acompte, memory_choix_delete_credit, memory_choix_delete_reglement;
     YvsComptaParametre currentParam;
     private boolean isFacture = true;
     private boolean displayConfirm = true;
     private long agenceRegle = 0;
-    
+
     private Long countEditable, countEncours, countValide, countAnnuler;
     private Double valueEditable, valueEncours, valueValide, valueAnnuler;
-    
+
     private AcomptesAchatDivers selectNotif;
     private List<AcomptesAchatDivers> selectNotifs;
-    
+
     public ManagedOperationFournisseur() {
         acomptes = new ArrayList();
         credits = new ArrayList();
@@ -130,460 +138,516 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         redevances = new ArrayList();
         selectNotifs = new ArrayList();
     }
-    
+
+    public PaginatorResult<YvsComptaNotifReglementAchat> getpAchat() {
+        return pAchat;
+    }
+
+    public void setpAchat(PaginatorResult<YvsComptaNotifReglementAchat> pAchat) {
+        this.pAchat = pAchat;
+    }
+
+    public PaginatorResult<YvsComptaNotifReglementDocDivers> getpDivers() {
+        return pDivers;
+    }
+
+    public void setpDivers(PaginatorResult<YvsComptaNotifReglementDocDivers> pDivers) {
+        this.pDivers = pDivers;
+    }
+
+    public String getNumeroSearchNotif() {
+        return numeroSearchNotif;
+    }
+
+    public void setNumeroSearchNotif(String numeroSearchNotif) {
+        this.numeroSearchNotif = numeroSearchNotif;
+    }
+
+    public boolean isAddDateNotif() {
+        return addDateNotif;
+    }
+
+    public void setAddDateNotif(boolean addDateNotif) {
+        this.addDateNotif = addDateNotif;
+    }
+
+    public Date getDateDebutSearchNotif() {
+        return dateDebutSearchNotif;
+    }
+
+    public void setDateDebutSearchNotif(Date dateDebutSearchNotif) {
+        this.dateDebutSearchNotif = dateDebutSearchNotif;
+    }
+
+    public Date getDateFinSearchNotif() {
+        return dateFinSearchNotif;
+    }
+
+    public void setDateFinSearchNotif(Date dateFinSearchNotif) {
+        this.dateFinSearchNotif = dateFinSearchNotif;
+    }
+
+    public long getMax() {
+        return max;
+    }
+
+    public void setMax(long max) {
+        this.max = max;
+    }
+
     public long getAgenceRegle() {
         return agenceRegle;
     }
-    
+
     public void setAgenceRegle(long agenceRegle) {
         this.agenceRegle = agenceRegle;
     }
-    
+
     public List<AcomptesAchatDivers> getSelectNotifs() {
         return selectNotifs;
     }
-    
+
     public long getAgenceSearch() {
         return agenceSearch;
     }
-    
+
     public void setAgenceSearch(long agenceSearch) {
         this.agenceSearch = agenceSearch;
     }
-    
+
     public void setSelectNotifs(List<AcomptesAchatDivers> selectNotifs) {
         this.selectNotifs = selectNotifs;
     }
-    
+
     public AcomptesAchatDivers getSelectNotif() {
         return selectNotif;
     }
-    
+
     public void setSelectNotif(AcomptesAchatDivers selectNotif) {
         this.selectNotif = selectNotif;
     }
-    
+
     public boolean isDate_up() {
         return date_up;
     }
-    
+
     public void setDate_up(boolean date_up) {
         this.date_up = date_up;
     }
-    
+
     public Date getDateDebut_() {
         return dateDebut_;
     }
-    
+
     public void setDateDebut_(Date dateDebut_) {
         this.dateDebut_ = dateDebut_;
     }
-    
+
     public Date getDateFin_() {
         return dateFin_;
     }
-    
+
     public void setDateFin_(Date dateFin_) {
         this.dateFin_ = dateFin_;
     }
-    
+
     public YvsComptaNotifReglementDocDivers getLiaison_doc() {
         return liaison_doc;
     }
-    
+
     public void setLiaison_doc(YvsComptaNotifReglementDocDivers liaison_doc) {
         this.liaison_doc = liaison_doc;
     }
-    
+
     public boolean isSuspendCompte() {
         return suspendCompte;
     }
-    
+
     public void setSuspendCompte(boolean suspendCompte) {
         this.suspendCompte = suspendCompte;
     }
-    
+
     public YvsComptaPhaseReglementCreditFournisseur getEtapeCredit() {
         return etapeCredit;
     }
-    
+
     public void setEtapeCredit(YvsComptaPhaseReglementCreditFournisseur etapeCredit) {
         this.etapeCredit = etapeCredit;
     }
-    
+
     public boolean isSuspendReglementCredit() {
         return suspendReglementCredit;
     }
-    
+
     public void setSuspendReglementCredit(boolean suspendReglementCredit) {
         this.suspendReglementCredit = suspendReglementCredit;
     }
-    
+
     public Long getCountEditable() {
         return countEditable;
     }
-    
+
     public void setCountEditable(Long countEditable) {
         this.countEditable = countEditable;
     }
-    
+
     public Long getCountEncours() {
         return countEncours;
     }
-    
+
     public void setCountEncours(Long countEncours) {
         this.countEncours = countEncours;
     }
-    
+
     public Long getCountValide() {
         return countValide;
     }
-    
+
     public void setCountValide(Long countValide) {
         this.countValide = countValide;
     }
-    
+
     public Long getCountAnnuler() {
         return countAnnuler;
     }
-    
+
     public void setCountAnnuler(Long countAnnuler) {
         this.countAnnuler = countAnnuler;
     }
-    
+
     public Double getValueEditable() {
         return valueEditable;
     }
-    
+
     public void setValueEditable(Double valueEditable) {
         this.valueEditable = valueEditable;
     }
-    
+
     public Double getValueEncours() {
         return valueEncours;
     }
-    
+
     public void setValueEncours(Double valueEncours) {
         this.valueEncours = valueEncours;
     }
-    
+
     public Double getValueValide() {
         return valueValide;
     }
-    
+
     public void setValueValide(Double valueValide) {
         this.valueValide = valueValide;
     }
-    
+
     public Double getValueAnnuler() {
         return valueAnnuler;
     }
-    
+
     public void setValueAnnuler(Double valueAnnuler) {
         this.valueAnnuler = valueAnnuler;
     }
-    
+
     public long getNbrComptaSearch() {
         return nbrComptaSearch;
     }
-    
+
     public void setNbrComptaSearch(long nbrComptaSearch) {
         this.nbrComptaSearch = nbrComptaSearch;
     }
-    
+
     public String getNatureSearch() {
         return natureSearch;
     }
-    
+
     public void setNatureSearch(String natureSearch) {
         this.natureSearch = natureSearch;
     }
-    
+
     public boolean isSuspendCredit() {
         return suspendCredit;
     }
-    
+
     public void setSuspendCredit(boolean suspendCredit) {
         this.suspendCredit = suspendCredit;
     }
-    
+
     public boolean isNeedConfirmationCredit() {
         return needConfirmationCredit;
     }
-    
+
     public void setNeedConfirmationCredit(boolean needConfirmationCredit) {
         this.needConfirmationCredit = needConfirmationCredit;
     }
-    
+
     public YvsComptaParametre getCurrentParam() {
         return currentParam;
     }
-    
+
     public void setCurrentParam(YvsComptaParametre currentParam) {
         this.currentParam = currentParam;
     }
-    
+
     public String getNotifSearch() {
         return notifSearch;
     }
-    
+
     public void setNotifSearch(String notifSearch) {
         this.notifSearch = notifSearch;
     }
-    
+
     public boolean isDisplayConfirm() {
         return displayConfirm;
     }
-    
+
     public void setDisplayConfirm(boolean displayConfirm) {
         this.displayConfirm = displayConfirm;
     }
-    
+
     public String getModeSearch() {
         return modeSearch;
     }
-    
+
     public void setModeSearch(String modeSearch) {
         this.modeSearch = modeSearch;
     }
-    
+
     public YvsComptaPhaseAcompteAchat getEtapeCompte() {
         return etapeCompte;
     }
-    
+
     public void setEtapeCompte(YvsComptaPhaseAcompteAchat etapeCompte) {
         this.etapeCompte = etapeCompte;
     }
-    
+
     public YvsComptaPhaseReglementCreditFournisseur getCurrentPhaseCreditAchat() {
         return currentPhaseCreditAchat;
     }
-    
+
     public void setCurrentPhaseCreditAchat(YvsComptaPhaseReglementCreditFournisseur currentPhaseCreditAchat) {
         this.currentPhaseCreditAchat = currentPhaseCreditAchat;
     }
-    
+
     public YvsComptaPhaseAcompteAchat getCurrentPhaseAcompteAchat() {
         return currentPhaseAcompteAchat;
     }
-    
+
     public void setCurrentPhaseAcompteAchat(YvsComptaPhaseAcompteAchat currentPhaseAcompteAchat) {
         this.currentPhaseAcompteAchat = currentPhaseAcompteAchat;
     }
-    
+
     public Boolean getComptaSearch() {
         return comptaSearch;
     }
-    
+
     public void setComptaSearch(Boolean comptaSearch) {
         this.comptaSearch = comptaSearch;
     }
-    
+
     public boolean isMemory_choix_delete_acompte() {
         return memory_choix_delete_acompte;
     }
-    
+
     public void setMemory_choix_delete_acompte(boolean memory_choix_delete_acompte) {
         this.memory_choix_delete_acompte = memory_choix_delete_acompte;
     }
-    
+
     public boolean isMemory_choix_delete_credit() {
         return memory_choix_delete_credit;
     }
-    
+
     public void setMemory_choix_delete_credit(boolean memory_choix_delete_credit) {
         this.memory_choix_delete_credit = memory_choix_delete_credit;
     }
-    
+
     public boolean isMemory_choix_delete_reglement() {
         return memory_choix_delete_reglement;
     }
-    
+
     public void setMemory_choix_delete_reglement(boolean memory_choix_delete_reglement) {
         this.memory_choix_delete_reglement = memory_choix_delete_reglement;
     }
-    
+
     public YvsComptaReglementCreditFournisseur getSelectReglement() {
         return selectReglement;
     }
-    
+
     public void setSelectReglement(YvsComptaReglementCreditFournisseur selectReglement) {
         this.selectReglement = selectReglement;
     }
-    
+
     public YvsComptaNotifReglementAchat getLiaison() {
         return liaison;
     }
-    
+
     public void setLiaison(YvsComptaNotifReglementAchat liaison) {
         this.liaison = liaison;
     }
-    
+
     public List<YvsComptaAcompteFournisseur> getVersements() {
         return versements;
     }
-    
+
     public void setVersements(List<YvsComptaAcompteFournisseur> versements) {
         this.versements = versements;
     }
-    
+
     public List<YvsComptaCreditFournisseur> getRedevances() {
         return redevances;
     }
-    
+
     public void setRedevances(List<YvsComptaCreditFournisseur> redevances) {
         this.redevances = redevances;
     }
-    
+
     public String getTabIds() {
         return tabIds;
     }
-    
+
     public void setTabIds(String tabIds) {
         this.tabIds = tabIds;
     }
-    
+
     public String getNumSearch() {
         return numSearch;
     }
-    
+
     public void setNumSearch(String numSearch) {
         this.numSearch = numSearch;
     }
-    
+
     public String getStatutSearch() {
         return statutSearch;
     }
-    
+
     public void setStatutSearch(String statutSearch) {
         this.statutSearch = statutSearch;
     }
-    
+
     public boolean isAddDate() {
         return addDate;
     }
-    
+
     public void setAddDate(boolean addDate) {
         this.addDate = addDate;
     }
-    
+
     public Date getDateDebut() {
         return dateDebut;
     }
-    
+
     public void setDateDebut(Date dateDebut) {
         this.dateDebut = dateDebut;
     }
-    
+
     public Date getDateFin() {
         return dateFin;
     }
-    
+
     public void setDateFin(Date dateFin) {
         this.dateFin = dateFin;
     }
-    
+
     public String getCodeFournisseur() {
         return codeFournisseur;
     }
-    
+
     public void setCodeFournisseur(String codeFournisseur) {
         this.codeFournisseur = codeFournisseur;
     }
-    
+
     public long getCaisseSearch() {
         return caisseSearch;
     }
-    
+
     public void setCaisseSearch(long caisseSearch) {
         this.caisseSearch = caisseSearch;
     }
-    
+
     public PieceTresorerie getPiece() {
         return piece;
     }
-    
+
     public void setPiece(PieceTresorerie piece) {
         this.piece = piece;
     }
-    
+
     public ReglementCredit getReglement() {
         return reglement;
     }
-    
+
     public void setReglement(ReglementCredit reglement) {
         this.reglement = reglement;
     }
-    
+
     public YvsComptaAcompteFournisseur getSelectCompte() {
         return selectCompte;
     }
-    
+
     public void setSelectCompte(YvsComptaAcompteFournisseur selectCompte) {
         this.selectCompte = selectCompte;
     }
-    
+
     public YvsComptaCreditFournisseur getSelectCredit() {
         return selectCredit;
     }
-    
+
     public void setSelectCredit(YvsComptaCreditFournisseur selectCredit) {
         this.selectCredit = selectCredit;
     }
-    
+
     public PaginatorResult<YvsComptaCreditFournisseur> getPaginators() {
         return paginators;
     }
-    
+
     public void setPaginators(PaginatorResult<YvsComptaCreditFournisseur> paginators) {
         this.paginators = paginators;
     }
-    
+
     public AcompteFournisseur getCompte() {
         return compte;
     }
-    
+
     public void setCompte(AcompteFournisseur compte) {
         this.compte = compte;
     }
-    
+
     public List<YvsComptaAcompteFournisseur> getAcomptes() {
         return acomptes;
     }
-    
+
     public void setAcomptes(List<YvsComptaAcompteFournisseur> acomptes) {
         this.acomptes = acomptes;
     }
-    
+
     public CreditFournisseur getCredit() {
         return credit;
     }
-    
+
     public void setCredit(CreditFournisseur credit) {
         this.credit = credit;
     }
-    
+
     public List<YvsComptaCreditFournisseur> getCredits() {
         return credits;
     }
-    
+
     public void setCredits(List<YvsComptaCreditFournisseur> credits) {
         this.credits = credits;
     }
-    
+
     public String getOperation() {
         return operation != null ? operation.trim().length() > 0 ? operation : "C" : "C";
     }
-    
+
     public void setOperation(String operation) {
         this.operation = operation;
     }
-    
+
     @Override
     public void loadAll() {
         loadAll(null);
     }
-    
+
     public void loadAll(String operation) {
         if (operation != null ? operation.trim().length() > 0 : false) {
             this.operation = operation;
@@ -602,7 +666,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         if (reglement.getMode() != null ? reglement.getMode().getId() < 1 : true) {
             reglement.setMode(UtilCompta.buildBeanModeReglement(modeEspece()));
         }
-        
+
         if (piece != null ? piece.getId() < 1 : true) {
             piece = new PieceTresorerie();
         }
@@ -628,25 +692,25 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             loadCredit(true, true);
         }
     }
-    
+
     public void loadAllByStatut(String operation, String statut) {
         this.operation = operation;
         paginator.getParams().clear();
         statutSearch = statut;
         addParamStatut();
     }
-    
+
     public void loadAcompte(boolean avance, boolean init) {
         paginator.addParam(new ParametreRequete("y.fournisseur.tiers.societe", "societe", currentAgence.getSociete(), "=", "AND"));
         acomptes = paginator.executeDynamicQuery("y", "y", "YvsComptaAcompteFournisseur y JOIN FETCH y.fournisseur JOIN FETCH y.caisse JOIN FETCH y.model JOIN FETCH y.fournisseur.tiers",
                 "y.dateAcompte DESC", avance, init, (int) imax, dao);
     }
-    
+
     public void loadCredit(boolean avance, boolean init) {
         paginators.addParam(new ParametreRequete("y.fournisseur.tiers.societe", "societe", currentAgence.getSociete(), "=", "AND"));
         credits = paginators.executeDynamicQuery("YvsComptaCreditFournisseur", "y.dateCredit DESC", avance, init, (int) imax, dao);
     }
-    
+
     public void loadAll(boolean avance, boolean init) {
         if (operation.equals("A")) {
             loadAcompte(avance, init);
@@ -656,45 +720,124 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             update("data_credit_fournisseur");
         }
     }
-    
+
+    public void loadNotifAcompte(boolean avance, boolean init) {
+        compte.getAchatsEtDivers().clear();
+        if (selectCompte != null ? selectCompte.getId() > 0 : false) {
+            loadNotifAchatAcompte(avance, init);
+            loadNotifDiversAcompte(avance, init);
+            for (YvsComptaNotifReglementAchat c : selectCompte.getNotifs()) {
+                compte.getAchatsEtDivers().add(UtilCompta.buildBeanAcomptesAchatDivers(c));
+            }
+            for (YvsComptaNotifReglementDocDivers c : selectCompte.getNotifsDivers()) {
+                compte.getAchatsEtDivers().add(UtilCompta.buildBeanAcomptesAchatDivers(c));
+            }
+        } else {
+            getErrorMessage("Vous devez selectionner un acompte");
+        }
+    }
+
+    public void loadNotifAchatAcompte(boolean avance, boolean init) {
+        if (selectCompte != null ? selectCompte.getId() > 0 : false) {
+            ParametreRequete p = new ParametreRequete("y.acompte", "acompte", selectCompte, "=", "AND");
+            pAchat.addParam(p);
+            selectCompte.setNotifs(pAchat.executeDynamicQuery("y", "y", "YvsComptaNotifReglementAchat y JOIN FETCH y.pieceAchat JOIN FETCH y.pieceAchat.achat", "y.pieceAchat.datePiece", avance, init, (int) max, dao));
+        } else {
+            getErrorMessage("Vous devez selectionner un acompte");
+        }
+    }
+
+    public void loadNotifDiversAcompte(boolean avance, boolean init) {
+        if (selectCompte != null ? selectCompte.getId() > 0 : false) {
+            ParametreRequete p = new ParametreRequete("y.acompteFournisseur", "acompte", selectCompte, "=", "AND");
+            pDivers.addParam(p);
+            selectCompte.setNotifsDivers(pDivers.executeDynamicQuery("y", "y", "YvsComptaNotifReglementDocDivers y JOIN FETCH y.pieceDocDivers JOIN FETCH y.pieceDocDivers.docDivers", "y.pieceDocDivers.datePiece", avance, init, (int) max, dao));
+        } else {
+            getErrorMessage("Vous devez selectionner un acompte");
+        }
+    }
+
+    public void findByDatesNotif() {
+        ParametreRequete pV = new ParametreRequete("y.pieceAchat.datePiece", "dates", null);
+        ParametreRequete pD = new ParametreRequete("y.pieceDocDivers.datePiece", "dates", null);
+        if (addDateNotif) {
+            pV = new ParametreRequete(null, "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "AND");
+            pV.getOtherExpression().add(new ParametreRequete("y.pieceAchat.datePiece", "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "OR"));
+            pV.getOtherExpression().add(new ParametreRequete("y.pieceAchat.achat.dateDoc", "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "OR"));
+
+            pD = new ParametreRequete(null, "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "AND");
+            pD.getOtherExpression().add(new ParametreRequete("y.pieceDocDivers.datePiece", "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "OR"));
+            pD.getOtherExpression().add(new ParametreRequete("y.pieceDocDivers.docDivers.dateDoc", "dates", dateDebutSearchNotif, dateFinSearchNotif, "BETWEEN", "OR"));
+        }
+        pAchat.addParam(pV);
+        pDivers.addParam(pD);
+        loadNotifAcompte(true, true);
+    }
+
+    public void findByNumeroNotif() {
+        if (numeroSearchNotif != null ? numeroSearchNotif.trim().length() > 0 : false) {
+            ParametreRequete pV = new ParametreRequete(null, "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "AND");
+            pV.getOtherExpression().add(new ParametreRequete("UPPER(y.pieceAchat.numeroPiece)", "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "OR"));
+            pV.getOtherExpression().add(new ParametreRequete("UPPER(y.pieceAchat.achat.numDoc)", "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "OR"));
+            pAchat.addParam(pV);
+
+            ParametreRequete pD = new ParametreRequete(null, "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "AND");
+            pD.getOtherExpression().add(new ParametreRequete("UPPER(y.pieceDocDivers.numPiece)", "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "OR"));
+            pD.getOtherExpression().add(new ParametreRequete("UPPER(y.pieceDocDivers.docDivers.numPiece)", "numero", numeroSearchNotif.toUpperCase() + "%", " LIKE ", "OR"));
+            pDivers.addParam(pD);
+        } else {
+            pAchat.addParam(new ParametreRequete("y.pieceAchat.numeroPiece", "numero", null));
+            pDivers.addParam(new ParametreRequete("y.pieceDocDivers.numeroPiece", "numero", null));
+        }
+        loadNotifAcompte(true, true);
+    }
+
+    public void choosePaginatorNotif(ValueChangeEvent ev) {
+        if ((ev != null) ? ev.getNewValue() != null : false) {
+            long v = (long) ev.getNewValue();
+            max = v;
+            loadNotifAcompte(true, true);
+        }
+    }
+
     public void historiqueCompte(YvsBaseFournisseur y) {
         champ = new String[]{"fournisseur"};
         val = new Object[]{y};
         nameQueri = "YvsComptaAcompteFournisseur.findByFournisseur";
         versements = dao.loadNameQueries(nameQueri, champ, val);
-        
+
         champ = new String[]{"fournisseur", "statut"};
         val = new Object[]{y, Constantes.STATUT_DOC_PAYER};
         nameQueri = "YvsComptaAcompteFournisseur.findSumByFournisseur";
         Double depot = (Double) dao.loadObjectByNameQueries(nameQueri, champ, val);
-        
+
         champ = new String[]{"fournisseur"};
         val = new Object[]{y};
         nameQueri = "YvsComptaNotifReglementAchat.findSumByFournisseur";
         Double avance = (Double) dao.loadObjectByNameQueries(nameQueri, champ, val);
         compte.setSolde((depot != null ? depot : 0) - (avance != null ? avance : 0));
-        
+
         update("txt_solde_acompte_fournisseur");
         update("data_historique_acompte_fournisseur");
     }
-    
+
     public void historiqueCredit(YvsBaseFournisseur y) {
         champ = new String[]{"fournisseur"};
         val = new Object[]{y};
         nameQueri = "YvsComptaCreditFournisseur.findByFournisseur";
         redevances = dao.loadNameQueries(nameQueri, champ, val);
-        
+
         nameQueri = "YvsComptaCreditFournisseur.findSumByFournisseur";
         Double depot = (Double) dao.loadObjectByNameQueries(nameQueri, champ, val);
-        
+
         nameQueri = "YvsComptaReglementCreditFournisseur.findSumByFournisseur";
         Double avance = (Double) dao.loadObjectByNameQueries(nameQueri, champ, val);
         credit.setSolde((depot != null ? depot : 0) - (avance != null ? avance : 0));
-        
+
         update("txt_solde_credit_fournisseur");
         update("data_historique_credit_fournisseur");
     }
-    
+
     public void parcoursInAllResult(boolean avancer) {
         setOffset((avancer) ? (getOffset() + 1) : (getOffset() - 1));
         if (getOffset() < 0 || getOffset() >= (operation.equals("A") ? paginator.getNbResult() : paginators.getNbResult())) {
@@ -712,17 +855,17 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void paginer(boolean next) {
         loadAll(next, false);
     }
-    
+
     @Override
     public void choosePaginator(ValueChangeEvent ev) {
         super.choosePaginator(ev); //To change body of generated methods, choose Tools | Templates.
         loadAll(true, true);
     }
-    
+
     public ReglementCredit recopieViewReglement() {
         if (reglement != null) {
             reglement.setCredit(credit.getId());
@@ -736,7 +879,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return reglement;
     }
-    
+
     @Override
     public boolean controleFiche(AcompteFournisseur bean) {
         if (bean.getFournisseur() != null ? bean.getFournisseur().getId() < 1 : true) {
@@ -761,7 +904,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return true;
     }
-    
+
     public boolean controleFiche(CreditFournisseur bean) {
         if (bean.getFournisseur() != null ? bean.getFournisseur().getId() < 1 : true) {
             getErrorMessage("Vous devez preciser le fournisseur");
@@ -792,7 +935,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return true;
     }
-    
+
     public boolean controleFiche(ReglementCredit bean) {
         if (bean.getCredit() < 1) {
             getErrorMessage("Vous devez precisez le crédit");
@@ -824,7 +967,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return true;
     }
-    
+
     @Override
     public void populateView(AcompteFournisseur bean) {
         cloneObject(compte, bean);
@@ -834,19 +977,19 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         piece.setMode(compte.getMode());
     }
-    
+
     public void populateView(CreditFournisseur bean) {
         cloneObject(credit, bean);
     }
-    
+
     public void populateView(ReglementCredit bean) {
         cloneObject(reglement, bean);
     }
-    
+
     public void populateView(PieceTresorerie bean) {
         cloneObject(piece, bean);
     }
-    
+
     @Override
     public void resetFiche() {
         if (operation.equals("A")) {
@@ -856,13 +999,13 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             cloneObject(caisse, compte.getCaisse());
             ModeDeReglement mode = new ModeDeReglement();
             cloneObject(mode, compte.getMode());
-            
+
             compte = new AcompteFournisseur();
             compte.setDateAcompte(date);
             compte.setNature(nature);
             compte.setCaisse(caisse);
             compte.setMode(mode);
-            
+
             selectCompte = new YvsComptaAcompteFournisseur();
             update("blog_acompte_fournisseur");
             update("blog_entete_acompte_fournisseur");
@@ -872,19 +1015,19 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             cloneObject(journal, credit.getJournal());
             TypeCout typeCredit = new TypeCout();
             cloneObject(typeCredit, credit.getTypeCredit());
-            
+
             credit = new CreditFournisseur();
             credit.setDateCredit(date);
             credit.setJournal(journal);
             credit.setTypeCredit(typeCredit);
-            
+
             selectCredit = new YvsComptaCreditFournisseur();
             redevances.clear();
             resetReglement();
             update("blog_credit_fournisseur");
         }
     }
-    
+
     public void resetReglement() {
         reglement = new ReglementCredit();
         if (credit != null) {
@@ -893,7 +1036,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         reglement.setMode(UtilCompta.buildBeanModeReglement(modeEspece()));
         update("form_reglement_credit_fa_fournisseur");
     }
-    
+
     public void resetFicheReglement() {
         piece = new PieceTresorerie();
         if (compte != null) {
@@ -903,7 +1046,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         liaison = new YvsComptaNotifReglementAchat();
         update("form_reglement_acompte_fa");
     }
-    
+
     @Override
     public boolean saveNew() {
         if (operation.equals("A")) {
@@ -929,7 +1072,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public YvsComptaAcompteFournisseur saveAcompte(AcompteFournisseur bean) {
         String action = bean.getId() > 0 ? "Modification" : "Insertion";
         try {
@@ -938,7 +1081,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 if (bean.getId() > 0) {
                     dao.update(selectCompte);
                 } else {
-                    selectCompte.setId(null);                    
+                    selectCompte.setId(null);
                     selectCompte = (YvsComptaAcompteFournisseur) dao.save1(selectCompte);
                     bean.setId(selectCompte.getId());
                     bean.setReste(bean.getMontant());
@@ -976,7 +1119,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return null;
     }
-    
+
     public YvsComptaCreditFournisseur saveCredit(CreditFournisseur bean) {
         String action = bean.getId() > 0 ? "Modification" : "Insertion";
         try {
@@ -1004,7 +1147,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return null;
     }
-    
+
     public void saveReglement() {
         String action = reglement.getId() > 0 ? "Modification" : "Insertion";
         try {
@@ -1044,7 +1187,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error", ex);
         }
     }
-    
+
     public void savePiece() {
         boolean update = piece.getId() > 0;
         try {
@@ -1076,13 +1219,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                             y = (YvsComptaNotifReglementAchat) dao.save1(y);
                         }
                         AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                        int idx = compte.getAchatDiverses().indexOf(a);
+                        int idx = compte.getAchatsEtDivers().indexOf(a);
                         if (idx > -1) {
-                            compte.getNotifs().set(idx, y);
-                            compte.getAchatDiverses().set(idx, a);
+                            compte.getAchatsEtDivers().set(idx, a);
                         } else {
-                            compte.getNotifs().add(0, y);
-                            compte.getAchatDiverses().add(0, a);
+                            compte.getAchatsEtDivers().add(0, a);
                         }
                         idx = selectCompte.getNotifs().indexOf(y);
                         if (idx > -1) {
@@ -1106,14 +1247,14 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         }
                         succes();
                     }
-                    
+
                 }
             } else {
                 if (!piece.getDocDivers().getStatutDoc().equals("V")) {
                     getErrorMessage("Le document doit être validé");
                     return;
                 }
-                
+
                 ManagedDocDivers m = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
                 if (m != null) {
                     piece.setCaisse(compte.getCaisse());
@@ -1122,7 +1263,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         piece.setStatutPiece(compte.getStatut());
                     }
                     YvsComptaCaissePieceDivers r = UtilCompta.buildPieceCaisse(piece, currentUser);
-                    
+
                     r = m.createNewPieceCaisse(piece.getDocDivers(), r, false);
                     if (r != null ? r.getId() > 0 : false) {
                         champ = new String[]{"piece", "acompte"};
@@ -1140,30 +1281,30 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                             y = (YvsComptaNotifReglementDocDivers) dao.save1(y);
                         }
                         int idx = 0;
-                        
-                        if (compte.getAchatDiverses() != null ? !compte.getAchatDiverses().isEmpty() : false) {
+
+                        if (compte.getAchatsEtDivers() != null ? !compte.getAchatsEtDivers().isEmpty() : false) {
                             AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                            idx = compte.getAchatDiverses().indexOf(a);
+                            idx = compte.getAchatsEtDivers().indexOf(a);
                             if (idx > -1) {
-                                compte.getAchatDiverses().set(idx, a);
-                                
+                                compte.getAchatsEtDivers().set(idx, a);
+
                             } else {
-                                compte.getAchatDiverses().add(0, a);
+                                compte.getAchatsEtDivers().add(0, a);
                             }
                         }
-                        if (selectCompte.getYvsComptaNotifReglementDocDiversList() != null ? !selectCompte.getYvsComptaNotifReglementDocDiversList().isEmpty() : false) {
-                            idx = selectCompte.getYvsComptaNotifReglementDocDiversList().indexOf(y);
+                        if (selectCompte.getNotifsDivers() != null ? !selectCompte.getNotifsDivers().isEmpty() : false) {
+                            idx = selectCompte.getNotifsDivers().indexOf(y);
                             if (idx > -1) {
-                                selectCompte.getYvsComptaNotifReglementDocDiversList().set(idx, y);
+                                selectCompte.getNotifsDivers().set(idx, y);
                             } else {
-                                selectCompte.getYvsComptaNotifReglementDocDiversList().add(0, y);
+                                selectCompte.getNotifsDivers().add(0, y);
                             }
                             idx = acomptes.indexOf(selectCompte);
                             if (idx > -1) {
                                 acomptes.set(idx, selectCompte);
                             }
                         }
-                        
+
                         if (piece.getStatutPiece() == Constantes.STATUT_DOC_PAYER) {
                             equilibre(selectCompte);
                             compte.setReste(compte.getReste() - piece.getMontant());
@@ -1177,22 +1318,22 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         m.equilibreOne(UtilCompta.buildDocDivers(piece.getDocDivers()));
                         succes();
                     }
-                    
+
                 }
             }
             update("data_reglement_acompte_fa");
             resetFicheReglement();
-            
+
         } catch (Exception ex) {
             getErrorMessage(update ? "Modification" : "Insertion" + " Impossible !");
             log.log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void buildAndSavePiece(double montant) {
         buildAndSavePiece(montant, true);
     }
-    
+
     public void buildAndSavePiece(double montant, boolean succes) {
         piece.setCaisse(compte.getCaisse());
         piece.setMode(compte.getMode());
@@ -1218,13 +1359,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     y = (YvsComptaNotifReglementAchat) dao.save1(y);
                 }
                 AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                int idx = compte.getAchatDiverses().indexOf(a);
+                int idx = compte.getAchatsEtDivers().indexOf(a);
                 if (idx > -1) {
-                    compte.getNotifs().set(idx, y);
-                    compte.getAchatDiverses().set(idx, a);
+                    compte.getAchatsEtDivers().set(idx, a);
                 } else {
-                    compte.getNotifs().add(0, y);
-                    compte.getAchatDiverses().add(0, a);
+                    compte.getAchatsEtDivers().add(0, a);
                 }
                 idx = selectCompte.getNotifs().indexOf(y);
                 if (idx > -1) {
@@ -1271,30 +1410,30 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     y = (YvsComptaNotifReglementDocDivers) dao.save1(y);
                 }
                 int idx = 0;
-                
-                if (compte.getAchatDiverses() != null ? !compte.getAchatDiverses().isEmpty() : false) {
+
+                if (compte.getAchatsEtDivers() != null ? !compte.getAchatsEtDivers().isEmpty() : false) {
                     AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                    idx = compte.getAchatDiverses().indexOf(a);
+                    idx = compte.getAchatsEtDivers().indexOf(a);
                     if (idx > -1) {
-                        compte.getAchatDiverses().set(idx, a);
-                        
+                        compte.getAchatsEtDivers().set(idx, a);
+
                     } else {
-                        compte.getAchatDiverses().add(0, a);
+                        compte.getAchatsEtDivers().add(0, a);
                     }
                 }
-                if (selectCompte.getYvsComptaNotifReglementDocDiversList() != null ? !selectCompte.getYvsComptaNotifReglementDocDiversList().isEmpty() : false) {
-                    idx = selectCompte.getYvsComptaNotifReglementDocDiversList().indexOf(y);
+                if (selectCompte.getNotifsDivers() != null ? !selectCompte.getNotifsDivers().isEmpty() : false) {
+                    idx = selectCompte.getNotifsDivers().indexOf(y);
                     if (idx > -1) {
-                        selectCompte.getYvsComptaNotifReglementDocDiversList().set(idx, y);
+                        selectCompte.getNotifsDivers().set(idx, y);
                     } else {
-                        selectCompte.getYvsComptaNotifReglementDocDiversList().add(0, y);
+                        selectCompte.getNotifsDivers().add(0, y);
                     }
                     idx = acomptes.indexOf(selectCompte);
                     if (idx > -1) {
                         acomptes.set(idx, selectCompte);
                     }
                 }
-                
+
                 if (piece.getStatutPiece() == Constantes.STATUT_DOC_PAYER) {
                     equilibre(selectCompte);
                     compte.setReste(compte.getReste() - piece.getMontant());
@@ -1313,7 +1452,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         update("data_reglement_acompte_fa");
     }
-    
+
     public void openOrfindAndRegleFacture() {
         if (displayConfirm) {
             if (agenceRegle < 1) {
@@ -1325,12 +1464,14 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             findAndRegleFacture();
         }
     }
-    
+
     public void findAndRegleFacture() {
         if (isFacture) {
             if (compte.getId() > 0 && compte.getFournisseur().getId() > 0) {
                 //Montant restant sur l'acompte
-                double montantResteAcompte = selectCompte.getReste();
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(selectCompte, dao);
+                // (reste != null ? reste : 0);
+                double montantResteAcompte = (reste != null ? reste : 0);
                 double montantResteAPayer = 0;
                 if (montantResteAcompte > 0) {
                     //Récupère les factures non payé du client
@@ -1379,7 +1520,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         } else {
             if (compte.getId() > 0 && compte.getFournisseur().getId() > 0) {
                 //Montant restant sur l'acompte
-                double montantResteAcompte = selectCompte.getReste();
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(selectCompte, dao);
+                // (reste != null ? reste : 0);
+                double montantResteAcompte = (reste != null ? reste : 0);
                 double montantResteAPayer = 0;
                 if (montantResteAcompte > 0) {
                     //Récupère les factures non payé du client
@@ -1422,14 +1565,14 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 }
             }
         }
-        
+
     }
-    
+
     @Override
     public void deleteBean() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
     public void deleteBean(Object object) {
         if (operation.equals("A")) {
             selectCompte = (YvsComptaAcompteFournisseur) object;
@@ -1439,7 +1582,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             deleteBeanCredit();
         }
     }
-    
+
     public void deleteBeanCompte(YvsComptaAcompteFournisseur y) {
         selectCompte = y;
         if (!memory_choix_delete_acompte) {
@@ -1448,7 +1591,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             deleteBeanCompte();
         }
     }
-    
+
     public void deleteBeanCompte() {
         try {
             if (selectCompte != null ? selectCompte.getId() > 0 : false) {
@@ -1468,7 +1611,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error", ex);
         }
     }
-    
+
     public void deleteBeanCredit(YvsComptaCreditFournisseur y) {
         selectCredit = y;
         if (!memory_choix_delete_credit) {
@@ -1477,7 +1620,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             deleteBeanCredit();
         }
     }
-    
+
     public void deleteBeanCredit() {
         try {
             if (selectCredit != null ? selectCredit.getId() > 0 : false) {
@@ -1497,7 +1640,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error", ex);
         }
     }
-    
+
     public void deleteBeanReglement(YvsComptaReglementCreditFournisseur y) {
         selectReglement = y;
         if (!memory_choix_delete_reglement) {
@@ -1506,7 +1649,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             deleteBeanReglement();
         }
     }
-    
+
     public void deleteBeanReglement() {
         try {
             if (selectReglement != null ? selectReglement.getId() > 0 : false) {
@@ -1531,11 +1674,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error", ex);
         }
     }
-    
+
     public void deleteBeanPiece(YvsComptaNotifReglementAchat y) {
         liaison = y;
     }
-    
+
     public void deleteBeanPieces(AcomptesAchatDivers a) {
         selectNotif = a;
         if (a.getType().equals("ACHAT")) {
@@ -1543,9 +1686,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         } else {
             liaison_doc = a.getNotif_divers();
         }
-        
+
     }
-    
+
     public void confirmDeletePieces(boolean so_piece) {
         try {
             for (AcomptesAchatDivers a : selectNotifs) {
@@ -1560,7 +1703,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error", ex);
         }
     }
-    
+
     public void confirmDeletePiece(boolean so_piece) {
         try {
             if (liaison != null ? liaison.getId() > 0 : false) {
@@ -1573,7 +1716,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error", ex);
         }
     }
-    
+
     private void confirmDeletePiece(YvsComptaNotifReglementAchat y, boolean so_piece) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -1586,12 +1729,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 } else {
                     dao.delete(y);
                 }
-                
+
                 AcomptesAchatDivers b = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                compte.getNotifs().remove(y);
-                compte.getAchatDiverses().remove(b);
+                compte.getAchatsEtDivers().remove(b);
                 selectCompte.getNotifs().remove(y);
-                
+
                 int idx = acomptes.indexOf(selectCompte);
                 if (idx > -1) {
                     acomptes.set(idx, selectCompte);
@@ -1619,7 +1761,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error", ex);
         }
     }
-    
+
     private void confirmDeletePiece(YvsComptaNotifReglementDocDivers y, boolean so_piece) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -1631,12 +1773,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 if (so_piece) {
                     dao.delete(y.getPieceDocDivers());
                 }
-                
+
                 AcomptesAchatDivers b = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                compte.getNotifs_doc().remove(y);
-                compte.getAchatDiverses().remove(b);
-                selectCompte.getYvsComptaNotifReglementDocDiversList().remove(b);
-                
+                compte.getAchatsEtDivers().remove(b);
+                selectCompte.getNotifsDivers().remove(y);
+
                 int idx = acomptes.indexOf(selectCompte);
                 if (idx > -1) {
                     acomptes.set(idx, selectCompte);
@@ -1646,18 +1787,18 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 }
                 update("data_reglement_acompte_fa");
             }
-            
+
         } catch (Exception ex) {
             getErrorMessage("Action impossible");
             getException("Error", ex);
         }
     }
-    
+
     @Override
     public void updateBean() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
     @Override
     public void onSelectDistant(YvsComptaAcompteFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
@@ -1669,7 +1810,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void onSelectDistant(YvsComptaCreditFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
             operation = "C";
@@ -1680,31 +1821,31 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     @Override
     public void onSelectObject(YvsComptaAcompteFournisseur y) {
         selectCompte = y;
-        selectCompte.setNotifs(dao.loadNameQueries("YvsComptaNotifReglementAchat.findByAcompte", new String[]{"acompte"}, new Object[]{y}));
-        populateView(UtilCompta.buildBeanAcompteFournisseur(y));
+        populateView(UtilCompta.buildBeanAcompteFournisseur(y, dao));
+        loadNotifAcompte(true, true);
         historiqueCompte(y.getFournisseur());
         update("blog_acompte_fournisseur");
         update("blog_entete_acompte_fournisseur");
     }
-    
+
     public void onSelectObject(YvsComptaCreditFournisseur y) {
         selectCredit = y;
         populateView(UtilCompta.buildBeanCreditFournisseur(y));
         historiqueCredit(y.getFournisseur());
         update("blog_credit_fournisseur");
     }
-    
+
     public void onSelectObjectByFournisseur(YvsBaseFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
             codeFournisseur = y.getCodeFsseur();
             addParamFournisseur();
         }
     }
-    
+
     @Override
     public void loadOnView(SelectEvent ev) {
         if (ev != null ? ev.getObject() != null : false) {
@@ -1717,12 +1858,12 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     @Override
     public void unLoadOnView(UnselectEvent ev) {
         resetFiche();
     }
-    
+
     public void loadOnViewReglement(SelectEvent ev) {
         if (ev != null ? ev.getObject() != null : false) {
             selectReglement = (YvsComptaReglementCreditFournisseur) ev.getObject();
@@ -1730,11 +1871,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             update("form_reglement_credit_fa_fournisseur");
         }
     }
-    
+
     public void unLoadOnViewReglement(UnselectEvent ev) {
         resetReglement();
     }
-    
+
     public void loadOnViewPiece(SelectEvent ev) {
         if (ev != null ? ev.getObject() != null : false) {
             AcomptesAchatDivers y = (AcomptesAchatDivers) ev.getObject();
@@ -1742,25 +1883,25 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             update("form_reglement_acompte_fa");
         }
     }
-    
+
     public void unLoadOnViewPiece(UnselectEvent ev) {
         resetFicheReglement();
     }
-    
+
     public void loadOnViewFournisseur(SelectEvent ev) {
         if (ev != null ? ev.getObject() != null : false) {
             YvsBaseFournisseur y = (YvsBaseFournisseur) ev.getObject();
             chooseFournisseur(UtilCom.buildBeanFournisseur(y));
         }
     }
-    
+
     public void loadOnViewFacture(SelectEvent ev) {
         if (ev != null ? ev.getObject() != null : false) {
             YvsComDocAchats y = (YvsComDocAchats) ev.getObject();
             chooseFacture(UtilCom.buildBeanDocAchat(y));
         }
     }
-    
+
     public void chooseTypeCredit() {
         ManagedTypeCout w = (ManagedTypeCout) giveManagedBean(ManagedTypeCout.class);
         if (w != null) {
@@ -1771,7 +1912,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void chooseJournalCredit() {
         ManagedJournaux w = (ManagedJournaux) giveManagedBean(ManagedJournaux.class);
         if (w != null) {
@@ -1782,7 +1923,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void chooseModeCompte() {
         ManagedModeReglement w = (ManagedModeReglement) giveManagedBean(ManagedModeReglement.class);
         if (w != null) {
@@ -1794,7 +1935,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void chooseCaisseCompte() {
         ManagedCaisses w = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
         if (w != null) {
@@ -1805,7 +1946,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void chooseCaisseReglement() {
         ManagedCaisses w = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
         if (w != null) {
@@ -1816,7 +1957,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void chooseCaissePiece() {
         ManagedCaisses w = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
         if (w != null) {
@@ -1827,7 +1968,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void chooseFournisseur(Fournisseur d) {
         if (d != null ? d.getId() > 0 : false) {
             if (operation.equals("A")) {
@@ -1841,7 +1982,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void chooseFacture(DocAchat d) {
         if (d != null ? d.getId() > 0 : false) {
             setMontantTotalDoc(d);
@@ -1858,7 +1999,22 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             update("txt_montant_reglement_achat");
         }
     }
-    
+
+    public void loadAllReste() {
+        for (YvsComptaAcompteFournisseur y : acomptes) {
+            Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(y, dao);
+            y.setReste((reste != null ? reste : 0));
+            Double resteUnBind = AYvsComptaAcompteFournisseur.findResteUnBindForAcompte(y, dao);
+            y.setResteUnBind((resteUnBind != null ? resteUnBind : 0));
+        }
+    }
+
+    public void verifyComptabilisation() {
+        for (AcomptesAchatDivers a : compte.getAchatsEtDivers()) {
+            isComptabilisePiece(a);
+        }
+    }
+
     public boolean encaisserAcompte() {
         if (compte.getCaisse().getId() > 0 && compte.getMode().getId() > 0 && compte.getDateAcompte() != null) {
             selectCompte.setDatePaiement(compte.getDateAcompte());
@@ -1876,7 +2032,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             return false;
         }
     }
-    
+
     public boolean encaisserAcompte(YvsComptaAcompteFournisseur y) {
         if (y.getCaisse() != null && y.getModel() != null && y.getDatePaiement() != null) {
             return encaisserAcompte(null, y);
@@ -1893,7 +2049,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             return false;
         }
     }
-    
+
     public boolean encaisserAcompte(AcompteFournisseur acompte, YvsComptaAcompteFournisseur y) {
         try {
             boolean succes = true;
@@ -1918,7 +2074,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 if (y.getRepartirAutomatique()) {
                     if (acompte == null) {
                         selectCompte = y;
-                        compte = UtilCompta.buildBeanAcompteFournisseur(y);
+                        compte = UtilCompta.buildBeanAcompteFournisseur(y, dao);
                     }
                     openOrfindAndRegleFacture();
                 }
@@ -1970,7 +2126,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean annulerAcompte(boolean suspend) {
         suspendCompte = suspend;
         if (dao.isComptabilise(selectCompte.getId(), Constantes.SCR_ACOMPTE_ACHAT)) {
@@ -1980,11 +2136,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return annulerAcompte(compte, selectCompte, suspend);
     }
-    
+
     public boolean annulerAcompte(YvsComptaAcompteFournisseur y, boolean suspend) {
         return annulerAcompte(null, y, suspend);
     }
-    
+
     public boolean annulerAcompte(AcompteFournisseur acompte, YvsComptaAcompteFournisseur y, boolean suspend) {
         try {
             if (!verifyCancelPieceCaisse(y.getDatePaiement())) {
@@ -2016,11 +2172,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
             return changeStatutAcompte(acompte, y, (suspend ? Constantes.STATUT_DOC_ANNULE : Constantes.STATUT_DOC_ATTENTE));
         } catch (Exception ex) {
-            
+
         }
         return false;
     }
-    
+
     public boolean changeStatutAcompte(AcompteFournisseur acompte, YvsComptaAcompteFournisseur y, char statut) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -2059,15 +2215,15 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean validerCredit() {
         return validerCredit(credit, selectCredit);
     }
-    
+
     public boolean validerCredit(YvsComptaCreditFournisseur y) {
         return validerCredit(null, y);
     }
-    
+
     public boolean validerCredit(CreditFournisseur credit, YvsComptaCreditFournisseur y) {
         boolean succes = changeStatutCredit(credit, y, Constantes.STATUT_DOC_VALIDE);
         if (succes) {
@@ -2079,7 +2235,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return succes;
     }
-    
+
     public void editableCredit() {
         if (!credit.canEditable()) {
             getErrorMessage("Vous ne pouvez pas modifier ce document. Il est rattaché à des reglements payés");
@@ -2096,7 +2252,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         annulerCredit(false);
     }
-    
+
     public void refuserCredit() {
         if (!credit.canEditable()) {
             getErrorMessage("Vous ne pouvez pas modifier ce document. Il est rattaché à des reglements payés");
@@ -2113,15 +2269,15 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         annulerCredit(true);
     }
-    
+
     public boolean annulerCredit(boolean suspend) {
         return annulerCredit(credit, selectCredit, suspend);
     }
-    
+
     public boolean annulerCredit(YvsComptaCreditFournisseur y, boolean suspend) {
         return annulerCredit(null, y, suspend);
     }
-    
+
     public boolean annulerCredit(CreditFournisseur credit, YvsComptaCreditFournisseur y, boolean suspend) {
         if (!credit.canEditable()) {
             getErrorMessage("Vous ne pouvez pas modifier ce document. Il est rattaché à des reglements payés");
@@ -2142,7 +2298,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return changeStatutCredit(credit, y, (suspend ? Constantes.STATUT_DOC_ANNULE : Constantes.STATUT_DOC_ATTENTE));
     }
-    
+
     public boolean changeStatutCredit(CreditFournisseur credit, YvsComptaCreditFournisseur y, char statut) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -2182,12 +2338,12 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean encaisserReglement(YvsComptaReglementCreditFournisseur bean) {
         bean.setDatePaiement(bean.getDateReg());
         return encaisserReglement(selectCredit, bean);
     }
-    
+
     public boolean encaisserReglement(YvsComptaCreditFournisseur credit, YvsComptaReglementCreditFournisseur y) {
         if (y.getCaisse() == null) {
             getErrorMessage("Vous devez choisir une caisse !");
@@ -2264,7 +2420,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean annulerReglement(YvsComptaReglementCreditFournisseur y, boolean suspend) {
         suspendReglementCredit = suspend;
         if (dao.isComptabilise(y.getId(), Constantes.SCR_CAISSE_CREDIT_ACHAT)) {
@@ -2275,7 +2431,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return annulerReglement(selectCredit, y, suspend);
     }
-    
+
     public boolean annulerReglement(YvsComptaCreditFournisseur credit, YvsComptaReglementCreditFournisseur y, boolean suspend) {
         try {
             if (!verifyCancelPieceCaisse(y.getDatePaiement())) {
@@ -2302,11 +2458,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             y.setDatePaiement(null);
             return changeStatutReglement(credit, y, (suspend ? Constantes.STATUT_DOC_ANNULE : Constantes.STATUT_DOC_ATTENTE));
         } catch (Exception ex) {
-            
+
         }
         return false;
     }
-    
+
     public boolean changeStatutReglement(YvsComptaCreditFournisseur credit, YvsComptaReglementCreditFournisseur y, char statut) {
         try {
             if (y != null ? y.getId() > 0 : false) {
@@ -2331,15 +2487,12 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public void encaisserPiece(YvsComptaNotifReglementAchat y) {
         if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
-            double montant = y.getPieceAchat().getMontant();
-            for (YvsComptaNotifReglementAchat n : compte.getNotifs()) {
-                if (n.getPieceAchat().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
-                    montant += n.getPieceAchat().getMontant();
-                }
-            }
+            Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
+            // (reste != null ? reste : 0);
+            double montant = y.getPieceAchat().getMontant() + (totalPayer != null ? totalPayer : 0);
             if (montant > compte.getMontant()) {
                 getErrorMessage("Vous ne pouvez pas valider ce montant.. car la somme des pièces excedera le montant de l'acompte");
                 return;
@@ -2362,8 +2515,8 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getErrorMessage("Cette acompte n'est pas encore encaissé");
         }
     }
-    
-    public void encaisserPieces(AcomptesAchatDivers a) {        
+
+    public void encaisserPieces(AcomptesAchatDivers a) {
         if (a.getType().equals("ACHAT")) {
             YvsComptaNotifReglementAchat y = new YvsComptaNotifReglementAchat();
             y = a.getNotifs();
@@ -2372,12 +2525,8 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             if (a.getType().equals("OD_A")) {
                 YvsComptaNotifReglementDocDivers z = a.getNotif_divers();
                 if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
-                    double montant = z.getPieceDocDivers().getMontant();
-                    for (YvsComptaNotifReglementAchat n : compte.getNotifs()) {
-                        if (n.getPieceAchat().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
-                            montant += n.getPieceAchat().getMontant();
-                        }
-                    }
+                    Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
+                    double montant = z.getPieceDocDivers().getMontant() + (totalPayer != null ? totalPayer : 0);
                     if (montant > compte.getMontant()) {
                         getErrorMessage("Vous ne pouvez pas valider ce montant.. car la somme des pièces excedera le montant de l'acompte");
                         return;
@@ -2400,36 +2549,36 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         }
                     }
                     AcomptesAchatDivers ad = UtilCompta.buildBeanAcomptesAchatDivers(z);
-                    int index = compte.getAchatDiverses().indexOf(ad);
+                    int index = compte.getAchatsEtDivers().indexOf(ad);
                     if (index > -1) {
-                        compte.getAchatDiverses().set(index, ad);
+                        compte.getAchatsEtDivers().set(index, ad);
                     }
                     update("data_reglement_acompte_fa");
-                    
+
                 } else {
                     getErrorMessage("Cette acompte n'est pas encore encaissé");
                 }
             }
         }
-        
+
     }
-    
+
     public void encaisserPiecesAll() {
-        for(AcomptesAchatDivers a : selectNotifs){
+        for (AcomptesAchatDivers a : selectNotifs) {
             encaisserPieces(a);
-        }      
+        }
     }
-    
+
     public void annulerPiecesAll(boolean suspend) {
-        for(AcomptesAchatDivers a : selectNotifs){
+        for (AcomptesAchatDivers a : selectNotifs) {
             annulerPieces(a, suspend);
-        }      
+        }
     }
-    
+
     public void annulerPiece(YvsComptaNotifReglementAchat y, boolean suspend) {
         changeStatutPiece(y, suspend ? Constantes.STATUT_DOC_ANNULE : Constantes.STATUT_DOC_ATTENTE);
     }
-    
+
     public void annulerPieces(AcomptesAchatDivers a, boolean suspend) {
         if (a.getType().equals("ACHAT")) {
             YvsComptaNotifReglementAchat y = new YvsComptaNotifReglementAchat();
@@ -2440,17 +2589,17 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 YvsComptaNotifReglementDocDivers z = a.getNotif_divers();
                 changeStatutPiece(z, suspend ? Constantes.STATUT_DOC_ANNULE : Constantes.STATUT_DOC_ATTENTE);
             }
-        }        
+        }
     }
-    
+
     public void changeStatutPiece(YvsComptaNotifReglementDocDivers y, char statut) {
         try {
             if (y != null ? (y.getId() > 0 ? (y.getPieceDocDivers() != null ? y.getPieceDocDivers().getId() > 0 : false) : false) : false) {
                 y.getPieceDocDivers().setStatutPiece(statut);
                 dao.update(y.getPieceDocDivers());
-                int idx = selectCompte.getYvsComptaNotifReglementDocDiversList().indexOf(y);
+                int idx = selectCompte.getNotifsDivers().indexOf(y);
                 if (idx > -1) {
-                    selectCompte.getYvsComptaNotifReglementDocDiversList().set(idx, y);
+                    selectCompte.getNotifsDivers().set(idx, y);
                 }
                 idx = acomptes.indexOf(selectCompte);
                 if (idx > -1) {
@@ -2464,14 +2613,17 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         update("table_regFV");
                     }
                 }
-                compte.setReste(selectCompte.getReste());
-                compte.setResteUnBlind(selectCompte.getResteUnBind());
+                // (reste != null ? reste : 0);
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(selectCompte, dao);
+                Double resteUnBind = AYvsComptaAcompteFournisseur.findResteUnBindForAcompte(selectCompte, dao);
+                compte.setReste((reste != null ? reste : 0));
+                compte.setResteUnBlind((resteUnBind != null ? resteUnBind : 0));
                 w.equilibreOne(y.getPieceDocDivers().getDocDivers());
                 equilibre(selectCompte);
                 AcomptesAchatDivers a = UtilCompta.buildBeanAcomptesAchatDivers(y);
-                int index = compte.getAchatDiverses().indexOf(a);
+                int index = compte.getAchatsEtDivers().indexOf(a);
                 if (index > -1) {
-                    compte.getAchatDiverses().set(index, a);
+                    compte.getAchatsEtDivers().set(index, a);
                 }
                 update("data_reglement_acompte_fa");
             }
@@ -2480,7 +2632,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error", ex);
         }
     }
-    
+
     public void changeStatutPiece(YvsComptaNotifReglementAchat y, char statut) {
         try {
             if (y != null ? (y.getId() > 0 ? (y.getPieceAchat() != null ? y.getPieceAchat().getId() > 0 : false) : false) : false) {
@@ -2495,7 +2647,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     acomptes.set(idx, selectCompte);
                 }
                 //modifie la vue
-                for (AcomptesAchatDivers a : compte.getAchatDiverses()) {
+                for (AcomptesAchatDivers a : compte.getAchatsEtDivers()) {
                     if (a.getNotifs().equals(y)) {
                         a.setNotifs(y);
                         a.setStatutPiece(y.getPieceAchat().getStatutPiece().toString());
@@ -2510,8 +2662,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         update("table_regFA");
                     }
                 }
-                compte.setReste(selectCompte.getReste());
-                compte.setResteUnBlind(selectCompte.getResteUnBind());
+                // (reste != null ? reste : 0);
+                Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(selectCompte, dao);
+                Double resteUnBind = AYvsComptaAcompteFournisseur.findResteUnBindForAcompte(selectCompte, dao);
+                compte.setReste((reste != null ? reste : 0));
+                compte.setResteUnBlind((resteUnBind != null ? resteUnBind : 0));
                 Map<String, String> statuts = dao.getEquilibreAchat(y.getPieceAchat().getAchat().getId());
                 if (statuts != null) {
                     y.getPieceAchat().getAchat().setStatutLivre(statuts.get("statut_livre"));
@@ -2525,7 +2680,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error", ex);
         }
     }
-    
+
     public void searchFournisseur() {
         String num;
         if (operation.equals("A")) {
@@ -2556,7 +2711,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void searchFacture() {
         if (isFacture) {
             String num = piece.getDocAchat().getNumDoc();
@@ -2591,26 +2746,26 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         y = UtilCompta.buildBeanDocCaisse(d.getDocuments().get(0));
                         chooseDocDivers(y);
                     }
-                    
+
                 } else {
                     trouberOD = false;
                 }
             }
-            
+
         }
     }
-    
+
     public void loadOnViewDocDivers(SelectEvent ev) {
         if (ev != null ? ev.getObject() != null : false) {
             YvsComptaCaisseDocDivers y = (YvsComptaCaisseDocDivers) ev.getObject();
             chooseDocDivers(UtilCompta.buildBeanDocCaisse(y));
         }
     }
-    
+
     public void chooseDocDivers(DocCaissesDivers d) {
         if (d != null ? d.getId() > 0 : false) {
             cloneObject(piece.getDocDivers(), d);
-            
+
             piece.setNumRefExterne(d.getNumPiece());
             double montant = d.getMontant();
             System.err.println("compte.getReste() :" + compte.getReste());
@@ -2627,13 +2782,13 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
             montant_reste = d.getMontant() - montant_reste;
             if (compte.getReste() > montant_reste) {
-                
+
                 montant = montant_reste;
             } else {
                 montant = compte.getReste();
             }
             piece.setMontant(montant);
-            
+
             update("select_facture_reglement_achat");
             update("txt_montant_reglement_achat");
 //            } else {
@@ -2642,7 +2797,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
 
         }
     }
-    
+
     public void initFournisseurs() {
         ManagedFournisseur m = (ManagedFournisseur) giveManagedBean(ManagedFournisseur.class);
         if (m != null) {
@@ -2650,7 +2805,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         update("data_fournisseur_acompte_fournisseur");
     }
-    
+
     public void initFacture() {
         if (isFacture) {
             ManagedFactureAchat m = (ManagedFactureAchat) giveManagedBean(ManagedFactureAchat.class);
@@ -2664,13 +2819,13 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 d.clearParams();
                 d.setCodeTiers(compte.getFournisseur().getTiers().getCodeTiers());
                 d.addParamTiers("D");
-                
+
             }
             update("data_facture_reglement_doc_divers");
         }
-        
+
     }
-    
+
     public void cleanParams() {
         if (operation.equals("A")) {
             paginator.getParams().clear();
@@ -2679,7 +2834,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         loadAll(true, true);
     }
-    
+
     public void addParamDate() {
         if (operation.equals("A")) {
             ParametreRequete p = new ParametreRequete("y.dateAcompte", "dates", null);
@@ -2696,7 +2851,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         loadAll(true, true);
     }
-    
+
     public void addParamAgence() {
         if (operation.equals("A")) {
             ParametreRequete p = new ParametreRequete("y.caisse.journal.agence", "agence", null, "=", "AND");
@@ -2713,13 +2868,13 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         loadAll(true, true);
     }
-    
+
     public void addParamDates(SelectEvent ev) {
         if (ev != null ? ev.getObject() != null : false) {
             addParamDate();
         }
     }
-    
+
     public void addParamStatut() {
         ParametreRequete p = new ParametreRequete("y.statut", "statut", null);
         if (statutSearch != null ? statutSearch.trim().length() > 0 : false) {
@@ -2732,7 +2887,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         loadAll(true, true);
     }
-    
+
     public void addParamNature() {
         ParametreRequete p = new ParametreRequete("y.nature", "nature", null);
         if (natureSearch != null ? natureSearch.trim().length() > 0 : false) {
@@ -2741,7 +2896,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         paginator.addParam(p);
         loadAll(true, true);
     }
-    
+
     public void addParamNotif() {
         ParametreRequete p = new ParametreRequete("y.statutNotif", "notifier", null);
         if (notifSearch != null ? notifSearch.trim().length() > 0 : false) {
@@ -2750,7 +2905,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         paginator.addParam(p);
         loadAll(true, true);
     }
-    
+
     public void addParamTypeMode() {
         ParametreRequete p = new ParametreRequete("y.model.typeReglement", "typemode", null);
         if (modeSearch != null ? modeSearch.trim().length() > 0 : false) {
@@ -2759,7 +2914,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         paginator.addParam(p);
         loadAll(true, true);
     }
-    
+
     public void addParamFournisseur() {
         ParametreRequete p = new ParametreRequete("y.fournisseur", "fournisseur", null);
         if (codeFournisseur != null ? codeFournisseur.trim().length() > 0 : false) {
@@ -2775,7 +2930,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         loadAll(true, true);
     }
-    
+
     public void addParamCaisse() {
         ParametreRequete p = new ParametreRequete("y.caisse", "caisse", null);
         if (caisseSearch > 0) {
@@ -2784,7 +2939,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         paginator.addParam(p);
         loadAll(true, true);
     }
-    
+
     public void addParamComptabilised() {
         ParametreRequete p = new ParametreRequete("coalesce(y.comptabilise, false)", "comptabilise", comptaSearch, "=", "AND");
         if (comptaSearch != null) {
@@ -2819,7 +2974,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         loadAll(true, true);
     }
-    
+
     public void addParamReference() {
         if (operation.equals("A")) {
             ParametreRequete p = new ParametreRequete("y.numRefrence", "reference", null);
@@ -2848,7 +3003,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         update("table_acompte_fsseurs");
         openDialog("dlgSaveAvance");
     }
-    
+
     public YvsComptaNotifReglementAchat confirmBind(YvsComptaAcompteFournisseur y, YvsComptaCaissePieceAchat c) {
         if ((y != null ? y.getId() > 0 : false) && (c != null ? c.getId() > 0 : false)) {
             champ = new String[]{"piece", "acompte"};
@@ -2888,7 +3043,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return null;
     }
-    
+
     private boolean controleValidation(YvsComptaPhaseAcompteAchat pp) {
         if ((pp.getPieceAchat().getCaisse() != null) ? pp.getPieceAchat().getCaisse().getId() <= 0 : true) {
             getErrorMessage("Aucune banque n'a été trouvé !");
@@ -2896,7 +3051,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return true;
     }
-    
+
     private boolean controleValidation(YvsComptaPhaseReglementCreditFournisseur pp) {
         if ((pp.getReglement().getCaisse() != null) ? pp.getReglement().getCaisse().getId() <= 0 : true) {
             getErrorMessage("Aucune banque n'a été trouvé !");
@@ -2904,7 +3059,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return true;
     }
-    
+
     public void comptabiliserPhaseAcompteAchat(YvsComptaPhaseAcompteAchat pp) {
         etapeCompte = pp;
         if (compte.getPhasesReglement() != null ? !compte.getPhasesReglement().isEmpty() : false) {
@@ -2928,12 +3083,12 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void validEtapesAcompte(YvsComptaPhaseAcompteAchat pp) {
         pp.setDateValider(new Date());
         validEtapesAcompte(selectCompte, pp);
     }
-    
+
     public boolean validEtapesAcompte(YvsComptaAcompteFournisseur selectCompte, YvsComptaPhaseAcompteAchat pp) {
         if (!pp.getPhaseOk()) {
             if (!asDroitValidePhase(pp.getPhaseReg())) {
@@ -2982,7 +3137,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 currentParam = (YvsComptaParametre) dao.loadOneByNameQueries("YvsComptaParametre.findAll", new String[]{"societe"}, new Object[]{currentAgence.getSociete()});
                 if (currentParam == null) {
                     currentParam = new YvsComptaParametre();
-                    
+
                 }
                 if (currentParam.getMajComptaAutoDivers()) {
                     ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
@@ -3010,11 +3165,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         update("head_form_suivi_paa");
         return false;
     }
-    
+
     public boolean validEtapesCredit(YvsComptaPhaseReglementCreditFournisseur pp) {
         return validEtapesCredit(selectReglement, pp);
     }
-    
+
     public boolean validEtapesCredit(YvsComptaReglementCreditFournisseur selectReglement, YvsComptaPhaseReglementCreditFournisseur pp) {
         if (!pp.getPhaseOk()) {
             if (!asDroitValidePhase(pp.getPhaseReg())) {
@@ -3035,7 +3190,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 pp.setDateValider(pp.getDateValider() != null ? pp.getDateValider() : (selectReglement.getDatePaiement() != null ? selectReglement.getDatePaiement() : new Date()));
                 dao.update(pp);
                 pp.setEtapeActive(false);
-                
+
                 if (pp.getPhaseReg().getReglementOk()) {
                     pp.getReglement().setStatut(Constantes.STATUT_DOC_PAYER);
                     pp.getReglement().setDatePaiement(pp.getDateValider());
@@ -3048,7 +3203,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 pp.getReglement().setDateUpdate(new Date());
                 pp.getReglement().setAuthor(currentUser);
                 dao.update(pp.getReglement());
-                
+
                 selectReglement.setStatut(pp.getReglement().getStatut());
                 selectReglement.setDatePaiement(pp.getReglement().getDatePaiement());
                 int idx = selectReglement.getPhasesReglement().indexOf(pp);
@@ -3061,7 +3216,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     currentPhaseCreditAchat = selectReglement.getPhasesReglement().get(idx + 1);
                 } else if (idx == (selectReglement.getPhasesReglement().size() - 1)) {
                     selectReglement.getPhasesReglement().get(idx).setEtapeActive(true);
-                    
+
                 }
                 ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
                 );
@@ -3069,7 +3224,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         != null) {
                     w.comptabiliserPhaseCaisseCreditAchat(pp, false, false);
                 }
-                
+
                 return true;
             }
         } else {
@@ -3078,7 +3233,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         update("head_form_suivi_pca");
         return false;
     }
-    
+
     public
             void chooseCaissePhaseAcompte() {
         if (currentPhaseAcompteAchat.getCaisse() != null ? currentPhaseAcompteAchat.getCaisse().getId() > 0 : false) {
@@ -3093,7 +3248,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public
             void chooseCaissePhaseCredit() {
         if (currentPhaseCreditAchat.getCaisse() != null ? currentPhaseCreditAchat.getCaisse().getId() > 0 : false) {
@@ -3108,7 +3263,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void forceCancelCompte() {
         if (operation.equals("A")) {
             if (etapeCompte != null ? etapeCompte.getId() > 0 : false) {
@@ -3126,7 +3281,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             etapeCredit = new YvsComptaPhaseReglementCreditFournisseur();
         }
     }
-    
+
     public void cancelValidEtapesAcompte(YvsComptaPhaseAcompteAchat pp) {
         etapeCompte = pp;
         if (pp.getPhaseReg().getReglementOk()) {
@@ -3137,7 +3292,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         cancelValidEtapesAcompte(selectCompte, pp, false);
     }
-    
+
     public void cancelValidEtapesCredit(YvsComptaPhaseReglementCreditFournisseur pp) {
         etapeCredit = pp;
         if (pp.getPhaseReg().getReglementOk()) {
@@ -3148,7 +3303,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         cancelValidEtapesCredit(selectReglement, pp, false);
     }
-    
+
     public boolean cancelValidEtapesAcompte(YvsComptaAcompteFournisseur selectCompte, YvsComptaPhaseAcompteAchat pp, boolean retour) {
         //l'étape suivante ne doit pas être validé
         if (!asDroitValidePhase(pp.getPhaseReg())) {
@@ -3195,13 +3350,13 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         dao.update(pp);
         currentPhaseAcompteAchat = pp;
         currentPhaseAcompteAchat.setDateValider(new Date());
-        
+
         if (pp.getPhaseReg().getReglementOk()) {
             pp.getPieceAchat().setStatut(Constantes.STATUT_DOC_ATTENTE);
             dao.update(pp.getPieceAchat());
             selectCompte.setStatut(Constantes.STATUT_DOC_ATTENTE);
         }
-        
+
         YvsComptaAcompteFournisseur pc = pp.getPieceAchat();
         idx = pc.getPhasesReglement().indexOf(pp);
         if (idx >= 0) {
@@ -3210,7 +3365,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         idx = selectCompte.getPhasesReglement().indexOf(pp);
         if (idx >= 0) {
             selectCompte.getPhasesReglement().set(idx, pp);
-            
+
         }
         idx = acomptes.indexOf(selectCompte);
         if (idx
@@ -3224,14 +3379,14 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             versements.set(idx, selectCompte);
             update("data_historique_acompte_fournisseur");
         }
-        
+
         return true;
     }
-    
+
     public void cancelValidEtapesCredit(YvsComptaPhaseReglementCreditFournisseur pp, boolean retour) {
         cancelValidEtapesCredit(selectReglement, pp, retour);
     }
-    
+
     public boolean cancelValidEtapesCredit(YvsComptaReglementCreditFournisseur selectReglement, YvsComptaPhaseReglementCreditFournisseur pp, boolean retour) {
         //l'étape suivante ne doit pas être validé
         if (!asDroitValidePhase(pp.getPhaseReg())) {
@@ -3276,12 +3431,12 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         dao.update(pp);
         currentPhaseCreditAchat = pp;
         currentPhaseCreditAchat.setDateValider(new Date());
-        
+
         if (pp.getPhaseReg().getReglementOk()) {
             pp.getReglement().setStatut(Constantes.STATUT_DOC_ATTENTE);
             dao.update(pp.getReglement());
             selectReglement.setStatut(Constantes.STATUT_DOC_ATTENTE);
-            
+
         }
         YvsComptaReglementCreditFournisseur pc = pp.getReglement();
         idx = pc.getPhasesReglement().indexOf(pp);
@@ -3294,21 +3449,21 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 >= 0) {
             selectReglement.getPhasesReglement().set(idx, pp);
         }
-        
+
         update(
                 "header_form_suivi_pca");
-        
+
         return true;
     }
-    
+
     public boolean cancelAllEtapesAcompte() {
         return cancelAllEtapesAcompte(selectCompte, false);
     }
-    
+
     public boolean cancelAllEtapesAcompte(boolean force) {
         return cancelAllEtapesAcompte(selectCompte, force);
     }
-    
+
     public boolean cancelAllEtapesAcompte(YvsComptaAcompteFournisseur y, boolean force) {
         if (!autoriser("compta_cancel_piece_valide")) {
             openNotAcces();
@@ -3343,7 +3498,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     if (succes && force) {
                         succes();
                     }
-                    
+
                     return true;
                 } catch (Exception ex) {
                     getErrorMessage("Impossible d'annuler les phases!");
@@ -3357,11 +3512,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         update("head_form_suivi_paa");
         return false;
     }
-    
+
     public boolean cancelAllEtapesCredit() {
         return cancelAllEtapesCredit(selectReglement);
     }
-    
+
     public boolean cancelAllEtapesCredit(YvsComptaReglementCreditFournisseur selectReglement) {
         if (!autoriser("compta_cancel_piece_valide")) {
             openNotAcces();
@@ -3386,13 +3541,13 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         }
                         i++;
                     }
-                    
+
                     selectReglement.setStatut(Constantes.STATUT_DOC_ATTENTE);
-                    
+
                     dao.update(selectReglement);
-                    
+
                     succes();
-                    
+
                     return true;
                 } catch (Exception ex) {
                     getErrorMessage("Impossible d'annuler les phases!");
@@ -3401,12 +3556,12 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             } else {
                 openDialog("dlgConfirmCancel");
             }
-            
+
         }
         update("header_form_suivi_pca");
         return false;
     }
-    
+
     private void ordonnePhase(List<YvsComptaPhaseAcompteAchat> l, YvsComptaPhaseAcompteAchat p) {
         int idx = l.indexOf(p);
         if (idx >= 0) {
@@ -3425,7 +3580,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     private List<YvsComptaPhaseAcompteAchat> ordonnePhase(List<YvsComptaPhaseAcompteAchat> l) {
         Collections.sort(l, new YvsComptaPhaseAcompteAchat());
         int idx = 0;
@@ -3435,7 +3590,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return l;
     }
-    
+
     public void onSelectDistantFacture(YvsComDocAchats y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedFactureAchat s = (ManagedFactureAchat) giveManagedBean(ManagedFactureAchat.class
@@ -3449,10 +3604,10 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void onSelectDistantFactures(AcomptesAchatDivers a) {
         YvsComDocAchats y = new YvsComDocAchats();
-        
+
         if (a.getNotifs() != null ? a.getNotifs().getId() > 0 : false) {
             y = a.getNotifs().getPieceAchat().getAchat();
             onSelectDistantFacture(y);
@@ -3470,9 +3625,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 }
             }
         }
-        
+
     }
-    
+
     public
             void onSelectDistantCheque(YvsComptaAcompteFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
@@ -3492,7 +3647,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public
             void onSelectDistantCreditCheque(YvsComptaReglementCreditFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
@@ -3512,10 +3667,10 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void verifyComptabilised(Boolean comptabilised) {
         loadAll(true, true);
-        
+
         if (comptabilised != null) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class
             );
@@ -3545,12 +3700,12 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         update("data_acompte_fournisseur");
         update("data_credit_fournisseur");
     }
-    
+
     @Override
     public AcompteFournisseur recopieView() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
     public void generatedPhaseAcompte(YvsComptaAcompteFournisseur selectAcompte) {
         if (selectAcompte != null && !selectAcompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
             if (selectAcompte.getPhasesReglement() != null) {
@@ -3597,7 +3752,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void generatedPhaseCredit(YvsComptaReglementCreditFournisseur selectCredit) {
         if (selectCredit != null && !selectCredit.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
             if (selectCredit.getPhasesReglement() != null) {
@@ -3644,7 +3799,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void equilibreAll() {
         try {
             if ((tabIds != null) ? !tabIds.equals("") : false) {
@@ -3660,11 +3815,11 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
-    
+
     public void equilibre(YvsComptaAcompteFournisseur y) {
         equilibre(y, true);
     }
-    
+
     public void equilibre(YvsComptaAcompteFournisseur y, boolean msg) {
         if (y != null ? y.getId() > 0 : false) {
             y.setStatutNotif(equilibreAcompte(y.getId()));
@@ -3675,7 +3830,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public char equilibreAcompte(long id) {
         char statut = Constantes.STATUT_DOC_ATTENTE;
         if (id > 0) {
@@ -3687,7 +3842,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return statut;
     }
-    
+
     public
             void lettrer(YvsComptaAcompteFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
@@ -3708,23 +3863,23 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public boolean isIsFacture() {
         return isFacture;
     }
-    
+
     public void setIsFacture(boolean isFacture) {
         this.isFacture = isFacture;
     }
-    
+
     public void changeLabel(boolean t) {
         isFacture = t;
         update("form_reglement_acompte_fa");
     }
-    
+
     public void comptabilisePieceAll() {
         try {
-            for (AcomptesAchatDivers piece : compte.getAchatDiverses()) {
+            for (AcomptesAchatDivers piece : compte.getAchatsEtDivers()) {
                 comptabilisePiece(piece, false);
             }
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3736,7 +3891,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("comptabilisePieceAll", ex);
         }
     }
-    
+
     public void comptabilisePiece(AcomptesAchatDivers piece, boolean msg) {
         try {
             if (piece != null ? piece.getId() > 0 : false) {
@@ -3749,9 +3904,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                         succes = w.comptabiliserCaisseDivers(piece.getNotif_divers().getPieceDocDivers(), msg, msg);
                     }
                     piece.setComptabilise(succes);
-                    int index = compte.getAchatDiverses().indexOf(piece);
+                    int index = compte.getAchatsEtDivers().indexOf(piece);
                     if (index > -1) {
-                        compte.getAchatDiverses().set(index, piece);
+                        compte.getAchatsEtDivers().set(index, piece);
                     }
                 }
             }
@@ -3759,7 +3914,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("comptabilisePiece", ex);
         }
     }
-    
+
     public void unComptabilisePiece(AcomptesAchatDivers piece, boolean msg) {
         try {
             if (piece != null ? piece.getId() > 0 : false) {
@@ -3773,9 +3928,9 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                     }
                     if (succes) {
                         piece.setComptabilise(false);
-                        int index = compte.getAchatDiverses().indexOf(piece);
+                        int index = compte.getAchatsEtDivers().indexOf(piece);
                         if (index > -1) {
-                            compte.getAchatDiverses().set(index, piece);
+                            compte.getAchatsEtDivers().set(index, piece);
                         }
                     }
                 }
@@ -3784,7 +3939,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getException("unComptabilisePiece", ex);
         }
     }
-    
+
     public boolean isComptabilisePiece(AcomptesAchatDivers y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3801,7 +3956,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean isComptabiliseBeanCredit(CreditFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3812,7 +3967,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean isComptabiliseCredit(YvsComptaCreditFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3823,7 +3978,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean isComptabiliseCaisseCredit(YvsComptaReglementCreditFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3834,7 +3989,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean isComptabiliseBeanAcompte(AcompteFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3845,7 +4000,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean isComptabiliseAcompte(YvsComptaAcompteFournisseur y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3856,7 +4011,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean isComptabilisePhaseAcompte(YvsComptaPhaseAcompteAchat y) {
         if (y != null ? y.getId() > 0 : false) {
             ManagedSaisiePiece w = (ManagedSaisiePiece) giveManagedBean(ManagedSaisiePiece.class);
@@ -3867,15 +4022,15 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         }
         return false;
     }
-    
+
     public boolean isTrouberOD() {
         return trouberOD;
     }
-    
+
     public void setTrouberOD(boolean trouberOD) {
         this.trouberOD = trouberOD;
     }
-    
+
     public void addParamDates() {
         ParametreRequete p = new ParametreRequete("y.dateUpdate", "dateUpdate", null);
         if (date_up) {
@@ -3884,7 +4039,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
         paginator.addParam(p);
         loadAll(true, true);
     }
-    
+
     public void changeNatureAcompte(YvsComptaAcompteFournisseur y, boolean all) {
         if (isComptabiliseAcompte(y)) {
             if (!all) {
@@ -3905,7 +4060,7 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             }
         }
     }
-    
+
     public void changeNatureMany() {
         List<Integer> keys = decomposeSelection(tabIds);
         if (!keys.isEmpty()) {
@@ -3917,5 +4072,5 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             getInfoMessage("Opération terminé avec succès !");
         }
     }
-    
+
 }

@@ -282,24 +282,24 @@ public class AbstractEntity {
         }
         if (bean.getCompteGeneral() != null ? (bean.getCompteGeneral().getId() != null ? bean.getCompteGeneral().getId() < 1 : true) : true) {
             if (msg) {
-//                getErrorMessage("Vous devez precisez le compte général");
+//                getErrorMessage("Vous devez preciser le compte général");
             }
             return false;
         }
         YvsBasePlanComptable c = bean.getCompteGeneral();
         if (c.getSaisieAnalytique() && false) {
-//            getErrorMessage("Vous devez precisez le plan analytique");
+//            getErrorMessage("Vous devez preciser le plan analytique");
 //            return false;
         }
         if (c.getSaisieCompteTiers() && bean.getCompteTiers() == null) {
             if (msg) {
-//                getErrorMessage("Vous devez precisez le compte tiers");
+//                getErrorMessage("Vous devez preciser le compte tiers");
             }
             return false;
         }
         if (c.getSaisieEcheance() && bean.getEcheance() == null) {
             if (msg) {
-//                getErrorMessage("Vous devez precisez l'échéancier");
+//                getErrorMessage("Vous devez preciser l'échéancier");
             }
             return false;
         }
@@ -850,11 +850,11 @@ public class AbstractEntity {
 
     public boolean verifyTranche(YvsGrhTrancheHoraire tranche, YvsBaseDepots depot, Date date) {
         if (date == null) {
-//            getErrorMessage("Vous devez precisez le date de traitement");
+//            getErrorMessage("Vous devez preciser le date de traitement");
             return false;
         }
         if (depot != null ? depot.getId() < 1 : true) {
-//            getErrorMessage("Vous devez precisez le dépôt");
+//            getErrorMessage("Vous devez preciser le dépôt");
             return false;
         }
         if (tranche != null ? tranche.getId() > 0 : false) {

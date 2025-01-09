@@ -51,10 +51,38 @@ public class ManagedJournaux extends Managed<Journaux, YvsComptaJournaux> implem
     private Long idAgenceSearch;
     private Boolean actifSearch;
     /*attribut pour la recherche*/
+    private String tabIds;
+    private String fusionneTo;
+    private List<String> fusionnesBy;
 
     public ManagedJournaux() {
         journaux = new ArrayList<>();
         periodes = new ArrayList<>();
+        fusionnesBy = new ArrayList<>();
+    }
+
+    public String getTabIds() {
+        return tabIds;
+    }
+
+    public void setTabIds(String tabIds) {
+        this.tabIds = tabIds;
+    }
+
+    public String getFusionneTo() {
+        return fusionneTo;
+    }
+
+    public void setFusionneTo(String fusionneTo) {
+        this.fusionneTo = fusionneTo;
+    }
+
+    public List<String> getFusionnesBy() {
+        return fusionnesBy;
+    }
+
+    public void setFusionnesBy(List<String> fusionnesBy) {
+        this.fusionnesBy = fusionnesBy;
     }
 
     public long getExercice() {
@@ -214,19 +242,30 @@ public class ManagedJournaux extends Managed<Journaux, YvsComptaJournaux> implem
 
     @Override
     public void deleteBean() {
-        if (selectJournal != null ? selectJournal.getId() > 0 : false) {
-            try {
-                dao.delete(selectJournal);
-                journaux.remove(selectJournal);
-                if (selectJournal.getId().equals(journal.getId())) {
-                    resetFiche();
+        try {
+            System.err.println("tabIds = " + tabIds);
+            if ((tabIds != null) ? !tabIds.equals("") : false) {
+                List<Long> l = decomposeIdSelection(tabIds);
+                List<YvsComptaJournaux> list = new ArrayList<>();
+                YvsComptaJournaux bean;
+                for (Long ids : l) {
+                    bean = journaux.get(ids.intValue());
+                    list.add(bean);
+                    bean.setAuthor(currentUser);
+                    bean.setDateUpdate(new Date());
+                    dao.delete(bean);
+                    if (bean.getId() == journal.getId()) {
+                        resetFiche();
+                    }
                 }
-                update("table_journal");
+                journaux.removeAll(list);
                 succes();
-            } catch (Exception ex) {
-                getErrorMessage("Impossible de supprimer cet élément!");
-                getException("Lymytz Error  >> ", ex);
+                tabIds = "";
+                update("table_journal");
             }
+        } catch (Exception ex) {
+            getErrorMessage("Suppression Impossible !");
+            getException("Error Suppression : " + ex.getMessage(), ex);
         }
     }
 
@@ -257,6 +296,7 @@ public class ManagedJournaux extends Managed<Journaux, YvsComptaJournaux> implem
         YvsComptaJournaux j = (YvsComptaJournaux) ev.getObject();
         onSelectObject(j);
         execute("collapseForm('journaux')");
+        tabIds = journaux.indexOf(j) + "";
         selectJournal = j;
         execute("oncollapsesForm('journaux')");
     }
@@ -307,12 +347,70 @@ public class ManagedJournaux extends Managed<Journaux, YvsComptaJournaux> implem
         }
     }
 
+    public void fusionner(boolean fusionne) {
+        try {
+            fusionneTo = "";
+            fusionnesBy.clear();
+            List<Integer> ids = decomposeSelection(tabIds);
+            if (!ids.isEmpty() ? ids.size() > 1 : false) {
+                long newValue = journaux.get(ids.get(0)).getId();
+                if (!fusionne) {
+                    String oldValue = "0";
+                    for (int i : ids) {
+                        if (journaux.get(i).getId() != newValue) {
+                            oldValue += "," + journaux.get(i).getId();
+                        }
+                    }
+                    if (dao.fusionneData("yvs_compta_journaux", newValue, oldValue)) {
+                        for (String i : oldValue.split(",")) {
+                            Long id = Long.valueOf(i);
+                            if (id > 0 ? !id.equals(newValue) : false) {
+                                journaux.remove(new YvsComptaJournaux(id));
+                            }
+                        }
+                    }
+                    tabIds = "";
+                    succes();
+                } else {
+                    int idx = ids.get(0);
+                    if (idx > -1) {
+                        fusionneTo = journaux.get(idx).getIntitule();
+                    } else {
+                        YvsComptaJournaux c = (YvsComptaJournaux) dao.loadOneByNameQueries("YvsComptaJournaux.findById", new String[]{"id"}, new Object[]{newValue});
+                        if (c != null ? (c.getId() != null ? c.getId() > 0 : false) : false) {
+                            fusionneTo = c.getIntitule();
+                        }
+                    }
+                    YvsComptaJournaux c;
+                    for (int i : ids) {
+                        long oldValue = journaux.get(i).getId();
+                        if (i > -1) {
+                            if (oldValue != newValue) {
+                                fusionnesBy.add(journaux.get(i).getIntitule());
+                            }
+                        } else {
+                            c = (YvsComptaJournaux) dao.loadOneByNameQueries("YvsComptaJournaux.findById", new String[]{"id"}, new Object[]{oldValue});
+                            if (c != null ? (c.getId() != null ? c.getId() > 0 : false) : false) {
+                                fusionnesBy.add(c.getIntitule());
+                            }
+                        }
+                    }
+                    update("blog_fusionner_journaux");
+                }
+            } else {
+                getErrorMessage("Vous devez selectionner au moins 2 journaux");
+            }
+        } catch (NumberFormatException ex) {
+        }
+    }
+
     @Override
     public void resetFiche() {
         resetFiche(journal);
         journal.setAgence(new Agence());
         journal.setDefaultFor(false);
         selectJournal = new YvsComptaJournaux();
+        tabIds = "";
         update("form_edit_journaux");
     }
 

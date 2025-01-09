@@ -7,7 +7,9 @@ package yvs.service.compta.doc.divers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.DaoInterfaceWs;
+import yvs.dao.Options;
 import yvs.dao.Util;
 import yvs.dao.salaire.service.Constantes;
 import yvs.dao.salaire.service.ResultatAction;
@@ -120,6 +122,21 @@ public class AYvsComptaAcompteClient extends AbstractEntity {
             Logger.getLogger(AYvsComptaAcompteClient.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
+    }
+
+    public static Double findResteForAcompte(YvsComptaAcompteClient y, DaoInterfaceLocal dao) {
+        String query = "SELECT a.montant - COALESCE(SUM(p.montant), 0) FROM yvs_compta_notif_reglement_vente y RIGHT JOIN yvs_compta_acompte_client a ON y.acompte = a.id LEFT JOIN yvs_compta_caisse_piece_vente p ON (y.piece_vente = p.id AND p.statut_piece = 'P') WHERE a.id = ? GROUP BY a.id";
+        return (Double) dao.loadObjectBySqlQuery(query, new Options[]{new Options(y.getId(), 1)});
+    }
+
+    public static Double findResteUnBindForAcompte(YvsComptaAcompteClient y, DaoInterfaceLocal dao) {
+        String query = "SELECT a.montant - COALESCE(SUM(p.montant), 0) FROM yvs_compta_notif_reglement_vente y RIGHT JOIN yvs_compta_acompte_client a ON y.acompte = a.id LEFT JOIN yvs_compta_caisse_piece_vente p ON y.piece_vente = p.id WHERE a.id = ? GROUP BY a.id";
+        return (Double) dao.loadObjectBySqlQuery(query, new Options[]{new Options(y.getId(), 1)});
+    }
+
+    public static Double findResteUnBindForAcompteAndNotPiece(YvsComptaAcompteClient y, Long piece, DaoInterfaceLocal dao) {
+        String query = "SELECT a.montant - COALESCE(SUM(p.montant), 0) FROM yvs_compta_notif_reglement_vente y RIGHT JOIN yvs_compta_acompte_client a ON y.acompte = a.id LEFT JOIN yvs_compta_caisse_piece_vente p ON y.piece_vente = p.id WHERE a.id = ? AND p.id = ? GROUP BY a.id";
+        return (Double) dao.loadObjectBySqlQuery(query, new Options[]{new Options(y.getId(), 1), new Options(piece, 2)});
     }
 
 }
