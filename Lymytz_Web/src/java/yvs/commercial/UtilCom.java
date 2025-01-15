@@ -402,6 +402,9 @@ public class UtilCom {
             p.setUpdate(true);
             p.setJourUsine(y.getJourUsine());
             p.setUseLotReception(y.getUseLotReception());
+            p.setDisplayAvgPuv(y.getDisplayAvgPuv());
+            p.setDisplayPrixRevient(y.getDisplayPrixRevient());
+            p.setDisplayResteALivrer(y.getDisplayResteALivrer());
         }
         return p;
     }
