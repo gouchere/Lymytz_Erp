@@ -1977,11 +1977,11 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
         }
     }
 
-    public void chooseArticleDebut() {
+    public void chooseArticleDebut(List<YvsBaseArticleDepot> articlesDebut1) {
         select = false;
         articlesFin.clear();
         if (idArtDeb > 0) {
-            YvsBaseArticleDepot a = articlesDebut.get(articlesDebut.indexOf(new YvsBaseArticleDepot(idArtDeb)));
+            YvsBaseArticleDepot a = articlesDebut1.get(articlesDebut.indexOf(new YvsBaseArticleDepot(idArtDeb)));
             if (a != null ? a.getId() > 0 : false) {
                 articleDebut = a.getArticle().getDesignation();
                 for (YvsBaseArticleDepot d : articlesDebut) {
