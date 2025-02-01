@@ -5116,7 +5116,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
             m.setCa(c != null ? c : 0);
         }
         Options[] param = new Options[]{new Options(currentAgence.getSociete().getId(), 1), new Options(agence, 2), new Options(0, 3), new Options(dateDebut, 4), new Options(dateFin, 5)};
-        String query = "select y.nombre, y.valeur, y.code, y.rang from public.com_et_dashboard(?,?,?,?,?) y";
+        String query = "select y.nombre, y.valeur, y.code, y.rang from public.com_et_dashboard(?,?,?,?,?) y ";
         Query qr = dao.getEntityManager().createNativeQuery(query);
         for (Options o : param) {
             qr.setParameter(o.getPosition(), o.getValeur());
