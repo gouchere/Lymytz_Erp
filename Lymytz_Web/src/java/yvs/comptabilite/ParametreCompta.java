@@ -23,7 +23,7 @@ public class ParametreCompta implements Serializable {
 
     private int id;
     private int tailleCompte = 8;
-    private int converter = 0, jourAnterieurCancel, jourAnterieur;
+    private int converter = 0, jourAnterieurCancel, jourAnterieur, jourAntidaterPaiement = -1;
     private double multipleArrondi = 5, montantSeuilOd, montantSeuilRecetteOd, valeurLimiteArrondi;
     private double plafondBp;
     private int nbMaxBp;
@@ -57,6 +57,14 @@ public class ParametreCompta implements Serializable {
 
     public void setValeurLimiteArrondi(double valeurLimiteArrondi) {
         this.valeurLimiteArrondi = valeurLimiteArrondi;
+    }
+
+    public int getJourAntidaterPaiement() {
+        return jourAntidaterPaiement;
+    }
+
+    public void setJourAntidaterPaiement(int jourAntidaterPaiement) {
+        this.jourAntidaterPaiement = jourAntidaterPaiement;
     }
 
     public double getMontantSeuilRecetteOd() {

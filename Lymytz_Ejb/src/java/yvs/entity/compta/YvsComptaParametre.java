@@ -67,6 +67,8 @@ public class YvsComptaParametre implements Serializable {
     private Integer ecartDaySoldeClient;
     @Column(name = "jour_anterieur")
     private Integer jourAnterieur;
+    @Column(name = "jour_antidater_paiement")
+    private Integer jourAntidaterPaiement;
     @Column(name = "jour_anterieur_cancel")
     private Integer jourAnterieurCancel;
     @Column(name = "nombre_ligne_solde_client")
@@ -165,6 +167,14 @@ public class YvsComptaParametre implements Serializable {
 
     public void setJourAnterieurCancel(Integer jourAnterieurCancel) {
         this.jourAnterieurCancel = jourAnterieurCancel;
+    }
+
+    public Integer getJourAntidaterPaiement() {
+        return jourAntidaterPaiement != null ? jourAntidaterPaiement : -1;
+    }
+
+    public void setJourAntidaterPaiement(Integer jourAntidaterPaiement) {
+        this.jourAntidaterPaiement = jourAntidaterPaiement;
     }
 
     public Date getDateUpdate() {
@@ -326,7 +336,7 @@ public class YvsComptaParametre implements Serializable {
     public void setNbMaxBp(Integer nbMaxBp) {
         this.nbMaxBp = nbMaxBp;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 0;
