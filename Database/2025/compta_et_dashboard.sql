@@ -41,9 +41,9 @@ begin
 	if(type_ = 'R')then -- Operation sur le 'Resultat'
 		query_ = query_ || ' and (c.num_compte like ''6%'' or c.num_compte like ''7%'' or c.num_compte like ''8%'') and (c.num_compte between '''||comptedebut_||''' and '''||comptefin_||''') order by c.num_compte';
 	elsif(type_ = 'P')then -- Operation sur le 'Produit'
-		query_ = query_ || ' and (c.num_compte like ''7%'') and (c.num_compte between '''||comptedebut_||''' and '''||comptefin_||''') order by c.num_compte';
+		query_ = query_ || ' and (c.num_compte like ''7%'' or c.num_compte like ''80%'' or c.num_compte like ''82%'' or c.num_compte like ''84%'' or c.num_compte like ''86%'' or c.num_compte like ''88%'') and (c.num_compte between '''||comptedebut_||''' and '''||comptefin_||''') order by c.num_compte';
 	elsif(type_ = 'C')then -- Operation sur le 'Charge'
-		query_ = query_ || ' and (c.num_compte like ''6%'') and (c.num_compte between '''||comptedebut_||''' and '''||comptefin_||''') order by c.num_compte';
+		query_ = query_ || ' and (c.num_compte like ''6%'' or c.num_compte like ''81%'' or c.num_compte like ''83%'' or c.num_compte like ''85%'' or c.num_compte like ''87%'' or c.num_compte like ''89%'') and (c.num_compte between '''||comptedebut_||''' and '''||comptefin_||''') order by c.num_compte';
 	elsif(type_ = 'B')then -- Operation sur le 'Bilan'
 		query_ = query_ || ' and (substring(c.num_compte, 0,2) < ''6'') and (c.num_compte between '''||comptedebut_||''' and '''||comptefin_||''') order by c.num_compte';
 	else -- Operation sur la 'Balance'
@@ -63,8 +63,13 @@ begin
 				pdt_ = true;
 				chg_ = false;
 			elsif(comptes_.classe = '8')then
-				pdt_ = true;
-				chg_ = true;
+				pdt_ = false;
+				chg_ = false;
+				if(comptes_.code like '80%' or comptes_.code like '82%' or comptes_.code like '84%' or comptes_.code like '86%' or comptes_.code like '88%')then
+					pdt_ = true;
+				else
+					chg_ = true;
+				end if;
 			else
 				pdt_ = false;
 				chg_ = false;
