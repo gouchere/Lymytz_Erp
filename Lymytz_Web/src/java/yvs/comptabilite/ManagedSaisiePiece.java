@@ -226,7 +226,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     private Long exerciceSearch, agenceSearch;
     private Double montantSearch = null;
     private boolean dateContentSearch, dateSaveContentSearch, dateSearch, dateSaveSearch;
-    private Boolean lettrerSearch = false, withLiaisonSearch, displayPieceDesequilibrer;
+    private Boolean lettrerSearch = false, withLiaisonSearch;
 
     private String natureFind, refExtFind;
     long tempId = -10000;
@@ -250,14 +250,6 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         if (currentUser != null) {
             fonction.loadInfos(currentAgence.getSociete(), currentAgence, currentUser, currentDepot, currentPoint, currentExo);
         }
-    }
-
-    public Boolean getDisplayPieceDesequilibrer() {
-        return displayPieceDesequilibrer;
-    }
-
-    public void setDisplayPieceDesequilibrer(Boolean displayPieceDesequilibrer) {
-        this.displayPieceDesequilibrer = displayPieceDesequilibrer;
     }
 
     public String getMouvementContenuSearch() {
@@ -1065,6 +1057,13 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     }
 
     private void loadAllPiece(boolean avancer) {
+        loadAllPiece(avancer, false);
+    }
+
+    private void loadAllPiece(boolean avancer, boolean diagnostic) {
+        if (!diagnostic) {
+            paginator.addParam(new ParametreRequete("y.piece.id", "desequilibrer", null, "IN", "AND"));
+        }
         ParametreRequete p = new ParametreRequete("y.piece.journal.agence.societe", "societe", currentAgence.getSociete(), "=", "AND");
         paginator.addParam(p);
 //        listePiece = paginator.executeDynamicQuery("YvsComptaPiecesComptable", "y.exercice.dateFin DESC, y.datePiece DESC", avancer, initForm, (int) imax, dao);
@@ -11211,20 +11210,20 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         loadAllPiece(true);
     }
 
-    public void addParamDisplayDesequilibrer() {
-        ParametreRequete p = new ParametreRequete("y.id", "desequilibrer", null, "IN", "AND");
-        if (displayPieceDesequilibrer != null) {
-            String req = "select p.id from yvs_compta_pieces_comptable p inner join yvs_compta_content_journal c on c.piece = p.id "
-                    + "where p.exercice is not null " + (exerciceSearch > 0 ? " AND p.exercice = " + exerciceSearch : "") + " group by p.id having abs(sum(c.debit) - sum(c.credit)) > 1";
-            List<Long> desequilibrer = dao.loadListBySqlQuery(req, new Options[]{});
-            if (desequilibrer.isEmpty()) {
-                desequilibrer.add(-1L);
-            }
-            p = new ParametreRequete("y.piece.id", "desequilibrer", desequilibrer, displayPieceDesequilibrer ? "IN" : "NOT IN", "AND");
+    public void onSearchDesequilibrer() {
+        String req = "select p.id from yvs_compta_pieces_comptable p inner join yvs_compta_content_journal c on c.piece = p.id "
+                + "where p.exercice is not null " + (exerciceSearch > 0 ? " AND p.exercice = " + exerciceSearch : "") + " group by p.id having abs(sum(c.debit) - sum(c.credit)) > 0.01";
+        List<Long> desequilibrer = dao.loadListBySqlQuery(req, new Options[]{});
+        if (desequilibrer.isEmpty()) {
+            desequilibrer.add(-1L);
         }
-        paginator.addParam(p);
+        paginator.getParams().clear();
+        if (exerciceSearch > 0) {
+            paginator.addParam(new ParametreRequete("y.piece.exercice", "exercice", new YvsBaseExercice(exerciceSearch), "=", "AND"));
+        }
+        paginator.addParam(new ParametreRequete("y.piece.id", "desequilibrer", desequilibrer, "IN", "AND"));
         initForm = true;
-        loadAllPiece(true);
+        loadAllPiece(true, true);
     }
 
     public void clearContentJournal(boolean delete) {
