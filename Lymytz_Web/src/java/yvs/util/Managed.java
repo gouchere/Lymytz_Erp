@@ -4196,7 +4196,7 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
                 if (autoriser(ressource)) {
                     return true;
                 } else {
-                    getErrorMessage("La date ne doit pas excedé le nombre de jour de retrait prévu");
+                    getErrorMessage("La date de l'opération ne doit pas être antérieure à "+ecart+" Jour(s)");
                     return false;
                 }
             }
