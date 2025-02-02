@@ -882,7 +882,8 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     }
 
     /**
-     * copie les propriétés de l'objet source dans l'objet cible sans en changer la référence
+     * copie les propriétés de l'objet source dans l'objet cible sans en changer
+     * la référence
      *
      * @param cible
      * @param source
@@ -4162,6 +4163,10 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     }
 
     public boolean verifyDate(Date date, int ecart) {
+        return verifyDate(date, ecart, "com_save_hors_limit");
+    }
+
+    public boolean verifyDate(Date date, int ecart, String ressource) {
         date = date != null ? date : new Date();
         if (!verifyDateExercice(date)) {
             return false;
@@ -4188,7 +4193,7 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
         if (ecart > 0) {
             now.add(Calendar.DATE, -ecart);
             if (d.before(now)) {
-                if (autoriser("com_save_hors_limit")) {
+                if (autoriser(ressource)) {
                     return true;
                 } else {
                     getErrorMessage("La date ne doit pas excedé le nombre de jour de retrait prévu");

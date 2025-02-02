@@ -151,6 +151,7 @@ public class UtilCompta {
             p.setNombreLigneSoldeClient(y.getNombreLigneSoldeClient());
             p.setJourAnterieur(y.getJourAnterieur());
             p.setJourAnterieurCancel(y.getJourAnterieurCancel());
+            p.setJourAntidaterPaiement(y.getJourAntidaterPaiement());
             p.setReportByAgence(y.getReportByAgence());
             p.setCompteBeneficeReport(buildBeanCompte(y.getCompteBeneficeReport()));
             p.setComptePerteReport(buildBeanCompte(y.getComptePerteReport()));
@@ -178,6 +179,7 @@ public class UtilCompta {
             p.setNombreLigneSoldeClient(y.getNombreLigneSoldeClient());
             p.setJourAnterieur(y.getJourAnterieur());
             p.setJourAnterieurCancel(y.getJourAnterieurCancel());
+            p.setJourAntidaterPaiement(y.getJourAntidaterPaiement());
             p.setReportByAgence(y.isReportByAgence());
             p.setSociete(ste);
             p.setAuthor(ua);
