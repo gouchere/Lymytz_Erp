@@ -40,7 +40,6 @@ ear_exist(){
   ls $EAR_PATH &>/dev/null || return 1
   return 0
 }
-
 if is_server_running; then
   echo "le domaine glassfish est en cours d'exécution..."
   echo "undeploy..."
@@ -55,4 +54,5 @@ else
   echo "lancement du domain glassfish"
   start_domain
 fi
+tail -f $GLASSFISH_HOME/glassfish/domains/domain1/logs/server.log
 #
