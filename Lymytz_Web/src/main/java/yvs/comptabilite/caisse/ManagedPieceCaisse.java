@@ -556,7 +556,7 @@ public class ManagedPieceCaisse extends Managed<PieceTresorerie, YvsComptaMouvem
             openNotAcces();
             return false;
         }
-        if (!verifyDate(bean.getDatePaiement(), -1)) {
+        if (!verifyDate(bean.getDatePaiement(), currentParam.getJourAntidaterPaiement())) {
             return false;
         }
         //controle le solde de la caisse        
