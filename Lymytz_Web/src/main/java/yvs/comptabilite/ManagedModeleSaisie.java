@@ -91,7 +91,7 @@ public class ManagedModeleSaisie extends Managed<ModelesSasie, YvsComptaModeleSa
     private long codeJrn;
     private double creditJrn, debitJrn;
     
-    private List<YvsBasePlanComptable> comptes, selectComptes;
+    private List<YvsBasePlanComptable> comptes, selectComptes, filterComptes;
     private List<YvsBaseTiers> tiers, selectTiers;
     private List<YvsComptaCentreAnalytique> centres, selectCentres;
     
@@ -102,6 +102,7 @@ public class ManagedModeleSaisie extends Managed<ModelesSasie, YvsComptaModeleSa
         
         comptes = new ArrayList<>();
         selectComptes = new ArrayList<>();
+        filterComptes = new ArrayList<>();
         tiers = new ArrayList<>();
         selectTiers = new ArrayList<>();
         centres = new ArrayList<>();
@@ -120,7 +121,14 @@ public class ManagedModeleSaisie extends Managed<ModelesSasie, YvsComptaModeleSa
         tabDashboard.setSociete(currentAgence.getSociete().getId());
         tabDashboard.setAgence(currentAgence.getId());
     }
-    
+
+    public List<YvsBasePlanComptable> getFilterComptes() {
+        return filterComptes;
+    }
+
+    public void setFilterComptes(List<YvsBasePlanComptable> filterComptes) {
+        this.filterComptes = filterComptes;
+    }
     public String getTitleDebut() {
         return titleDebut;
     }
