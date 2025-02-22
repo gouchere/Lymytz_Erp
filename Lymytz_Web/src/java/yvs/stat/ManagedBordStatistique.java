@@ -57,6 +57,7 @@ import yvs.entity.base.YvsBaseModeReglement;
 import yvs.entity.commercial.achat.YvsComContenuDocAchat;
 import yvs.entity.commercial.achat.YvsComDocAchats;
 import yvs.entity.commercial.client.YvsComClient;
+import yvs.entity.commercial.stock.YvsComDocStocks;
 import yvs.entity.commercial.vente.YvsComDocVentes;
 import yvs.entity.compta.YvsBaseCaisse;
 import yvs.entity.compta.YvsComptaAcompteClient;
@@ -107,7 +108,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     private List<YvsStatDashboardUsers> parametres;
     List<Dashboard> parametrages = new ArrayList<>();
 
-    private boolean loadSalarial = false, loadBonProvisoire, loadSoldeCaisse, loadClassementMS, loadClassementPF, loadClassementPoint, loadClassementVendeur, loadClassementClient, loadSoldeFournisseur;
+    private boolean loadSalarial = false, loadBonProvisoire, loadTransfertIncoherent, loadSoldeCaisse, loadClassementMS, loadClassementPF, loadClassementPoint, loadClassementVendeur, loadClassementClient, loadSoldeFournisseur;
 
     private double masseSalarialMoisPrec, masseSalarialAnnuel,
             cotisationSalarialMoisPrec, cotisationSalarialAnnuel,
@@ -196,6 +197,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
 
     private YvsComDocAchats achat = new YvsComDocAchats();
 
+    private List<YvsComDocStocks> transferts;
     private List<YvsUsers> selectedUsers;
     private List<YvsComptaBonProvisoire> bonsProvisoires;
     private List<YvsBaseModeReglement> models;
@@ -239,6 +241,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         listings_achat = new ArrayList<>();
         listing_facture = new ArrayList<>();
         listing_facture_achat = new ArrayList<>();
+        transferts = new ArrayList<>();
         list = new ArrayList<Object>() {
             {
                 add(new Object());
@@ -380,6 +383,14 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
 
     public void setLoadSalarial(boolean loadSalarial) {
         this.loadSalarial = loadSalarial;
+    }
+
+    public boolean isLoadTransfertIncoherent() {
+        return loadTransfertIncoherent;
+    }
+
+    public void setLoadTransfertIncoherent(boolean loadTransfertIncoherent) {
+        this.loadTransfertIncoherent = loadTransfertIncoherent;
     }
 
     public boolean isLoadBonProvisoire() {
@@ -1712,6 +1723,14 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         return options.contains("-VB");
     }
 
+    public List<YvsComDocStocks> getTransferts() {
+        return transferts;
+    }
+
+    public void setTransferts(List<YvsComDocStocks> transferts) {
+        this.transferts = transferts;
+    }
+
     private void loadVariable() {
         AccesPage acces = (AccesPage) giveManagedBean(AccesPage.class);
         parametrages.add(new Dashboard("MARGE_MS_ARTICLE", "../com/sub/marges/yvs_marge_ms_article.xhtml", "-F,-C,-P", (acces != null ? acces.isStat_marge_article() : false)));
@@ -1940,6 +1959,26 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
             d.setAcces(acces);
             parametres.add(d);
         }
+    }
+
+    public void onLoadTransfertIncoherent() {
+        String query = " SELECT DISTINCT c.doc_stock as id FROM yvs_com_doc_stocks y INNER JOIN yvs_com_contenu_doc_stock c ON c.doc_stock = y.id "
+                + "INNER JOIN yvs_com_contenu_doc_stock_reception r ON r.contenu = c.id "
+                + "INNER JOIN yvs_base_depots d ON y.source = d.id INNER JOIN yvs_agences a ON d.agence = a.id "
+                + "WHERE y.type_doc = 'FT' AND y.statut = 'V' AND a.societe = ? "
+                + "GROUP BY c.doc_stock, c.id HAVING c.quantite_entree < SUM(r.quantite)";
+        List<Options> params = new ArrayList<>();
+        params.add(new Options(currentAgence.getSociete().getId(), params.size() + 1));
+        List<Long> ids = dao.loadListBySqlQuery(query, params.toArray(new Options[params.size()]));
+        if (ids != null ? ids.isEmpty() : true) {
+            ids = new ArrayList<Long>() {
+                {
+                    add(-1L);
+                }
+            };
+        }
+        transferts = dao.loadNameQueries("YvsComDocStocks.findByIds", new String[]{"ids"}, new Object[]{ids});
+        loadTransfertIncoherent = true;
     }
 
     public void actionParametre(YvsStatDashboardUsers y) {

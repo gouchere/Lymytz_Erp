@@ -1644,7 +1644,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
     }
 
     public void deleteBeanArticles(boolean execute) {
-        if (execute || memoriserDeleteContenu) {
+        if (execute || memoriserDeleteContenu) { 
             if (selectContenus != null ? !selectContenus.isEmpty() : false) {
                 if (!_controleFiche_(selectDoc)) {
                     return;
@@ -1668,6 +1668,30 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
             }
         } else {
             openDialog("dlgConfirmDeleteArticles");
+        }
+    }
+
+    public void checkCoherence() {
+        if (selectDoc == null || docStock == null) {
+            return;
+        }
+        if (selectDoc.getId() < 1 || docStock.getContenus().isEmpty()) {
+            return;
+        }
+        String query = "SELECT DISTINCT c.id FROM yvs_com_contenu_doc_stock c INNER JOIN yvs_com_contenu_doc_stock_reception r ON r.contenu = c.id "
+                + "WHERE c.doc_stock = ? GROUP BY c.id HAVING c.quantite_entree < SUM(r.quantite)";
+        List<Options> params = new ArrayList<>();
+        params.add(new Options(selectDoc.getId(), params.size() + 1));
+        List<Long> ids = dao.loadListBySqlQuery(query, params.toArray(new Options[params.size()]));
+        if (ids != null ? ids.isEmpty() : true) {
+            ids = new ArrayList<Long>() {
+                {
+                    add(-1L);
+                }
+            };
+        }
+        for (YvsComContenuDocStock contenu : docStock.getContenus()) {
+            contenu.setIncoherence(ids.contains(contenu.getId()));
         }
     }
 
@@ -2090,9 +2114,17 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
         try {
             ParametreRequete p = new ParametreRequete("y.id", "incoherence", null, "IN", "AND");
             if (withIncoherence != null) {
-                String query = "SELECT DISTINCT y.id FROM yvs_com_doc_stocks y INNER JOIN yvs_com_contenu_doc_stock c ON c.doc_stock = y.id INNER JOIN yvs_base_depots d ON y.source = d.id INNER JOIN yvs_agences a ON d.agence = a.id "
-                        + " WHERE y.type_doc = 'FT' AND y.statut = 'V' AND c.statut != 'V' AND a.societe = ?";
+                String query = "SELECT DISTINCT * from (SELECT DISTINCT y.id FROM yvs_com_doc_stocks y INNER JOIN yvs_com_contenu_doc_stock c ON c.doc_stock = y.id "
+                        + "INNER JOIN yvs_base_depots d ON y.source = d.id INNER JOIN yvs_agences a ON d.agence = a.id "
+                        + "WHERE y.type_doc = 'FT' AND y.statut = 'V' AND c.statut != 'V' AND a.societe = ? "
+                        + "UNION "
+                        + "SELECT DISTINCT c.doc_stock as id FROM yvs_com_doc_stocks y INNER JOIN yvs_com_contenu_doc_stock c ON c.doc_stock = y.id "
+                        + "INNER JOIN yvs_com_contenu_doc_stock_reception r ON r.contenu = c.id "
+                        + "INNER JOIN yvs_base_depots d ON y.source = d.id INNER JOIN yvs_agences a ON d.agence = a.id "
+                        + "WHERE y.type_doc = 'FT' AND y.statut = 'V' AND a.societe = ? "
+                        + "GROUP BY c.doc_stock, c.id HAVING c.quantite_entree < SUM(r.quantite)) AS id ORDER BY id";
                 List<Options> params = new ArrayList<>();
+                params.add(new Options(currentAgence.getSociete().getId(), params.size() + 1));
                 params.add(new Options(currentAgence.getSociete().getId(), params.size() + 1));
                 if (!currentUser.getUsers().getAccesMultiAgence()) {
                     query += " AND d.agence = ?";
