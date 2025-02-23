@@ -984,6 +984,8 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
             getErrorMessage("La ligne doit être editable");
             return false;
         }
+        String statut = (String) dao.loadObjectByNameQueries("YvsComDocStocks.findStatutById", new String[]{"id"}, new Object[]{docStock.getId()});
+        docStock.setStatut(statut);
         if (!autoriser("tr_add_content_after_valide") && (docStock.getStatut().equals(Constantes.ETAT_VALIDE))) {
             openNotAcces();
             return false;
@@ -1315,14 +1317,13 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
         YvsComContenuDocStock en = null;
         try {
             //cette vérificaction empêche de modifier une fiche qui apprait editable pour la fiche chargé à l'écran et pourtant déjà validé en base de données
+            String statut = (String) dao.loadObjectByNameQueries("YvsComDocStocks.findStatutById", new String[]{"id"}, new Object[]{docStock.getId()});
+            docStock.setStatut(statut);
+            if (docStock.getStatut().equals(Constantes.ETAT_VALIDE)) {
+                getErrorMessage("Ce transfert est déja validé. veuillez le recharger...");
+                return null;
+            }
             if (!docStock.getStatut().equals(Constantes.ETAT_EDITABLE)) {
-                if (docStock.getStatut().equals(Constantes.ETAT_SOUMIS)) {
-                    String statut = (String) dao.loadObjectByNameQueries("YvsComDocStocks.findStatutById", new String[]{"id"}, new Object[]{docStock.getId()});
-                    if (statut.equals(Constantes.ETAT_VALIDE)) {
-                        getErrorMessage("Ce transfert est déja validé. veuillez le recharger...");
-                        return null;
-                    }
-                }
                 //confirme le droit de transmettre
                 if (!ManagedTransfertStock.this.chechAutorisationActionOnDepot(selectDoc, 1)) {
                     return null;
