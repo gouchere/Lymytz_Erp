@@ -150,4 +150,7 @@ SELECT insert_droit('stat_home_classement_bon_provisoire', 'Page des 5 bons prov
 	(SELECT id FROM yvs_module WHERE reference = 'stat_'), 16, 'A,B,C,D,E,F,G,H,I,J,K,P,Q,R,S,T,U,V,W,X,Y,Z','P');					
 	
 SELECT insert_droit('stat_home_resume_salarial', 'Page du résumé salarial', 
+	(SELECT id FROM yvs_module WHERE reference = 'stat_'), 16, 'A,B,C,D,E,F,G,H,I,J,K,P,Q,R,S,T,U,V,W,X,Y,Z','P');					
+	
+SELECT insert_droit('stat_home_transfert_incoherent', 'Page des transferts incoherents', 
 	(SELECT id FROM yvs_module WHERE reference = 'stat_'), 16, 'A,B,C,D,E,F,G,H,I,J,K,P,Q,R,S,T,U,V,W,X,Y,Z','P');	

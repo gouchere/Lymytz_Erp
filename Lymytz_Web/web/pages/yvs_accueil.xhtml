@@ -242,32 +242,25 @@
                     </div>
                 </div>
                 <div style="clear: both"/>
-                <br style="display: #{accesPage.stat_home_classement_caisse or accesPage.stat_home_classement_bon_provisoire?'block':'none'}"/>
-                <div class="panel-home" style="float: left;display: #{accesPage.stat_home_classement_caisse?'block':'none'}">
+                <br style="display: #{accesPage.stat_home_transfert_incoherent or accesPage.stat_home_classement_bon_provisoire?'block':'none'}"/>
+                <div class="panel-home" style="float: left;display: #{accesPage.stat_home_transfert_incoherent?'block':'none'}">
                     <div class="header-panel-home" align="left">
-                        <span style="font-weight: bold;">Soldes des caisses</span>
-                        <p:commandButton icon="ui-icon-refresh" styleClass="btn-header-panel-home" update="data_solde_caisses"
-                                         actionListener="#{managedBordStatistique.loadDataSoldeCaisseCurrentExo(managedAccueil.currentParam.nombreEltAccueil)}" title="Actualiser"/>    
+                        <span style="font-weight: bold;">Transferts Incohérents</span>
+                        <p:commandButton icon="ui-icon-refresh" styleClass="btn-header-panel-home" update="data_transfert_stock"
+                                         actionListener="#{managedBordStatistique.onLoadTransfertIncoherent()}" title="Actualiser"/>    
                     </div>
                     <div class="content-panel-home">
-                        <p:outputPanel id="data_solde_caisses">
-                            <p:dataTable value="#{managedBordStatistique.soldeCaisses.lignes}" var="row_4" rowIndexVar="iRow" rendered="#{managedBordStatistique.loadSoldeCaisse}">
-                                <p:columnGroup type="header">
-                                    <p:row>
-                                        <p:column headerText="N°" style="width: 5%;font-weight: bold"/>
-                                        <p:column headerText="NOMS" style="font-weight: bold"/>
-                                        <p:column headerText="TOTAUX" style="width: 10%;font-weight: bold"/>
-                                    </p:row>
-                                </p:columnGroup>   
-                                <p:column style="width: 5%">
-                                    <h:outputText value="#{iRow+1}"/>
+                        <p:outputPanel id="data_transfert_stock">
+                            <p:dataTable value="#{managedBordStatistique.transferts}" var="bon" rowIndexVar="iBon" rendered="#{managedBordStatistique.loadTransfertIncoherent}">
+                                <p:column headerText="#{lab.L_reference}" width="100">
+                                    <h:commandLink title="Cliquer pour voir" actionListener="#{managedTransfertStock.onSelectDistant(bon)}"><u>#{bon.numDoc}</u></h:commandLink>
                                 </p:column>
-                                <p:column style="width: 15%">
-                                    <h:outputText value="#{row_4.libelle}"/>
+                                <p:column headerText="#{lab.LC_PTS_date_transfert}" style="text-align: center" width="80">
+                                    <h:outputText value="#{bon.dateDoc}" converter="DDMMYYYY"/>
                                 </p:column>
-                                <p:column style="width: 10%;text-align: right;font-weight: bold">
-                                    <h:outputText value="#{managedBordStatistique.soldeCaisses.totalRow(iRow, managedBordStatistique.soldeCaisses.type)}" converter="#{managedBordStatistique.converter}"/>
-                                </p:column> 
+                                <p:column headerText="#{lab.LC_PTS_depot_source}" width="100">
+                                    <span>#{bon.source.designation}</span>
+                                </p:column>
                             </p:dataTable>
                         </p:outputPanel>  
                     </div>
@@ -309,8 +302,37 @@
                     </div>
                 </div>
                 <div style="clear: both"/>
-                <br style="display: #{accesPage.stat_home_resume_salarial or accesPage.stat_home_resume_salarial?'block':'none'}"/>
-                <div class="panel-home" style="float: left;display: #{accesPage.stat_home_resume_salarial?'block':'none'}">
+                <br style="display: #{accesPage.stat_home_classement_caisse or accesPage.stat_home_transfert_incoherent?'block':'none'}"/>
+                <div class="panel-home" style="float: left;display: #{accesPage.stat_home_classement_caisse?'block':'none'}">
+                    <div class="header-panel-home" align="left">
+                        <span style="font-weight: bold;">Soldes des caisses</span>
+                        <p:commandButton icon="ui-icon-refresh" styleClass="btn-header-panel-home" update="data_solde_caisses"
+                                         actionListener="#{managedBordStatistique.loadDataSoldeCaisseCurrentExo(managedAccueil.currentParam.nombreEltAccueil)}" title="Actualiser"/>    
+                    </div>
+                    <div class="content-panel-home">
+                        <p:outputPanel id="data_solde_caisses">
+                            <p:dataTable value="#{managedBordStatistique.soldeCaisses.lignes}" var="row_4" rowIndexVar="iRow" rendered="#{managedBordStatistique.loadSoldeCaisse}">
+                                <p:columnGroup type="header">
+                                    <p:row>
+                                        <p:column headerText="N°" style="width: 5%;font-weight: bold"/>
+                                        <p:column headerText="NOMS" style="font-weight: bold"/>
+                                        <p:column headerText="TOTAUX" style="width: 10%;font-weight: bold"/>
+                                    </p:row>
+                                </p:columnGroup>   
+                                <p:column style="width: 5%">
+                                    <h:outputText value="#{iRow+1}"/>
+                                </p:column>
+                                <p:column style="width: 15%">
+                                    <h:outputText value="#{row_4.libelle}"/>
+                                </p:column>
+                                <p:column style="width: 10%;text-align: right;font-weight: bold">
+                                    <h:outputText value="#{managedBordStatistique.soldeCaisses.totalRow(iRow, managedBordStatistique.soldeCaisses.type)}" converter="#{managedBordStatistique.converter}"/>
+                                </p:column> 
+                            </p:dataTable>
+                        </p:outputPanel>  
+                    </div>
+                </div>
+                <div class="panel-home" style="float: right;display: #{accesPage.stat_home_resume_salarial?'block':'none'}">
                     <div class="header-panel-home" align="left">
                         <span style="font-weight: bold;">Masse salariale</span>
                         <p:commandButton icon="ui-icon-refresh" styleClass="btn-header-panel-home" update="data_resume_salarial"
@@ -336,9 +358,6 @@
                             </h:panelGrid>
                         </p:outputPanel>  
                     </div>
-                </div>
-                <div style="float: right;width: 49.5%">
-
                 </div>
             </div>
             <div style="margin-left: 71%;margin-top: 2px">

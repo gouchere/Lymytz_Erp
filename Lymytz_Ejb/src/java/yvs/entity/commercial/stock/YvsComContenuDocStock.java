@@ -163,6 +163,8 @@ public class YvsComContenuDocStock extends YvsEntity implements Serializable {
     @Transient
     private boolean new_;
     @Transient
+    private boolean incoherence;
+    @Transient
     private boolean selectActif;
     @Transient
     private boolean update;
@@ -217,6 +219,7 @@ public class YvsComContenuDocStock extends YvsEntity implements Serializable {
         this.externe = y.getExterne();
         this.qualite = y.getQualite();
         this.new_ = y.isNew_();
+        this.incoherence = y.isIncoherence();
         this.lotEntree = y.getLotEntree();
         this.lotSortie = y.getLotSortie();
         this.selectActif = y.isSelectActif();
@@ -399,6 +402,14 @@ public class YvsComContenuDocStock extends YvsEntity implements Serializable {
 
     public void setPrixTotal(double prixTotal) {
         this.prixTotal = prixTotal;
+    }
+
+    public boolean isIncoherence() {
+        return incoherence;
+    }
+
+    public void setIncoherence(boolean incoherence) {
+        this.incoherence = incoherence;
     }
 
     public boolean isNew_() {

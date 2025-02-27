@@ -111,11 +111,19 @@ public class AccesPage implements Serializable {
             stat_ecart_production, stat_production_vente, stat_bon_provisoire_encours, stat_solde_caisse, stat_brouillard_caisse, stat_facture_achat_impaye,
             stat_ca_fournisseur, stat_classement_fournisseur, stat_ca_article, stat_classement_article, stat_marge_article, stat_listing_vente_article;
 
-    public boolean stat_home_classement_client, stat_home_classement_vendeur, stat_home_classement_point, stat_home_classement_article,
+    public boolean stat_home_classement_client, stat_home_classement_vendeur, stat_home_classement_point, stat_home_classement_article, stat_home_transfert_incoherent,
             stat_home_classement_fournisseur, stat_home_classement_caisse, stat_home_classement_bon_provisoire, stat_home_resume_salarial;
 
     //Module Projet proj_
     private boolean proj_departement, proj_projet;
+
+    public boolean isStat_home_transfert_incoherent() {
+        return stat_home_transfert_incoherent;
+    }
+
+    public void setStat_home_transfert_incoherent(boolean stat_home_transfert_incoherent) {
+        this.stat_home_transfert_incoherent = stat_home_transfert_incoherent;
+    }
 
     public boolean isStat_home_classement_client() {
         return stat_home_classement_client;
@@ -235,7 +243,7 @@ public class AccesPage implements Serializable {
 
     public void setGescom_hist_pr(boolean gescom_hist_pr) {
         this.gescom_hist_pr = gescom_hist_pr;
-    }        
+    }
 
     public boolean isGescom_tbg_stock() {
         return gescom_tbg_stock;
