@@ -242,24 +242,33 @@
                     </div>
                 </div>
                 <div style="clear: both"/>
-                <br style="display: #{accesPage.stat_home_transfert_incoherent or accesPage.stat_home_classement_bon_provisoire?'block':'none'}"/>
-                <div class="panel-home" style="float: left;display: #{accesPage.stat_home_transfert_incoherent?'block':'none'}">
+                <br style="display: #{accesPage.stat_home_piece_caisse_antidate or accesPage.stat_home_classement_bon_provisoire?'block':'none'}"/>
+                <div class="panel-home" style="float: left;display: #{accesPage.stat_home_piece_caisse_antidate?'block':'none'}">
                     <div class="header-panel-home" align="left">
-                        <span style="font-weight: bold;">Transferts Incohérents</span>
-                        <p:commandButton icon="ui-icon-refresh" styleClass="btn-header-panel-home" update="data_transfert_stock"
-                                         actionListener="#{managedBordStatistique.onLoadTransfertIncoherent()}" title="Actualiser"/>    
+                        <span style="font-weight: bold;">Piece de caisse antidaté</span>
+                        <h:selectOneMenu value="#{managedBordStatistique.nbrJourEcartPiecesCaisseAntidate}" style="margin-left:5px">
+                            <f:selectItem itemValue="7" itemLabel="plus de 7 jours" />
+                            <f:selectItem itemValue="30" itemLabel="plus de 30 jours" />
+                            <f:selectItem itemValue="365" itemLabel="plus de 365 jours" />
+                            <f:selectItem itemValue="1000" itemLabel="plus de plus de 1000 jours" />
+                        </h:selectOneMenu>
+                        <p:commandButton icon="ui-icon-refresh" styleClass="btn-header-panel-home" update="data_piece_antidate"
+                                         actionListener="#{managedBordStatistique.onLoadPiecesCaisseAntidate(managedAccueil.currentParam.nombreEltAccueil)}" title="Actualiser"/>    
                     </div>
                     <div class="content-panel-home">
-                        <p:outputPanel id="data_transfert_stock">
-                            <p:dataTable value="#{managedBordStatistique.transferts}" var="bon" rowIndexVar="iBon" rendered="#{managedBordStatistique.loadTransfertIncoherent}">
-                                <p:column headerText="#{lab.L_reference}" width="100">
-                                    <h:commandLink title="Cliquer pour voir" actionListener="#{managedTransfertStock.onSelectDistant(bon)}"><u>#{bon.numDoc}</u></h:commandLink>
+                        <p:outputPanel id="data_piece_antidate">
+                            <p:dataTable value="#{managedBordStatistique.piecesCaisseAntidates}" var="mvtC" rowIndexVar="iBon" rendered="#{managedBordStatistique.loadPiecesCaisseAntidates}">
+                                <p:column headerText="#{lab.L_numero}" width="100">
+                                    <h:commandLink title="Cliquer pour voir">#{mvtC.numero}</h:commandLink>
                                 </p:column>
-                                <p:column headerText="#{lab.LC_PTS_date_transfert}" style="text-align: center" width="80">
-                                    <h:outputText value="#{bon.dateDoc}" converter="DDMMYYYY"/>
+                                <p:column headerText="Date création" style="text-align: center" width="80">
+                                    <h:outputText value="#{mvtC.dateSave}" converter="DDMMYYYY"/>
                                 </p:column>
-                                <p:column headerText="#{lab.LC_PTS_depot_source}" width="100">
-                                    <span>#{bon.source.designation}</span>
+                                <p:column headerText="Date paiement" style="text-align: center" width="80">
+                                    <h:outputText value="#{mvtC.datePaye}" converter="DDMMYYYY"/>
+                                </p:column>
+                                <p:column headerText="#{lab.L_montant}" style="text-align: right" width="100">
+                                    <h:outputText value="#{mvtC.montant}" converter="DN"/>
                                 </p:column>
                             </p:dataTable>
                         </p:outputPanel>  
@@ -302,7 +311,7 @@
                     </div>
                 </div>
                 <div style="clear: both"/>
-                <br style="display: #{accesPage.stat_home_classement_caisse or accesPage.stat_home_transfert_incoherent?'block':'none'}"/>
+                <br style="display: #{accesPage.stat_home_classement_caisse or accesPage.stat_home_resume_salarial?'block':'none'}"/>
                 <div class="panel-home" style="float: left;display: #{accesPage.stat_home_classement_caisse?'block':'none'}">
                     <div class="header-panel-home" align="left">
                         <span style="font-weight: bold;">Soldes des caisses</span>
@@ -356,6 +365,30 @@
                                 <h:outputText value="Taxe du mois précédent : "/>
                                 <h:outputText value="#{managedBordStatistique.taxeSalarialMoisPrec}" converter="DN" style="float: right;font-weight: bold"/>
                             </h:panelGrid>
+                        </p:outputPanel>  
+                    </div>
+                </div>
+                <div style="clear: both"/>
+                <br style="display: #{accesPage.stat_home_transfert_incoherent?'block':'none'}"/>
+                <div class="panel-home" style="float: left;display: #{accesPage.stat_home_transfert_incoherent?'block':'none'}">
+                    <div class="header-panel-home" align="left">
+                        <span style="font-weight: bold;">Transferts Incohérents</span>
+                        <p:commandButton icon="ui-icon-refresh" styleClass="btn-header-panel-home" update="data_transfert_stock"
+                                         actionListener="#{managedBordStatistique.onLoadTransfertIncoherent(managedAccueil.currentParam.nombreEltAccueil)}" title="Actualiser"/>    
+                    </div>
+                    <div class="content-panel-home">
+                        <p:outputPanel id="data_transfert_stock">
+                            <p:dataTable value="#{managedBordStatistique.transfertsIncoherent}" var="bon" rowIndexVar="iBon" rendered="#{managedBordStatistique.loadTransfertIncoherent}">
+                                <p:column headerText="#{lab.L_reference}" width="100">
+                                    <h:commandLink title="Cliquer pour voir" actionListener="#{managedTransfertStock.onSelectDistant(bon)}"><u>#{bon.numDoc}</u></h:commandLink>
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PTS_date_transfert}" style="text-align: center" width="80">
+                                    <h:outputText value="#{bon.dateDoc}" converter="DDMMYYYY"/>
+                                </p:column>
+                                <p:column headerText="#{lab.LC_PTS_depot_source}" width="100">
+                                    <span>#{bon.source.designation}</span>
+                                </p:column>
+                            </p:dataTable>
                         </p:outputPanel>  
                     </div>
                 </div>
