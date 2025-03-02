@@ -1382,6 +1382,11 @@ public class ManagedUser extends Managed<Users, YvsUsers> implements Serializabl
                         YvsUsers u = (YvsUsers) dao.loadOneByNameQueries("YvsUsers.findById", new String[]{"id"}, new Object[]{y.getId()});
                         y.setPasswordUser(u.getPasswordUser());
                         y.setAleaMdp(u.getAleaMdp());
+                    } else {
+                        if (!autoriser("base_user_reinitialise_password")) {
+                            openNotAccesAction("Vous ne disposer pas des droits suffisants pour reinitialiser le mot de passe d'un utilisateur");
+                            return null;
+                        }
                     }
                     y.setDateUpdate(new Date());
                     dao.update(y);
@@ -1588,6 +1593,10 @@ public class ManagedUser extends Managed<Users, YvsUsers> implements Serializabl
 
     public void reInitialedPassword() {
         if (userSelect != null ? userSelect.getId() > 0 : false) {
+            if (!autoriser("base_user_reinitialise_password")) {
+                openNotAcces();
+                return;
+            }
             userSelect.setPasswordUser(defaultPwdUser);
             userSelect.setAleaMdp(hashMdp.randomString(15));
             userSelect.setPasswordUser(hashMdp.hashString(userSelect.getCodeUsers() + "" + userSelect.getAleaMdp() + "" + defaultPwdUser));

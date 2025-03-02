@@ -22,7 +22,7 @@ public class AccesRessource implements Serializable {
     public boolean base_cloture_exo, base_uncloture_exo;
     //Page Utilisateur base_user_
     public boolean base_user_vu_, base_user_up_, base_user_del_, base_user_add_, base_view_all_user, base_view_all_user_groupe, base_user_attrib_code_acces, base_user_active,
-            caiss_create_piece, base_user_fusion, stock_clean_all_doc_societe, base_conditionnement_update;
+            caiss_create_piece, base_user_fusion, stock_clean_all_doc_societe, base_conditionnement_update, base_user_change_niveau, base_user_reinitialise_password;
     //Page Niveau Acces base_depot
     public boolean base_depots_save, view_all_depot, stock_view_all_depot, base_depots_update, base_depots_delete, base_depots_add_creneau, change_requiere_lot_article_depot,
             base_depots_lie_depot, base_depots_lie_point, view_all_depot_societe, base_depots_add_article_emplacement, base_depots_add_accessibilite, base_depot_send_all_stock;
@@ -150,6 +150,22 @@ public class AccesRessource implements Serializable {
 
     //Projet proj_
     public boolean proj_departement_save, proj_departement_update, proj_departement_delete, proj_projet_view, proj_projet_save, proj_projet_update, proj_projet_delete, proj_projet_add_service;
+
+    public boolean isBase_user_change_niveau() {
+        return base_user_change_niveau;
+    }
+
+    public void setBase_user_change_niveau(boolean base_user_change_niveau) {
+        this.base_user_change_niveau = base_user_change_niveau;
+    }
+
+    public boolean isBase_user_reinitialise_password() {
+        return base_user_reinitialise_password;
+    }
+
+    public void setBase_user_reinitialise_password(boolean base_user_reinitialise_password) {
+        this.base_user_reinitialise_password = base_user_reinitialise_password;
+    }
 
     public boolean isCompta_ope_client_change_agence_equilibre() {
         return compta_ope_client_change_agence_equilibre;
