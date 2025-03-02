@@ -62,6 +62,7 @@ import yvs.entity.commercial.vente.YvsComDocVentes;
 import yvs.entity.compta.YvsBaseCaisse;
 import yvs.entity.compta.YvsComptaAcompteClient;
 import yvs.entity.compta.YvsComptaCreditClient;
+import yvs.entity.compta.YvsComptaMouvementCaisse;
 import yvs.entity.compta.achat.YvsComptaAcompteFournisseur;
 import yvs.entity.compta.achat.YvsComptaCreditFournisseur;
 import yvs.entity.compta.divers.YvsComptaBonProvisoire;
@@ -108,7 +109,8 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     private List<YvsStatDashboardUsers> parametres;
     List<Dashboard> parametrages = new ArrayList<>();
 
-    private boolean loadSalarial = false, loadBonProvisoire, loadTransfertIncoherent, loadSoldeCaisse, loadClassementMS, loadClassementPF, loadClassementPoint, loadClassementVendeur, loadClassementClient, loadSoldeFournisseur;
+    private boolean loadSalarial = false, loadBonProvisoire, loadTransfertIncoherent, loadSoldeCaisse, loadClassementMS, loadClassementPF, loadClassementPoint,
+            loadClassementVendeur, loadClassementClient, loadSoldeFournisseur, loadPiecesCaisseAntidates;
 
     private double masseSalarialMoisPrec, masseSalarialAnnuel,
             cotisationSalarialMoisPrec, cotisationSalarialAnnuel,
@@ -192,14 +194,17 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     private SyntheseFournisseur syntheseF = new SyntheseFournisseur();
     private double creditFsseur, debitFsseur, soldeFsseur;
 
+    private int nbrJourEcartPiecesCaisseAntidate = 1000;
+
     private PaginatorResult<YvsComDocVentes> p_listing = new PaginatorResult<>();
     private PaginatorResult<YvsComContenuDocAchat> p_listing_achat = new PaginatorResult<>();
 
     private YvsComDocAchats achat = new YvsComDocAchats();
 
-    private List<YvsComDocStocks> transferts;
+    private List<YvsComDocStocks> transfertsIncoherent;
     private List<YvsUsers> selectedUsers;
     private List<YvsComptaBonProvisoire> bonsProvisoires;
+    private List<YvsComptaMouvementCaisse> piecesCaisseAntidates;
     private List<YvsBaseModeReglement> models;
     private List<YvsBaseCaisse> caisses;
     private List<ValeursEtat> generales;
@@ -241,7 +246,8 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         listings_achat = new ArrayList<>();
         listing_facture = new ArrayList<>();
         listing_facture_achat = new ArrayList<>();
-        transferts = new ArrayList<>();
+        transfertsIncoherent = new ArrayList<>();
+        piecesCaisseAntidates = new ArrayList<>();
         list = new ArrayList<Object>() {
             {
                 add(new Object());
@@ -279,6 +285,30 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         journalProdByEquipe.setType(JournalVendeur.TYPE_QUANTITE);
         journalProdByTranche.setCumulBy(2);
         journalProdByTranche.setType(JournalVendeur.TYPE_QUANTITE);
+    }
+
+    public int getNbrJourEcartPiecesCaisseAntidate() {
+        return nbrJourEcartPiecesCaisseAntidate;
+    }
+
+    public void setNbrJourEcartPiecesCaisseAntidate(int nbrJourEcartPiecesCaisseAntidate) {
+        this.nbrJourEcartPiecesCaisseAntidate = nbrJourEcartPiecesCaisseAntidate;
+    }
+
+    public boolean isLoadPiecesCaisseAntidates() {
+        return loadPiecesCaisseAntidates;
+    }
+
+    public void setLoadPiecesCaisseAntidates(boolean loadPiecesCaisseAntidates) {
+        this.loadPiecesCaisseAntidates = loadPiecesCaisseAntidates;
+    }
+
+    public List<YvsComptaMouvementCaisse> getPiecesCaisseAntidates() {
+        return piecesCaisseAntidates;
+    }
+
+    public void setPiecesCaisseAntidates(List<YvsComptaMouvementCaisse> piecesCaisseAntidates) {
+        this.piecesCaisseAntidates = piecesCaisseAntidates;
     }
 
     public String getWhatValeurDisplay() {
@@ -1723,12 +1753,12 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         return options.contains("-VB");
     }
 
-    public List<YvsComDocStocks> getTransferts() {
-        return transferts;
+    public List<YvsComDocStocks> getTransfertsIncoherent() {
+        return transfertsIncoherent;
     }
 
-    public void setTransferts(List<YvsComDocStocks> transferts) {
-        this.transferts = transferts;
+    public void setTransfertsIncoherent(List<YvsComDocStocks> transfertsIncoherent) {
+        this.transfertsIncoherent = transfertsIncoherent;
     }
 
     private void loadVariable() {
@@ -1961,7 +1991,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
         }
     }
 
-    public void onLoadTransfertIncoherent() {
+    public void onLoadTransfertIncoherent(int limit) {
         String query = " SELECT DISTINCT c.doc_stock as id FROM yvs_com_doc_stocks y INNER JOIN yvs_com_contenu_doc_stock c ON c.doc_stock = y.id "
                 + "INNER JOIN yvs_com_contenu_doc_stock_reception r ON r.contenu = c.id "
                 + "INNER JOIN yvs_base_depots d ON y.source = d.id INNER JOIN yvs_agences a ON d.agence = a.id "
@@ -1969,6 +1999,10 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
                 + "GROUP BY c.doc_stock, c.id HAVING c.quantite_entree < SUM(r.quantite)";
         List<Options> params = new ArrayList<>();
         params.add(new Options(currentAgence.getSociete().getId(), params.size() + 1));
+        if (limit > 0) {
+            query += " LIMIT ?";
+            params.add(new Options(limit, params.size() + 1));
+        }
         List<Long> ids = dao.loadListBySqlQuery(query, params.toArray(new Options[params.size()]));
         if (ids != null ? ids.isEmpty() : true) {
             ids = new ArrayList<Long>() {
@@ -1977,8 +2011,34 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
                 }
             };
         }
-        transferts = dao.loadNameQueries("YvsComDocStocks.findByIds", new String[]{"ids"}, new Object[]{ids});
+        transfertsIncoherent = dao.loadNameQueries("YvsComDocStocks.findByIds", new String[]{"ids"}, new Object[]{ids});
         loadTransfertIncoherent = true;
+    }
+
+    public void onLoadPiecesCaisseAntidate(int limit) {
+        String query = " SELECT y.id FROM yvs_compta_mouvement_caisse y INNER JOIN yvs_agences a ON y.agence = a.id "
+                + "WHERE a.societe = ? AND y.statut_piece = 'P' AND (y.date_save - y.date_paye) > interval '" + nbrJourEcartPiecesCaisseAntidate + " days' ";
+        List<Options> params = new ArrayList<>();
+        params.add(new Options(currentAgence.getSociete().getId(), params.size() + 1));
+        if (!autoriser("p_caiss_view_all_societe")) {
+            query += " AND y.agence = ?";
+            params.add(new Options(currentAgence.getId(), params.size() + 1));
+        }
+        query += " ORDER BY (y.date_save - y.date_paye), y.date_paye";
+        if (limit > 0) {
+            query += " LIMIT ?";
+            params.add(new Options(limit, params.size() + 1));
+        }
+        List<Long> ids = dao.loadListBySqlQuery(query, params.toArray(new Options[params.size()]));
+        if (ids != null ? ids.isEmpty() : true) {
+            ids = new ArrayList<Long>() {
+                {
+                    add(-1L);
+                }
+            };
+        }
+        piecesCaisseAntidates = dao.loadNameQueries("YvsComptaMouvementCaisse.findByIds", new String[]{"ids"}, new Object[]{ids});
+        loadPiecesCaisseAntidates = true;
     }
 
     public void actionParametre(YvsStatDashboardUsers y) {
