@@ -112,10 +112,18 @@ public class AccesPage implements Serializable {
             stat_ca_fournisseur, stat_classement_fournisseur, stat_ca_article, stat_classement_article, stat_marge_article, stat_listing_vente_article;
 
     public boolean stat_home_classement_client, stat_home_classement_vendeur, stat_home_classement_point, stat_home_classement_article, stat_home_transfert_incoherent,
-            stat_home_classement_fournisseur, stat_home_classement_caisse, stat_home_classement_bon_provisoire, stat_home_resume_salarial;
+            stat_home_classement_fournisseur, stat_home_classement_caisse, stat_home_classement_bon_provisoire, stat_home_resume_salarial, stat_home_piece_caisse_antidate;
 
     //Module Projet proj_
     private boolean proj_departement, proj_projet;
+
+    public boolean isStat_home_piece_caisse_antidate() {
+        return stat_home_piece_caisse_antidate;
+    }
+
+    public void setStat_home_piece_caisse_antidate(boolean stat_home_piece_caisse_antidate) {
+        this.stat_home_piece_caisse_antidate = stat_home_piece_caisse_antidate;
+    }
 
     public boolean isStat_home_transfert_incoherent() {
         return stat_home_transfert_incoherent;

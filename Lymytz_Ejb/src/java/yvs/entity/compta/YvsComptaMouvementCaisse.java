@@ -44,6 +44,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsComptaMouvementCaisse.findAllC", query = "SELECT COUNT(y) FROM YvsComptaMouvementCaisse y WHERE y.agence.societe=:societe"),
     @NamedQuery(name = "YvsComptaMouvementCaisse.findIdExterneById", query = "SELECT y.idExterne FROM YvsComptaMouvementCaisse y WHERE y.id = :id"),
     @NamedQuery(name = "YvsComptaMouvementCaisse.findById", query = "SELECT y FROM YvsComptaMouvementCaisse y WHERE y.id = :id"),
+    @NamedQuery(name = "YvsComptaMouvementCaisse.findByIds", query = "SELECT y FROM YvsComptaMouvementCaisse y WHERE y.id IN :ids"),
     @NamedQuery(name = "YvsComptaMouvementCaisse.findAPayer", query = "SELECT y FROM YvsComptaMouvementCaisse y WHERE y.statutPiece=:statut AND y.societe=:societe ORDER BY y.datePaimentPrevu DESC"),
     @NamedQuery(name = "YvsComptaMouvementCaisse.findByExterne", query = "SELECT y FROM YvsComptaMouvementCaisse y WHERE y.idExterne =:idExterne AND y.tableExterne=:table"),
     @NamedQuery(name = "YvsComptaMouvementCaisse.findByIdsExterne", query = "SELECT y FROM YvsComptaMouvementCaisse y WHERE y.idExterne IN :idExterne AND y.tableExterne=:table"),
