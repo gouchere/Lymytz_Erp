@@ -1553,7 +1553,7 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
         if (!y.canDelete()) {
             if (y.getCaisse() != null ? y.getCaisse().getId() < 1 : true) {
                 if (msg) {
-                    getErrorMessage("Vous devez precisez la caisse");
+                    getErrorMessage("Vous devez préciser la caisse");
                 }
                 return false;
             }
