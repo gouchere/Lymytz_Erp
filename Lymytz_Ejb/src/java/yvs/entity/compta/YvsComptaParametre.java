@@ -330,7 +330,7 @@ public class YvsComptaParametre implements Serializable {
     }
 
     public Integer getNbMaxBp() {
-        return nbMaxBp;
+        return nbMaxBp!=null? nbMaxBp:0;
     }
 
     public void setNbMaxBp(Integer nbMaxBp) {
