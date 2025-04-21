@@ -1,0 +1,735 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="./../../../WEB-INF/template/template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"       
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://java.sun.com/jsf/core"      
+                xmlns:c="http://java.sun.com/jsp/jstl/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets">      
+    <ui:define name="breadcumb">
+        #{navigations.naviguationApps('Rapports Comptable','modCompta', 'smenRapportCompta', true)}
+    </ui:define>          
+    <ui:define name="contents">   
+        <script type="text/javascript">
+            $(function() {
+                collapseForm('report_nouveau');
+                $('body').find('.part_scroll').height($('body').height() - $('body').find('#top').height() - $('body').find('.zone_find').height() - $('body').find('.part_fix').height() - $('body').find('#bottom').height() - 30);
+            });
+            function handleDrop(event, ui) {
+                var droppedCar = ui.draggable;
+                droppedCar.fadeOut('fast');
+            }
+        </script>   
+        #{managedJournaux.loadAllJournaux()}
+        #{managedCompte.loadAllCompte()}
+        #{managedTiers.loadAllTiers()}
+        #{managedCentreAnalytique.loadAllCentre()}
+        #{managedAgence.loadAgence()}
+        #{managedModeleSaisie.load()}
+        <h:outputScript library="js/donne_de_base" name="param_db.js" />                       
+        <div class="part_scroll">
+            <h:form prependId="false" >
+                <p:dialog header="Choisissez les comptes" widgetVar="dlgIntervalCompte" width="30%" closeOnEscape="true" footer="&copy; Lymytz">
+                    <h:panelGrid columns="1" style="width: 100%">
+                        <h:outputText value="Compte début"/>
+                        <h:inputText value="#{managedModeleSaisie.compteDebut}" style="width: 100%">
+                            <p:ajax event="valueChange" listener="#{managedModeleSaisie.onChangeValueCompte(managedModeleSaisie.compteDebut, 'BEGIN')}" update="@this dashboard-compte-debut-title"/>                                        
+                        </h:inputText>
+                        <h:outputText id="dashboard-compte-debut-title" value="#{managedModeleSaisie.titleDebut}" style="color: #009999"/>
+                        <h:outputText value="Compte fin"/>
+                        <h:inputText id="dashboard-compte-fin" value="#{managedModeleSaisie.compteFin}" style="width: 100%">
+                            <p:ajax event="valueChange" listener="#{managedModeleSaisie.onChangeValueCompte(managedModeleSaisie.compteFin, 'END')}" update="@this dashboard-compte-fin-title"/>                                        
+                        </h:inputText>
+                        <h:outputText id="dashboard-compte-fin-title" value="#{managedModeleSaisie.titleFin}" style="color: #009999"/>
+                    </h:panelGrid>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false" >
+                <p:dialog header="#{lab.LCF_PR_liste_comptes}" widgetVar="dlgListCompte" width="80%" height="500" closeOnEscape="true" footer="&copy; Lymytz">
+                    <p:dataTable id="data-compte_rapport_compta"  value="#{managedCompte.comptes_all}" var="cptG" emptyMessage="Aucun compte"
+                                 rowIndexVar="line_cg" rowKey="#{cptG.id}" selection="#{managedModeleSaisie.selectComptes}"
+                                 paginator="true" rows="15" rowsPerPageTemplate="5,10,15,20,25,50,100,200,300,400,500"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 currentPageReportTemplate="{startRecord}-{endRecord} of {totalRecords} records">
+                        <p:ajax event="filter" global="false"/>
+                        <p:column width="20" style="text-align: center">
+                            <h:outputText value="#{line_cg+1}" />
+                        </p:column>   
+                        <p:column width="100" filterBy="#{cptG.numCompte}">
+                            #{cptG.numCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.L_intitule}" width="200" >
+                            #{cptG.intitule}
+                        </p:column>
+                        <p:column headerText="#{lab.L_type}" width="100" >
+                            #{cptG.typeCompte}
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PTT_repport}" width="100" >
+                            #{cptG.typeReport}
+                        </p:column>
+                        <p:column headerText="#{lab.LDB_PPC_compte_general}" width="100" >
+                            #{cptG.compteGeneral.numCompte}
+                        </p:column>
+                        <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                    </p:dataTable> 
+                    <f:facet name="footer">
+                        <p:commandButton icon="ui-icon-seek-next" value="#{lab.L_continuer}" actionListener="#{managedModeleSaisie.chooseCompte()}" style="float: right"
+                                         oncomplete="dlgListCompte.hide()" update=":main-rapp_compta:tabRapCompta:blog_compte_rapport_grand_livre"/>
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog  modal="true" widgetVar="dlgListTiers" header="#{lab.LCF_PR_selectionner_tiers}" width="40%" height="500" closeOnEscape="true">
+                    <p:dataTable id="data_tiers_rapport_compta" value="#{managedTiers.tiers_all}" var="trs" emptyMessage="Aucun compte"
+                                 rowKey="#{trs.id}" rowIndexVar="y" selection="#{managedModeleSaisie.selectTiers}" 
+                                 paginator="true" rows="15" rowsPerPageTemplate="5,10,15,20,25,50,100,200,300,400,500"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 currentPageReportTemplate="{startRecord}-{endRecord} of {totalRecords} records">
+                        <p:ajax event="toggleSelect" global="false"/>
+                        <p:ajax event="rowSelectCheckbox" global="false"/>
+                        <p:ajax event="rowUnselectCheckbox" global="false"/>
+                        <p:column style="width: 10%">
+                            <span>#{y+1}</span>
+                        </p:column>
+                        <p:column filterBy="#{trs.codeTiers}">
+                            <span>#{trs.codeTiers}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_noms_prenoms}">
+                            <span>#{trs.nom_prenom}</span>
+                        </p:column>
+                        <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                    </p:dataTable>
+                    <f:facet name="footer">
+                        <p:commandButton icon="ui-icon-seek-next" value="Continuer" actionListener="#{managedModeleSaisie.chooseTiers()}" style="float: right"
+                                         oncomplete="dlgListTiers.hide()" update=":main-rapp_compta:tabRapCompta:blog_compte_rapport_grand_livre"/>
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form prependId="false">
+                <p:dialog  modal="true" widgetVar="dlgListCentre" header="#{lab.LCF_PR_selectionner_centres}" width="40%" height="500" closeOnEscape="true">
+                    <p:dataTable id="data_centre_rapport_compta" value="#{managedCentreAnalytique.centres_all}" var="cnt" emptyMessage="Aucun centre"
+                                 rowKey="#{cnt.id}" rowIndexVar="y" selection="#{managedModeleSaisie.selectCentres}"
+                                 paginator="true" rows="15" rowsPerPageTemplate="5,10,15,20,25,50,100,200,300,400,500"
+                                 paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                 currentPageReportTemplate="{startRecord}-{endRecord} of {totalRecords} records">
+                        <p:ajax event="toggleSelect" global="false"/>
+                        <p:ajax event="rowSelectCheckbox" global="false"/>
+                        <p:ajax event="rowUnselectCheckbox" global="false"/>
+                        <p:column style="width: 10%">
+                            <span>#{y+1}</span>
+                        </p:column>
+                        <p:column filterBy="#{cnt.codeRef}">
+                            <span>#{cnt.codeRef}</span>
+                        </p:column>
+                        <p:column headerText="#{lab.L_designation}">
+                            <span>#{cnt.designation}</span>
+                        </p:column>
+                        <p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+                    </p:dataTable>
+                    <f:facet name="footer">
+                        <p:commandButton icon="ui-icon-seek-next" value="#{lab.L_continuer}" actionListener="#{managedModeleSaisie.chooseCentre()}" style="float: right"
+                                         oncomplete="dlgListCentre.hide()" update=":main-rapp_compta:tabRapCompta:blog_compte_rapport_grand_livre"/>
+                    </f:facet>
+                </p:dialog>
+            </h:form>
+            <h:form id="main-rapp_compta" prependId="false" style="background: white"> 
+                <p:tabView id="tabRapCompta">
+                    <p:tab title="#{lab.LCF_PR_balance}">
+                        <div id="zone_rapport_balance" class="block_slide" style="height: 85%">
+                            <span class="block_slide_title">
+                                <h:panelGrid columns="6" cellpadding="0" cellspacing="0">
+                                    <h:outputText value="#{lab.L_agence}"/>
+                                    <h:outputText value="#{lab.L_type}"/>
+                                    <h:outputText value="#{lab.LCF_PR_comptes}"/>
+                                    <h:outputText value="#{lab.L_dates}"/>
+                                    <h:outputText value="#{lab.LCF_PR_journal}"/>
+                                    <h:outputText value=""/>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.tabBalance.agence}">
+                                        <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                                        <f:selectItems value="#{managedAgence.listAgence}" var="ageB" itemLabel="#{ageB.designation}" itemValue="#{ageB.id}"/>
+                                    </h:selectOneMenu>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.tabBalance.nature}">
+                                        <f:selectItem itemLabel="#{lab.LCF_PR_general}" itemValue="C" />
+                                        <f:selectItem itemLabel="#{lab.L_tiers.toUpperCase()}" itemValue="T" />
+                                        <f:selectItem itemLabel="#{lab.LDB_PA_analytique.toUpperCase()}" itemValue="A" />
+                                        <p:ajax event="valueChange" global="false" update="blog_compte_rapport_balance"/>
+                                    </h:selectOneMenu> 
+                                    <h:panelGroup id="blog_compte_rapport_balance">
+                                        <h:selectOneMenu value="#{managedModeleSaisie.tabBalance.ordres}" rendered="#{managedModeleSaisie.tabBalance.nature eq 'T'}">
+                                            <f:selectItem itemLabel="#{lab.LCF_PR_tous}" itemValue="" />
+                                            <f:selectItem itemLabel="#{lab.L_client.toUpperCase()}" itemValue="C" />
+                                            <f:selectItem itemLabel="#{lab.LCF_PR_employe}" itemValue="T" />
+                                            <f:selectItem itemLabel="#{lab.L_fournisseur.toUpperCase()}" itemValue="F" />
+                                            <p:ajax event="valueChange" global="false"/>
+                                        </h:selectOneMenu> 
+                                        <h:selectOneMenu value="#{managedModeleSaisie.tabBalance.valorise_by}">
+                                            <f:selectItem itemLabel="AUCUN" itemValue="V" itemDisabled="true"/>
+                                            <f:selectItem itemLabel="INTERVAL" itemValue="I" />
+                                            <f:selectItem itemLabel="SELECTION" itemValue="S" />
+                                            <p:ajax event="valueChange" listener="#{managedModeleSaisie.chooseMode(managedModeleSaisie.tabBalance, 'BALANCE')}"/>
+                                        </h:selectOneMenu>
+                                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="Ouvrir la boite de compte"
+                                                         actionListener="#{managedModeleSaisie.chooseMode(managedModeleSaisie.tabBalance, 'BALANCE')}"/>   
+                                    </h:panelGroup> 
+                                    <h:panelGroup>
+                                        <p:calendar value="#{managedModeleSaisie.tabBalance.dateDebut}" pattern="dd-MM-yyyy" navigator="true" size="8"/>
+                                        <p:spacer width="5" style="background: black"/>
+                                        <p:calendar value="#{managedModeleSaisie.tabBalance.dateFin}" pattern="dd-MM-yyyy" navigator="true" size="8"/>
+                                    </h:panelGroup> 
+                                    <h:selectOneMenu value="#{managedModeleSaisie.tabBalance.journal}" style="max-width: 200px; min-width: 120px">
+                                        <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                                        <f:selectItems value="#{managedJournaux.journaux}" var="jrnB" itemLabel="#{jrnB.intitule}" itemValue="#{jrnB.id}"/>
+                                    </h:selectOneMenu>
+                                    <h:panelGroup>
+                                        <p:contextMenu for="btn_rapport_balance" event="left click" styleClass="context_menu" style="width: 210px">
+                                            <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedModeleSaisie.loadDataBalance()}" update="data_rapport_balance"/>
+                                            <p:menuitem value="#{lab.LCF_PR_telecharger_2_colonnes}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printBalance('2c')}" ajax="false" disabled="true"/>                                    
+                                            <p:menuitem value="#{lab.LCF_PR_telecharger_6_colonnes}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printBalance('6c')}" ajax="false"/>                                    
+                                            <p:menuitem value="#{lab.LCF_PR_telecharger_8_colonnes}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printBalance('8c')}" ajax="false"/>                                    
+                                            <p:menuitem value="#{lab.LCF_PR_fichier_excel}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printBalanceXLS('8c')}" ajax="false"/>                                    
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px; float: left" id="btn_rapport_balance" type="button"/>
+                                    </h:panelGroup> 
+                                </h:panelGrid>
+                            </span>
+                            <div class="zone_slide" style="height: 90%">
+                                <p:dataTable id="data_rapport_balance" value="#{managedModeleSaisie.tabBalance.valeurs}" var="bal" rowIndexVar="yBal" sortBy="#{bal.principal}">
+                                    <p:columnGroup type="header">
+                                        <p:row>
+                                            <p:column headerText="#{lab.L_numero}" style="width: 15%" rowspan="2"/>
+                                            <p:column headerText="#{lab.L_libelle}" rowspan="2"/>
+                                            <p:column headerText="INITIAL" colspan="2"/>
+                                            <p:column headerText="PERIODIQUE" colspan="2"/>
+                                            <p:column headerText="FINAL" colspan="2"/>
+                                        </p:row>
+                                        <p:row>
+                                            <p:column headerText="DEBIT" style="width: 15%"/>
+                                            <p:column headerText="CREDIT" style="width: 15%"/>
+                                            <p:column headerText="DEBIT" style="width: 15%"/>
+                                            <p:column headerText="CREDIT" style="width: 15%"/>
+                                            <p:column headerText="DEBIT" style="width: 15%"/>
+                                            <p:column headerText="CREDIT" style="width: 15%"/>
+                                        </p:row>
+                                    </p:columnGroup>   
+                                    <p:column style="width: 15%">
+                                        <h:outputText value="#{bal.numero}"/>
+                                    </p:column>
+                                    <p:column>
+                                        <h:outputText value="#{bal.periode}"/>
+                                    </p:column>
+                                    <p:column style="text-align: right;width: 15%">
+                                        <h:outputText value="#{bal.di}" converter="DN"/>
+                                    </p:column> 
+                                    <p:column style="text-align: right;width: 15%">
+                                        <h:outputText value="#{bal.ci}" converter="DN"/>
+                                    </p:column> 
+                                    <p:column style="text-align: right;width: 15%">
+                                        <h:outputText value="#{bal.dp}" converter="DN"/>
+                                    </p:column> 
+                                    <p:column style="text-align: right;width: 15%">
+                                        <h:outputText value="#{bal.cp}" converter="DN"/>
+                                    </p:column> 
+                                    <p:column style="text-align: right;width: 15%">
+                                        <h:outputText value="#{bal.dsc}" converter="DN"/>
+                                    </p:column> 
+                                    <p:column style="text-align: right;width: 15%">
+                                        <h:outputText value="#{bal.csc}" converter="DN"/>
+                                    </p:column> 
+                                    <p:summaryRow>
+                                        <p:column style="width: 15%">
+                                            <h:outputText value="#{bal.principal}"/>
+                                        </p:column>
+                                        <p:column>
+                                            <h:outputText value="#{bal.secondaire}"/>
+                                        </p:column>
+                                        <p:column style="text-align: right;width: 15%">
+                                            <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup(bal.principal, 'di')}" converter="DN"/>
+                                        </p:column> 
+                                        <p:column style="text-align: right;width: 15%">
+                                            <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup(bal.principal, 'ci')}" converter="DN"/>
+                                        </p:column> 
+                                        <p:column style="text-align: right;width: 15%">
+                                            <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup(bal.principal, 'dp')}" converter="DN"/>
+                                        </p:column> 
+                                        <p:column style="text-align: right;width: 15%">
+                                            <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup(bal.principal, 'cp')}" converter="DN"/>
+                                        </p:column> 
+                                        <p:column style="text-align: right;width: 15%">
+                                            <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup(bal.principal, 'dsc')}" converter="DN"/>
+                                        </p:column>
+                                        <p:column style="text-align: right;width: 15%">
+                                            <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup(bal.principal, 'csc')}" converter="DN"/>
+                                        </p:column> 
+                                    </p:summaryRow>
+                                    <p:columnGroup type="footer">
+                                        <p:row>
+                                            <p:column footerText="" style="width: 15%"/>
+                                            <p:column footerText="#{lab.LCF_PR_soldes}" />
+                                            <p:column style="text-align: right;font-weight: bold;width: 15%">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup('di')}" converter="DN"/>
+                                                </f:facet>
+                                            </p:column> 
+                                            <p:column style="text-align: right;font-weight: bold;width: 15%">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup('ci')}" converter="DN"/>
+                                                </f:facet>
+                                            </p:column> 
+                                            <p:column style="text-align: right;font-weight: bold;width: 15%">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup('dp')}" converter="DN"/>
+                                                </f:facet>
+                                            </p:column> 
+                                            <p:column style="text-align: right;font-weight: bold;width: 15%">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup('cp')}" converter="DN"/>
+                                                </f:facet>
+                                            </p:column>  
+                                            <p:column style="text-align: right;font-weight: bold;width: 15%">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup('dsc')}" converter="DN"/>
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column style="text-align: right;font-weight: bold;width: 15%">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.tabBalance.summaryGroup('csc')}" converter="DN"/>
+                                                </f:facet>
+                                            </p:column> 
+                                        </p:row>
+                                    </p:columnGroup>
+                                </p:dataTable>
+                            </div>  
+                            <div class="zone_bottom">
+
+                            </div>
+                        </div>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LCF_PR_tableaux_bords}">
+                        <div id="zone_rapport_balance" class="block_slide" style="height: 85%">
+                            <span class="block_slide_title">
+                                <h:panelGrid columns="6" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                    <h:outputText value="#{lab.L_agence}"/>
+                                    <h:outputText value="#{lab.L_type}"/>
+                                    <h:outputText value="#{lab.LCF_PR_comptes}"/>
+                                    <h:outputText value="#{lab.L_dates}"/>
+                                    <h:outputText value="#{lab.LCF_PR_periode}"/>
+                                    <h:outputText value=""/>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.tabDashboard.agence}">
+                                        <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                                        <f:selectItems value="#{managedAgence.listAgence}" var="ageD" itemLabel="#{ageD.designation}" itemValue="#{ageD.id}"/>
+                                    </h:selectOneMenu>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.tabDashboard.nature}">
+                                        <f:selectItem itemLabel="#{lab.LCF_PR_resultat}" itemValue="R" />
+                                        <f:selectItem itemLabel="#{lab.LCF_PR_charge}" itemValue="C" />
+                                        <f:selectItem itemLabel="#{lab.LCF_PR_produit}" itemValue="P" />
+                                        <f:selectItem itemLabel="#{lab.LCF_PR_bilan}" itemValue="B" />
+                                        <f:selectItem itemLabel="#{lab.LCF_PR_balance.toUpperCase()}" itemValue="A" />
+                                        <p:ajax event="valueChange" global="false" update="blog_compte_rapport_dashboard"/>
+                                    </h:selectOneMenu> 
+                                    <h:panelGroup id="blog_compte_rapport_dashboard">
+                                        <h:selectOneMenu value="#{managedModeleSaisie.tabDashboard.compteDebut}">
+                                            <f:selectItems value="#{managedCompte.comptes_all}" var="debC" itemLabel="#{debC.numCompte}" itemValue="#{debC.numCompte}" />
+                                        </h:selectOneMenu>
+                                        <p:spacer width="5" style="background: black"/>
+                                        <h:selectOneMenu value="#{managedModeleSaisie.tabDashboard.compteFin}">
+                                            <f:selectItems value="#{managedCompte.comptes_all}" var="finC" itemLabel="#{finC.numCompte}" itemValue="#{finC.numCompte}" />
+                                        </h:selectOneMenu>
+                                    </h:panelGroup> 
+                                    <h:panelGroup>
+                                        <p:calendar value="#{managedModeleSaisie.tabDashboard.dateDebut}" pattern="dd-MM-yyyy" navigator="true" size="10"/>
+                                        <p:spacer width="5" style="background: black"/>
+                                        <p:calendar value="#{managedModeleSaisie.tabDashboard.dateFin}" pattern="dd-MM-yyyy" navigator="true" size="10"/>
+                                    </h:panelGroup>  
+                                    <h:selectOneMenu value="#{managedModeleSaisie.tabDashboard.periode}">
+                                        <f:selectItem itemLabel="#{lab.LC_PTB_annuel}" itemValue="A" />
+                                        <f:selectItem itemLabel="#{lab.LC_PTB_mensuel}" itemValue="M" />
+                                        <f:selectItem itemLabel="#{lab.LC_PTB_trimestriel}" itemValue="T" />
+                                    </h:selectOneMenu>      
+                                    <h:panelGroup>
+                                        <p:contextMenu for="btn_rapport_dashboard" event="left click" styleClass="context_menu" style="width: 210px">
+                                            <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedModeleSaisie.loadDataDashboard()}" update="data_rapport_dashboard"/>
+                                            <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printDashboard()}" ajax="false"/>  
+                                            <p:menuitem value="#{lab.LCF_PR_fichier_excel}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printDashboardXLS()}" ajax="false"/>                                    
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px; float: left" id="btn_rapport_dashboard" type="button"/>
+                                    </h:panelGroup> 
+                                </h:panelGrid>
+                            </span>
+                            <div class="zone_slide" style="height: 90%">
+                                <p:dataTable id="data_rapport_dashboard" value="#{managedModeleSaisie.tabDashboard.lignes}" var="dash" rowIndexVar="yDash">
+                                    <p:columnGroup type="header">
+                                        <p:row>
+                                            <p:column headerText="#{lab.L_numero}" style="width: 15%"/>
+                                            <p:column headerText="#{lab.L_libelle}" style="width: 15%"/>
+                                            <c:forEach items="#{managedModeleSaisie.tabDashboard.colonnes}" var="head" varStatus="_head">
+                                                <p:column headerText="#{head.valeur}" style="width: 15%"/>
+                                            </c:forEach>
+                                            <p:column headerText="#{lab.LCF_PR_solde}" style="width: 15%;font-weight: bold" styleClass="ui-widget-header"/>
+                                        </p:row>
+                                    </p:columnGroup>   
+                                    <p:column styleClass="ui-widget-header" style="width: 15%;font-weight: bold">
+                                        <h:outputText value="#{dash.titre}"/>
+                                    </p:column>
+                                    <p:column styleClass="ui-widget-header" style="width: 15%;font-weight: #{managedModeleSaisie.tabDashboard.get(yDash, iHead).onHead?'bold':''}">
+                                        <h:outputText value="#{dash.libelle}"/>
+                                    </p:column>
+                                    <p:columns value="#{managedModeleSaisie.tabDashboard.colonnes}" var="col" columnIndexVar="iHead" style="width: 15%;text-align: right"
+                                               styleClass="#{managedModeleSaisie.tabDashboard.get(yDash, iHead).onTotal?'ui-widget-header':'y'}">
+                                        <h:panelGroup rendered="#{managedModeleSaisie.tabDashboard.currentValue.get(managedModeleSaisie.tabDashboard.type) gt 0}">
+                                            <h:outputText value="#{managedModeleSaisie.tabDashboard.currentValue.get(managedModeleSaisie.tabDashboard.type)}" converter="DN"
+                                                          style="font-weight: #{managedModeleSaisie.tabDashboard.currentValue.onHead or managedModeleSaisie.tabDashboard.currentValue.onTotal?'bold':''}"/>  
+                                            <h:outputText value=" D" style="font-weight: bold"/> 
+                                        </h:panelGroup> 
+                                        <h:panelGroup rendered="#{managedModeleSaisie.tabDashboard.currentValue.get(managedModeleSaisie.tabDashboard.type) lt 0}">
+                                            <h:outputText value="#{-managedModeleSaisie.tabDashboard.currentValue.get(managedModeleSaisie.tabDashboard.type)}" converter="DN"
+                                                          style="font-weight: #{managedModeleSaisie.tabDashboard.currentValue.onHead or managedModeleSaisie.tabDashboard.currentValue.onTotal?'bold':''}"/>  
+                                            <h:outputText value=" C" style="font-weight: bold"/> 
+                                        </h:panelGroup> 
+                                    </p:columns> 
+                                    <p:column style="width: 15%;text-align: right;font-weight: bold" styleClass="ui-widget-header">
+                                        <h:panelGroup rendered="#{managedModeleSaisie.tabDashboard.sumRow(yDash) gt 0}">
+                                            <h:outputText value="#{managedModeleSaisie.tabDashboard.valueSumRow}" converter="DN"/>
+                                            <h:outputText value=" D" style="font-weight: bold"/> 
+                                        </h:panelGroup>
+                                        <h:panelGroup rendered="#{managedModeleSaisie.tabDashboard.valueSumRow lt 0}">
+                                            <h:outputText value="#{-managedModeleSaisie.tabDashboard.valueSumRow}" converter="DN"/>
+                                            <h:outputText value=" C" style="font-weight: bold"/> 
+                                        </h:panelGroup>
+                                    </p:column> 
+                                </p:dataTable>
+                            </div>  
+                            <div class="zone_bottom">
+
+                            </div>
+                        </div>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LCF_PR_grand_livre}">
+                        <div id="zone_rapport_grand_livre" class="block_slide" style="height: 85%">
+                            <span class="block_slide_title">
+                                <h:panelGrid columns="8" cellpadding="0" cellspacing="0">
+                                    <h:outputText value="#{lab.L_agence}"/>
+                                    <h:outputText value="#{lab.L_type}"/>
+                                    <h:outputText value="#{lab.LCF_PR_comptes}"/>
+                                    <h:outputText value="#{lab.L_dates}"/>
+                                    <h:outputText value="#{lab.LCF_PR_journal}"/>
+                                    <h:outputText value="#{lab.LCF_PR_cumule}"/>
+                                    <h:outputText value="#{lab.LCF_PR_lettrer}"/>
+                                    <h:outputText value=""/>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.grandLivre.agence}">
+                                        <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                                        <f:selectItems value="#{managedAgence.listAgence}" var="ageG" itemLabel="#{ageG.designation}" itemValue="#{ageG.id}"/>
+                                    </h:selectOneMenu>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.grandLivre.nature}">
+                                        <f:selectItem itemLabel="#{lab.LCF_PR_general}" itemValue="C" />
+                                        <f:selectItem itemLabel="#{lab.L_tiers.toUpperCase()}" itemValue="T" />
+                                        <f:selectItem itemLabel="#{lab.LDB_PPC_analytique.toUpperCase()}" itemValue="A" />
+                                        <p:ajax event="valueChange" global="false" update="blog_compte_rapport_grand_livre"/>
+                                    </h:selectOneMenu> 
+                                    <h:panelGroup id="blog_compte_rapport_grand_livre">
+                                        <h:selectOneMenu value="#{managedModeleSaisie.grandLivre.ordres}" rendered="#{managedModeleSaisie.grandLivre.nature eq 'T'}">
+                                            <f:selectItem itemLabel="#{lab.LCF_PR_tous}" itemValue="" />
+                                            <f:selectItem itemLabel="#{lab.L_client.toUpperCase()}" itemValue="C" />
+                                            <f:selectItem itemLabel="#{lab.LCF_PR_employe}" itemValue="T" />
+                                            <f:selectItem itemLabel="#{lab.L_fournisseur.toUpperCase()}" itemValue="F" />
+                                            <p:ajax event="valueChange" global="false"/>
+                                        </h:selectOneMenu>
+                                        <h:selectOneMenu value="#{managedModeleSaisie.grandLivre.valorise_by}">
+                                            <f:selectItem itemLabel="AUCUN" itemValue="V" itemDisabled="true"/>
+                                            <f:selectItem itemLabel="INTERVAL" itemValue="I" />
+                                            <f:selectItem itemLabel="SELECTION" itemValue="S" />
+                                            <p:ajax event="valueChange" listener="#{managedModeleSaisie.chooseMode(managedModeleSaisie.grandLivre, 'GRAND_LIVRE')}"/>
+                                        </h:selectOneMenu>
+                                        <p:commandButton icon="ui-icon-note" style="width: 20px;height: 22px" title="Ouvrir la boite de compte"
+                                                         actionListener="#{managedModeleSaisie.chooseMode(managedModeleSaisie.grandLivre, 'GRAND_LIVRE')}"/>  
+                                    </h:panelGroup> 
+                                    <h:panelGroup>
+                                        <p:calendar value="#{managedModeleSaisie.grandLivre.dateDebut}" pattern="dd-MM-yyyy" navigator="true" size="8"/>
+                                        <p:spacer width="5" style="background: black"/>
+                                        <p:calendar value="#{managedModeleSaisie.grandLivre.dateFin}" pattern="dd-MM-yyyy" navigator="true" size="8"/>
+                                    </h:panelGroup> 
+                                    <h:selectOneMenu value="#{managedModeleSaisie.grandLivre.journal}" style="max-width: 200px; min-width: 120px">
+                                        <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                                        <f:selectItems value="#{managedJournaux.journaux}" var="jrnG" itemLabel="#{jrnG.intitule}" itemValue="#{jrnG.id}"/>
+                                    </h:selectOneMenu>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.grandLivre.cumule}">
+                                        <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}" />
+                                        <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}" />
+                                    </h:selectOneMenu>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.grandLivre.lettrer}">
+                                        <f:selectItem itemLabel="#{lab.L_tout}" itemValue="#{null}" />
+                                        <f:selectItem itemLabel="#{lab.L_oui.toUpperCase()}" itemValue="#{true}" />
+                                        <f:selectItem itemLabel="#{lab.L_non.toUpperCase()}" itemValue="#{false}" />
+                                    </h:selectOneMenu>
+                                    <h:panelGroup>
+                                        <p:contextMenu for="btn_rapport_grand_livre" event="left click" styleClass="context_menu" style="width: 210px">
+                                            <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedModeleSaisie.loadDataGrandLivre()}" update="data_rapport_grand_livre"/>
+                                            <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printGrandLivre()}" ajax="false"/>    
+                                            <p:menuitem value="#{lab.LCF_PR_fichier_excel}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printGrandLivreXLS()}" ajax="false"/>                                     
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px; float: left" id="btn_rapport_grand_livre" type="button"/>
+                                    </h:panelGroup> 
+                                </h:panelGrid>
+                            </span>
+                            <div class="zone_slide" style="height: 90%">
+                                <p:dataTable id="data_rapport_grand_livre" value="#{managedModeleSaisie.grandLivre.comptables}" var="grd" rowIndexVar="ygrd">
+                                    <p:columnGroup type="header">
+                                        <p:row>
+                                            <p:column headerText="#{lab.L_compte}" rendered="#{managedModeleSaisie.grandLivre.nature ne 'C'}"/>
+                                            <p:column headerText="#{lab.L_numero}"  />
+                                            <p:column headerText="#{lab.LCF_PR_date_piece}" rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}"/>
+                                            <p:column headerText="#{lab.LCF_PR_journal}" rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}"/>
+                                            <p:column headerText="#{lab.L_tiers}" rendered="#{managedModeleSaisie.grandLivre.nature ne 'T' and (!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule))}"/>
+                                            <p:column headerText="#{lab.L_libelle}"/>
+                                            <p:column headerText="#{lab.LCF_PR_debit}"/>
+                                            <p:column headerText="#{lab.LCF_PR_credit}"/>
+                                            <p:column headerText="#{lab.LCF_PR_solde_prog}"/>
+                                        </p:row>
+                                    </p:columnGroup>
+                                    <p:subTable value="#{grd.sous}" var="con">
+                                        <f:facet name="header">
+                                            [<h:outputText value="#{grd.code}" />] <h:outputText value="#{grd.intitule}" />
+                                        </f:facet>
+                                        <p:column style="text-align: center" rendered="#{managedModeleSaisie.grandLivre.nature ne 'C'}" styleClass="#{con.id gt 0 ? '':'ui-widget-header'}">
+                                            <h:outputText value="#{con.compte}" title="#{con.designation}"/> 
+                                        </p:column> 
+                                        <p:column styleClass="#{con.id gt 0 ? '':'ui-widget-header'}">
+                                            <h:outputText value="#{con.numero}" />  
+                                        </p:column>       
+                                        <p:column style="text-align: center" rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}" styleClass="#{con.id gt 0 ? '':'ui-widget-header'}">
+                                            <h:outputText value="#{con.date}" converter="DATE"/> 
+                                        </p:column>  
+                                        <p:column style="text-align: center" rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}" styleClass="#{con.id gt 0 ? '':'ui-widget-header'}">
+                                            <h:outputText value="#{con.journal}" /> 
+                                        </p:column>  
+                                        <p:column rendered="#{managedModeleSaisie.grandLivre.nature ne 'T' and (!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule))}" styleClass="#{con.id gt 0 ? '':'ui-widget-header'}">
+                                            <h:outputText value="#{managedModeleSaisie.nameTiers(con.compteTiers, con.tableTiers, 'N')}" title="#{managedModeleSaisie.nameTiers(con.compteTiers, con.tableTiers, 'R')}"/> 
+                                        </p:column> 
+                                        <p:column styleClass="#{con.id gt 0 ? '':'ui-widget-header'}">
+                                            <h:outputText value="#{(managedModeleSaisie.grandLivre.cumule?con.designation:con.libelle)}" /> 
+                                            <h:panelGroup style="float: right;margin-right: 5px">
+                                                <h:outputText title="Report" value="R" rendered="#{con.solde}" styleClass="style_statut_blue"/>
+                                                <h:outputText title="#{lab.LDB_PPC_tiers}" value="#{con.lettrage}" rendered="#{con.lettrage != null ? con.lettrage ne '': false}" styleClass="style_statut"/>
+                                            </h:panelGroup>
+                                        </p:column>  
+                                        <p:column style="text-align: right" styleClass="#{con.id gt 0 ? '':'ui-widget-header'}">
+                                            <h:outputText value="#{con.debit}" converter="DN"/> 
+                                        </p:column> 
+                                        <p:column style="text-align: right" styleClass="#{con.id gt 0 ? '':'ui-widget-header'}">
+                                            <h:outputText value="#{con.credit}" converter="DN"/> 
+                                        </p:column>
+                                        <p:column style="text-align: right" styleClass="#{con.id gt 0 ? '':'ui-widget-header'}">
+                                            <h:outputText value="#{managedModeleSaisie.abs(con.soldeProg)}" converter="DN"/> 
+                                            <h:outputText value="#{con.soldeProg gt 0 ? ' D' : (con.soldeProg lt 0 ? ' C' : '')}" style="font-weight: bold"/> 
+                                        </p:column>
+                                    </p:subTable>
+                                    <p:columnGroup type="footer">
+                                        <p:row>
+                                            <p:column rendered="#{managedModeleSaisie.grandLivre.nature ne 'C'}"/>
+                                            <p:column/>
+                                            <p:column rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}"/>
+                                            <p:column rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}"/>
+                                            <p:column rendered="#{managedModeleSaisie.grandLivre.nature ne 'T' and (!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule))}"/>
+                                            <p:column/>
+                                            <p:column/>
+                                            <p:column/>
+                                            <p:column/>
+                                        </p:row>
+                                        <p:row>
+                                            <p:column rendered="#{managedModeleSaisie.grandLivre.nature ne 'C'}"/>
+                                            <p:column style="text-align: left">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.grandLivre.totalPeriodique.designation}"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}"/>
+                                            <p:column rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}"/>
+                                            <p:column rendered="#{managedModeleSaisie.grandLivre.nature ne 'T' and (!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule))}"/>
+                                            <p:column style="text-align: left">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.grandLivre.totalPeriodique.libelle}"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column style="text-align: right">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.grandLivre.totalPeriodique.debit}" converter="DN"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column style="text-align: right">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.grandLivre.totalPeriodique.credit}" converter="DN"/> 
+                                                </f:facet>                                                
+                                            </p:column>
+                                            <p:column style="text-align: right">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.abs(managedModeleSaisie.grandLivre.totalPeriodique.debit - managedModeleSaisie.grandLivre.totalPeriodique.credit)}" converter="DN"/> 
+                                                    <h:outputText value="#{(managedModeleSaisie.grandLivre.totalPeriodique.debit - managedModeleSaisie.grandLivre.totalPeriodique.credit) gt 0 ? ' D' : ((managedModeleSaisie.grandLivre.totalPeriodique.debit - managedModeleSaisie.grandLivre.totalPeriodique.credit) lt 0 ? ' C' : '')}" style="font-weight: bold"/>
+                                                </f:facet>
+                                            </p:column>
+                                        </p:row>
+                                        <p:row>
+                                            <p:column rendered="#{managedModeleSaisie.grandLivre.nature ne 'C'}"/>
+                                            <p:column style="text-align: left">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.grandLivre.totalGeneral.designation}"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}"/>
+                                            <p:column rendered="#{!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule)}"/>
+                                            <p:column rendered="#{managedModeleSaisie.grandLivre.nature ne 'T' and (!(managedModeleSaisie.grandLivre.nature eq 'A' and managedModeleSaisie.grandLivre.cumule))}"/>
+                                            <p:column style="text-align: left">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.grandLivre.totalGeneral.libelle}"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column style="text-align: right">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.grandLivre.totalGeneral.debit}" converter="DN"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column style="text-align: right">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.grandLivre.totalGeneral.credit}" converter="DN"/> 
+                                                </f:facet>                                                
+                                            </p:column>
+                                            <p:column style="text-align: right">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.abs(managedModeleSaisie.grandLivre.totalGeneral.debit - managedModeleSaisie.grandLivre.totalGeneral.credit)}" converter="DN"/> 
+                                                    <h:outputText value="#{(managedModeleSaisie.grandLivre.totalGeneral.debit - managedModeleSaisie.grandLivre.totalGeneral.credit) gt 0 ? ' D' : ((managedModeleSaisie.grandLivre.totalGeneral.debit - managedModeleSaisie.grandLivre.totalGeneral.credit) lt 0 ? ' C' : '')}" style="font-weight: bold"/>
+                                                </f:facet>
+                                            </p:column>
+                                        </p:row>
+                                    </p:columnGroup>
+                                </p:dataTable>
+                            </div>  
+                        </div>
+                        <div style="clear: both"/>
+                    </p:tab>
+                    <p:tab title="#{lab.LCF_PR_journal}">
+                        <div id="zone_rapport_journal" class="block_slide" style="height: 85%">
+                            <span class="block_slide_title">
+                                <h:panelGrid columns="4" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0">
+                                    <h:outputText value="#{lab.LCF_PR_journal}"/>
+                                    <h:outputText value="#{lab.L_type}"/>
+                                    <h:outputText value="#{lab.L_dates}"/>
+                                    <h:outputText value=""/>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.journal.journal}" style="max-width: 200px; min-width: 120px">
+                                        <f:selectItem itemLabel="--" itemValue="#{0}"/>
+                                        <f:selectItems value="#{managedJournaux.journaux}" var="jrn_" itemLabel="#{jrn_.intitule}" itemValue="#{jrn_.id}"/>
+                                    </h:selectOneMenu>
+                                    <h:selectOneMenu value="#{managedModeleSaisie.journal.nature}">
+                                        <f:selectItem itemLabel="#{lab.LCF_PR_general}" itemValue="C" />
+                                        <f:selectItem itemLabel="#{lab.LDB_PA_analytique.toUpperCase()}" itemValue="A" />
+                                    </h:selectOneMenu> 
+                                    <h:panelGroup>
+                                        <p:calendar value="#{managedModeleSaisie.journal.dateDebut}" pattern="dd-MM-yyyy" navigator="true" size="10"/>
+                                        <p:spacer width="5" style="background: black"/>
+                                        <p:calendar value="#{managedModeleSaisie.journal.dateFin}" pattern="dd-MM-yyyy" navigator="true" size="10"/>
+                                    </h:panelGroup> 
+                                    <h:panelGroup>
+                                        <p:contextMenu for="btn_rapport_journal" event="left click" styleClass="context_menu" style="width: 210px">
+                                            <p:menuitem value="#{lab.L_charger}" icon="ui-icon-refresh" actionListener="#{managedModeleSaisie.loadDataJournal()}" update="data_rapport_journal"/>
+                                            <p:menuitem value="#{lab.L_telecharger}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printJournal()}" ajax="false"/>        
+                                            <p:menuitem value="#{lab.LCF_PR_fichier_excel}" icon="ui-icon-print" global="false" actionListener="#{managedModeleSaisie.printJournalXLS()}" ajax="false"/>                                    
+                                        </p:contextMenu>
+                                        <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px; float: left" id="btn_rapport_journal" type="button"/>
+                                    </h:panelGroup> 
+                                </h:panelGrid>
+                            </span>
+                            <div class="zone_slide" style="height: 90%">
+                                <p:dataTable id="data_rapport_journal" value="#{managedModeleSaisie.journal.comptables}" var="jrn" rowIndexVar="yjrn">
+                                    <p:columnGroup type="header">
+                                        <p:row>
+                                            <p:column headerText="#{lab.L_compte}"/>
+                                            <p:column headerText="#{lab.L_numero}"/>
+                                            <p:column headerText="#{lab.LCF_PR_date_piece}"/>
+                                            <p:column headerText="#{lab.L_tiers}"/>
+                                            <p:column headerText="#{lab.LCF_PR_centre}" rendered="#{managedModeleSaisie.journal.nature eq 'A'}"/>
+                                            <p:column headerText="#{lab.L_libelle}"/>
+                                            <p:column headerText="#{lab.LCF_PR_debit}"/>
+                                            <p:column headerText="#{lab.LCF_PR_credit}"/>
+                                        </p:row>
+                                    </p:columnGroup>
+                                    <p:subTable value="#{jrn.sous}" var="con" >
+                                        <f:facet name="header">
+                                            [<h:outputText value="#{jrn.code}" />] <h:outputText value="#{jrn.intitule}" />
+                                        </f:facet>
+                                        <p:column style="text-align: center">
+                                            <h:outputText value="#{con.compte}" title="#{con.designation}"/> 
+                                        </p:column> 
+                                        <p:column>
+                                            <h:outputText value="#{con.numero}" /> 
+                                        </p:column>       
+                                        <p:column style="text-align: center">
+                                            <h:outputText value="#{con.date}" converter="DATE"/> 
+                                        </p:column>  
+                                        <p:column>
+                                            <h:outputText value="#{con.nomPrenom}" title="#{managedModeleSaisie.nameTiers(con.compteTiers, con.tableTiers, 'R')}"/> 
+                                        </p:column>      
+                                        <p:column style="text-align: center" rendered="#{managedModeleSaisie.journal.nature eq 'A'}">
+                                            <h:outputText value="#{con.codePlan}" title="#{con.libelle}"/> 
+                                        </p:column>  
+                                        <p:column>
+                                            <h:outputText value="#{con.description}" /> 
+                                            <h:panelGroup style="float: right;margin-right: 5px">
+                                                <h:outputText title="#{lab.LDB_PPC_tiers}" value="#{con.lettrage}" rendered="#{con.lettrage != null ? con.lettrage ne '': false}" styleClass="style_statut"/>
+                                            </h:panelGroup>
+                                        </p:column>  
+                                        <p:column style="text-align: right">
+                                            <h:outputText value="#{con.debit}" converter="DN"/> 
+                                        </p:column> 
+                                        <p:column style="text-align: right">
+                                            <h:outputText value="#{con.credit}" converter="DN"/> 
+                                        </p:column>
+                                        <p:columnGroup type="footer">
+                                            <p:row>
+                                                <p:column/>       
+                                                <p:column/>       
+                                                <p:column/> 
+                                                <p:column/> 
+                                                <p:column rendered="#{managedModeleSaisie.journal.nature eq 'A'}"/> 
+                                                <p:column/> 
+                                                <p:column style="text-align: right">
+                                                    <f:facet name="footer">
+                                                        <h:outputText value="#{managedModeleSaisie.journal.summaryComptaResume(jrn, jrn.sous, 'debit')}" converter="DN"/> 
+                                                    </f:facet>
+                                                </p:column> 
+                                                <p:column style="text-align: right">
+                                                    <f:facet name="footer">
+                                                        <h:outputText value="#{managedModeleSaisie.journal.summaryComptaResume(jrn, jrn.sous, 'credit')}" converter="DN"/> 
+                                                    </f:facet>
+                                                </p:column> 
+                                            </p:row>                                        
+                                        </p:columnGroup>
+                                    </p:subTable>
+                                    <p:columnGroup type="footer">
+                                        <p:row>
+                                            <p:column/>
+                                            <p:column/>
+                                            <p:column/>
+                                            <p:column/>
+                                            <p:column rendered="#{managedModeleSaisie.journal.nature eq 'A'}"/>
+                                            <p:column/>
+                                            <p:column style="text-align: right">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.journal.summaryComptaResume('debit')}" converter="DN"/> 
+                                                </f:facet>
+                                            </p:column>
+                                            <p:column style="text-align: right">
+                                                <f:facet name="footer">
+                                                    <h:outputText value="#{managedModeleSaisie.journal.summaryComptaResume('credit')}" converter="DN"/> 
+                                                </f:facet>                                                
+                                            </p:column>
+                                        </p:row>
+                                    </p:columnGroup>
+                                </p:dataTable>
+                            </div>  
+                        </div>
+                        <div style="clear: both"/>
+                    </p:tab>
+                </p:tabView>                                 
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>
