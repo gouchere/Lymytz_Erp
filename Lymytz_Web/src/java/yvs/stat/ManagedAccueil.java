@@ -30,6 +30,7 @@ import yvs.base.produits.Articles;
 import yvs.commercial.UtilCom;
 import yvs.commercial.statistique.SyntheseClient;
 import yvs.commercial.stock.ManagedStockArticle;
+import yvs.commercial.stock.ManagedTransfertStock;
 import yvs.dao.Options;
 import yvs.dao.salaire.service.Constantes;
 import yvs.entity.base.YvsBaseArticleDepot;
@@ -97,6 +98,8 @@ public class ManagedAccueil extends Managed implements Serializable {
     private boolean load = false;
     private static boolean loadNbreOnline = false, loadWorkflow = false, loadWarning = false, loadInfos = false;
 
+    private int nombreTransfertIncoherentAccueil = 5;
+
     private String query;
     private String resultat;
     private String path = "";
@@ -119,6 +122,14 @@ public class ManagedAccueil extends Managed implements Serializable {
         stockages = new ArrayList<>();
         listArticle = new ArrayList<>();
         conditionnements = new ArrayList<>();
+    }
+
+    public int getNombreTransfertIncoherentAccueil() {
+        return nombreTransfertIncoherentAccueil;
+    }
+
+    public void setNombreTransfertIncoherentAccueil(int nombreTransfertIncoherentAccueil) {
+        this.nombreTransfertIncoherentAccueil = nombreTransfertIncoherentAccueil;
     }
 
     public SyntheseClient getSynthese() {
@@ -289,6 +300,21 @@ public class ManagedAccueil extends Managed implements Serializable {
 
     public void gotoViewMyCompte(ActionEvent event) {
         gotoViewMyCompte();
+    }
+
+    public void onChooseNombreTransfertIncoherent() {
+        if (nombreTransfertIncoherentAccueil == -1) {
+            Navigations w = (Navigations) giveManagedBean(Navigations.class);
+            if (w != null) {
+                ManagedTransfertStock mt = (ManagedTransfertStock) giveManagedBean(ManagedTransfertStock.class);
+                if (mt != null) {
+                    mt.setWithIncoherence(true);
+                    mt.addParamIncoherence();
+                }
+                w.naviguationApps("Transferts Stock", "modGescom", "smenTransfert", true);
+            }
+            nombreTransfertIncoherentAccueil = 5;
+        }
     }
 
     public void gotoViewMyCompte() {

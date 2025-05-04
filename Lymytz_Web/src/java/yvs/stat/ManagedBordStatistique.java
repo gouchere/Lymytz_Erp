@@ -195,6 +195,7 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     private double creditFsseur, debitFsseur, soldeFsseur;
 
     private int nbrJourEcartPiecesCaisseAntidate = 1000;
+    private long totalTransfertIncoherent = 0;
 
     private PaginatorResult<YvsComDocVentes> p_listing = new PaginatorResult<>();
     private PaginatorResult<YvsComContenuDocAchat> p_listing_achat = new PaginatorResult<>();
@@ -289,6 +290,14 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
 
     public int getNbrJourEcartPiecesCaisseAntidate() {
         return nbrJourEcartPiecesCaisseAntidate;
+    }
+
+    public long getTotalTransfertIncoherent() {
+        return totalTransfertIncoherent;
+    }
+
+    public void setTotalTransfertIncoherent(long totalTransfertIncoherent) {
+        this.totalTransfertIncoherent = totalTransfertIncoherent;
     }
 
     public void setNbrJourEcartPiecesCaisseAntidate(int nbrJourEcartPiecesCaisseAntidate) {
@@ -1992,13 +2001,17 @@ public class ManagedBordStatistique extends Managed<Serializable, Serializable> 
     }
 
     public void onLoadTransfertIncoherent(int limit) {
-        String query = " SELECT DISTINCT c.doc_stock as id FROM yvs_com_doc_stocks y INNER JOIN yvs_com_contenu_doc_stock c ON c.doc_stock = y.id "
+        String query = "SELECT DISTINCT c.doc_stock as id FROM yvs_com_doc_stocks y INNER JOIN yvs_com_contenu_doc_stock c ON c.doc_stock = y.id "
                 + "INNER JOIN yvs_com_contenu_doc_stock_reception r ON r.contenu = c.id "
                 + "INNER JOIN yvs_base_depots d ON y.source = d.id INNER JOIN yvs_agences a ON d.agence = a.id "
                 + "WHERE y.type_doc = 'FT' AND y.statut = 'V' AND a.societe = ? "
                 + "GROUP BY c.doc_stock, c.id HAVING c.quantite_entree < SUM(r.quantite)";
         List<Options> params = new ArrayList<>();
         params.add(new Options(currentAgence.getSociete().getId(), params.size() + 1));
+        if (totalTransfertIncoherent < 1) {
+            Long count = (Long) dao.loadObjectBySqlQuery("SELECT COUNT(*) AS nombre_documents FROM (" + query + ") AS subquery", params.toArray(new Options[params.size()]));
+            totalTransfertIncoherent = count != null ? count : 0;
+        }
         if (limit > 0) {
             query += " LIMIT ?";
             params.add(new Options(limit, params.size() + 1));
