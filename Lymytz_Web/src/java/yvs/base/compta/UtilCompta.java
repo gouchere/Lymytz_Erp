@@ -153,6 +153,7 @@ public class UtilCompta {
             p.setJourAnterieurCancel(y.getJourAnterieurCancel());
             p.setJourAntidaterPaiement(y.getJourAntidaterPaiement());
             p.setReportByAgence(y.getReportByAgence());
+            p.setComptaPartielVirement(y.getComptaPartielVirement());
             p.setCompteBeneficeReport(buildBeanCompte(y.getCompteBeneficeReport()));
             p.setComptePerteReport(buildBeanCompte(y.getComptePerteReport()));
             p.setJournalReport(buildBeanJournaux(y.getJournalReport()));
@@ -181,6 +182,7 @@ public class UtilCompta {
             p.setJourAnterieurCancel(y.getJourAnterieurCancel());
             p.setJourAntidaterPaiement(y.getJourAntidaterPaiement());
             p.setReportByAgence(y.isReportByAgence());
+            p.setComptaPartielVirement(y.isComptaPartielVirement());
             p.setSociete(ste);
             p.setAuthor(ua);
             p.setDateSave(y.getDateSave());
