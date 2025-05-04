@@ -6,6 +6,7 @@
 package yvs.dao.services.compta;
 
 import java.util.Date;
+import java.util.List;
 import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.local.UtilsBean;
 import yvs.dao.salaire.service.Constantes;
@@ -15,6 +16,7 @@ import yvs.dao.services.commercial.ServiceClotureVente;
 import yvs.entity.commercial.vente.YvsComEnteteDocVente;
 import yvs.entity.compta.YvsBaseCaisse;
 import yvs.entity.compta.YvsComptaCaissePieceVirement;
+import yvs.entity.compta.YvsComptaParametre;
 import yvs.entity.compta.vente.YvsComptaNotifVersementVente;
 import yvs.entity.users.YvsBaseUsersAcces;
 import yvs.entity.users.YvsNiveauAcces;
@@ -123,6 +125,8 @@ public class ServiceMvtCaisse extends GenericService {
                 return new ResultatAction().fail("Enregistrement impossible");
             }
             if (entity.getId() <= 0) {
+                List<YvsComptaParametre> l = dao.loadNameQueries("YvsComptaParametre.findAll", new String[]{"societe"}, new Object[]{niveau.getSociete()}, 0, 1);
+                YvsComptaParametre param = l != null ? !l.isEmpty() ? l.get(0) : null : null;
                 entity.setId(null);
                 entity = (YvsComptaCaissePieceVirement) dao.save1(entity);
                 YvsComptaNotifVersementVente notif = new YvsComptaNotifVersementVente();
@@ -138,7 +142,7 @@ public class ServiceMvtCaisse extends GenericService {
                 dao.update(entity);
                 ServiceComptabilite w = new ServiceComptabilite(niveau, currentUser, dao);
                 if (w != null) {
-                    w.comptabiliserCaisseVirement(entity);
+                    w.comptabiliserCaisseVirement(entity, param != null ? param.getComptaPartielVirement() : true);
                 }
 
                 dao.save(notif);

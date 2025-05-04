@@ -33,7 +33,6 @@ import yvs.entity.compta.YvsComptaContentJournal;
 import yvs.entity.compta.YvsComptaCreditClient;
 import yvs.entity.compta.YvsComptaJournaux;
 import yvs.entity.compta.YvsComptaJournauxPeriode;
-import yvs.entity.compta.YvsComptaNotifReglementVente;
 import yvs.entity.compta.YvsComptaPhasePiece;
 import yvs.entity.compta.YvsComptaPhasePieceAchat;
 import yvs.entity.compta.YvsComptaPhasePieceDivers;
@@ -2050,6 +2049,10 @@ public class ServiceComptabilite extends GenericService {
     }
 
     public ResultatAction majComptaCaisseVirement(YvsComptaCaissePieceVirement y, List<YvsComptaContentJournal> contenus) {
+        return majComptaCaisseVirement(y, contenus, true);
+    }
+
+    public ResultatAction majComptaCaisseVirement(YvsComptaCaissePieceVirement y, List<YvsComptaContentJournal> contenus, boolean partiel) {
         ResultatAction result = new ResultatAction();
         if (contenus != null ? !contenus.isEmpty() ? contenus.size() > 1 : false : false) {
             double solde = giveSoePieces(contenus);
@@ -2084,11 +2087,11 @@ public class ServiceComptabilite extends GenericService {
                             c.setId(null);
                             c.setSensCompta(yvs.dao.salaire.service.Constantes.MOUV_CAISS_SORTIE.charAt(0));
                             dao.save(c);
-                            if (y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS)) {
+                            if (y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS) && partiel) {
                                 return result;
                             }
                         }
-                        if (y.getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
+                        if (y.getStatutPiece().equals(Constantes.STATUT_DOC_PAYER) || ((y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS) || soumis) && !partiel)) {
                             YvsComptaJournaux journal = y.getJournalCible() != null ? y.getJournalCible() : y.getCible().getJournal();
                             result = saveNewPieceComptable(y.getDatePaiement(), journal, cibles);
                             YvsComptaPiecesComptable p1 = ((YvsComptaPiecesComptable) (result != null ? result.isResult() ? result.getData() : null : null));
@@ -4401,7 +4404,7 @@ public class ServiceComptabilite extends GenericService {
         return new ResultatAction().fail("Erreur...!");
     }
 
-    public ResultatAction comptabiliserCaisseVirement(YvsComptaCaissePieceVirement y) {
+    public ResultatAction comptabiliserCaisseVirement(YvsComptaCaissePieceVirement y, boolean partiel) {
         if (y != null) {
             if (y.getPhasesReglement() != null ? !y.getPhasesReglement().isEmpty() : false) {
                 ResultatAction correct = new ResultatAction().fail("Erreur...");
@@ -4412,13 +4415,13 @@ public class ServiceComptabilite extends GenericService {
                 }
                 return correct;
             } else {
-                return comptabiliserCaisseVirement(y, buildCaisseVirementToComptabilise(y).getListContent());
+                return comptabiliserCaisseVirement(y, buildCaisseVirementToComptabilise(y).getListContent(), partiel);
             }
         }
         return new ResultatAction().fail("Erreur...");
     }
 
-    public ResultatAction comptabiliserCaisseVirement(YvsComptaCaissePieceVirement y, List<YvsComptaContentJournal> contenus) {
+    public ResultatAction comptabiliserCaisseVirement(YvsComptaCaissePieceVirement y, List<YvsComptaContentJournal> contenus, boolean partiel) {
         ResultatAction result = new ResultatAction();
         if (y != null ? (y.getId() != null ? y.getId() > 0 : false) : false) {
             if (y.getStatutPiece().equals(Constantes.STATUT_DOC_PAYER) || y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS)) {
@@ -4433,7 +4436,7 @@ public class ServiceComptabilite extends GenericService {
                     }
                     return result.alreadyComptabilise();
                 }
-                result = majComptaCaisseVirement(y, contenus);
+                result = majComptaCaisseVirement(y, contenus, partiel);
                 YvsComptaPiecesComptable p = ((YvsComptaPiecesComptable) (result != null ? result.isResult() ? result.getData() : null : null));
                 boolean reponse = (p != null ? (p.getId() != null ? p.getId() > 0 : false) : false);
                 if (result != null) {

@@ -108,6 +108,7 @@ import yvs.entity.compta.YvsBaseCaisse;
 import yvs.entity.compta.YvsBasePlanComptable;
 import yvs.entity.compta.YvsComptaCaissePieceVente;
 import yvs.entity.compta.YvsComptaCaissePieceVirement;
+import yvs.entity.compta.YvsComptaParametre;
 import yvs.entity.grh.activite.YvsGrhFraisMission;
 import yvs.entity.grh.activite.YvsGrhMissions;
 import yvs.entity.grh.presence.YvsGrhTrancheHoraire;
@@ -2782,9 +2783,11 @@ public class GenericResource {
     /*COMPTABILISATION VIREMENT**/
     public ResultatAction comptabiliserCaisseVirement(YvsComptaCaissePieceVirement y) {
         if (y != null) {
+            List<YvsComptaParametre> l = dao.loadNameQueries("YvsComptaParametre.findAll", new String[]{"societe"}, new Object[]{y.getAuthor().getUsers().getAgence().getSociete()}, 0, 1);
+            YvsComptaParametre param = l != null ? !l.isEmpty() ? l.get(0) : null : null;
             YvsNiveauAcces n = (YvsNiveauAcces) dao.loadOneByNameQueries("YvsNiveauUsers.findNiveauByUser", new String[]{"user", "societe"}, new Object[]{y.getAuthor().getUsers(), y.getAuthor().getUsers().getAgence().getSociete()});
             ServiceComptabilite service = new ServiceComptabilite(n, y.getAuthor(), dao);
-            ResultatAction re = service.comptabiliserCaisseVirement(y);
+            ResultatAction re = service.comptabiliserCaisseVirement(y, param != null ? param.getComptaPartielVirement() : true);
             return re;
         }
         return null;
