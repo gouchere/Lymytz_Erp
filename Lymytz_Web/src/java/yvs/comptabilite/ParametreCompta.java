@@ -29,7 +29,7 @@ public class ParametreCompta implements Serializable {
     private int nbMaxBp;
     private boolean decimalArrondi = true;
     private int valeurArrondi = 2, ecartDaySoldeClient = 7, nombreLigneSoldeClient = 4;
-    private boolean majComptaAutoDivers = false, reportByAgence = false;
+    private boolean majComptaAutoDivers = false, reportByAgence = false, comptaPartielVirement = true;
     private char majComptaStatutDivers = Constantes.STATUT_DOC_PAYER;
     private String modeArrondi = "A";
     private Date dateSave = new Date();
@@ -57,6 +57,14 @@ public class ParametreCompta implements Serializable {
 
     public void setValeurLimiteArrondi(double valeurLimiteArrondi) {
         this.valeurLimiteArrondi = valeurLimiteArrondi;
+    }
+
+    public boolean isComptaPartielVirement() {
+        return comptaPartielVirement;
+    }
+
+    public void setComptaPartielVirement(boolean comptaPartielVirement) {
+        this.comptaPartielVirement = comptaPartielVirement;
     }
 
     public int getJourAntidaterPaiement() {

@@ -68,6 +68,7 @@ import yvs.entity.compta.YvsComptaModeleSaisie;
 import yvs.entity.compta.YvsComptaPhasePiece;
 import yvs.entity.compta.YvsComptaCaissePieceMission;
 import yvs.entity.compta.YvsComptaCreditClient;
+import yvs.entity.compta.YvsComptaParametre;
 import yvs.entity.compta.YvsComptaPhasePieceAchat;
 import yvs.entity.compta.YvsComptaPhasePieceDivers;
 import yvs.entity.compta.YvsComptaPhasePieceVirement;
@@ -155,6 +156,8 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     private YvsComptaContentJournal selectContent = new YvsComptaContentJournal();
     private YvsComptaContentAnalytique selectContentAnal;
     private YvsBasePlanComptable selectCompte;
+
+    private YvsComptaParametre currentParamCompta;
 
     public PaginatorResult<YvsComptaContentJournal> paginatorContenu = new PaginatorResult<>();
 
@@ -250,6 +253,14 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         if (currentUser != null) {
             fonction.loadInfos(currentAgence.getSociete(), currentAgence, currentUser, currentDepot, currentPoint, currentExo);
         }
+    }
+
+    public YvsComptaParametre getCurrentParamCompta() {
+        return currentParamCompta;
+    }
+
+    public void setCurrentParamCompta(YvsComptaParametre currentParamCompta) {
+        this.currentParamCompta = currentParamCompta;
     }
 
     public String getMouvementContenuSearch() {
@@ -1019,6 +1030,8 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
             w.loadAgence();
         }
         service = new ServiceComptabilite(currentNiveau, currentUser, (w != null ? w.getListAgence() : null), dao);
+        List<YvsComptaParametre> l = dao.loadNameQueries("YvsComptaParametre.findAll", new String[]{"societe"}, new Object[]{currentAgence.getSociete()}, 0, 1);
+        currentParamCompta = l != null ? !l.isEmpty() ? l.get(0) : null : null;
     }
 
     @Override
@@ -7432,7 +7445,8 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     }
 
     private boolean comptabiliserCaisseVirement(YvsComptaCaissePieceVirement y, List<YvsComptaContentJournal> contenus, boolean msg, boolean succes) {
-        ResultatAction result = service.comptabiliserCaisseVirement(y, contenus);
+        boolean partiel = currentParamCompta != null ? currentParamCompta.getComptaPartielVirement() : true;
+        ResultatAction result = service.comptabiliserCaisseVirement(y, contenus, partiel);
         if (result != null) {
             if (result.isResult()) {
                 YvsComptaPiecesComptable p = (YvsComptaPiecesComptable) result.getData();
