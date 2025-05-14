@@ -214,6 +214,9 @@ public class ServiceTransfert extends GenericService {
      * @return
      */
     public boolean chechAutorisationActionOnDepot(YvsComDocStocks doc, int action, YvsUsers currentUser) {
+        if (dao.autoriser("tr_valid_all", niveau)) {
+            return true;
+        }
         if (currentUser != null && doc != null) {
             switch (action) {
                 case 1: { //Cas de l'emetteur du transfert
