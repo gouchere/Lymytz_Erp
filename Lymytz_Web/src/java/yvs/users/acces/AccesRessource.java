@@ -19,7 +19,7 @@ public class AccesRessource implements Serializable {
 
 //Module donnees de base base_
     //Page Exercice base_view_exercices
-    public boolean base_cloture_exo, base_uncloture_exo;
+    public boolean base_cloture_exo, base_uncloture_exo, base_uncloture_periode_exo, base_cloture_periode_exo;
     //Page Utilisateur base_user_
     public boolean base_user_vu_, base_user_up_, base_user_del_, base_user_add_, base_view_all_user, base_view_all_user_groupe, base_user_attrib_code_acces, base_user_active,
             caiss_create_piece, base_user_fusion, stock_clean_all_doc_societe, base_conditionnement_update, base_user_change_niveau, base_user_reinitialise_password;
@@ -150,6 +150,22 @@ public class AccesRessource implements Serializable {
 
     //Projet proj_
     public boolean proj_departement_save, proj_departement_update, proj_departement_delete, proj_projet_view, proj_projet_save, proj_projet_update, proj_projet_delete, proj_projet_add_service;
+
+    public boolean isBase_uncloture_periode_exo() {
+        return base_uncloture_periode_exo;
+    }
+
+    public void setBase_uncloture_periode_exo(boolean base_uncloture_periode_exo) {
+        this.base_uncloture_periode_exo = base_uncloture_periode_exo;
+    }
+
+    public boolean isBase_cloture_periode_exo() {
+        return base_cloture_periode_exo;
+    }
+
+    public void setBase_cloture_periode_exo(boolean base_cloture_periode_exo) {
+        this.base_cloture_periode_exo = base_cloture_periode_exo;
+    }
 
     public boolean isBase_user_change_niveau() {
         return base_user_change_niveau;

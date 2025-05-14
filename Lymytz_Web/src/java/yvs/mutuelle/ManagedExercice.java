@@ -324,6 +324,10 @@ public class ManagedExercice extends Managed<Exercice, YvsBaseExercice> implemen
     public void cloturerPeriode(YvsMutPeriodeExercice y) {
         try {
             if (y != null) {
+                if (y.getCloture() ? !autoriser("base_uncloture_periode_exo") : !autoriser("base_cloture_periode_exo")) {
+                    openNotAcces();
+                    return;
+                }
                 y.setCloture(!y.getCloture());
                 dao.update(y);
                 int idx = exercice.getPeriodes().indexOf(y);
