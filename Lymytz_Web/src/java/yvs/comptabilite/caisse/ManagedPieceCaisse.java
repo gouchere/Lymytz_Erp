@@ -2327,7 +2327,7 @@ public class ManagedPieceCaisse extends Managed<PieceTresorerie, YvsComptaMouvem
     }
 
     public void addParamCaisse(Long id, boolean viewAll) {
-        if (id == -1) {
+        if (id != null && id == -1) {
             ManagedCaisses service = (ManagedCaisses) giveManagedBean(ManagedCaisses.class);
             if (service != null) {
                 service.loadAll(true, 0);

@@ -1654,20 +1654,23 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                     selectBon.setStatutJustify(Constantes.ETAT_INJUSTIFIE);
                 } else {
                     if (!Constantes.ETAT_REGLE.equals(y.getStatutPaiement())) {
-                        getErrorMessage("Le bon provisoire ne peut être justifier", "Il n'est pas encore validé!");
+                        getErrorMessage("Le bon provisoire ne peut être justifier", "Il n'est pas encore payé!");
                         return false;
                     } else {
                         //Vérifie l'equilibre des montants
-                        if (y.getMontant() > y.getJustifier()) {
+                        if (y.getMontant() >= y.getJustifier()) {
                             if (force && autoriser("compta_justif_bp")) {
                                 selectBon.setStatutJustify(Constantes.ETAT_JUSTIFIE);
                                 selectBon.setDateJustify(new Date());
                                 selectBon.setJustifyBy(currentUser.getUsers());
                             } else {
-                                selectBon.setStatutJustify(Constantes.ETAT_INJUSTIFIE);
-                                getErrorMessage("Le montant des justificatifs n'équilibre pas le bon !");
-                                succes = false;
+                                getErrorMessage("Vous ne disposez pas des droits pour justifier ce bon provisoire");
+                                return false;
                             }
+                        } else {
+                            selectBon.setStatutJustify(Constantes.ETAT_INJUSTIFIE);
+                            getErrorMessage("Le montant des justificatifs n'équilibre pas le bon !");
+                            succes = false;
                         }
                     }
                 }
@@ -1814,6 +1817,9 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                             dd.setStatut(Constantes.ETAT_VALIDE);
                             dao.update(dd);
                             bonProvisoire.setStatut(Constantes.STATUT_DOC_VALIDE);
+                            if (selectBon != null && selectBon.getId().equals(bonProvisoire.getId())) {
+                                selectBon.setStatut(Constantes.ETAT_VALIDE);
+                            }
                             if (documents.contains(dd)) {
                                 documents.set(documents.indexOf(dd), dd);
                             }
