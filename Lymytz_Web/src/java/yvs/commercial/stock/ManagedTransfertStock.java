@@ -1645,7 +1645,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
     }
 
     public void deleteBeanArticles(boolean execute) {
-        if (execute || memoriserDeleteContenu) { 
+        if (execute || memoriserDeleteContenu) {
             if (selectContenus != null ? !selectContenus.isEmpty() : false) {
                 if (!_controleFiche_(selectDoc)) {
                     return;
@@ -2117,24 +2117,28 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
             if (withIncoherence != null) {
                 String query = "SELECT DISTINCT * from (SELECT DISTINCT y.id FROM yvs_com_doc_stocks y INNER JOIN yvs_com_contenu_doc_stock c ON c.doc_stock = y.id "
                         + "INNER JOIN yvs_base_depots d ON y.source = d.id INNER JOIN yvs_agences a ON d.agence = a.id "
-                        + "WHERE y.type_doc = 'FT' AND y.statut = 'V' AND c.statut != 'V' AND a.societe = ? "
+                        + "WHERE y.type_doc = 'FT' AND y.statut = 'V' AND c.statut != 'V' AND a.societe = ? $1 $2 "
                         + "UNION "
                         + "SELECT DISTINCT c.doc_stock as id FROM yvs_com_doc_stocks y INNER JOIN yvs_com_contenu_doc_stock c ON c.doc_stock = y.id "
                         + "INNER JOIN yvs_com_contenu_doc_stock_reception r ON r.contenu = c.id "
                         + "INNER JOIN yvs_base_depots d ON y.source = d.id INNER JOIN yvs_agences a ON d.agence = a.id "
-                        + "WHERE y.type_doc = 'FT' AND y.statut = 'V' AND a.societe = ? "
+                        + "WHERE y.type_doc = 'FT' AND y.statut = 'V' AND a.societe = ? $1 $2 "
                         + "GROUP BY c.doc_stock, c.id HAVING c.quantite_entree < SUM(r.quantite)) AS id ORDER BY id";
                 List<Options> params = new ArrayList<>();
                 params.add(new Options(currentAgence.getSociete().getId(), params.size() + 1));
                 params.add(new Options(currentAgence.getSociete().getId(), params.size() + 1));
                 if (!currentUser.getUsers().getAccesMultiAgence()) {
-                    query += " AND d.agence = ?";
+                    query = query.replace("$1", " AND d.agence = ?");
                     params.add(new Options(currentAgence.getId(), params.size() + 1));
+                }else{
+                    query = query.replace("$1", "");
                 }
                 if (date_) {
-                    query += " AND y.date_doc BETWEEN ? AND ?";
+                    query = query.replace("$2", " AND y.date_doc BETWEEN ? AND ?");
                     params.add(new Options(dateDebut_, params.size() + 1));
                     params.add(new Options(dateFin_, params.size() + 1));
+                }else{
+                    query = query.replace("$2", "");
                 }
                 List<Long> ids = dao.loadListBySqlQuery(query, params.toArray(new Options[params.size()]));
                 if (ids != null ? ids.isEmpty() : true) {
