@@ -86,6 +86,8 @@ public class YvsComptaParametre implements Serializable {
     private Boolean decimalArrondi;
     @Column(name = "report_by_agence")
     private Boolean reportByAgence;
+    @Column(name = "compta_partiel_virement")
+    private Boolean comptaPartielVirement;
     @Size(max = 2147483647)
     @Column(name = "mode_arrondi")
     private String modeArrondi;
@@ -199,6 +201,14 @@ public class YvsComptaParametre implements Serializable {
 
     public void setReportByAgence(Boolean reportByAgence) {
         this.reportByAgence = reportByAgence;
+    }
+
+    public Boolean getComptaPartielVirement() {
+        return comptaPartielVirement != null ? comptaPartielVirement : true;
+    }
+
+    public void setComptaPartielVirement(Boolean comptaPartielVirement) {
+        this.comptaPartielVirement = comptaPartielVirement;
     }
 
     public Integer getId() {
@@ -330,7 +340,7 @@ public class YvsComptaParametre implements Serializable {
     }
 
     public Integer getNbMaxBp() {
-        return nbMaxBp!=null? nbMaxBp:0;
+        return nbMaxBp != null ? nbMaxBp : 0;
     }
 
     public void setNbMaxBp(Integer nbMaxBp) {
