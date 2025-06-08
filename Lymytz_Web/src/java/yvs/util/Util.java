@@ -766,6 +766,17 @@ public class Util {
         }
     }
 
+    public static String join(String separator, List<String> liste) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < liste.size(); i++) {
+            sb.append(liste.get(i));
+            if (i < liste.size() - 1) {
+                sb.append(separator);
+            }
+        }
+       return sb.toString();
+    }
+
     public static List<List<String>> readFileCSV(String fileName) {
         return readFileCSV(new File(fileName));
     }
