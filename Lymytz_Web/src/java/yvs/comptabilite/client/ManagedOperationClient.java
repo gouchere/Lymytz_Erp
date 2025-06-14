@@ -1259,10 +1259,15 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
     public void savePiece() {
         boolean update = piece.getId() > 0;
         try {
-
             if (selectCompte != null ? (selectCompte.getId() != null ? selectCompte.getId() < 1 : true) : true) {
                 getErrorMessage("Vous devez selectionner l'acompte");
                 return;
+            }
+            if (compte.getStatut() == Constantes.STATUT_DOC_PAYER) {
+                if (compte.getDateAcompte().after(piece.getDatePaiementPrevu())) {
+                    getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
+                    return;
+                }
             }
             if (isFacture) {
                 ManagedReglementVente m = (ManagedReglementVente) giveManagedBean(ManagedReglementVente.class);
@@ -2678,6 +2683,10 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
 
     public void encaisserPiece(YvsComptaNotifReglementVente y) {
         if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
+            if (selectCompte.getDatePaiement().after(y.getPieceVente().getDatePaimentPrevu())) {
+                getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
+                return;
+            }
             Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
             double montant = y.getPieceVente().getMontant() + (totalPayer != null ? totalPayer : 0);
             if (montant > compte.getMontant()) {
@@ -2711,6 +2720,10 @@ public class ManagedOperationClient extends Managed<AcompteClient, YvsComptaAcom
             if (a.getType().equals("OD_V")) {
                 YvsComptaNotifReglementDocDivers z = a.getNotif_divers();
                 if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
+                    if (selectCompte.getDatePaiement().after(z.getPieceDocDivers().getDatePaimentPrevu())) {
+                        getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
+                        return;
+                    }
                     Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementVente.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
                     double montant = z.getPieceDocDivers().getMontant() + (totalPayer != null ? totalPayer : 0);
                     if (montant > compte.getMontant()) {

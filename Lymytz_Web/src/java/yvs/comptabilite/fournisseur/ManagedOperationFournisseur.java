@@ -1195,6 +1195,12 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
                 getErrorMessage("Vous devez selectionner l'acompte");
                 return;
             }
+            if (compte.getStatut() == Constantes.STATUT_DOC_PAYER) {
+                if (compte.getDatePaiement().after(piece.getDatePaiementPrevu())) {
+                    getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
+                    return;
+                }
+            }
             if (isFacture) {
                 ManagedReglementAchat m = (ManagedReglementAchat) giveManagedBean(ManagedReglementAchat.class);
                 if (m != null) {
@@ -2490,6 +2496,10 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
 
     public void encaisserPiece(YvsComptaNotifReglementAchat y) {
         if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
+            if (selectCompte.getDatePaiement().after(y.getPieceAchat().getDatePaiement())) {
+                getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
+                return;
+            }
             Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
             // (reste != null ? reste : 0);
             double montant = y.getPieceAchat().getMontant() + (totalPayer != null ? totalPayer : 0);
@@ -2525,6 +2535,10 @@ public class ManagedOperationFournisseur extends Managed<AcompteFournisseur, Yvs
             if (a.getType().equals("OD_A")) {
                 YvsComptaNotifReglementDocDivers z = a.getNotif_divers();
                 if (selectCompte.getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
+                    if (selectCompte.getDatePaiement().after(z.getPieceDocDivers().getDatePaimentPrevu())) {
+                        getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
+                        return;
+                    }
                     Double totalPayer = (Double) dao.loadObjectByNameQueries("YvsComptaNotifReglementAchat.findSumByAcompte", new String[]{"acompte", "statut"}, new Object[]{selectCompte, Constantes.STATUT_DOC_PAYER});
                     double montant = z.getPieceDocDivers().getMontant() + (totalPayer != null ? totalPayer : 0);
                     if (montant > compte.getMontant()) {

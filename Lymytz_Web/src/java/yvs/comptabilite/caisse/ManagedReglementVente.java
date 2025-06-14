@@ -2371,6 +2371,12 @@ public class ManagedReglementVente extends Managed implements Serializable {
                     if (pc.getStatutPiece() != Constantes.STATUT_DOC_PAYER) {
                         //Vérifie s'il s'agit d'une compensation de la cohérence des montants
                         if (pc.getNotifs() != null) {
+                            if (action != 3) {
+                                if (pc.getNotifs().getAcompte().getDatePaiement().after(pc.getDatePaiement())) {
+                                    getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
+                                    return false;
+                                }
+                            }
                             Double reste = AYvsComptaAcompteClient.findResteForAcompte(pc.getNotifs().getAcompte(), dao);
                             // (reste != null ? reste : 0);
                             if ((reste != null ? reste : 0) < pc.getMontant()) {
@@ -3219,6 +3225,10 @@ public class ManagedReglementVente extends Managed implements Serializable {
                     }
                     if (!pv.getNotifs().getAcompte().getStatut().equals(Constantes.STATUT_DOC_PAYER)) {
                         getErrorMessage("L'acompte lié à ce reglement n'est pas encore encaissé");
+                        return false;
+                    }
+                    if (pv.getNotifs().getAcompte().getDatePaiement().after(pv.getDatePaiement())) {
+                        getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
                         return false;
                     }
                     double montant = pv.getMontant();
