@@ -447,7 +447,7 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
         paginator.addParam(new ParametreRequete("y.agence.societe", "societe", currentAgence.getSociete(), "=", "AND"));
         String table = "YvsComptaBonProvisoire y JOIN FETCH y.ordonnateur LEFT JOIN FETCH y.justifyBy LEFT JOIN FETCH y.validerBy LEFT JOIN FETCH y.bonAchat LEFT JOIN FETCH y.bonMission LEFT JOIN FETCH y.bonDivers "
                 + " LEFT JOIN FETCH y.justificatifs LEFT JOIN FETCH y.justificatifsAchats LEFT JOIN FETCH y.justificatifsMissions LEFT JOIN FETCH y.etapesValidations";
-        documents = paginator.executeDynamicQuery("y", "y", table, "y.dateBon DESC, y.numero DESC", avance, init, (int) imax, dao);
+        documents = paginator.executeDynamicQuery("DISTINCT(y)", "DISTINCT(y)", table, "y.dateBon DESC, y.numero DESC", avance, init, (int) imax, dao);
         update("data_bon_provisoire");
     }
 
