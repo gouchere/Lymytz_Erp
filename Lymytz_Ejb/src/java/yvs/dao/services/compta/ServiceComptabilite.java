@@ -2049,7 +2049,7 @@ public class ServiceComptabilite extends GenericService {
     }
 
     public ResultatAction majComptaCaisseVirement(YvsComptaCaissePieceVirement y, List<YvsComptaContentJournal> contenus) {
-        return majComptaCaisseVirement(y, contenus, true);
+        return majComptaCaisseVirement(y, contenus, false);
     }
 
     public ResultatAction majComptaCaisseVirement(YvsComptaCaissePieceVirement y, List<YvsComptaContentJournal> contenus, boolean partiel) {
@@ -2074,8 +2074,8 @@ public class ServiceComptabilite extends GenericService {
                                 sources.add(c);
                             }
                         }
-                        boolean soumis = y.getStatutPiece().equals(Constantes.STATUT_DOC_PAYER) ? (!dao.isComptabilise(y.getId(), Constantes.SCR_VIREMENT, true, Constantes.MOUV_CAISS_SORTIE.charAt(0))) : y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS);
-                        if (y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS) || soumis) {
+                        boolean comptabiliseSortie = y.getStatutPiece().equals(Constantes.STATUT_DOC_PAYER) ? (!dao.isComptabilise(y.getId(), Constantes.SCR_VIREMENT, true, Constantes.MOUV_CAISS_SORTIE.charAt(0))) : (partiel && y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS));
+                        if (comptabiliseSortie) {
                             YvsComptaJournaux journal = y.getJournalSource() != null ? y.getJournalSource() : y.getSource().getJournal();
                             result = saveNewPieceComptable(y.getDatePaimentPrevu(), journal, sources);
                             YvsComptaPiecesComptable p2 = ((YvsComptaPiecesComptable) (result != null ? result.isResult() ? result.getData() : null : null));
@@ -2087,11 +2087,11 @@ public class ServiceComptabilite extends GenericService {
                             c.setId(null);
                             c.setSensCompta(yvs.dao.salaire.service.Constantes.MOUV_CAISS_SORTIE.charAt(0));
                             dao.save(c);
-                            if (y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS) && partiel) {
+                            if (y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS)) {
                                 return result;
                             }
                         }
-                        if (y.getStatutPiece().equals(Constantes.STATUT_DOC_PAYER) || ((y.getStatutPiece().equals(Constantes.STATUT_DOC_SOUMIS) || soumis) && !partiel)) {
+                        if (y.getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
                             YvsComptaJournaux journal = y.getJournalCible() != null ? y.getJournalCible() : y.getCible().getJournal();
                             result = saveNewPieceComptable(y.getDatePaiement(), journal, cibles);
                             YvsComptaPiecesComptable p1 = ((YvsComptaPiecesComptable) (result != null ? result.isResult() ? result.getData() : null : null));
