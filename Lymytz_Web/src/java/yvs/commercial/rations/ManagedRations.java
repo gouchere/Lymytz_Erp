@@ -28,6 +28,7 @@ import yvs.commercial.achat.ManagedLotReception;
 import yvs.commercial.creneau.Creneau;
 import yvs.commercial.depot.ManagedDepot;
 import yvs.commercial.objectifs.PeriodesObjectifs;
+import yvs.dao.Options;
 import yvs.entity.base.YvsBaseArticleDepot;
 import yvs.entity.base.YvsBaseConditionnement;
 import yvs.entity.base.YvsBaseDepots;
@@ -382,6 +383,10 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
                 getErrorMessage("Une fiche à déjà été trouvé pour ce créneau horaire");
                 return false;
             }
+        }
+        int ecart = currentParamStock.getDureeSaveRation();
+        if (!verifyDate(bean.getDateFiche(), ecart, "")) {
+            return false;
         }
         if (bean.getNumDoc() != null ? bean.getNumDoc().trim().length() < 1 : true) {
             String ref = genererReference(Constantes.TYPE_RA_NAME, bean.getDateFiche(), bean.getDepot().getId());
@@ -961,6 +966,10 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
             getErrorMessage("La fiche de ration n'a pas encore été validé !");
             return false;
         }
+        if (selectedDoc.getCloturer()) {
+            getErrorMessage("La fiche de ration est cloturée !");
+            return false;
+        }
         if (selectedRation.getLast() != null ? selectedRation.getLast().getId() > 0 : false) {
             if (!selectedDoc.getId().equals(selectedRation.getLast().getId())) {
                 getErrorMessage("Ce personnel a deja pris la ration dans cette journée!");
@@ -1319,6 +1328,15 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
             int idx = documents.indexOf(selectedDoc);
             if (idx > -1) {
                 documents.set(idx, selectedDoc);
+            }
+            if (selectedDoc.getStatut().equals(Constantes.STATUT_DOC_VALIDE)) {
+                String query = "UPDATE yvs_com_doc_ration SET cloturer = TRUE WHERE depot = ? AND id != ? AND cloturer = FALSE";
+                dao.requeteLibre(query, new Options[]{new Options(selectedDoc.getDepot().getId(), 1), new Options(selectedDoc.getId(), 2)});
+                for (YvsComDocRation o : documents) {
+                    if (o.getDepot().equals(selectedDoc.getDepot()) && !o.getCloturer() && !o.getId().equals(selectedDoc.getId())) {
+                        o.setCloturer(true);
+                    }
+                }
             }
             update("param_ration_zone_form");
             update("blog_periode_ration");

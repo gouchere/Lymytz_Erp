@@ -4180,23 +4180,26 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
         now.set(Calendar.MILLISECOND, 0);
         now.add(Calendar.DATE, 1);
 
+        Date nowTime = now.getTime();
+
         Calendar d = Calendar.getInstance();
         d.setTime(date);
         d.set(Calendar.HOUR_OF_DAY, 0);
         d.set(Calendar.MINUTE, 0);
         d.set(Calendar.SECOND, 0);
         d.set(Calendar.MILLISECOND, 0);
-        if (d.after(now)) {
+        if (d.after(now) || d.getTime().after(nowTime)) {
             getErrorMessage("La date ne doit pas être superieur à la date du jour");
             return false;
         }
         if (ecart > 0) {
-            now.add(Calendar.DATE, -ecart);
-            if (d.before(now)) {
-                if (autoriser(ressource)) {
+            now.add(Calendar.DATE, -(ecart + 1));
+            nowTime = now.getTime();
+            if (d.before(now) || d.getTime().before(nowTime)) {
+                if (!"".equals(ressource) && autoriser(ressource)) {
                     return true;
                 } else {
-                    getErrorMessage("La date de l'opération ne doit pas être antérieure à "+ecart+" Jour(s)");
+                    getErrorMessage("La date de l'opération ne doit pas être antérieure à " + ecart + " Jour(s)");
                     return false;
                 }
             }

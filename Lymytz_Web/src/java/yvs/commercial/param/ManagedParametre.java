@@ -192,6 +192,7 @@ public class ManagedParametre extends ManagedCommercial<Parametre, YvsBaseCaisse
             p.setComptabilisationMode(y.getComptabilisationMode());
             p.setJourAnterieur(y.getJourAnterieur());
             p.setDureeUpdate(y.getDureeUpdate());
+            p.setDureeSaveRation(y.getDureeSaveRation());
             p.setTailleCodeRation(y.getTailleCodeRation());
             p.setActiveRation(y.isActiveRation());
             p.setPrintDocumentWhenValide(y.isPrintDocumentWhenValide());
