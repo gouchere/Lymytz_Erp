@@ -1287,10 +1287,6 @@ public class ManagedReglementAchat extends Managed implements Serializable {
                         getErrorMessage("L'acompte lié à ce reglement n'est pas encore encaissé");
                         return false;
                     }
-                    if (pv.getNotifs().getAcompte().getDatePaiement().after(pv.getDatePaiement())) {
-                        getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
-                        return false;
-                    }
                     double montant = pv.getMontant();
                     for (YvsComptaNotifReglementAchat n : pv.getNotifs().getAcompte().getNotifs()) {
                         if (n.getPieceAchat().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
@@ -1300,6 +1296,9 @@ public class ManagedReglementAchat extends Managed implements Serializable {
                     if (montant > pv.getNotifs().getAcompte().getMontant()) {
                         getErrorMessage("Vous ne pouvez pas valider ce montant.. car la somme des pièces excedera le montant de l'acompte");
                         return false;
+                    }
+                    if (pv.getNotifs().getAcompte().getDatePaiement().after(pv.getDatePaiement())) {
+                        pv.setDatePaiement(pv.getNotifs().getAcompte().getDatePaiement());
                     }
                 }
                 if (!currentParam.getPaieWithoutValide()) {
@@ -1855,8 +1854,7 @@ public class ManagedReglementAchat extends Managed implements Serializable {
                     if (pc.getNotifs() != null) {
                         if (action != 3) {
                             if (pc.getNotifs().getAcompte().getDatePaiement().after(pc.getDatePaiement())) {
-                                getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
-                                return;
+                                pc.setDatePaiement(pc.getNotifs().getAcompte().getDatePaiement());
                             }
                         }
                         Double reste = AYvsComptaAcompteFournisseur.findResteForAcompte(pc.getNotifs().getAcompte(), dao);
