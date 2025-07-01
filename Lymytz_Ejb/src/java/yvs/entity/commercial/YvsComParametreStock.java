@@ -68,6 +68,8 @@ public class YvsComParametreStock extends YvsEntity implements Serializable {
     private Integer jourAnterieur;
     @Column(name = "duree_update")
     private Integer dureeUpdate;
+    @Column(name = "duree_save_ration")
+    private Integer dureeSaveRation;
     @Column(name = "taille_code_ration")
     private Integer tailleCodeRation;
     @Column(name = "marge_time_fiche_ration")
@@ -134,6 +136,14 @@ public class YvsComParametreStock extends YvsEntity implements Serializable {
 
     public void setComptabilisationAuto(Boolean comptabilisationAuto) {
         this.comptabilisationAuto = comptabilisationAuto;
+    }
+
+    public Integer getDureeSaveRation() {
+        return dureeSaveRation != null ? dureeSaveRation : 0;
+    }
+
+    public void setDureeSaveRation(Integer dureeSaveRation) {
+        this.dureeSaveRation = dureeSaveRation;
     }
 
     public Integer getJourAnterieur() {

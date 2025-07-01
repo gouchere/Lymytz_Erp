@@ -372,6 +372,7 @@ public class UtilCom {
             p.setComptabilisationMode(y.getComptabilisationMode());
             p.setJourAnterieur(y.getJourAnterieur());
             p.setDureeUpdate(y.getDureeUpdate());
+            p.setDureeSaveRation(y.getDureeSaveRation());
             p.setTailleCodeRation(y.getTailleCodeRation());
             p.setActiveRation(y.getActiveRation());
             p.setPrintDocumentWhenValide(y.getPrintDocumentWhenValide());
