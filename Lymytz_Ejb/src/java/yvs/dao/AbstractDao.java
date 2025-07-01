@@ -107,7 +107,7 @@ public abstract class AbstractDao<T extends Serializable> {
 
     @PersistenceContext(unitName = "LYMYTZ-ERP-ejbPU")
     public EntityManager em;
-    
+
     Class<T> entityClass;
     String EM;
 
@@ -502,7 +502,7 @@ public abstract class AbstractDao<T extends Serializable> {
         getEntityManager().clear();
         Query qr = getEntityManager().createNativeQuery(querie);
         for (Options o : lp) {
-            qr.setParameter(o.getPosition(), o.getValeur());
+             qr.setParameter(o.getPosition(), o.getValeur());
         }
         try {
             return qr.getResultList();
@@ -540,7 +540,7 @@ public abstract class AbstractDao<T extends Serializable> {
         q.setParameter("2", notif);
         q.executeUpdate();
     }
-    
+
     public double callFonction(String rq, Options[] lp) {
         double re;
         Query q = getEntityManager().createNativeQuery(rq);
