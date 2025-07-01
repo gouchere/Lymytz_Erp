@@ -2373,8 +2373,7 @@ public class ManagedReglementVente extends Managed implements Serializable {
                         if (pc.getNotifs() != null) {
                             if (action != 3) {
                                 if (pc.getNotifs().getAcompte().getDatePaiement().after(pc.getDatePaiement())) {
-                                    getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
-                                    return false;
+                                    pc.setDatePaiement(pc.getNotifs().getAcompte().getDatePaiement());
                                 }
                             }
                             Double reste = AYvsComptaAcompteClient.findResteForAcompte(pc.getNotifs().getAcompte(), dao);
@@ -3227,10 +3226,6 @@ public class ManagedReglementVente extends Managed implements Serializable {
                         getErrorMessage("L'acompte lié à ce reglement n'est pas encore encaissé");
                         return false;
                     }
-                    if (pv.getNotifs().getAcompte().getDatePaiement().after(pv.getDatePaiement())) {
-                        getErrorMessage("Incoherence entre la date de paiement de la piece et celle de l'acompte");
-                        return false;
-                    }
                     double montant = pv.getMontant();
                     for (YvsComptaNotifReglementVente n : pv.getNotifs().getAcompte().getNotifs()) {
                         if (n.getPieceVente().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
@@ -3240,6 +3235,9 @@ public class ManagedReglementVente extends Managed implements Serializable {
                     if (montant > pv.getNotifs().getAcompte().getMontant()) {
                         getErrorMessage("Vous ne pouvez pas valider ce montant.. car la somme des pièces excedera le montant de l'acompte");
                         return false;
+                    }
+                    if (pv.getNotifs().getAcompte().getDatePaiement().after(pv.getDatePaiement())) {
+                        pv.setDatePaiement(pv.getNotifs().getAcompte().getDatePaiement());
                     }
                 }
                 if (currentParam != null ? !currentParam.getPaieWithoutValide() ? !pv.getVente().getStatut().equals(Constantes.ETAT_VALIDE) : false : false) {
