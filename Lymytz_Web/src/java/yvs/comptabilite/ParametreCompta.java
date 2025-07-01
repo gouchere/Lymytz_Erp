@@ -29,7 +29,7 @@ public class ParametreCompta implements Serializable {
     private int nbMaxBp;
     private boolean decimalArrondi = true;
     private int valeurArrondi = 2, ecartDaySoldeClient = 7, nombreLigneSoldeClient = 4;
-    private boolean majComptaAutoDivers = false, reportByAgence = false, comptaPartielVirement = true;
+    private boolean majComptaAutoDivers = false, reportByAgence = false, comptaPartielVirement = false;
     private char majComptaStatutDivers = Constantes.STATUT_DOC_PAYER;
     private String modeArrondi = "A";
     private Date dateSave = new Date();

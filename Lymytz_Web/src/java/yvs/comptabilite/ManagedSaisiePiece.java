@@ -7445,7 +7445,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     }
 
     private boolean comptabiliserCaisseVirement(YvsComptaCaissePieceVirement y, List<YvsComptaContentJournal> contenus, boolean msg, boolean succes) {
-        boolean partiel = currentParamCompta != null ? currentParamCompta.getComptaPartielVirement() : true;
+        boolean partiel = currentParamCompta != null ? currentParamCompta.getComptaPartielVirement() : false;
         ResultatAction result = service.comptabiliserCaisseVirement(y, contenus, partiel);
         if (result != null) {
             if (result.isResult()) {
