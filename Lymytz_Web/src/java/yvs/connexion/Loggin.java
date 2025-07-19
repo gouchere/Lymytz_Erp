@@ -1042,7 +1042,6 @@ public class Loggin implements Serializable {
 
     public void load() {
         try {
-            ((HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true)).invalidate();
             HttpSession session = ((HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true));
             session.invalidate();
             SessionManager.removeSession(session.getId());
