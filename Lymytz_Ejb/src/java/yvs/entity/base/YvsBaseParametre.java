@@ -81,6 +81,8 @@ public class YvsBaseParametre extends YvsEntity implements Serializable {
     private String foreColorEtiquette = "C78801";
     @Column(name = "nombre_page_min")
     private Integer nombrePageMin;
+    @Column(name = "duree_default_password")
+    private Integer dureeDefaultPassword;
 
     @Column(name = "display_avis")
     private Boolean displayAvis;
@@ -176,6 +178,14 @@ public class YvsBaseParametre extends YvsEntity implements Serializable {
 
     public void setTailleNumeroReferenceArticle(Integer tailleNumeroReferenceArticle) {
         this.tailleNumeroReferenceArticle = tailleNumeroReferenceArticle;
+    }
+
+    public Integer getDureeDefaultPassword() {
+        return dureeDefaultPassword != null ? dureeDefaultPassword : 14;
+    }
+
+    public void setDureeDefaultPassword(Integer dureeDefaultPassword) {
+        this.dureeDefaultPassword = dureeDefaultPassword;
     }
 
     public Boolean getGenererPassword() {

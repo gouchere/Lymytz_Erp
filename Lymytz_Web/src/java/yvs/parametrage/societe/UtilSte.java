@@ -49,6 +49,7 @@ public class UtilSte {
             p.setForeColorEtiquette(y.getForeColorEtiquette());
             p.setNombreEltAccueil(y.getNombreEltAccueil());
             p.setNombrePageMin(y.getNombrePageMin());
+            p.setDureeDefaultPassword(y.getDureeDefaultPassword());
         }
         return p;
     }
@@ -71,6 +72,7 @@ public class UtilSte {
             p.setForeColorEtiquette(y.getForeColorEtiquette());
             p.setNombreEltAccueil(y.getNombreEltAccueil());
             p.setNombrePageMin(y.getNombrePageMin());
+            p.setDureeDefaultPassword(y.getDureeDefaultPassword());
             p.setDateUpdate(new Date());
             p.setAuthor(ua);
             p.setSociete(ste);

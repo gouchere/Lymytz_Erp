@@ -23,7 +23,7 @@ public class ParametreBase implements Serializable {
     private boolean genererPassword, genererReferenceArticle, monitorPr;
     private String defautPassword, backColorEtiquette = "FFAF02", foreColorEtiquette = "C78801";
     private double tauxEcartPr;
-    private int taillePassword, dureeInactivArticle, tailleLettreReferenceArticle, tailleNumeroReferenceArticle, nombreEltAccueil = 5, nombrePageMin = 10;
+    private int taillePassword, dureeInactivArticle, tailleLettreReferenceArticle, tailleNumeroReferenceArticle, nombreEltAccueil = 5, nombrePageMin = 10, dureeDefaultPassword= 14;
 
     public ParametreBase() {
     }
@@ -118,6 +118,14 @@ public class ParametreBase implements Serializable {
 
     public void setTailleNumeroReferenceArticle(int tailleNumeroReferenceArticle) {
         this.tailleNumeroReferenceArticle = tailleNumeroReferenceArticle;
+    }
+
+    public int getDureeDefaultPassword() {
+        return dureeDefaultPassword;
+    }
+
+    public void setDureeDefaultPassword(int dureeDefaultPassword) {
+        this.dureeDefaultPassword = dureeDefaultPassword;
     }
 
     public boolean isMonitorPr() {
