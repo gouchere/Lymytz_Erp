@@ -41,6 +41,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsConnection.findOne", query = "SELECT y FROM YvsConnection y WHERE y.users=:users AND y.adresseIp=:adresse"),
     @NamedQuery(name = "YvsConnection.findByAuthorAdresse", query = "SELECT y FROM YvsConnection y WHERE y.author =:author AND y.adresseIp=:adresse"),
     @NamedQuery(name = "YvsConnection.findByUser", query = "SELECT y FROM YvsConnection y WHERE y.users = :users ORDER BY y.dateConnexion DESC"),
+    @NamedQuery(name = "YvsConnection.findByUserAsc", query = "SELECT y FROM YvsConnection y WHERE y.users = :users ORDER BY y.dateConnexion ASC"),
     @NamedQuery(name = "YvsConnection.findNBUser", query = "SELECT COUNT(y) FROM YvsConnection y WHERE y.idSession IS NOT NULL"),
     @NamedQuery(name = "YvsConnection.findByUserDates", query = "SELECT y FROM YvsConnection y WHERE y.users = :users AND y.dateConnexion BETWEEN :dateDebut AND :dateFin"),
     @NamedQuery(name = "YvsConnection.findByUserConnect", query = "SELECT y FROM YvsConnection y WHERE y.users = :users AND y.users.connecte = :connecte"),
