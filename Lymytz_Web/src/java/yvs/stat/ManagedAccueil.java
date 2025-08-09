@@ -293,7 +293,7 @@ public class ManagedAccueil extends Managed implements Serializable {
     }
 
     public void rappelForPassword() {
-        if (currentUser != null ? currentUser.isMustChangePassword() : false) {
+        if (currentUser != null ? currentUser.isMustChangePassword() && currentUser.getNombreJourRestantDefaultPassWord() > 0 : false) {
             openDialog("dlgRappelForPassword");
         }
     }
