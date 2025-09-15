@@ -1205,6 +1205,7 @@ public class Constantes implements Serializable {
     public static final String FILE_XLS = "XLS";
     public static final String FILE_XLSX = "XLSX";
     public static final String FILE_XML = "XML";
+    public static final String FILE_JSON = "JSON";
 
     public static final SelectItem[] FILES_EXTENSION = {
         new SelectItem(FILE_TEXT, FILE_TEXT),
@@ -1212,7 +1213,13 @@ public class Constantes implements Serializable {
         new SelectItem(FILE_XLS, FILE_XLS),
         new SelectItem(FILE_XLSX, FILE_XLSX),
         new SelectItem(FILE_XML, FILE_XML),
-        new SelectItem(FILE_PDF, FILE_PDF),};
+        new SelectItem(FILE_PDF, FILE_PDF),
+        new SelectItem(FILE_JSON, FILE_JSON),};
+
+    public static final SelectItem[] FILES_EXTENSION_EXPORT = {
+        new SelectItem(FILE_TEXT, FILE_TEXT),
+        new SelectItem(FILE_CSV, FILE_CSV),
+        new SelectItem(FILE_XML, FILE_XML),};
 
     public static final char TYPE_MENSUALITE_ANNUITE_FIXE = 'N';
     public static final String TYPE_MENSUALITE_ANNUITE_FIXE_NAME = "ANNUITE FIXE";
@@ -1969,12 +1976,28 @@ public class Constantes implements Serializable {
         return FILES_EXTENSION;
     }
 
+    public SelectItem[] getFILES_EXTENSION_EXPORT() {
+        return FILES_EXTENSION_EXPORT;
+    }
+
     public String getFILE_TEXT() {
         return FILE_TEXT;
     }
 
     public String getFILE_CSV() {
         return FILE_CSV;
+    }
+
+    public static String getFILE_JSON() {
+        return FILE_JSON;
+    }
+
+    public static String getFILE_XML() {
+        return FILE_XML;
+    }
+
+    public static String getFILE_PDF() {
+        return FILE_PDF;
     }
 
     public String getMUT_LIBELE_CONDITION_NBRE_AVALISE() {

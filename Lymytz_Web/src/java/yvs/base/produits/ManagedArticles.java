@@ -105,6 +105,7 @@ import yvs.parametrage.dico.ManagedDico;
 import yvs.service.IEntitySax;
 import yvs.service.base.produit.IYvsBaseArticles;
 import yvs.service.com.rrr.IYvsComRabais;
+import yvs.stat.export.ManagedExportImport;
 import yvs.util.*;
 
 /**
@@ -5920,14 +5921,20 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
     }
 
     public void export(boolean force) {
+        ManagedExportImport w = (ManagedExportImport) giveManagedBean(ManagedExportImport.class);
+        if (w == null) {
+            return;
+        }
         List<Long> ids = new ArrayList<>();
         List<Integer> re = decomposeSelection(tabIds);
         for (Integer i : re) {
             ids.add(listArticle.get(i).getId());
         }
+        Map<String, Object> donnees = new HashMap<>();
+        donnees.put("ids", ids);
         if (force) {
             if (model != null ? model.trim().length() > 0 : false) {
-                executeExport(model, ids);
+                w.onExporter(model, donnees);
             } else {
                 getErrorMessage("Vous devez selectionner le model d'exportation");
             }
@@ -5938,7 +5945,7 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
                     openDialog("dlgListExport");
                 } else {
                     model = exports.get(0).getReference();
-                    executeExport(model, ids);
+                    w.onExporter(model, donnees);
                 }
             }
         }

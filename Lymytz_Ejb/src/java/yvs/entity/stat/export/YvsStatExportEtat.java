@@ -20,7 +20,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -28,7 +27,8 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;import com.fasterxml.jackson.annotation.JsonBackReference; import com.fasterxml.jackson.annotation.JsonIgnore; import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import javax.xml.bind.annotation.XmlTransient; 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import yvs.entity.param.YvsSocietes;
 import yvs.entity.users.YvsUsersAgence;
 
@@ -44,7 +44,6 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsStatExportEtat.findById", query = "SELECT y FROM YvsStatExportEtat y WHERE y.id = :id"),
     @NamedQuery(name = "YvsStatExportEtat.findByCode", query = "SELECT y FROM YvsStatExportEtat y WHERE y.code = :code AND y.societe = :societe"),
     @NamedQuery(name = "YvsStatExportEtat.findByReference", query = "SELECT y FROM YvsStatExportEtat y WHERE y.reference = :reference AND y.societe = :societe"),
-    @NamedQuery(name = "YvsStatExportEtat.findByLibelle", query = "SELECT y FROM YvsStatExportEtat y WHERE y.libelle = :libelle AND y.societe = :societe"),
 
     @NamedQuery(name = "YvsStatExportEtat.findReference", query = "SELECT y.reference FROM YvsStatExportEtat y WHERE y.code = :code AND y.societe = :societe")})
 public class YvsStatExportEtat implements Serializable {
@@ -66,34 +65,21 @@ public class YvsStatExportEtat implements Serializable {
     @Column(name = "code")
     private String code;
     @Size(max = 2147483647)
-    @Column(name = "libelle")
-    private String libelle;
-    @Size(max = 2147483647)
     @Column(name = "file_name")
     private String fileName;
     @Size(max = 2147483647)
     @Column(name = "format")
     private String format;
     @Size(max = 2147483647)
-    @Column(name = "table_principal")
-    private String tablePrincipal;
-    @Size(max = 2147483647)
-    @Column(name = "colonne_principal")
-    private String colonnePrincipal;
-    @Size(max = 2147483647)
     @Column(name = "separateur")
     private String separateur;
     @Size(max = 2147483647)
     @Column(name = "reference")
     private String reference;
-    @Column(name = "order_by")
-    private String orderBy;
     @Column(name = "formule")
     private String formule;
     @Column(name = "type_formule")
     private Character typeFormule;
-    @Column(name = "for_exportation")
-    private Boolean forExportation;
 
     @JoinColumn(name = "societe", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -123,11 +109,8 @@ public class YvsStatExportEtat implements Serializable {
     }
 
     public YvsStatExportEtat(Integer id) {
+        this();
         this.id = id;
-        colonnes = new ArrayList<>();
-        integres = new ArrayList<>();
-        visibles = new ArrayList<>();
-        contraintes = new ArrayList<>();
     }
 
     public YvsStatExportEtat(YvsStatExportEtat y) {
@@ -135,33 +118,20 @@ public class YvsStatExportEtat implements Serializable {
         this.dateUpdate = y.dateUpdate;
         this.dateSave = y.dateSave;
         this.code = y.code;
-        this.libelle = y.libelle;
         this.fileName = y.fileName;
         this.format = y.format;
-        this.tablePrincipal = y.tablePrincipal;
-        this.colonnePrincipal = y.colonnePrincipal;
         this.separateur = y.separateur;
         this.reference = y.reference;
-        this.orderBy = y.orderBy;
         this.formule = y.formule;
         this.typeFormule = y.typeFormule;
-        this.forExportation = y.forExportation;
         this.societe = y.societe;
         this.author = y.author;
-        this.colonnes = y.colonnes;
+        this.colonnes = new ArrayList<>(y.colonnes);
         this.new_ = y.new_;
         this.integres = y.integres;
         this.contraintes = y.contraintes;
         this.visibles = y.visibles;
         this.select = y.select;
-    }
-
-    public Boolean getForExportation() {
-        return forExportation != null ? forExportation : true;
-    }
-
-    public void setForExportation(Boolean forExportation) {
-        this.forExportation = forExportation;
     }
 
     public Date getDateUpdate() {
@@ -196,14 +166,6 @@ public class YvsStatExportEtat implements Serializable {
         this.formule = formule;
     }
 
-    public String getOrderBy() {
-        return orderBy;
-    }
-
-    public void setOrderBy(String orderBy) {
-        this.orderBy = orderBy;
-    }
-
     public Integer getId() {
         return id != null ? id : 0;
     }
@@ -228,36 +190,12 @@ public class YvsStatExportEtat implements Serializable {
         this.separateur = separateur;
     }
 
-    public String getTablePrincipal() {
-        return tablePrincipal != null ? tablePrincipal.trim().length() > 0 ? tablePrincipal : "yvs_users_agences" : "yvs_users_agences";
-    }
-
-    public void setTablePrincipal(String tablePrincipal) {
-        this.tablePrincipal = tablePrincipal;
-    }
-
-    public String getColonnePrincipal() {
-        return colonnePrincipal != null ? colonnePrincipal.trim().length() > 0 ? colonnePrincipal : "author" : "author";
-    }
-
-    public void setColonnePrincipal(String colonnePrincipal) {
-        this.colonnePrincipal = colonnePrincipal;
-    }
-
     public String getCode() {
         return code;
     }
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public String getLibelle() {
-        return libelle;
-    }
-
-    public void setLibelle(String libelle) {
-        this.libelle = libelle;
     }
 
     public YvsSocietes getSociete() {
@@ -381,7 +319,7 @@ public class YvsStatExportEtat implements Serializable {
 
     @Override
     public String toString() {
-        return "yvs.entity.stat.export.YvsStatExportEtat[ id=" + id + " ]";
+        return "[ id=" + id + " ]";
     }
 
 }

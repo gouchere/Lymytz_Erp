@@ -6,32 +6,54 @@
 package yvs.stat.export;
 
 import java.io.Serializable;
+import java.util.Date;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
  * @author Lymytz Dowes
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 @ManagedBean
 @SessionScoped
 public class ExportColonne implements Serializable {
 
-    private int id;
+    @XmlTransient
+    private int id;    
+    @XmlTransient
     private int ordre;
     private String colonne;
+    @XmlTransient
     private String libelle;
+    private String type;
+    private boolean key;
     private boolean visible;
     private boolean integrer;
     private String tableName;
-    private boolean contrainte, realContrainte;
-    private boolean colonneDate;
-    private String formatDate;
+    private boolean contrainte;    
+    @XmlTransient
+    private boolean realContrainte;
+    @XmlTransient
     private String defautValeur;
     private String colonneLiee;
+    @XmlTransient
     private Character orderBy;
+    @XmlTransient
     private char sensContrainte;
     private String tableNameLiee;
+    @XmlTransient
+    private String jointure;
+    private boolean condition;
+    private String conditionExpression, conditionExpressionOther;
+    private String conditionOperator;
+    private Object valeur;
+    @XmlTransient
+    private Date dateSave = new Date();
+    @XmlTransient
     private ExportEtat etat = new ExportEtat();
 
     public ExportColonne() {
@@ -73,14 +95,6 @@ public class ExportColonne implements Serializable {
         this.orderBy = orderBy;
     }
 
-    public String getFormatDate() {
-       return formatDate != null ? formatDate.trim().length() > 0 ? formatDate : "dd-MM-yyyy" : "dd-MM-yyyy";
-    }
-
-    public void setFormatDate(String formatDate) {
-        this.formatDate = formatDate;
-    }
-
     public int getOrdre() {
         return ordre;
     }
@@ -89,12 +103,24 @@ public class ExportColonne implements Serializable {
         this.ordre = ordre;
     }
 
-    public boolean isColonneDate() {
-        return colonneDate;
+    public boolean isKey() {
+        return key;
     }
 
-    public void setColonneDate(boolean colonneDate) {
-        this.colonneDate = colonneDate;
+    public void setKey(boolean key) {
+        this.key = key;
+    }
+
+    public String getType() {
+        return type != null ? !type.trim().isEmpty() ? type : "character varying" : "character varying";
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public boolean isColonneFormater() {
+        return getType().equals("date");
     }
 
     public String getColonne() {
@@ -169,12 +195,68 @@ public class ExportColonne implements Serializable {
         this.tableNameLiee = tableNameLiee;
     }
 
+    public String getJointure() {
+        return jointure != null ? jointure.trim().length() > 0 ? jointure : "LEFT JOIN" : "LEFT JOIN";
+    }
+
+    public void setJointure(String jointure) {
+        this.jointure = jointure;
+    }
+
+    public boolean isCondition() {
+        return condition;
+    }
+
+    public void setCondition(boolean condition) {
+        this.condition = condition;
+    }
+
+    public String getConditionExpression() {
+        return conditionExpression;
+    }
+
+    public void setConditionExpression(String conditionExpression) {
+        this.conditionExpression = conditionExpression;
+    }
+
+    public String getConditionExpressionOther() {
+        return conditionExpressionOther;
+    }
+
+    public void setConditionExpressionOther(String conditionExpressionOther) {
+        this.conditionExpressionOther = conditionExpressionOther;
+    }
+
+    public String getConditionOperator() {
+        return conditionOperator != null ? conditionOperator.trim().length() > 0 ? conditionOperator : "=" : "=";
+    }
+
+    public void setConditionOperator(String conditionOperator) {
+        this.conditionOperator = conditionOperator;
+    }
+
+    public Object getValeur() {
+        return valeur;
+    }
+
+    public void setValeur(Object valeur) {
+        this.valeur = valeur;
+    }
+
     public ExportEtat getEtat() {
         return etat;
     }
 
     public void setEtat(ExportEtat etat) {
         this.etat = etat;
+    }
+
+    public Date getDateSave() {
+        return dateSave;
+    }
+
+    public void setDateSave(Date dateSave) {
+        this.dateSave = dateSave;
     }
 
     @Override
