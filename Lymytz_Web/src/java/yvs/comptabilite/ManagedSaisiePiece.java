@@ -132,6 +132,7 @@ import yvs.mutuelle.Exercice;
 import yvs.mutuelle.ManagedExercice;
 import yvs.mutuelle.UtilMut;
 import yvs.parametrage.agence.ManagedAgence;
+import yvs.stat.export.ManagedExportImport;
 import yvs.util.Constantes;
 import yvs.util.Managed;
 import yvs.util.PaginatorResult;
@@ -10081,15 +10082,21 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
     }
 
     public void export(boolean force) {
+        ManagedExportImport w = (ManagedExportImport) giveManagedBean(ManagedExportImport.class);
+        if (w == null) {
+            return;
+        }
         List<Long> ids = new ArrayList<>();
         List<Integer> re = decomposeSelection(tabIds);
         for (Integer i : re) {
             ids.add(listePiece.get(i).getId());
         }
         if (ids != null ? !ids.isEmpty() : false) {
+            Map<String, Object> donnees = new HashMap<>();
+            donnees.put("ids", ids);
             if (force) {
                 if (model != null ? model.trim().length() > 0 : false) {
-                    executeExport(model, ids);
+                    w.onExporter(model, donnees);
                 } else {
                     getErrorMessage("Vous devez selectionner le model d'exportation");
                 }
@@ -10100,7 +10107,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
                         openDialog("dlgListExport");
                     } else {
                         model = exports.get(0).getReference();
-                        executeExport(model, ids);
+                        w.onExporter(model, donnees);
                     }
                 }
             }

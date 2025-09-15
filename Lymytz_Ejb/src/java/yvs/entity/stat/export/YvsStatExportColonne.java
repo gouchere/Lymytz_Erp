@@ -7,9 +7,11 @@ package yvs.entity.stat.export;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 import javax.persistence.Basic;
 import javax.persistence.Column;
-import javax.persistence.Entity; import javax.persistence.FetchType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -37,16 +39,23 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsStatExportColonne.findAll", query = "SELECT y FROM YvsStatExportColonne y WHERE y.etat = :etat ORDER BY y.ordre"),
     @NamedQuery(name = "YvsStatExportColonne.findById", query = "SELECT y FROM YvsStatExportColonne y WHERE y.id = :id"),
     @NamedQuery(name = "YvsStatExportColonne.findByColonne", query = "SELECT y FROM YvsStatExportColonne y WHERE y.colonne = :colonne ORDER BY y.ordre"),
-    @NamedQuery(name = "YvsStatExportColonne.findByLibelle", query = "SELECT y FROM YvsStatExportColonne y WHERE y.libelle = :libelle ORDER BY y.ordre"),
+    @NamedQuery(name = "YvsStatExportColonne.findByLibelle", query = "SELECT y FROM YvsStatExportColonne y WHERE y.libelle = :libelle AND y.etat = :etat ORDER BY y.ordre"),
     @NamedQuery(name = "YvsStatExportColonne.findByVisible", query = "SELECT y FROM YvsStatExportColonne y WHERE y.visible = :visible AND y.etat = :etat ORDER BY y.ordre"),
-    @NamedQuery(name = "YvsStatExportColonne.countByVisible", query = "SELECT COUNT(y) FROM YvsStatExportColonne y WHERE y.visible = :visible AND y.etat = :etat"),
     @NamedQuery(name = "YvsStatExportColonne.findByIntegrer", query = "SELECT y FROM YvsStatExportColonne y WHERE y.integrer = :integrer AND y.etat = :etat ORDER BY y.ordre"),
-    @NamedQuery(name = "YvsStatExportColonne.countByIntegrer", query = "SELECT COUNT(y) FROM YvsStatExportColonne y WHERE y.integrer = :integrer AND y.etat = :etat"),
+    @NamedQuery(name = "YvsStatExportColonne.findByVisibleAndIntegrer", query = "SELECT y FROM YvsStatExportColonne y WHERE y.visible = :visible AND y.integrer = :integrer AND y.etat = :etat ORDER BY y.ordre"),
     @NamedQuery(name = "YvsStatExportColonne.findByContrainte", query = "SELECT y FROM YvsStatExportColonne y WHERE y.contrainte = :contrainte AND y.etat = :etat ORDER BY y.ordre"),
-    @NamedQuery(name = "YvsStatExportColonne.countByContrainte", query = "SELECT COUNT(y) FROM YvsStatExportColonne y WHERE y.contrainte = :contrainte AND y.etat = :etat"),
     @NamedQuery(name = "YvsStatExportColonne.findByTableName", query = "SELECT y FROM YvsStatExportColonne y WHERE y.tableName = :tableName ORDER BY y.ordre"),
+
     @NamedQuery(name = "YvsStatExportColonne.findOneByEtat", query = "SELECT y FROM YvsStatExportColonne y WHERE y.tableName = :tableName AND y.colonne = :colonne AND y.etat = :etat ORDER BY y.ordre"),
 
+    @NamedQuery(name = "YvsStatExportColonne.countByContrainte", query = "SELECT COUNT(y) FROM YvsStatExportColonne y WHERE y.contrainte = :contrainte AND y.etat = :etat"),
+    @NamedQuery(name = "YvsStatExportColonne.countByIntegrer", query = "SELECT COUNT(y) FROM YvsStatExportColonne y WHERE y.integrer = :integrer AND y.etat = :etat"),
+    @NamedQuery(name = "YvsStatExportColonne.countByVisible", query = "SELECT COUNT(y) FROM YvsStatExportColonne y WHERE y.visible = :visible AND y.etat = :etat"),
+    @NamedQuery(name = "YvsStatExportColonne.maxOrdre", query = "SELECT MAX(y.ordre) FROM YvsStatExportColonne y WHERE y.etat = :etat"),
+
+    @NamedQuery(name = "YvsStatExportColonne.findTableWithCount", query = "SELECT y.tableName, COUNT(y.id) AS number FROM YvsStatExportColonne y WHERE y.etat = :etat GROUP BY y.tableName"),
+    @NamedQuery(name = "YvsStatExportColonne.findCondition", query = "SELECT y FROM YvsStatExportColonne y WHERE y.etat = :etat AND y.condition = TRUE ORDER BY y.tableName, y.colonne"),
+    @NamedQuery(name = "YvsStatExportColonne.findParametreCondition", query = "SELECT DISTINCT(y.conditionExpression) FROM YvsStatExportColonne y WHERE y.etat = :etat AND y.conditionExpression LIKE :prefix AND y.condition = TRUE ORDER BY y.conditionExpression"),
     @NamedQuery(name = "YvsStatExportColonne.findTableLiee", query = "SELECT DISTINCT(y.tableNameLiee) FROM YvsStatExportColonne y WHERE y.etat = :etat ORDER BY y.tableNameLiee"),
     @NamedQuery(name = "YvsStatExportColonne.findTableNotLiee", query = "SELECT DISTINCT(y.tableName) FROM YvsStatExportColonne y WHERE y.etat = :etat AND y.tableName != y.tableNameLiee ORDER BY y.tableNameLiee")})
 public class YvsStatExportColonne implements Serializable, Comparable {
@@ -75,6 +84,11 @@ public class YvsStatExportColonne implements Serializable, Comparable {
     @Size(max = 2147483647)
     @Column(name = "libelle")
     private String libelle;
+    @Column(name = "key")
+    private Boolean key;
+    @Size(max = 2147483647)
+    @Column(name = "type")
+    private String type;
     @Column(name = "visible")
     private Boolean visible;
     @Column(name = "integrer")
@@ -90,11 +104,20 @@ public class YvsStatExportColonne implements Serializable, Comparable {
     @Size(max = 2147483647)
     @Column(name = "table_name_liee")
     private String tableNameLiee;
-    @Column(name = "colonne_date")
-    private Boolean colonneDate;
+    @Column(name = "condition")
+    private Boolean condition;
     @Size(max = 2147483647)
-    @Column(name = "format_date")
-    private String formatDate;
+    @Column(name = "condition_expression")
+    private String conditionExpression;
+    @Size(max = 2147483647)
+    @Column(name = "condition_expression_other")
+    private String conditionExpressionOther;
+    @Size(max = 2147483647)
+    @Column(name = "condition_operator")
+    private String conditionOperator;
+    @Size(max = 2147483647)
+    @Column(name = "jointure")
+    private String jointure;
     @Column(name = "order_by")
     private Character orderBy;
     @Column(name = "sens_contrainte")
@@ -109,6 +132,12 @@ public class YvsStatExportColonne implements Serializable, Comparable {
     private boolean new_;
     @Transient
     private boolean select;
+    @Transient
+    private Object value;
+    @Transient
+    private Object conditionValue;
+    @Transient
+    private Object conditionValueOther;
 
     public YvsStatExportColonne() {
     }
@@ -116,6 +145,44 @@ public class YvsStatExportColonne implements Serializable, Comparable {
     public YvsStatExportColonne(Integer id) {
         this.id = id;
     }
+
+    public YvsStatExportColonne(String tableName, String colonne) {
+        this.colonne = colonne;
+        this.tableName = tableName;
+    }
+
+    public YvsStatExportColonne(YvsStatExportColonne y) {
+        this.id = y.id;
+        this.dateUpdate = y.dateUpdate;
+        this.dateSave = y.dateSave;
+        this.ordre = y.ordre;
+        this.colonne = y.colonne;
+        this.defautValeur = y.defautValeur;
+        this.libelle = y.libelle;
+        this.key = y.key;
+        this.type = y.type;
+        this.visible = y.visible;
+        this.integrer = y.integrer;
+        this.tableName = y.tableName;
+        this.contrainte = y.contrainte;
+        this.colonneLiee = y.colonneLiee;
+        this.tableNameLiee = y.tableNameLiee;
+        this.condition = y.condition;
+        this.conditionExpression = y.conditionExpression;
+        this.conditionExpressionOther = y.conditionExpressionOther;
+        this.conditionOperator = y.conditionOperator;
+        this.jointure = y.jointure;
+        this.orderBy = y.orderBy;
+        this.sensContrainte = y.sensContrainte;
+        this.etat = y.etat;
+        this.author = y.author;
+        this.new_ = y.new_;
+        this.select = y.select;
+        this.value = y.value;
+        this.conditionValue = y.conditionValue;
+        this.conditionValueOther = y.conditionValueOther;
+    }
+
 
     public Date getDateUpdate() {
         return dateUpdate;
@@ -141,6 +208,14 @@ public class YvsStatExportColonne implements Serializable, Comparable {
         this.id = id;
     }
 
+    public Boolean getKey() {
+        return key != null ? key : false;
+    }
+
+    public void setKey(Boolean key) {
+        this.key = key;
+    }
+
     public Character getSensContrainte() {
         return sensContrainte != null ? String.valueOf(sensContrainte).trim().length() > 0 ? sensContrainte : 'N' : 'N';
     }
@@ -157,20 +232,28 @@ public class YvsStatExportColonne implements Serializable, Comparable {
         this.orderBy = orderBy;
     }
 
-    public String getFormatDate() {
-        return formatDate != null ? formatDate.trim().length() > 0 ? formatDate : "dd-MM-yyyy" : "dd-MM-yyyy";
+    public String getJointure() {
+        return jointure != null ? jointure.trim().length() > 0 ? jointure : "LEFT JOIN" : "LEFT JOIN";
     }
 
-    public void setFormatDate(String formatDate) {
-        this.formatDate = formatDate;
+    public void setJointure(String jointure) {
+        this.jointure = jointure;
     }
 
-    public Boolean getColonneDate() {
-        return colonneDate != null ? colonneDate : false;
+    public boolean isColonneDate() {
+        return getType().equals("date");
     }
 
-    public void setColonneDate(Boolean colonneDate) {
-        this.colonneDate = colonneDate;
+    public boolean isColonneTime() {
+        return getType().equals("time");
+    }
+
+    public String getType() {
+        return type != null ? type.trim().length() > 0 ? type : "character varying" : "character varying";
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getDefautValeur() {
@@ -261,6 +344,62 @@ public class YvsStatExportColonne implements Serializable, Comparable {
         this.tableNameLiee = tableNameLiee;
     }
 
+    public Boolean getCondition() {
+        return condition != null ? condition : false;
+    }
+
+    public void setCondition(Boolean condition) {
+        this.condition = condition;
+    }
+
+    public String getConditionExpression() {
+        return conditionExpression;
+    }
+
+    public void setConditionExpression(String conditionExpression) {
+        this.conditionExpression = conditionExpression;
+    }
+
+    public String getConditionExpressionOther() {
+        return conditionExpressionOther;
+    }
+
+    public void setConditionExpressionOther(String conditionExpressionOther) {
+        this.conditionExpressionOther = conditionExpressionOther;
+    }
+
+    public String getConditionOperator() {
+        return conditionOperator != null ? conditionOperator.trim().length() > 0 ? conditionOperator : "=" : "=";
+    }
+
+    public void setConditionOperator(String conditionOperator) {
+        this.conditionOperator = conditionOperator;
+    }
+
+    public Object getConditionValue() {
+        return conditionValue;
+    }
+
+    public void setConditionValue(Object conditionValue) {
+        this.conditionValue = conditionValue;
+    }
+
+    public Object getConditionValueOther() {
+        return conditionValueOther;
+    }
+
+    public void setConditionValueOther(Object conditionValueOther) {
+        this.conditionValueOther = conditionValueOther;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
+    }
+
     public boolean isNew_() {
         return new_;
     }
@@ -287,10 +426,12 @@ public class YvsStatExportColonne implements Serializable, Comparable {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
+        int hash = 7;
+        hash = 59 * hash + Objects.hashCode(this.id);
+        hash = 59 * hash + Objects.hashCode(this.tableName);
+        hash = 59 * hash + Objects.hashCode(this.colonne);
         return hash;
-    }
+    }   
 
     @Override
     public boolean equals(Object object) {
@@ -302,12 +443,18 @@ public class YvsStatExportColonne implements Serializable, Comparable {
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
+        if (!Objects.equals(this.tableName, other.tableName)) {
+            return false;
+        }
+        if (!Objects.equals(this.colonne, other.colonne)) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public String toString() {
-        return "yvs.entity.stat.export.YvsStatExportColonne[ id=" + id + " ]";
+        return "{" + "colonne=" + colonne + ", type=" + type + '}';
     }
 
     @Override

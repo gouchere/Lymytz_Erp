@@ -7,50 +7,59 @@ package yvs.stat.export;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import yvs.entity.stat.export.YvsStatExportColonne;
 
 /**
  *
  * @author Lymytz Dowes
  */
+
 @ManagedBean
 @SessionScoped
+@XmlRootElement(name = "etat")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ExportEtat implements Serializable {
 
+    @XmlTransient 
     private int id;
     private String code;
-    private String libelle;
-    private String fileName;
-    private String format;
     private String reference;
+    @XmlTransient 
+    private String fileName;
+    @XmlTransient 
+    private String format;
+    @XmlTransient 
     private String separateur;
-    private String tablePrincipal;
-    private String colonnePrincipal;
-    private String orderBy;
+    @XmlTransient 
     private String formule;
+    @XmlTransient 
     private char typeFormule;
-    private boolean withOrdreBy;
-    private boolean forExportation = true;
+    @XmlTransient 
+    private Date dateSave = new Date();
+    @XmlTransient 
     private List<YvsStatExportColonne> colonnes;
+    @XmlElementWrapper(name = "valeurs")
+    @XmlElement(name = "valeur")
+    private List<ExportColonne> colonnesBean;
 
     public ExportEtat() {
         colonnes = new ArrayList<>();
+        colonnesBean = new ArrayList<>();
     }
 
     public ExportEtat(int id) {
+        this();
         this.id = id;
-        colonnes = new ArrayList<>();
-    }
-
-    public boolean isWithOrdreBy() {
-        return orderBy != null ? orderBy.trim().length() > 0 : false;
-    }
-
-    public void setWithOrdreBy(boolean withOrdreBy) {
-        this.withOrdreBy = withOrdreBy;
     }
 
     public char getTypeFormule() {
@@ -77,22 +86,6 @@ public class ExportEtat implements Serializable {
         this.id = id;
     }
 
-    public boolean isForExportation() {
-        return forExportation;
-    }
-
-    public void setForExportation(boolean forExportation) {
-        this.forExportation = forExportation;
-    }
-
-    public String getOrderBy() {
-        return orderBy;
-    }
-
-    public void setOrderBy(String orderBy) {
-        this.orderBy = orderBy;
-    }
-
     public String getReference() {
         return reference != null ? reference : "";
     }
@@ -109,36 +102,12 @@ public class ExportEtat implements Serializable {
         this.separateur = separateur;
     }
 
-    public String getTablePrincipal() {
-        return tablePrincipal;
-    }
-
-    public void setTablePrincipal(String tablePrincipal) {
-        this.tablePrincipal = tablePrincipal;
-    }
-
-    public String getColonnePrincipal() {
-        return colonnePrincipal;
-    }
-
-    public void setColonnePrincipal(String colonnePrincipal) {
-        this.colonnePrincipal = colonnePrincipal;
-    }
-
     public String getCode() {
         return code;
     }
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public String getLibelle() {
-        return libelle;
-    }
-
-    public void setLibelle(String libelle) {
-        this.libelle = libelle;
     }
 
     public String getFileName() {
@@ -163,6 +132,22 @@ public class ExportEtat implements Serializable {
 
     public void setColonnes(List<YvsStatExportColonne> colonnes) {
         this.colonnes = colonnes;
+    }
+
+    public List<ExportColonne> getColonnesBean() {
+        return colonnesBean;
+    }
+
+    public void setColonnesBean(List<ExportColonne> colonnesBean) {
+        this.colonnesBean = colonnesBean;
+    }
+
+    public Date getDateSave() {
+        return dateSave;
+    }
+
+    public void setDateSave(Date dateSave) {
+        this.dateSave = dateSave;
     }
 
     @Override

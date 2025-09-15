@@ -80,6 +80,7 @@ import yvs.connexion.Loggin;
 import yvs.converter.ConverterNumber;
 import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Fonctions;
+import yvs.dao.Options;
 import yvs.entity.base.YvsBaseCodeAcces;
 import yvs.entity.base.YvsBaseConditionnement;
 import yvs.entity.base.YvsBaseDepots;
@@ -172,6 +173,7 @@ import yvs.parametrage.entrepot.Depots;
 import yvs.parametrage.report.BeanDate;
 import yvs.service.IEntitySax;
 import yvs.stat.ManagedAccueil;
+import yvs.stat.export.ExportData;
 import yvs.users.Users;
 import yvs.users.UtilUsers;
 import yvs.users.acces.AccesRessource;
@@ -1275,153 +1277,6 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
 
     public void setImax(long imax) {
         this.imax = imax;
-    }
-
-    public String buildRequeteExport(String report, List<Long> donnees) {
-        return buildRequeteExport(report, donnees.toArray(new Long[]{}));
-    }
-
-    public String buildRequeteExport(String report, Long[] donnees) {
-        String query = null;
-        champ = new String[]{"reference", "societe"};
-        val = new Object[]{report, currentAgence.getSociete()};
-        YvsStatExportEtat etat = (YvsStatExportEtat) dao.loadOneByNameQueries("YvsStatExportEtat.findByReference", champ, val);
-        if (etat != null ? etat.getId() > 0 : false) {
-            if (etat.getTypeFormule().equals('S')) {
-                champ = new String[]{"etat", "integrer"};
-                val = new Object[]{etat, true};
-                List<YvsStatExportColonne> colonnes = dao.loadNameQueries("YvsStatExportColonne.findByIntegrer", champ, val);
-                if (colonnes != null ? !colonnes.isEmpty() : false) {
-                    String select = "*";
-                    String from = etat.getTablePrincipal();
-                    String order = "";
-                    String where = " WHERE " + etat.getTablePrincipal() + "." + etat.getColonnePrincipal() + " IN (-1";
-                    boolean with_orderby = etat.getOrderBy() != null ? etat.getOrderBy().trim().length() > 0 : false;
-                    if (with_orderby) {
-                        order = " ORDER BY " + etat.getOrderBy();
-                    }
-
-                    boolean _fisrt = true;
-                    for (YvsStatExportColonne colonne : colonnes) {
-                        if (colonne.getVisible()) {
-                            if (_fisrt) {
-                                select = (colonne.getColonneDate() ? "to_char(" + colonne.getTableName() + "." + colonne.getColonne() + ", '" + colonne.getFormatDate() + "')" : colonne.getTableName() + "." + colonne.getColonne());
-                            } else {
-                                select += ", " + (colonne.getColonneDate() ? "to_char(" + colonne.getTableName() + "." + colonne.getColonne() + ", '" + colonne.getFormatDate() + "')" : colonne.getTableName() + "." + colonne.getColonne());
-                            }
-                            _fisrt = false;
-                        }
-                        if (colonne.getContrainte()) {
-                            String jointure = colonne.getSensContrainte().equals('N') ? colonne.getTableNameLiee() + " ON " + colonne.getTableName() + "." + colonne.getColonne() + " = " + colonne.getTableNameLiee() + "." + colonne.getColonneLiee()
-                                    : colonne.getTableName() + " ON " + colonne.getTableName() + "." + colonne.getColonne() + " = " + colonne.getTableNameLiee() + "." + colonne.getColonneLiee();
-                            if (!from.contains(jointure)) {
-                                from += " LEFT JOIN " + jointure;
-                            }
-                        }
-                        if (!with_orderby) {
-                            if (colonne.getOrderBy() != null ? String.valueOf(colonne.getOrderBy()).trim().length() > 0 : false) {
-                                if (order != null ? order.trim().length() < 1 : true) {
-                                    order = " ORDER BY " + colonne.getTableName() + "." + colonne.getColonne() + " " + (colonne.getOrderBy().equals('D') ? "DESC" : "ASC");
-                                } else {
-                                    order += ", " + colonne.getTableName() + "." + colonne.getColonne() + " " + (colonne.getOrderBy().equals('D') ? "DESC" : "ASC");
-                                }
-                            }
-                        }
-                    }
-                    if (donnees != null ? donnees.length > 0 : false) {
-                        for (Long p : donnees) {
-                            where += ", " + p;
-                        }
-                        where += ")";
-                        query = "SELECT " + select + " FROM " + from + "" + where + " " + (order.trim().length() > 0 ? order : "");
-                    }
-                }
-            } else {
-                if (donnees != null ? donnees.length > 0 : false) {
-                    String where = " " + etat.getTablePrincipal() + "." + etat.getColonnePrincipal() + " IN (-1";
-                    if (etat.getFormule().contains("?")) {
-                        for (Long p : donnees) {
-                            where += ", " + p;
-                        }
-                        where += ")";
-                        query = etat.getFormule().replace("?", where);
-                    }
-                }
-            }
-        }
-        return query;
-    }
-
-    public String executeExport(String report, List<Long> donnees) {
-        return executeExport(report, donnees.toArray(new Long[]{}));
-    }
-
-    public String executeExport(String report, Long[] donnees) {
-        String result = null;
-        try {
-            champ = new String[]{"reference", "societe"};
-            val = new Object[]{report, currentAgence.getSociete()};
-            YvsStatExportEtat etat = (YvsStatExportEtat) dao.loadOneByNameQueries("YvsStatExportEtat.findByCode", champ, val);
-            if (etat != null ? etat.getId() > 0 : false) {
-                if (etat.getFormat().equals(Constantes.FILE_PDF)) {
-                    String ids = "";
-                    for (long id : donnees) {
-                        if (ids == "") {
-                            ids = id + "";
-                        } else {
-                            ids += "," + id;
-                        }
-                    }
-                    Map<String, Object> param = new HashMap<>();
-                    String path = FacesContext.getCurrentInstance().getExternalContext().getRealPath(FILE_SEPARATOR + "WEB-INF" + FILE_SEPARATOR + "report");
-                    param.put("AGENCE", currentAgence.getId().intValue());
-                    param.put("NAME_AUTEUR", currentUser.getUsers().getNomUsers());
-                    param.put("TITLE_RAPPORT", "LISTE DES " + giveNameExport(etat.getCode()).toUpperCase());
-                    param.put("LOGO", returnLogo());
-                    param.put("REPORT", report);
-                    param.put("SUBREPORT_DIR", path + FILE_SEPARATOR);
-                    param.put("IDS", ids);
-                    executeReport("exportation", param);
-                    succes();
-                } else {
-                    String query = buildRequeteExport(report, donnees);
-                    if (query != null ? query.trim().length() > 0 : false) {
-                        try {
-                            List<Object> data = dao.loadListBySqlQuery(query, new yvs.dao.Options[]{});
-                            if (data == null) {
-                                result = "Erreur sur la requete";
-                            } else {
-                                if (data != null ? !data.isEmpty() : false) {
-                                    String file = Initialisation.getCheminAllDoc() + Initialisation.FILE_SEPARATOR + etat.getFileName();
-                                    switch (etat.getFormat()) {
-                                        case Constantes.FILE_CSV:
-                                            file += ".csv";
-                                            Util.createFileCSVByObject(file, data);
-                                            succes();
-                                            break;
-                                        default:
-                                            file += ".txt";
-                                            Util.createFileTXTByObject(file, data, etat.getSeparateur());
-                                            succes();
-                                            break;
-                                    }
-                                    Util.getDownloadFile(file, etat.getFileName());
-                                }
-                            }
-                        } catch (IOException ex) {
-                            getException("Error ", ex);
-                            result = ex.getMessage();
-                        }
-                    }
-                }
-            } else {
-                getErrorMessage("Aucun modèle d'exportation pour ce document n'a été trouvé");
-            }
-        } catch (Exception ex) {
-            java.util.logging.Logger.getLogger(Managed.class.getName()).log(Level.SEVERE, null, ex);
-            result = ex.getMessage();
-        }
-        return result;
     }
 
     public String executeReport(String report, Map<String, Object> param) {

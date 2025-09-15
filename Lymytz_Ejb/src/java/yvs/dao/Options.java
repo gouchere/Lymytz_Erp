@@ -32,6 +32,11 @@ public class Options implements Serializable, Comparable {
         this.position = position;
     }
 
+    public Options(Object valeur, String libelle) {
+        this(valeur, -1);
+        this.libelle = libelle;
+    }
+
     public Options(Object valeur, String libelle, int position) {
         this(valeur, position);
         this.libelle = libelle;

@@ -28,6 +28,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -766,15 +767,27 @@ public class Util {
         }
     }
 
-    public static String join(String separator, List<String> liste) {
+    public static <T> String join(String separator, T[] liste) {
+        return join(separator, liste, null);
+    }
+
+    public static <T> String join(String separator, T[] liste, String replace) {
+        return join(separator, Arrays.asList(liste), replace);
+    }
+
+    public static <T> String join(String separator, List<T> liste) {
+        return join(separator, liste, null);
+    }
+
+    public static <T> String join(String separator, List<T> liste, String replace) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < liste.size(); i++) {
-            sb.append(liste.get(i));
+            sb.append(asString(replace) ? replace : liste.get(i));
             if (i < liste.size() - 1) {
                 sb.append(separator);
             }
         }
-       return sb.toString();
+        return sb.toString();
     }
 
     public static List<List<String>> readFileCSV(String fileName) {
@@ -876,145 +889,85 @@ public class Util {
         return result;
     }
 
-    public static void createFileCSVByObject(String fileDestination, List<Object> mappedData) throws IOException {
+    public static <T> void createFileCSV(String fileDestination, List<T> mappedData) throws IOException {
+        if (mappedData == null) {
+            throw new IllegalArgumentException("la liste ne peut pas être nulle");
+        }
+        if (mappedData.isEmpty()) {
+            throw new IllegalArgumentException("la liste ne peut pas être vide");
+        }
+        // Gestion titre
+        final T[] oneData = (T[]) mappedData.get(0);
+        final String[] titles = new String[oneData.length];
+        int i = 0;
+        for (Object key : oneData) {
+            titles[i++] = key != null ? key.toString() : "";
+        }
+        createFileCSV(fileDestination, titles, mappedData);
+    }
+
+    public static <T> void createFileCSV(String fileDestination, List<String> titles, List<T> mappedData) throws IOException {
+        createFileCSV(fileDestination, titles.toArray(new String[titles.size()]), mappedData);
+    }
+
+    public static <T> void createFileCSV(String fileDestination, String[] titles, List<T> mappedData) throws IOException {
+        if (mappedData == null || mappedData.isEmpty()) {
+            throw new IllegalArgumentException("la liste ne peut pas être nulle ou vide");
+        }
         File file = new File(fileDestination);
         if (!file.exists()) {
             file.createNewFile();
         }
         try (CSVWriter writer = new CSVWriter(new FileWriter(file), ';')) {
-            if (mappedData == null) {
-                throw new IllegalArgumentException("la liste ne peut pas être nulle");
+            if (titles != null && titles.length > 0) {
+                writer.writeNext(titles);
             }
-            if (mappedData.isEmpty()) {
-                throw new IllegalArgumentException("la liste ne peut pas être vide");
-            }
-            // Gestion titre
-            final Object[] oneData = (Object[]) mappedData.get(0);
-            final String[] titles = new String[oneData.length];
-            int i = 0;
-            for (Object key : oneData) {
-                titles[i++] = key != null ? key.toString() : "";
-            }
-            if (titles == null) {
-                throw new IllegalArgumentException("les titres ne peuvent pas être nuls");
-            }
-            writer.writeNext(titles);
-            // Gestion titre
-            boolean first = true;
-            for (Object o : mappedData) {
-                Object[] element = (Object[]) o;
-                if (first) {
-                    first = false;
-                } else {
-                    try {
-                        String[] values = Arrays.copyOf(element, element.length, String[].class);
-                        writer.writeNext(values);
-                    } catch (Exception ex) {
-                        Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+            for (T o : mappedData) {
+                T[] element = (T[]) o;
+                try {
+                    // Crée un tableau de String de même longueur que 'element'
+                    String[] values = new String[element.length];
+                    // Remplissage du tableau values avec la conversion en String
+                    for (int i = 0; i < element.length; i++) {
+                        values[i] = (element[i] != null) ? element[i].toString() : "";  // Conversion en String, gestion du null
                     }
+                    writer.writeNext(values);
+                } catch (Exception ex) {
+                    Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
     }
 
-    public static void createFileCSV(String fileDestination, List<String[]> mappedData) throws IOException {
-        File file = new File(fileDestination);
-        if (!file.exists()) {
-            file.createNewFile();
-        }
-        try (CSVWriter writer = new CSVWriter(new FileWriter(file), ';')) {
-            if (mappedData == null) {
-                throw new IllegalArgumentException("la liste ne peut pas être nulle");
-            }
-            if (mappedData.isEmpty()) {
-                throw new IllegalArgumentException("la liste ne peut pas être vide");
-            }
-            // Gestion titre
-            final String[] oneData = mappedData.get(0);
-            final String[] titles = new String[oneData.length];
-            int i = 0;
-            for (String key : oneData) {
-                titles[i++] = key;
-            }
-            if (titles == null) {
-                throw new IllegalArgumentException("les titres ne peuvent pas être nuls");
-            }
-            writer.writeNext(titles);
-            // Gestion titre
-            boolean first = true;
-            for (String[] element : mappedData) {
-                if (first) {
-                    first = false;
-                } else {
-                    writer.writeNext(element);
-                }
-            }
-        }
+    public static <T> void createFileTXT(String fileDestination, List<Object> mappedData, String sep) throws IOException {
+        createFileTXT(fileDestination, new String[0], mappedData, sep);
     }
 
-    public static void createFileTXTByObject(String fileDestination, List<Object> mappedData, String sep) {
-        try {
-            String separateur = sep != null ? sep.trim().length() > 0 ? sep : ";" : ";";
-            File file = new File(fileDestination);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            try (FileWriter fw = new FileWriter(file)) {
-                if (mappedData == null) {
-                    throw new IllegalArgumentException("la liste ne peut pas être nulle");
-                }
-                if (mappedData.isEmpty()) {
-                    throw new IllegalArgumentException("la liste ne peut pas être vide");
-                }
-                try (BufferedWriter out = new BufferedWriter(fw)) {
-                    for (Object o : mappedData) {
-                        try {
-                            Object[] lines = (Object[]) o;
-                            boolean _fisrt = true;
-                            for (Object element : lines) {
-                                if (!_fisrt) {
-                                    out.append(separateur);
-                                }
-                                out.append(element != null ? element.toString() : "");
-                                _fisrt = false;
-                            }
-                            out.newLine();
-                        } catch (IOException ex) {
-                            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public static <T> void createFileTXT(String fileDestination, List<String> titles, List<T> mappedData, String sep) throws IOException {
+        createFileTXT(fileDestination, titles.toArray(new String[titles.size()]), mappedData, sep);
     }
 
-    public static void createFileTXTByString(String fileDestination, List<String[]> mappedData, String sep) throws IOException {
+    public static <T> void createFileTXT(String fileDestination, String[] titles, List<T> mappedData, String sep) throws IOException {
+        if (mappedData == null || mappedData.isEmpty()) {
+            throw new IllegalArgumentException("la liste ne peut pas être nulle ou vide");
+        }
         String separateur = sep != null ? sep.trim().length() > 0 ? sep : ";" : ";";
         File file = new File(fileDestination);
         if (!file.exists()) {
             file.createNewFile();
         }
         try (FileWriter fw = new FileWriter(file)) {
-            if (mappedData == null) {
-                throw new IllegalArgumentException("la liste ne peut pas être nulle");
-            }
-            if (mappedData.isEmpty()) {
-                throw new IllegalArgumentException("la liste ne peut pas être vide");
-            }
             try (BufferedWriter out = new BufferedWriter(fw)) {
-                for (String[] lines : mappedData) {
-                    boolean _fisrt = true;
-                    for (String element : lines) {
-                        if (!_fisrt) {
-                            out.append(separateur);
-                        }
-                        out.append(element != null ? element : "");
-                        _fisrt = false;
-                    }
+                if (titles != null && titles.length > 0) {
+                    out.append(join(separateur, titles));
                     out.newLine();
                 }
+                for (T line : mappedData) {
+                    out.append(join(separateur, (T[]) line));
+                    out.newLine();
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -1522,6 +1475,46 @@ public class Util {
             return true;
         }
         return false;
+    }
+
+    public static Object getValues(String type, String value) {
+        if (type == null || !asString(value)) {
+            return null;
+        }
+        switch (type) {
+            case "date":
+                try {
+                    return df.parse(value);
+                } catch (ParseException ex) {
+                    Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+                    return null;
+                }
+            case "time":
+                try {
+                    return hf.parse(value);
+                } catch (ParseException ex) {
+                    Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+                    return null;
+                }
+            case "timestamp":
+                try {
+                    return dm.parse(value);
+                } catch (ParseException ex) {
+                    Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+                    return null;
+                }
+            case "int":
+            case "integer":
+                return Integer.valueOf(value);
+            case "bigint":
+                return Long.valueOf(value);
+            case "boolean":
+                return Boolean.valueOf(value);
+            case "double precision":
+                return Double.valueOf(value);
+            default:
+                return value;
+        }
     }
 
     public static String nextValue(String oldValue) {

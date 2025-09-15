@@ -90,6 +90,7 @@ import yvs.service.IEntitySax;
 import yvs.service.base.tiers.client.IYvsComContratsClient;
 import yvs.service.base.tiers.client.IYvsComElementAddContratsClient;
 import yvs.service.base.tiers.client.IYvsComElementContratsClient;
+import yvs.stat.export.ManagedExportImport;
 import yvs.users.ManagedUser;
 import yvs.users.Users;
 import yvs.users.UtilUsers;
@@ -3037,6 +3038,10 @@ public class ManagedClient extends ManagedCommercial<Client, YvsComClient> imple
     }
 
     public void export() {
+        ManagedExportImport w = (ManagedExportImport) giveManagedBean(ManagedExportImport.class);
+        if (w == null) {
+            return;
+        }
         List<Long> ids = new ArrayList<>();
         if (tabIds != null ? tabIds.trim().length() > 0 : false) {
             List<Integer> indexs = decomposeSelection(tabIds);
@@ -3047,7 +3052,9 @@ public class ManagedClient extends ManagedCommercial<Client, YvsComClient> imple
             }
         }
         if (ids != null ? !ids.isEmpty() : false) {
-            executeExport(Constantes.EXPORT_CLIENT, ids);
+            Map<String, Object> donnees = new HashMap<>();
+            donnees.put("ids", ids);
+            w.onExporter(Constantes.EXPORT_CLIENT, donnees);
         } else {
             getErrorMessage("Vous devez selectionner des clients");
         }

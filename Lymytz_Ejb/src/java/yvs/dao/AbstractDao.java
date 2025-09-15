@@ -502,7 +502,11 @@ public abstract class AbstractDao<T extends Serializable> {
         getEntityManager().clear();
         Query qr = getEntityManager().createNativeQuery(querie);
         for (Options o : lp) {
-             qr.setParameter(o.getPosition(), o.getValeur());
+            if (o.getPosition() > 0) {
+                qr.setParameter(o.getPosition(), o.getValeur());
+            }else{
+                qr.setParameter(o.getLibelle(), o.getValeur());
+            }
         }
         try {
             return qr.getResultList();
