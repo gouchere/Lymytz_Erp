@@ -1209,7 +1209,7 @@ public class ManagedExportImport extends Managed<ExportEtat, YvsStatExportEtat> 
                             break;
                         case Constantes.FILE_JSON:
                             file += ".json";
-                            onExportJSON(file, data.getColonnes(), data.getValues());
+//                            onExportJSON(file, data.getColonnes(), data.getValues());
                             succes();
                             break;
                         case Constantes.FILE_CSV:
