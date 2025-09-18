@@ -7,7 +7,6 @@ package yvs.production;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,7 +25,6 @@ import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
 import yvs.base.produits.Articles;
 import yvs.base.produits.ManagedArticles;
-import static yvs.commercial.ManagedCommercial.currentParamVente;
 import yvs.commercial.UtilCom;
 import yvs.commercial.achat.ManagedLotReception;
 import yvs.commercial.creneau.ManagedTypeCreneau;
@@ -85,7 +83,6 @@ import yvs.entity.users.YvsUsers;
 import yvs.entity.users.YvsUsersAgence;
 import yvs.grh.UtilGrh;
 import yvs.grh.presence.TrancheHoraire;
-import static yvs.init.Initialisation.FILE_SEPARATOR;
 import yvs.parametrage.entrepot.Depots;
 import yvs.production.technique.GammeArticle;
 import yvs.production.technique.PosteCharge;
@@ -102,7 +99,6 @@ import yvs.util.Managed;
 import yvs.util.PaginatorResult;
 import yvs.util.ParametreRequete;
 import yvs.util.Util;
-import yvs.util.enume.Nombre;
 
 /**
  *
@@ -4740,14 +4736,22 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             }
         }
     }
-    public boolean date_;
+    public boolean date_, displayQteDeclarer;
     private String egaliteStatutOf = "IN", egaliteStatutDec = " =", egaliteSite = " IN ";
     private List<String> statutsOf = new ArrayList<>();
-    private String statutDec, statutOf;
+    private String statutDec, statutOf, etatDec = "";
     private Date dateDebut = new Date(), dateFin = new Date();
     private int siteSearch;
     public String article_, numSearch_;
     List<Integer> sitesSeach = new ArrayList<>();
+
+    public boolean isDisplayQteDeclarer() {
+        return displayQteDeclarer;
+    }
+
+    public void setDisplayQteDeclarer(boolean displayQteDeclarer) {
+        this.displayQteDeclarer = displayQteDeclarer;
+    }
 
     public String getStatutOf() {
         return statutOf;
@@ -4755,6 +4759,14 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public void setStatutOf(String statutOf) {
         this.statutOf = statutOf;
+    }
+
+    public String getEtatDec() {
+        return etatDec;
+    }
+
+    public void setEtatDec(String etatDec) {
+        this.etatDec = etatDec;
     }
 
     public boolean isDate_() {
@@ -4835,6 +4847,11 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public void setAllStatutsOf(List<String> allStatutsOf) {
         this.allStatutsOf = allStatutsOf;
+    }
+
+    public double getQteDeclarer(YvsProdOrdreFabrication y) {
+        Double qte = (Double) dao.loadObjectByNameQueries("YvsProdDeclarationProduction.findSumDeclare", new String[]{"ordre", "statut"}, new Object[]{y, Constantes.STATUT_DOC_VALIDE});
+        return qte != null ? qte : 0;
     }
 
     public void clearParams() {
@@ -4949,6 +4966,44 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         searchByStatutDec();
     }
 
+    public void addParamEtatDeclarer() {
+        ParametreRequete p = new ParametreRequete("y.id", "ids_from_declare", null, "IN", "AND");
+        if (Util.asString(etatDec)) {
+            String query = "SELECT p.id FROM yvs_prod_ordre_fabrication p LEFT JOIN yvs_prod_declaration_production d ON (p.id = d.ordre AND d.statut = 'V') WHERE p.societe = ?";
+            switch (etatDec) {
+                case "EQUAL_DECLARE": {
+                    query += " GROUP BY p.id HAVING p.quantite_fabrique::int = SUM(d.quantite)::int";
+                    break;
+                }
+                case "PLUS_DECLARE": {
+                    query += " GROUP BY p.id HAVING p.quantite_fabrique::int < SUM(d.quantite)::int";
+                    break;
+                }
+                case "MOINS_DECLARE": {
+                    query += " GROUP BY p.id HAVING p.quantite_fabrique::int > SUM(d.quantite)::int";
+                    break;
+                }
+                //NON_DECLARE
+                default: {
+                    query += " AND d.id IS NULL";
+                    break;
+                }
+            }
+            query += " ORDER BY p.date_save LIMIT 1000";
+            List<Long> ids_from_declare = dao.loadListBySqlQuery(query, new Options[]{new Options(currentAgence.getSociete().getId(), 1)});
+            if (ids_from_declare == null || ids_from_declare.isEmpty()) {
+                ids_from_declare = new ArrayList<Long>() {
+                    {
+                        add(0L);
+                    }
+                };
+            }
+            p = new ParametreRequete("y.id", "ids_from_declare", ids_from_declare, "IN", "AND");
+        }
+        paginator.addParam(p);
+        initForm = true;
+    }
+
     public void searchByStatutDec_only() {
         ParametreRequete p = new ParametreRequete("y.statutDeclaration", "statutDeclaration", statutDec, egaliteStatutDec, "AND");
         paginator.addParam(p);
@@ -4986,6 +5041,10 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public void searchByStatutOF() {
         addParametreStatutOF();
+        loadAllOf(true, initForm);
+    }
+
+    public void applyMostSearch() {
         loadAllOf(true, initForm);
     }
 
