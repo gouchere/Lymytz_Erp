@@ -94,17 +94,28 @@
             </p:dialog>
         </h:form>
         <h:form prependId="false" id="form_search_statuts">
-            <p:dialog header="#{lab.LP_POF_statuts_of}" widgetVar="dlgStatut" footer="&copy;Lymytz 2014" width="15%">
-                <h:selectOneMenu value="#{managedOrdresF.egaliteStatutOf}" 
-                                 styleClass="input_min_medium">
-                    <f:selectItem itemLabel="#{lab.LP_POF_inclus}" itemValue="IN"/>
-                    <f:selectItem itemLabel="#{lab.LP_POF_exclus}" itemValue="NOT IN" />
-                </h:selectOneMenu> 
-                <p:selectManyMenu value="#{managedOrdresF.statutsOf}" showCheckbox="true" 
-                                  id="select_statuts_of" styleClass="input_min_medium">
-                    <f:selectItems value="#{managedOrdresF.allStatutsOf}" var="istat" itemValue="#{istat}" itemLabel="#{managedOrdresF.giveNameStatut(istat)}" />
-                </p:selectManyMenu>
-                <p:commandButton value="#{lab.L_appliquer}" icon="ui-icon-arrowthickstop-1-s" styleClass="input_large" actionListener="#{managedOrdresF.searchByStatutOF()}"/>
+            <p:dialog header="Recherche avancée..." widgetVar="dlgOptions" footer="&copy;Lymytz 2014" width="15%">
+                <h:panelGrid columns="1" styleClass="yvs_nostyle_without_padding" style="width: 100%">
+                    <h:selectOneMenu value="#{managedOrdresF.egaliteStatutOf}"  styleClass="input_min_medium">
+                        <f:selectItem itemLabel="#{lab.LP_POF_inclus}" itemValue="IN"/>
+                        <f:selectItem itemLabel="#{lab.LP_POF_exclus}" itemValue="NOT IN" />
+                    </h:selectOneMenu> 
+                    <p:selectManyMenu value="#{managedOrdresF.statutsOf}" showCheckbox="true" 
+                                      id="select_statuts_of" styleClass="input_min_medium">
+                        <f:selectItems value="#{managedOrdresF.allStatutsOf}" var="istat" itemValue="#{istat}" itemLabel="#{managedOrdresF.giveNameStatut(istat)}" />
+                        <p:ajax event="valueChange" listener="#{managedOrdresF.addParametreStatutOF()}"/>
+                    </p:selectManyMenu>
+                    <h:outputText value="Etat de la declaration"/>
+                    <h:selectOneMenu value="#{managedOrdresF.etatDec}" style="width: 100%">
+                        <f:selectItem itemLabel="TOUT" itemValue=""/>
+                        <f:selectItem itemLabel="NON DECLARER" itemValue="NON_DECLARE"/>
+                        <f:selectItem itemLabel="TOTAL DECLARER" itemValue="EQUAL_DECLARE"/>
+                        <f:selectItem itemLabel="PLUS DECLARER" itemValue="PLUS_DECLARE"/>
+                        <f:selectItem itemLabel="MOINS DECLARER" itemValue="MOINS_DECLARE"/>
+                        <p:ajax event="valueChange" listener="#{managedOrdresF.addParamEtatDeclarer()}"/>
+                    </h:selectOneMenu> 
+                </h:panelGrid>
+                <p:commandButton value="#{lab.L_appliquer}" icon="ui-icon-arrowthickstop-1-s" styleClass="input_large" actionListener="#{managedOrdresF.applyMostSearch()}"/>
             </p:dialog>
         </h:form>
         <h:form prependId="false">
@@ -2083,6 +2094,11 @@
                             </p:column>
                             <p:column  headerText="#{lab.L_quantite}" width="90" style="text-align: center" styleClass="statut_#{itemOF.statutOrdre}">
                                 <h:outputText value="#{itemOF.quantite}" converter="#{managedOrdresF.converterProd(itemOF.article.categorie)}" />
+                                <h:panelGroup rendered="#{managedOrdresF.displayQteDeclarer}">
+                                    ->
+                                    <h:outputText value="#{managedOrdresF.getQteDeclarer(itemOF)}" converter="#{managedOrdresF.converterProd(itemOF.article.categorie)}" 
+                                                  title="Quantitée déclarée"/>
+                                </h:panelGroup>
                             </p:column>
                             <p:column width="120" headerText="#{lab.LP_POF_nomenclature}" styleClass="statut_#{itemOF.statutOrdre}">                                                             
                                 <h:outputText value="#{itemOF.nomenclature.reference}"/>
@@ -2101,7 +2117,13 @@
                                 <h:outputText value="#{itemOF.tauxEvolution}" converter="DNS"/> %
                             </p:column>
                             <p:column width="25" style="text-align: center" styleClass="statut_#{itemOF.statutOrdre}">
-
+                                <f:facet name="header">
+                                    <p:contextMenu for="btn_option_tableOF_header" event="left click" style="font-size: 0.8em;width: 200px">
+                                        <p:menuitem icon="ui-icon-eyes" value="#{managedOrdresF.displayQteDeclarer?'Cacher':'Afficher'} quantitée déclarée"
+                                                    actionListener="#{managedOrdresF.setDisplayQteDeclarer(!managedOrdresF.displayQteDeclarer)}" update="tableOF"/>
+                                    </p:contextMenu>   
+                                    <p:commandButton icon="ui-icon-gear" type="button" id="btn_option_tableOF_header" style="width: 22px; height: 22px" />
+                                </f:facet>
                                 <p:contextMenu for="btn_option_tableOF" event="left click" style="font-size: 0.8em">
                                     <p:menuitem value="#{lab.LP_POF_resume}" icon="ui-icon-transferthick-e-w"  actionListener="#{managedOrdresF.loadAllFluxComposant(itemOF, true)}"/>
                                     <p:menuitem value="#{lab.LP_POF_mise_rebut}" icon="ui-icon-transferthick-e-w"  />
@@ -2213,7 +2235,7 @@
                             <h:inputText value="#{managedOrdresF.numSearch_}" style="min-width: 120px">
                                 <p:ajax event="valueChange" listener="#{managedOrdresF.addParamNumRef()}" oncomplete="collapseList('of')"/>
                             </h:inputText>  
-                            <p:commandLink value="#{lab.L_avancees}" type="button" global="false" onclick="dlgStatut.show()"/>
+                            <p:commandLink value="#{lab.L_avancees}" type="button" global="false" onclick="dlgOptions.show()"/>
                         </h:panelGrid>
                     </h:panelGrid>
                 </div>          
