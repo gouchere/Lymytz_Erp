@@ -34,6 +34,9 @@ public class Parametre implements Serializable {
     private int dureeInactiv;
     private int jourUsine = 30;
     private boolean selectActif, update;
+    private boolean displayPrixRevient;
+    private boolean displayResteALivrer;
+    private boolean displayAvgPuv;
 
     public Parametre() {
     }
@@ -50,6 +53,29 @@ public class Parametre implements Serializable {
         this.id = id;
     }
 
+    public boolean isDisplayPrixRevient() {
+        return displayPrixRevient;
+    }
+
+    public void setDisplayPrixRevient(boolean displayPrixRevient) {
+        this.displayPrixRevient = displayPrixRevient;
+    }
+
+    public boolean isDisplayResteALivrer() {
+        return displayResteALivrer;
+    }
+
+    public void setDisplayResteALivrer(boolean displayResteALivrer) {
+        this.displayResteALivrer = displayResteALivrer;
+    }
+
+    public boolean isDisplayAvgPuv() {
+        return displayAvgPuv;
+    }
+
+    public void setDisplayAvgPuv(boolean displayAvgPuv) {
+        this.displayAvgPuv = displayAvgPuv;
+    }
 
     public int getConverter() {
         return converter;
@@ -122,6 +148,7 @@ public class Parametre implements Serializable {
     public void setTauxMargeSur(String tauxMargeSur) {
         this.tauxMargeSur = tauxMargeSur;
     }
+
     public boolean isReglementAuto() {
         return reglementAuto;
     }
