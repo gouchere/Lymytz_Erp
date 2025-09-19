@@ -4983,6 +4983,10 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                     query += " GROUP BY p.id HAVING p.quantite_fabrique::int > SUM(d.quantite)::int";
                     break;
                 }
+                case "DIFFERENT": {
+                    query += " GROUP BY p.id HAVING p.quantite_fabrique::int!=SUM(d.quantite)::int";
+                    break;
+                }
                 //NON_DECLARE
                 default: {
                     query += " AND d.id IS NULL";
