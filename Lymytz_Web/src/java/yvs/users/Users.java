@@ -18,7 +18,6 @@ import yvs.entity.commercial.YvsComComerciale;
 import yvs.entity.commercial.vente.YvsComDocVentes;
 import yvs.parametrage.agence.Agence;
 import yvs.parametrage.societe.Societe;
-import yvs.users.messagerie.GroupeMessage;
 
 /**
  *
@@ -52,7 +51,6 @@ public class Users implements Serializable {
     private Tiers tiers = new Tiers();
     private AdresseProfessionnel adresse = new AdresseProfessionnel();
     private List<AdresseProfessionnel> listAdresse;
-    private List<GroupeMessage> dossiers;
     private List<CarnetAdresse> CarnetAdresse;
     private CategoriePerso categorie = new CategoriePerso();
     private PlanCommission planCommission = new PlanCommission();
@@ -65,7 +63,6 @@ public class Users implements Serializable {
 
     public Users() {
         listAdresse = new ArrayList<>();
-        dossiers = new ArrayList<>();
         CarnetAdresse = new ArrayList<>();
         soldes = new ArrayList<>();
         factures = new ArrayList<>();
@@ -236,14 +233,6 @@ public class Users implements Serializable {
 
     public void setCarnetAdresse(List<CarnetAdresse> CarnetAdresse) {
         this.CarnetAdresse = CarnetAdresse;
-    }
-
-    public List<GroupeMessage> getDossiers() {
-        return dossiers;
-    }
-
-    public void setDossiers(List<GroupeMessage> dossiers) {
-        this.dossiers = dossiers;
     }
 
     public AdresseProfessionnel getAdresse() {
