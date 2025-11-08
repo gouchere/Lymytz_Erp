@@ -2053,16 +2053,16 @@ public class UtilCompta {
         return r;
     }
 
-    public static JustifierBon buildBeanJustificatif(YvsComptaJustificatifBon y) {
-        JustifierBon r = new JustifierBon();
-        if (y != null) {
-            r.setId(y.getId());
-            r.setDateSave(y.getDateSave());
-//            r.setPiece(new PieceTresorerie(y.getPiece() != null ? y.getPiece().getId() : 0));
-            r.setBon(new BonProvisoire(y.getBon() != null ? y.getBon().getId() : 0));
-        }
-        return r;
-    }
+//    public static JustifierBon buildBeanJustificatif(YvsComptaJustificatifBon y) {
+//        JustifierBon r = new JustifierBon();
+//        if (y != null) {
+//            r.setId(y.getId());
+//            r.setDateSave(y.getDateSave());
+////            r.setPiece(new PieceTresorerie(y.getPiece() != null ? y.getPiece().getId() : 0));
+//            r.setBon(new BonProvisoire(y.getBon() != null ? y.getBon().getId() : 0));
+//        }
+//        return r;
+//    }
 
     public static YvsComptaJustificatifBon buildJustificatif(JustifierBon y, YvsUsersAgence ua) {
         YvsComptaJustificatifBon r = new YvsComptaJustificatifBon();
@@ -2081,81 +2081,74 @@ public class UtilCompta {
         return r;
     }
 
-    public static BonProvisoire buildBeanBonProvisoire(YvsComptaBonProvisoire y) {
-        BonProvisoire r = new BonProvisoire();
-        if (y != null) {
-            r.setBeneficiaire(y.getBeneficiaire());
-            if (y.getCaisse() != null ? y.getCaisse().getId() > 0 : false) {
-                r.setCaisse(new Caisses(y.getCaisse().getId(), y.getCaisse().getIntitule()));
+    public static BonProvisoire buildBeanBonProvisoire(YvsComptaBonProvisoire entityBon) {
+        BonProvisoire bonProvisoire = new BonProvisoire();
+        if (entityBon != null) {
+            bonProvisoire.setBeneficiaire(entityBon.getBeneficiaire());
+            if (entityBon.getCaisse() != null ? entityBon.getCaisse().getId() > 0 : false) {
+                bonProvisoire.setCaisse(new Caisses(entityBon.getCaisse().getId(), entityBon.getCaisse().getIntitule()));
             }
-            if (y.getCaissier() != null ? y.getCaissier().getId() > 0 : false) {
-                r.setCaissier(new Users(y.getCaissier().getId(), y.getCaissier().getCodeUsers(), y.getCaissier().getNomUsers()));
+            if (entityBon.getCaissier() != null ? entityBon.getCaissier().getId() > 0 : false) {
+                bonProvisoire.setCaissier(new Users(entityBon.getCaissier().getId(), entityBon.getCaissier().getCodeUsers(), entityBon.getCaissier().getNomUsers()));
             }
-            r.setDateBon(y.getDateBon());
-            r.setDateValider(y.getDateValider());
-            r.setDateJustify(y.getDateJustify());
-            r.setDatePayer(y.getDatePayer());
-            r.setDateSave(y.getDateSave());
-            r.setDateUpdate(y.getDateUpdate());
-            r.setDescription(y.getDescription());
-            r.setEtapeTotal(y.getEtapeTotal());
-            r.setEtapeValide(y.getEtapeValide());
-            r.setEtapesValidations(y.getEtapesValidations());
-            r.setId(y.getId());
+            bonProvisoire.setDateBon(entityBon.getDateBon());
+            bonProvisoire.setDateValider(entityBon.getDateValider());
+            bonProvisoire.setDateJustify(entityBon.getDateJustify());
+            bonProvisoire.setDatePayer(entityBon.getDatePayer());
+            bonProvisoire.setDateSave(entityBon.getDateSave());
+            bonProvisoire.setDateUpdate(entityBon.getDateUpdate());
+            bonProvisoire.setDescription(entityBon.getDescription());
+            bonProvisoire.setEtapeTotal(entityBon.getEtapeTotal());
+            bonProvisoire.setEtapeValide(entityBon.getEtapeValide());
+            bonProvisoire.setEtapesValidations(entityBon.getEtapesValidations());
+            bonProvisoire.setId(entityBon.getId());
 //            r.setJustificatifs(y.getJustificatifs());
-            r.setMontant(y.getMontant());
-            r.setNumero(y.getNumero());
-            if (y.getOrdonnateur() != null ? y.getOrdonnateur().getId() > 0 : false) {
-                r.setOrdonnateur(new Users(y.getOrdonnateur().getId(), y.getOrdonnateur().getCodeUsers(), y.getOrdonnateur().getNomUsers()));
+            bonProvisoire.setMontant(entityBon.getMontant());
+            bonProvisoire.setNumero(entityBon.getNumero());
+            if (entityBon.getOrdonnateur() != null ? entityBon.getOrdonnateur().getId() > 0 : false) {
+                bonProvisoire.setOrdonnateur(new Users(entityBon.getOrdonnateur().getId(), entityBon.getOrdonnateur().getCodeUsers(), entityBon.getOrdonnateur().getNomUsers()));
             }
-            r.setStatut(y.getStatut().charAt(0));
-            r.setStatutJustify(y.getStatutJustify().charAt(0));
-            r.setStatutPaiement(y.getStatutPaiement().charAt(0));
-            if (y.getTiers() != null ? y.getTiers().getId() > 0 : false) {
-                r.setTiers(new Tiers(y.getTiers().getId(), y.getTiers().getCodeTiers(), y.getTiers().getNom(), y.getTiers().getPrenom()));
+            bonProvisoire.setStatut(entityBon.getStatut().charAt(0));
+            bonProvisoire.setStatutJustify(entityBon.getStatutJustify().charAt(0));
+            bonProvisoire.setStatutPaiement(entityBon.getStatutPaiement().charAt(0));
+            if (entityBon.getTiers() != null ? entityBon.getTiers().getId() > 0 : false) {
+                bonProvisoire.setTiers(new Tiers(entityBon.getTiers().getId(), entityBon.getTiers().getCodeTiers(), entityBon.getTiers().getNom(), entityBon.getTiers().getPrenom()));
             }
-            r.setTypeDoc(buildBeanTypeDoc(y.getTypeDoc()));
-            r.setBonMission(y.getBonMission());
-            if (y.getBonMission() != null ? y.getBonMission().getId() > 0 : false) {
-                r.setPieceMission(y.getBonMission().getMission());
-                r.setMission(r.getPieceMission().getMission());
-                r.setNumeroExterne(r.getMission().getNumeroMission());
-                r.setBonFor("M");
-                r.setOldBonFor("M");
-            }
-            r.setBonAchat(y.getBonAchat());
-            if (y.getBonAchat() != null ? y.getBonAchat().getId() > 0 : false) {
-                r.setPieceAchat(y.getBonAchat().getPiece());
-                r.setAchat(r.getPieceAchat().getAchat());
-                r.setNumeroExterne(r.getAchat().getNumDoc());
-                r.setBonFor("A");
-                r.setOldBonFor("A");
-            }
-            r.setBonDivers(y.getBonDivers());
-            if (y.getBonDivers() != null ? y.getBonDivers().getId() > 0 : false) {
-                r.setPieceDivers(y.getBonDivers().getPiece());
-                r.setDivers(r.getPieceDivers().getDocDivers());
-                r.setNumeroExterne(r.getDivers().getNumPiece());
-                r.setBonFor("D");
-                r.setOldBonFor("D");
-            }
-            r.setJustifier(y.getJustifier());
-            r.setAttente(y.getAttente());
-            r.setReste(y.getReste());
-            r.getJustificatifs().clear();
+            bonProvisoire.setTypeDoc(buildBeanTypeDoc(entityBon.getTypeDoc()));
+        
+//            bonProvisoire.setBonAchat(entityBon.getBonAchat());
+//            if (entityBon.getBonAchat() != null ? entityBon.getBonAchat().getId() > 0 : false) {
+//                bonProvisoire.setPieceAchat(entityBon.getBonAchat().getPiece());
+//                bonProvisoire.setAchat(bonProvisoire.getPieceAchat().getAchat());
+//                bonProvisoire.setNumeroExterne(bonProvisoire.getAchat().getNumDoc());
+//                bonProvisoire.setBonFor("A");
+//                bonProvisoire.setOldBonFor("A");
+//            }
+//            bonProvisoire.setBonDivers(entityBon.getBonDivers());
+//            if (entityBon.getBonDivers() != null ? entityBon.getBonDivers().getId() > 0 : false) {
+//                bonProvisoire.setPieceDivers(entityBon.getBonDivers().getPiece());
+//                bonProvisoire.setDivers(bonProvisoire.getPieceDivers().getDocDivers());
+//                bonProvisoire.setNumeroExterne(bonProvisoire.getDivers().getNumPiece());
+//                bonProvisoire.setBonFor("D");
+//                bonProvisoire.setOldBonFor("D");
+//            }
+            bonProvisoire.setJustifier(entityBon.getMontantJustifie());
+            bonProvisoire.setAttente(entityBon.getAttente());
+            bonProvisoire.setReste(entityBon.getReste());
+            bonProvisoire.getJustificatifs().clear();
 
             // Docs divers
-            for (YvsComptaJustificatifBon c : y.getJustificatifs()) {
-                r.getJustificatifs().add(buildBeanJustifierBon(c));
+            for (YvsComptaJustificatifBon c : entityBon.getJustificatifs()) {
+                bonProvisoire.getJustificatifs().add(buildBeanJustifierBon(c));
             }
-            for (YvsComptaJustifBonAchat c : y.getJustificatifsAchats()) {
-                r.getJustificatifs().add(buildBeanJustifierBon(c));
+            for (YvsComptaJustifBonAchat c : entityBon.getJustificatifsAchats()) {
+                bonProvisoire.getJustificatifs().add(buildBeanJustifierBon(c));
             }
-            for (YvsComptaJustifBonMission c : y.getJustificatifsMissions()) {
-                r.getJustificatifs().add(buildBeanJustifierBon(c));
+            for (YvsComptaJustifBonMission c : entityBon.getJustificatifsMissions()) {
+                bonProvisoire.getJustificatifs().add(buildBeanJustifierBon(c));
             }
         }
-        return r;
+        return bonProvisoire;
     }
 
     public static YvsComptaBonProvisoire buildBonProvisoire(BonProvisoire y, YvsUsersAgence ua) {

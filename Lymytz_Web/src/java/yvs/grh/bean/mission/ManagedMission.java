@@ -1883,17 +1883,17 @@ public class ManagedMission extends Managed<Mission, YvsGrhMissions> implements 
         }
     }
 
-    public void forceOnViewMission(YvsComptaBonProvisoire piece, YvsComptaCaissePieceMission select) {
-        if (piece != null ? piece.getId() > 0 : false) {
-            if (piece.getBonMission() != null) {
-                piece.getBonMission().setMission(select);
-            }
-            this.piece = piece;
-            if (select != null ? select.getId() > 0 : false) {
-                addBonProvisoire(piece, select, true, true);
-            }
-        }
-    }
+//    public void forceOnViewMission(YvsComptaBonProvisoire piece, YvsComptaCaissePieceMission select) {
+//        if (piece != null ? piece.getId() > 0 : false) {
+//            if (piece.getBonMission() != null) {
+//                piece.getBonMission().setMission(select);
+//            }
+//            this.piece = piece;
+//            if (select != null ? select.getId() > 0 : false) {
+//                addBonProvisoire(piece, select, true, true);
+//            }
+//        }
+//    }
 
     public void addBonProvisoire() {
         if (selectMission != null ? selectMission.getId() < 1 : true) {
@@ -1965,65 +1965,66 @@ public class ManagedMission extends Managed<Mission, YvsGrhMissions> implements 
     }
 
     public YvsComptaJustifBonMission addBonProvisoire(YvsComptaBonProvisoire bon, YvsComptaCaissePieceMission piece, boolean msg, boolean succes) {
-        if (piece != null ? piece.getId() < 1 : true) {
-            if (msg) {
-                getErrorMessage("Vous devez selectionner une mission!!!");
-            }
-            return null;
-        }
-        if (bon != null ? bon.getId() < 1 : true) {
-            if (msg) {
-                getErrorMessage("Vous devez enregistrer un bon provisoire!!!");
-            }
-            return null;
-        }
-        if (bon.getBonMission() != null ? (bon.getBonMission().getId() > 0 ? !bon.getBonMission().getMission().equals(piece) : false) : false) {
-            openDialog("dlgConfirmBonProvisoire");
-            update("cfm_bon_mission");
-            return null;
-        }
-        if (bon.getMontant() <= 0) {
-            if (msg) {
-                getErrorMessage("Vous devez entrer le montant du bon");
-            }
-            return null;
-        }
-        if (piece.getMontant() > bon.getMontant()) {
-            if (msg) {
-                getErrorMessage("Impossible d'associer une piece de reglement supérieur à la valeur du bon");
-            }
-            return null;
-        }
-        YvsComptaJustifBonMission y = new YvsComptaJustifBonMission(piece, bon);
-        y.setAuthor(currentUser);
-        if (bon.getBonMission() != null ? bon.getBonMission().getId() < 1 : true) {
-            champ = new String[]{"mission", "piece"};
-            val = new Object[]{piece, bon};
-            YvsComptaJustifBonMission old = (YvsComptaJustifBonMission) dao.loadOneByNameQueries("YvsComptaJustifBonMission.findOne", champ, val);
-            if (old != null ? old.getId() < 1 : true) {
-                y.setDateSave(new Date());
-                y.setDateUpdate(new Date());
-                y.setId(null);
-                y = (YvsComptaJustifBonMission) dao.save1(y);
-            } else {
-                y = old;
-            }
-        } else {
-            y.setId(bon.getBonMission().getId());
-            dao.update(y);
-        }
-        bon.setBonMission(y);
-        piece.setJustify(y);
-        int idx = selectMission.getBonsProvisoire().indexOf(y);
-        if (idx > 0) {
-            selectMission.getBonsProvisoire().set(idx, y);
-        } else {
-            selectMission.getBonsProvisoire().add(0, y);
-        }
-        if (succes) {
-            succes();
-        }
-        return y;
+//        if (piece != null ? piece.getId() < 1 : true) {
+//            if (msg) {
+//                getErrorMessage("Vous devez selectionner une mission!!!");
+//            }
+//            return null;
+//        }
+//        if (bon != null ? bon.getId() < 1 : true) {
+//            if (msg) {
+//                getErrorMessage("Vous devez enregistrer un bon provisoire!!!");
+//            }
+//            return null;
+//        }
+//        if (bon.getBonMission() != null ? (bon.getBonMission().getId() > 0 ? !bon.getBonMission().getMission().equals(piece) : false) : false) {
+//            openDialog("dlgConfirmBonProvisoire");
+//            update("cfm_bon_mission");
+//            return null;
+//        }
+//        if (bon.getMontant() <= 0) {
+//            if (msg) {
+//                getErrorMessage("Vous devez entrer le montant du bon");
+//            }
+//            return null;
+//        }
+//        if (piece.getMontant() > bon.getMontant()) {
+//            if (msg) {
+//                getErrorMessage("Impossible d'associer une piece de reglement supérieur à la valeur du bon");
+//            }
+//            return null;
+//        }
+//        YvsComptaJustifBonMission y = new YvsComptaJustifBonMission(piece, bon);
+//        y.setAuthor(currentUser);
+//        if (bon.getBonMission() != null ? bon.getBonMission().getId() < 1 : true) {
+//            champ = new String[]{"mission", "piece"};
+//            val = new Object[]{piece, bon};
+//            YvsComptaJustifBonMission old = (YvsComptaJustifBonMission) dao.loadOneByNameQueries("YvsComptaJustifBonMission.findOne", champ, val);
+//            if (old != null ? old.getId() < 1 : true) {
+//                y.setDateSave(new Date());
+//                y.setDateUpdate(new Date());
+//                y.setId(null);
+//                y = (YvsComptaJustifBonMission) dao.save1(y);
+//            } else {
+//                y = old;
+//            }
+//        } else {
+//            y.setId(bon.getBonMission().getId());
+//            dao.update(y);
+//        }
+//        bon.setBonMission(y);
+//        piece.setJustify(y);
+//        int idx = selectMission.getBonsProvisoire().indexOf(y);
+//        if (idx > 0) {
+//            selectMission.getBonsProvisoire().set(idx, y);
+//        } else {
+//            selectMission.getBonsProvisoire().add(0, y);
+//        }
+//        if (succes) {
+//            succes();
+//        }
+//        return y;
+        return null;
     }
 
     public void resetBonProvisoire() {
