@@ -32,7 +32,6 @@ import yvs.commercial.achat.LotReception;
 import yvs.commercial.achat.ManagedLotReception;
 import yvs.commercial.creneau.Creneau;
 import yvs.commercial.depot.ManagedDepot;
-import yvs.dao.DaoInterfaceLocal;
 import yvs.dao.Options;
 import yvs.dao.salaire.service.ResultatAction;
 import yvs.dao.services.commercial.ServiceTransfert;
@@ -1319,15 +1318,9 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
             //cette vérificaction empêche de modifier une fiche qui apprait editable pour la fiche chargé à l'écran et pourtant déjà validé en base de données
             String statut = (String) dao.loadObjectByNameQueries("YvsComDocStocks.findStatutById", new String[]{"id"}, new Object[]{docStock.getId()});
             docStock.setStatut(statut);
-            if (docStock.getStatut().equals(Constantes.ETAT_VALIDE)) {
-                getErrorMessage("Ce transfert est déja validé. veuillez le recharger...");
-                return null;
-            }
             if (!docStock.getStatut().equals(Constantes.ETAT_EDITABLE)) {
-                //confirme le droit de transmettre
-                if (!ManagedTransfertStock.this.chechAutorisationActionOnDepot(selectDoc, 1)) {
-                    return null;
-                }
+                getErrorMessage("Vous ne pouvez pas ajouter des lignes dans un transfert en cours de validation. Veuillez recharger et le rendre éditable");
+                return null;
             }
             ContenuDocStock bean = recopieViewContenu(contenu, docStock);
             if (controleFicheContenu(bean, principal)) {
