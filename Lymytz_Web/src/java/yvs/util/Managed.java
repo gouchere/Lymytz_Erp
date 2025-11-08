@@ -1245,10 +1245,7 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     public Object giveManagedBean(Class classe) {
         String st = classe.getSimpleName();
         String f = st.substring(0, 1);
-        if (st != null) {
-            return (Object) FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get(f.toLowerCase().concat(st.substring(1)));
-        }
-        return null;
+        return (Object) FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get(f.toLowerCase().concat(st.substring(1)));
     }
 
     public Object giveObjectOnView(String id) {

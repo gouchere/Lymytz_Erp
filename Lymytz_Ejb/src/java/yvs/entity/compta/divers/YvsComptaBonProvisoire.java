@@ -57,7 +57,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsComptaBonProvisoire.findByDateSave", query = "SELECT y FROM YvsComptaBonProvisoire y WHERE y.dateSave = :dateSave"),
     @NamedQuery(name = "YvsComptaBonProvisoire.findByDateUpdate", query = "SELECT y FROM YvsComptaBonProvisoire y WHERE y.dateUpdate = :dateUpdate"),
 
-    @NamedQuery(name = "YvsComptaBonProvisoire.findNotJustiferByDatesAgence", query = "SELECT y FROM YvsComptaBonProvisoire y LEFT JOIN FETCH y.bonAchat LEFT JOIN FETCH y.bonMission LEFT JOIN FETCH y.bonDivers "
+    @NamedQuery(name = "YvsComptaBonProvisoire.findNotJustiferByDatesAgence", query = "SELECT y FROM YvsComptaBonProvisoire y "
             + " LEFT JOIN FETCH y.justificatifs LEFT JOIN FETCH y.justificatifsAchats LEFT JOIN FETCH y.justificatifsMissions LEFT JOIN FETCH y.etapesValidations "
             + "WHERE y.agence = :agence AND y.statutJustify != 'J' AND y.dateBon BETWEEN :dateDebut AND :dateFin ORDER BY y.dateBon"),
 
@@ -156,12 +156,12 @@ public class YvsComptaBonProvisoire implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsUsers justifyBy;
 
-    @OneToOne(mappedBy = "piece")
-    private YvsComptaJustifBonMission bonMission;
-    @OneToOne(mappedBy = "bon")
-    private YvsComptaJustifBonAchat bonAchat;
-    @OneToOne(mappedBy = "bon")
-    private YvsComptaJustificatifBon bonDivers;
+//    @OneToOne(mappedBy = "piece")
+//    private YvsComptaJustifBonMission bonMission;
+//    @OneToOne(mappedBy = "bon")
+//    private YvsComptaJustifBonAchat bonAchat;
+//    @OneToOne(mappedBy = "bon")
+//    private YvsComptaJustificatifBon bonDivers;
 
     @OneToMany(mappedBy = "bon", fetch = FetchType.LAZY)
     private List<YvsComptaJustificatifBon> justificatifs;
@@ -169,6 +169,7 @@ public class YvsComptaBonProvisoire implements Serializable {
     private List<YvsComptaJustifBonAchat> justificatifsAchats;
     @OneToMany(mappedBy = "piece", fetch = FetchType.LAZY)
     private List<YvsComptaJustifBonMission> justificatifsMissions;
+    
     @OneToMany(mappedBy = "docCaisse", fetch = FetchType.LAZY)
     private List<YvsWorkflowValidBonProvisoire> etapesValidations;
 
@@ -177,7 +178,7 @@ public class YvsComptaBonProvisoire implements Serializable {
     @Transient
     private String maDateSave;
     @Transient
-    private double justifier;
+    private double montantJustifie;
     @Transient
     private double attente;
     @Transient
@@ -392,17 +393,7 @@ public class YvsComptaBonProvisoire implements Serializable {
     public void setValiderBy(YvsUsers validerBy) {
         this.validerBy = validerBy;
     }
-
-    @XmlTransient
-    @JsonIgnore
-    public YvsComptaJustifBonMission getBonMission() {
-        return bonMission;
-    }
-
-    public void setBonMission(YvsComptaJustifBonMission bonMission) {
-        this.bonMission = bonMission;
-    }
-
+    
     public String getLibEtapes() {
         libEtapes = "Etp. " + getEtapeValide() + " / " + getEtapeTotal();
         return libEtapes;
@@ -412,35 +403,24 @@ public class YvsComptaBonProvisoire implements Serializable {
         this.libEtapes = libEtapes;
     }
 
-    public double getJustifier() {
-        justifier = 0;
+    public double getMontantJustifie() {
+        montantJustifie = 0;
         attente = 0;
         if (justificatifs != null) {
             for (YvsComptaJustificatifBon j : justificatifs) {
-                if (j.getPiece().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
-                    justifier += j.getPiece().getMontant();
-                }
+                montantJustifie += j.getPiece().getMontant();
             }
         }
         if (justificatifsAchats != null) {
             for (YvsComptaJustifBonAchat j : justificatifsAchats) {
-                if (j.getPiece().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
-                    justifier += j.getPiece().getMontant();
-                }
+                montantJustifie += j.getPiece().getMontant();
             }
         }
-        if (justificatifsMissions != null) {
-            for (YvsComptaJustifBonMission j : justificatifsMissions) {
-                if (j.getMission().getStatutPiece().equals(Constantes.STATUT_DOC_PAYER)) {
-                    justifier += j.getPiece().getMontant();
-                }
-            }
-        }
-        return justifier;
+        return montantJustifie;
     }
 
     public void setJustifier(double justifier) {
-        this.justifier = justifier;
+        this.montantJustifie = justifier;
     }
 
     public double getAttente() {
@@ -452,7 +432,7 @@ public class YvsComptaBonProvisoire implements Serializable {
     }
 
     public double getReste() {
-        reste = getMontant() - getJustifier();
+        reste = getMontant() - getMontantJustifie();
         return reste;
     }
 
@@ -566,29 +546,39 @@ public class YvsComptaBonProvisoire implements Serializable {
         this.justifyBy = justifyBy;
     }
 
-    @XmlTransient
-    @JsonIgnore
-    public YvsComptaJustifBonAchat getBonAchat() {
-        return bonAchat;
-    }
-
-    public void setBonAchat(YvsComptaJustifBonAchat bonAchat) {
-        this.bonAchat = bonAchat;
-    }
-
-    @XmlTransient
-    @JsonIgnore
-    public YvsComptaJustificatifBon getBonDivers() {
-        return bonDivers;
-    }
-
-    public void setBonDivers(YvsComptaJustificatifBon bonDivers) {
-        this.bonDivers = bonDivers;
-    }
+//    @XmlTransient
+//    @JsonIgnore
+//    public YvsComptaJustifBonAchat getBonAchat() {
+//        return bonAchat;
+//    }
+//
+//    public void setBonAchat(YvsComptaJustifBonAchat bonAchat) {
+//        this.bonAchat = bonAchat;
+//    }
+//
+//    @XmlTransient
+//    @JsonIgnore
+//    public YvsComptaJustificatifBon getBonDivers() {
+//        return bonDivers;
+//    }
+//
+//    public void setBonDivers(YvsComptaJustificatifBon bonDivers) {
+//        this.bonDivers = bonDivers;
+//    }
+//
+//
+//    @XmlTransient
+//    @JsonIgnore
+//    public YvsComptaJustifBonMission getBonMission() {
+//        return bonMission;
+//    }
+//
+//    public void setBonMission(YvsComptaJustifBonMission bonMission) {
+//        this.bonMission = bonMission;
+//    }
 
     public int countJustif() {
-        int count = 0;
-        count = justificatifsAchats != null ? justificatifsAchats.size() : 0;
+        int count=justificatifsAchats != null ? justificatifsAchats.size() : 0;
         count += justificatifs != null ? justificatifs.size() : 0;
         count += justificatifsMissions != null ? justificatifsMissions.size() : 0;
         return count;
@@ -630,17 +620,15 @@ public class YvsComptaBonProvisoire implements Serializable {
                 || getStatut().equals(Constantes.ETAT_ANNULE);
     }
 
+    //todo: cette méthode devrait plutôt vérifier (que le bon soit validé et payé et que les justif déjà associé ne soient pas sup. au montant payé)
     public boolean canJustify() {
-        if (bonMission != null ? bonMission.getId() > 0 : false) {
-            return true;
-        }
-        if (bonAchat != null ? bonAchat.getId() > 0 : false) {
-            return true;
-        }
-        if (bonDivers != null ? bonDivers.getId() > 0 : false) {
-            return true;
-        }
         if (justificatifs != null ? !justificatifs.isEmpty() : false) {
+            return true;
+        }
+        if (justificatifsAchats != null ? !justificatifsAchats.isEmpty() : false) {
+            return true;
+        }
+        if (justificatifsMissions != null ? !justificatifsMissions.isEmpty() : false) {
             return true;
         }
         return false;

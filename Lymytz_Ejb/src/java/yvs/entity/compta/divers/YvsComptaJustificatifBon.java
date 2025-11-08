@@ -50,6 +50,9 @@ public class YvsComptaJustificatifBon implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Long id;
+    @Column(name="date_justification")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateJustification;
     @Column(name = "date_save")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateSave;
@@ -57,16 +60,16 @@ public class YvsComptaJustificatifBon implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateUpdate;
 
-    @JoinColumn(name = "author", referencedColumnName = "id")
-    @ManyToOne(fetch = FetchType.LAZY)
-    private YvsUsersAgence author;
     @JoinColumn(name = "bon", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsComptaBonProvisoire bon;
     @JoinColumn(name = "piece", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsComptaCaissePieceDivers piece;
-
+ 
+    @JoinColumn(name = "author", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private YvsUsersAgence author;
     @Transient
     private boolean new_;
 
@@ -102,6 +105,14 @@ public class YvsComptaJustificatifBon implements Serializable {
         this.id = id;
     }
 
+    public Date getDateJustification() {
+        return dateJustification;
+    }
+
+    public void setDateJustification(Date dateJustification) {
+        this.dateJustification = dateJustification;
+    }
+    
     public Date getDateSave() {
         return dateSave != null ? dateSave : new Date();
     }

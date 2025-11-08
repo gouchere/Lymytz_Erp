@@ -270,13 +270,6 @@ public class BonProvisoire implements Serializable {
         this.error = error;
     }
 
-//    public List<YvsComptaJustificatifBon> getJustificatifs() {
-//        return justificatifs;
-//    }
-//
-//    public void setJustificatifs(List<YvsComptaJustificatifBon> justificatifs) {
-//        this.justificatifs = justificatifs;
-//    }
     public List<JustifierBon> getJustificatifs() {
         return justificatifs;
     }
