@@ -1309,7 +1309,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
 
     private boolean saveNewContenu(ContenuDocStock contenu, boolean principal) {
         YvsComContenuDocStock y = _saveNewContenu(contenu, principal);
-        return y != null ? y.getId() > 0 : false;
+        return y != null && y.getId() > 0;
     }
 
     public YvsComContenuDocStock _saveNewContenu(ContenuDocStock contenu, boolean principal) {
