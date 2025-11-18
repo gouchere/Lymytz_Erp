@@ -13,14 +13,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.persistence.Column;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Table;
 import javax.sql.DataSource;
+import static yvs.dao.JDBC.inner;
 import yvs.entity.tiers.YvsBaseTiers;
 
 /**
@@ -45,16 +51,23 @@ public class JDBC<T extends Serializable> implements Serializable {
         this(entity, connect.getConnection());
     }
 
+    public Connection getConnect() {
+        return connect;
+    }
+
     public static String select(Class classe) {
         String query = "SELECT " + colonnes(classe);
         String inner = "";
+        String table = table(classe);
         for (Field field : classe.getDeclaredFields()) {
-            if (contrainte(field) ? (!inner.contains(table(field.getType()))) : false) {
-                query += ", " + colonnes(field.getType());
-                inner += inner(classe, field.getType(), field.getName());
+            if (contrainte(field)) {
+                String foreignTable = table(field.getType());
+                if (!foreignTable.equals(table) ? (!inner.contains(table(field.getType()))) : false) {
+                    query += ", " + colonnes(field.getType());
+                    inner += inner(classe, field.getType(), field.getName());
+                }
             }
         }
-        String table = table(classe);
         return query + " FROM " + table + " " + table + inner;
     }
 
@@ -69,8 +82,10 @@ public class JDBC<T extends Serializable> implements Serializable {
                 Field id = key(classe);
                 if (id != null) {
                     column = table + "." + colonne(id);
-                    int idx = select.indexOf("FROM");
-                    from = select.substring(idx, select.length() - 1);
+                    if (select != null && !select.isEmpty()) {
+                        int idx = select.indexOf("FROM");
+                        from = select.substring(idx, select.length() - 1);
+                    }
                 }
             }
         }
@@ -98,6 +113,16 @@ public class JDBC<T extends Serializable> implements Serializable {
         return colonne;
     }
 
+    public static boolean iskey(Field field) {
+        if (!field.getName().equals("serialVersionUID")) {
+            Annotation a = field.getAnnotation(Id.class);
+            if (a != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Field key(Class classe) {
         for (Field field : classe.getDeclaredFields()) {
             if (!field.getName().equals("serialVersionUID")) {
@@ -115,9 +140,35 @@ public class JDBC<T extends Serializable> implements Serializable {
         try {
             if (field != null) {
                 field.setAccessible(true);
-                return field.get(classe);
+                Object value = field.get(classe);
+                if (value instanceof java.util.Date) {
+                    value = new java.sql.Date(((Date) value).getTime());
+                }
+                return value;
             }
         } catch (IllegalArgumentException | IllegalAccessException ex) {
+            Logger.getLogger(JDBC.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public static Object getBasicValue(Field field, Object classe) {
+        try {
+            if (field != null) {
+                Object value = getValue(field, classe);
+                if (value != null && contrainte(field)) {
+                    String table = table(value.getClass());
+                    if (table != null ? table.trim().length() > 0 : false) {
+                        Field id = key(value.getClass());
+                        if (id != null) {
+                            return getValue(id, value);
+                        }
+                    }
+                } else {
+                    return value;
+                }
+            }
+        } catch (Exception ex) {
             Logger.getLogger(JDBC.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
@@ -397,7 +448,6 @@ public class JDBC<T extends Serializable> implements Serializable {
                         return (T) retourne(rs, entity);
                     }
                 } catch (SQLException ex) {
-                    System.err.println("QUERY : " + query);
                     Logger.getLogger(JDBC.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -408,18 +458,18 @@ public class JDBC<T extends Serializable> implements Serializable {
     }
 
     public List<T> list(String query) {
-        return list(query, new String[]{}, new Object[]{}, -1, -1);
+        return list(query, new Object[]{}, -1, -1);
     }
 
     public List<T> list(String query, int offset, int limit) {
-        return list(query, new String[]{}, new Object[]{}, offset, limit);
+        return list(query, new Object[]{}, offset, limit);
     }
 
-    public List<T> list(String query, String[] champ, Object[] val) {
-        return list(query, champ, val, -1, -1);
+    public List<T> list(String query, Object[] params) {
+        return list(query, params, -1, -1);
     }
 
-    public List<T> list(String query, String[] champ, Object[] val, int offset, int limit) {
+    public List<T> list(String query, Object[] params, int offset, int limit) {
         List<T> result = new ArrayList<>();
         try {
             if (connect != null) {
@@ -429,8 +479,8 @@ public class JDBC<T extends Serializable> implements Serializable {
                     query = offset < 0 ? query : (query + " offset " + offset);
                     query = limit < 0 ? query : (query + " limit " + limit);
                     PreparedStatement st = connect.prepareStatement(query);
-                    for (int i = 1; i < champ.length + 1; i++) {
-                        st.setObject(i, value(val[i - 1]));
+                    for (int i = 1; i < params.length + 1; i++) {
+                        st.setObject(i, params[i - 1]);
                     }
                     ResultSet rs = st.executeQuery();
                     while (rs.next()) {
@@ -438,7 +488,6 @@ public class JDBC<T extends Serializable> implements Serializable {
                         result.add((T) retourne(rs, current));
                     }
                 } catch (SQLException ex) {
-                    System.err.println("QUERY : " + query);
                     Logger.getLogger(JDBC.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
@@ -446,6 +495,65 @@ public class JDBC<T extends Serializable> implements Serializable {
             Logger.getLogger(JDBC.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
+    }
+
+    public boolean insert(String schema, T entity, boolean addKey) {
+        try {
+            schema = (schema != null && !schema.isEmpty()) ? schema : "public";
+            String colonnes = null;
+            String values = null;
+            List<Object> params = new ArrayList();
+            for (Field field : entity.getClass().getDeclaredFields()) {
+                if (addKey || !iskey(field)) {
+                    String column = colonne(field);
+                    if (column != null ? column.trim().length() > 0 : false) {
+                        colonnes = colonnes == null ? column : colonnes + "," + column;
+                        values = values == null ? "?" : values + ",?";
+                        params.add(getBasicValue(field, entity));
+                    }
+                }
+            }
+            String query = "INSERT INTO " + schema + "." + table(entity) + "(" + colonnes + ") VALUES (" + values + ")";
+            try (PreparedStatement st = connect.prepareStatement(query)) {
+                for (int i = 0; i < params.size(); i++) {
+                    st.setObject((i + 1), params.get(i));
+                }
+                return st.executeUpdate() > 0;
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(JDBC.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public boolean update(String schema, T entity) {
+        try {
+            schema = (schema != null && !schema.isEmpty()) ? schema : "public";
+            String colonnes = null;
+            Long id = null;
+            List<Object> params = new ArrayList();
+            for (Field field : entity.getClass().getDeclaredFields()) {
+                if (!iskey(field)) {
+                    String column = colonne(field);
+                    if (column != null ? column.trim().length() > 0 : false) {
+                        colonnes = colonnes == null ? column + "=?" : colonnes + ("," + column + "=?");
+                        params.add(getBasicValue(field, entity));
+                    }
+                } else {
+                    id = (Long) getBasicValue(field, entity);
+                }
+            }
+            String query = "UPDATE " + schema + "." + table(entity) + " SET " + colonnes + " WHERE id = " + id;
+            try (PreparedStatement st = connect.prepareStatement(query)) {
+                for (int i = 0; i < params.size(); i++) {
+                    st.setObject((i + 1), params.get(i));
+                }
+                return st.executeUpdate() > 0;
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(JDBC.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
     }
 
     public Object object(String query) {
@@ -538,6 +646,13 @@ public class JDBC<T extends Serializable> implements Serializable {
             Logger.getLogger(YvsBaseTiers.class.getName()).log(Level.SEVERE, null, ex);
         }
         return (T) r;
+    }
+
+    private Date convert(java.sql.Date data) {
+        if (data == null) {
+            return null;
+        }
+        return new Date(data.getTime());
     }
 
     private void load(Field field, Object value, Object classe) {
