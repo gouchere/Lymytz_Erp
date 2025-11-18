@@ -3716,6 +3716,7 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
         article.setUniteVolume(new UniteMesure());
         article.setUniteStockage(new UniteMesure());
         article.setUniteVente(new UniteMesure());
+        article.setMethodeVal(Constantes.CMP1);
         article.getListArtDepots().clear();
         article.getListArticleCatComptable().clear();
         article.getPlans_tarifaires().clear();

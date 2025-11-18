@@ -5270,7 +5270,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
     public void initTransfert_(Boolean re) {
         if (re) {
             //charge les dépôts lié
-            if (currentSession != null ? currentSession.getDepot() != null : false) {
+            if (currentSession != null && currentSession.getDepot() != null) {
                 depotsCible = dao.loadNameQueries("YvsComLiaisonDepot.findDepotLierByDepot_", new String[]{"depot"}, new Object[]{currentSession.getDepot()});
                 if (!depotsCible.isEmpty()) {
                     depotDest = UtilProd.buildBeanDepot(depotsCible.get(0));
@@ -5288,7 +5288,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public void chooseDepotCible(ValueChangeEvent ev) {
         Long re = (Long) ev.getNewValue();
-        if (re != null ? re > 0 : false) {
+        if (re != null && re > 0) {
             int idx = depotsCible.indexOf(new YvsBaseDepots(re));
             if (idx >= 0) {
                 depotDest = UtilProd.buildBeanDepot(depotsCible.get(idx));
@@ -5346,13 +5346,15 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             if (re != null && re.getId() > 0) {
                 selectDeclaration.setDocStock(re);
                 dao.update(selectDeclaration);
-                if (!service.getDocStock().getStatut().equals(Constantes.ETAT_SOUMIS) && !service.getDocStock().getStatut().equals(Constantes.ETAT_ENCOURS)) {
-                    if (service.transmis()) {
-                        getInfoMessage("Transmis !");
-                    } else {
-                        getWarningMessage("Production non transféré !");
-                    }
-                }
+                //todo on ne transmet plus le document de stock automatiquement.
+                getWarningMessage("L'article a été ajouté au document de transfert","Vous devez valider votre document de transfert dans la gestion des stocks.");
+//                if (!service.getDocStock().getStatut().equals(Constantes.ETAT_SOUMIS) && !service.getDocStock().getStatut().equals(Constantes.ETAT_ENCOURS)) {
+//                    if (service.transmis()) {
+//                        getInfoMessage("Transmis !");
+//                    } else {
+//                        getWarningMessage("Production non transféré !");
+//                    }
+//                }
             } else {
                 getWarningMessage("Transmission impossible !");
             }
