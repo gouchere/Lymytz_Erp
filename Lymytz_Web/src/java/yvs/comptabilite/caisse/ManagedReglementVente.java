@@ -3935,7 +3935,7 @@ public class ManagedReglementVente extends Managed implements Serializable {
         if (currentAgence != null) {
             agenceFind = (agenceFind <= 0) ? currentAgence.getId() : 0L;
             List<Long> ids = dao.loadNameQueries("YvsComptaNotifReglementVente.findIdPiece", new String[]{"typeReglement", "societe"}, new Object[]{Constantes.MODE_PAIEMENT_BANQUE, currentAgence.getSociete()});
-            if ((ids != null ? !ids.isEmpty() : false)) {
+            if ((ids != null && !ids.isEmpty())) {
                 ParametreRequete p = new ParametreRequete(null, "idVente", "id", "=", "AND");
                 ParametreRequete p1 = new ParametreRequete(null, "idVente1", "id1", "=", "OR");
                 p1.getOtherExpression().add(new ParametreRequete("y.tableExterne", "table1", Constantes.SCR_VENTE, "!=", "AND"));

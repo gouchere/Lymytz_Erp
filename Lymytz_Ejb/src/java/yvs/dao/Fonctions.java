@@ -2713,14 +2713,14 @@ public class Fonctions {
 
     private List<YvsComptaContentJournal> build2DiversToComptabilise(YvsComptaCaisseDocDivers y, List<YvsComptaCentreDocDivers> secs, List<YvsComptaTaxeDocDivers> taxs, List<YvsComptaCoutSupDocDivers> couts, DaoInterfaceLocal dao) {
         dao.setRESULT(null);
-        if (y != null ? (y.getId() != null ? y.getId() > 0 : false) : false) {
-            if (y.getCompteGeneral() != null ? (y.getCompteGeneral().getId() != null ? y.getCompteGeneral().getId() < 1 : true) : true) {
+        if (y != null && (y.getId() != null && y.getId() > 0)) {
+            if (y.getCompteGeneral() == null || (y.getCompteGeneral().getId() == null || y.getCompteGeneral().getId() < 1)) {
                 dao.setRESULT("Aucun compte de charge n'a été trouvé ");
                 return null;
             }
             YvsBasePlanComptable compte = null;
             try {
-                if (y.getIdTiers() != null ? y.getIdTiers() < 1 : true) {
+                if (y.getIdTiers() == null || y.getIdTiers() < 1) {
                     dao.setRESULT("Comptabilisation impossible...car vous devez preciser le compte tiers");
                     return null;
                 }
@@ -2728,7 +2728,7 @@ public class Fonctions {
                 compte = (YvsBasePlanComptable) dao.loadOneByNameQueries("YvsBasePlanComptable.findById", new String[]{"id"}, new Object[]{numero});
             } catch (NumberFormatException ex) {
             }
-            if (compte != null ? compte.getId() < 1 : true) {
+            if (compte == null || compte.getId() < 1) {
                 dao.setRESULT("Comptabilisation impossible...car vous devez le tiers de ce document n'a pas de compte collectif");
                 return null;
             }
@@ -2750,30 +2750,25 @@ public class Fonctions {
             YvsComptaContentAnalytique se;
 
             String libelle = y.getLibelleComptable();
-            if (libelle != null ? libelle.trim().length() < 1 : true) {
+            if (libelle == null || libelle.trim().isEmpty()) {
                 libelle = y.getDescription().substring(0, y.getDescription().length() > 50 ? 50 : y.getDescription().length());
             }
-            if (libelle != null ? libelle.trim().length() < 1 : true) {
+            if (libelle == null || libelle.trim().isEmpty()) {
                 libelle = y.getNumPiece();
             }
 
-            switch (y.getMouvement()) {
-                case Constantes.MOUV_CAISS_ENTREE: {
-                    cc = new YvsComptaContentJournal((long) -(ccs.size() + 1), c.get(Calendar.DAY_OF_MONTH), y.getNumPiece(), y.getNumPiece() + "-0" + (ccs.size() + 1), libelle, 0, a.getTotal(), new Date(), y.getCompteGeneral(), 0L, y.getTableTiers(), y.getId(), Constantes.SCR_DIVERS, 2);
-                    cc.getAnalytiques().addAll(buildSectionAnalytique(y, cc, secs));
-                    ccs.add(cc);
-                    cd = new YvsComptaContentJournal((long) -(cds.size() + 1), c.get(Calendar.DAY_OF_MONTH), y.getNumPiece(), y.getNumPiece() + "-0" + (cds.size() + 1), libelle, y.getMontant() + a.getCouts(), 0, new Date(), compte, y.getIdTiers(), y.getTableTiers(), y.getId(), Constantes.SCR_DIVERS, 1);
-                    cds.add(cd);
-                    break;
-                }
-                default: {
-                    cd = new YvsComptaContentJournal((long) -(cds.size() + 1), c.get(Calendar.DAY_OF_MONTH), y.getNumPiece(), y.getNumPiece() + "-0" + (cds.size() + 1), libelle, a.getTotal(), 0, new Date(), y.getCompteGeneral(), 0L, y.getTableTiers(), y.getId(), Constantes.SCR_DIVERS, 1);
-                    cd.getAnalytiques().addAll(buildSectionAnalytique(y, cd, secs));
-                    cds.add(cd);
-                    cc = new YvsComptaContentJournal((long) -(ccs.size() + 1), c.get(Calendar.DAY_OF_MONTH), y.getNumPiece(), y.getNumPiece() + "-0" + (ccs.size() + 1), libelle, 0, y.getMontant() + a.getCouts(), new Date(), compte, y.getIdTiers(), y.getTableTiers(), y.getId(), Constantes.SCR_DIVERS, 2);
-                    ccs.add(cc);
-                    break;
-                }
+            if (y.getMouvement().equals(Constantes.MOUV_CAISS_ENTREE)) {
+                cc = new YvsComptaContentJournal((long) -(ccs.size() + 1), c.get(Calendar.DAY_OF_MONTH), y.getNumPiece(), y.getNumPiece() + "-0" + (ccs.size() + 1), libelle, 0, a.getTotal(), new Date(), y.getCompteGeneral(), 0L, y.getTableTiers(), y.getId(), Constantes.SCR_DIVERS, 2);
+                cc.getAnalytiques().addAll(buildSectionAnalytique(y, cc, secs));
+                ccs.add(cc);
+                cd = new YvsComptaContentJournal((long) -(cds.size() + 1), c.get(Calendar.DAY_OF_MONTH), y.getNumPiece(), y.getNumPiece() + "-0" + (cds.size() + 1), libelle, y.getMontant() + a.getCouts(), 0, new Date(), compte, y.getIdTiers(), y.getTableTiers(), y.getId(), Constantes.SCR_DIVERS, 1);
+                cds.add(cd);
+            } else {
+                cd = new YvsComptaContentJournal((long) -(cds.size() + 1), c.get(Calendar.DAY_OF_MONTH), y.getNumPiece(), y.getNumPiece() + "-0" + (cds.size() + 1), libelle, a.getTotal(), 0, new Date(), y.getCompteGeneral(), 0L, y.getTableTiers(), y.getId(), Constantes.SCR_DIVERS, 1);
+                cd.getAnalytiques().addAll(buildSectionAnalytique(y, cd, secs));
+                cds.add(cd);
+                cc = new YvsComptaContentJournal((long) -(ccs.size() + 1), c.get(Calendar.DAY_OF_MONTH), y.getNumPiece(), y.getNumPiece() + "-0" + (ccs.size() + 1), libelle, 0, y.getMontant() + a.getCouts(), new Date(), compte, y.getIdTiers(), y.getTableTiers(), y.getId(), Constantes.SCR_DIVERS, 2);
+                ccs.add(cc);
             }
             List<YvsComptaContentJournal> list = new ArrayList<>();
             list.addAll(cds);

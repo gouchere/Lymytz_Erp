@@ -5132,7 +5132,7 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
             return false;
         }
         List<YvsComptaContentJournal> contenus = fonction.buildDiversToComptabilise(y.getId(), abonnements, sections, taxes, couts, dao);
-        if (contenus != null ? contenus.isEmpty() : true) {
+        if (contenus == null || contenus.isEmpty()) {
             if (msg) {
                 getErrorMessage(dao.getRESULT());
             }
@@ -5199,7 +5199,8 @@ public class ManagedSaisiePiece extends Managed<PiecesCompta, YvsComptaPiecesCom
         return succes;
     }
 
-    private boolean comptabiliserDivers(YvsComptaCaisseDocDivers y, List<YvsComptaContentJournal> contenus, List<YvsComptaAbonementDocDivers> abs, List<YvsComptaCentreDocDivers> secs, List<YvsComptaTaxeDocDivers> taxs, List<YvsComptaCoutSupDocDivers> couts, boolean msg, boolean succes) {
+    private boolean comptabiliserDivers(YvsComptaCaisseDocDivers y, List<YvsComptaContentJournal> contenus, List<YvsComptaAbonementDocDivers> abs,
+                                        List<YvsComptaCentreDocDivers> secs, List<YvsComptaTaxeDocDivers> taxs, List<YvsComptaCoutSupDocDivers> couts, boolean msg, boolean succes) {
         ResultatAction result = service.comptabiliserDivers(y, contenus, abs, secs, taxs, couts);
         if (result != null) {
             if (result.isResult()) {

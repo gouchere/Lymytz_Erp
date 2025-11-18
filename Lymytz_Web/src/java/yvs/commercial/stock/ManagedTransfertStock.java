@@ -2964,7 +2964,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
             if (exist_inventaire) {
                 if (!gescom_update_stock_after_valide) {
                     return false;
-                } else if (!force) {
+                } else {
                     if (controle) {
                         openDialog("dlgConfirmChangeInventaireByValid");
                     }
@@ -2974,9 +2974,9 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
         }
         docStock.setContenus(dao.loadNameQueries("YvsComContenuDocStock.findByDocStock", new String[]{"docStock"}, new Object[]{new YvsComDocStocks(docStock.getId())}));
         selectDoc.setContenus(docStock.getContenus());
-        if (docStock.getContenus() != null ? !docStock.getContenus().isEmpty() : false) {
+        if (docStock.getContenus() != null && !docStock.getContenus().isEmpty()) {
             Long count = (Long) dao.loadObjectByNameQueries("YvsBaseMouvementStock.findCountByExterne", new String[]{"externe", "table"}, new Object[]{docStock.getContenus().get(0).getId(), Constantes.yvs_com_contenu_doc_stock});
-            if (count != null ? count < 1 : true) {
+            if (count == null || count < 1) {
                 //Si aucun mouvement n'a été trouvé
                 String result;
                 List<YvsBaseConditionnement> controls = new ArrayList<>();
@@ -2984,13 +2984,13 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
                 for (YvsComContenuDocStock c : docStock.getContenus()) {
                     String query = "SELECT requiere_lot FROM yvs_base_article_depot WHERE article = ? AND depot = ?";
                     Boolean requiere_lot = (Boolean) dao.loadObjectBySqlQuery(query, new Options[]{new Options(c.getArticle().getId(), 1), new Options(docStock.getSource().getId(), 2)});
-                    if (requiere_lot != null ? (requiere_lot ? c.getLotSortie() != null ? c.getLotSortie().getId() < 1 : true : false) : false) {
+                    if (requiere_lot != null && (requiere_lot && (c.getLotSortie() == null || c.getLotSortie().getId() < 1))) {
                         getErrorMessage("Un numéro de lot est requis pour l'article " + c.getArticle().getDesignation() + " dans le dépôt " + docStock.getSource().getDesignation());
                         return false;
                     }
                     query = "SELECT requiere_lot FROM yvs_base_article_depot WHERE article = ? AND depot = ?";
                     requiere_lot = (Boolean) dao.loadObjectBySqlQuery(query, new Options[]{new Options(c.getArticle().getId(), 1), new Options(docStock.getDestination().getId(), 2)});
-                    if (requiere_lot != null ? (requiere_lot ? c.getLotEntree() != null ? c.getLotEntree().getId() < 1 : true : false) : false) {
+                    if (requiere_lot != null && (requiere_lot && (c.getLotEntree() == null || c.getLotEntree().getId() < 1))) {
                         getErrorMessage("Un numéro de lot est requis pour l'article " + c.getArticle().getDesignation() + " dans le dépôt " + docStock.getDestination().getDesignation());
                         return false;
                     }
@@ -3015,7 +3015,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
                 for (YvsComContenuDocStock c : docStock.getContenus()) {
                     String query = "SELECT requiere_lot FROM yvs_base_article_depot WHERE article = ? AND depot = ?";
                     Boolean requiere_lot = (Boolean) dao.loadObjectBySqlQuery(query, new Options[]{new Options(c.getArticle().getId(), 1), new Options(docStock.getDestination().getId(), 2)});
-                    if (requiere_lot != null ? (requiere_lot ? c.getLotEntree() != null ? c.getLotEntree().getId() < 1 : true : false) : false) {
+                    if (requiere_lot != null && (requiere_lot && (c.getLotEntree() == null || c.getLotEntree().getId() < 1))) {
                         getErrorMessage("Un numéro de lot est requis pour l'article " + c.getArticle().getDesignation() + " dans le dépôt " + docStock.getDestination().getDesignation());
                         return false;
                     }
@@ -3031,13 +3031,13 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
             selectDoc.setDateValider(new Date());
             selectDoc.setDateUpdate(new Date());
             selectDoc.setStatut(Constantes.ETAT_VALIDE);
-            if (currentUser != null ? currentUser.getId() > 0 : false) {
+            if (currentUser != null && currentUser.getId() > 0) {
                 selectDoc.setAuthor(currentUser);
             }
             dao.update(selectDoc);
             if (exist_inventaire) {
                 YvsComDocStocks inventaire = dao.lastInventaire(selectDoc.getDestination().getId(), docStock.getDateReception(), selectDoc.getCreneauDestinataire().getId());
-                if (inventaire != null ? inventaire.getId() > 0 : false) {
+                if (inventaire != null && inventaire.getId() > 0) {
                     for (YvsComContenuDocStock c : docStock.getContenus()) {
                         for (YvsComContenuDocStockReception r : c.getReceptions()) {
                             majInventaire(inventaire, c.getArticle(), c.getConditionnementEntree(), r.getQuantite(), Constantes.MOUV_ENTREE);
@@ -3155,7 +3155,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
 
     public boolean changeStatut_(String etat, DocStock docStock, YvsComDocStocks selectDoc) {
         ServiceTransfert serviceTransfert = new ServiceTransfert(dao, currentNiveau, currentUser, currentUser.getAgence().getSociete());
-        if (!etat.equals("") && selectDoc != null) {
+        if (etat!=null && !etat.isEmpty() && selectDoc != null) {
             ResultatAction resultService = serviceTransfert.checkBeforChangeStatus(selectDoc, true, true);
             if (!resultService.isResult()) {
                 getErrorMessage(resultService.getMessage());
@@ -3169,7 +3169,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
             }
             if (!etat.equals(Constantes.ETAT_EDITABLE)) {
                 if (transfertsHist.contains(selectDoc)) {
-                    transfertsHist.remove(transfertsHist.indexOf(selectDoc));
+                    transfertsHist.remove(selectDoc);
                     update("data_fiche_transfert_hist");
                 }
             } else {
@@ -3189,7 +3189,7 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
                 }
             } else if (!oldEtat.equals(Constantes.ETAT_EDITABLE) && !oldEtat.equals(Constantes.ETAT_ANNULE)) {
                 if (etat.equals(Constantes.ETAT_VALIDE)) {
-                    Date d_ = etat.equals(Constantes.ETAT_VALIDE) ? docStock.getDateReception() : null;
+                    Date d_ = docStock.getDateReception();
                     for (YvsComContenuDocStock c : docStock.getContenus()) {
                         validerContenu(c, d_, true, false, false);
                     }
@@ -3280,10 +3280,10 @@ public class ManagedTransfertStock extends ManagedCommercial<DocStock, YvsComDoc
 
     private boolean validerContenu(YvsComContenuDocStock y, Date dateReception, boolean control, boolean msg, boolean actualise) {
         try {
-            if (control ? !chechAutorisationActionOnDepot(selectDoc, 2) : false) {
+            if (control && !chechAutorisationActionOnDepot(selectDoc, 2)) {
                 return false;
             }
-            if (dateReception != null ? dateReception.before(y.getDocStock().getDateDoc()) : true) {
+            if (dateReception == null || dateReception.before(y.getDocStock().getDateDoc())) {
                 if (msg) {
                     getErrorMessage("La date de validation ne peut être antérieure à la date d'émission ou absente");
                 }

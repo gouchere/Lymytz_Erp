@@ -2622,7 +2622,7 @@ public class ServiceComptabilite extends GenericService {
                     r.setContenus(contenus_abs);
                 }
                 List<YvsComptaCaissePieceDivers> pieces = dao.loadNameQueries("YvsComptaCaissePieceDivers.findByDocDiversStatut", new String[]{"docDivers", "statut"}, new Object[]{y, Constantes.STATUT_DOC_PAYER});
-                if (y.getIdTiers() != null ? y.getIdTiers() < 1 : true) {
+                if (y.getIdTiers() == null || y.getIdTiers() < 1) {
                     List<YvsComptaContentJournal> restes = new ArrayList<>();
                     for (YvsComptaContentJournal c : contenus) {
                         int index = pieces.indexOf(new YvsComptaCaissePieceDivers(c.getRefExterne()));
@@ -2652,7 +2652,7 @@ public class ServiceComptabilite extends GenericService {
                     }
                 } else {
                     YvsComptaJournaux jrn = y.getJournal() != null ? y.getJournal() : giveJournalDivers(y.getAgence());
-                    if (jrn != null ? (jrn.getId() != null ? jrn.getId() < 1 : true) : true) {
+                    if (jrn == null || (jrn.getId() == null || jrn.getId() < 1)) {
                         return result.emptyJournal();
                     }
                     result = saveNewPieceComptable(y.getDateDoc(), jrn, contenus);
@@ -2998,7 +2998,7 @@ public class ServiceComptabilite extends GenericService {
 
     public ResultatAction majComptaCreditClient(YvsComptaCreditClient y, List<YvsComptaContentJournal> contenus) {
         ResultatAction result = new ResultatAction();
-        if (contenus != null ? !contenus.isEmpty() : false) {
+        if (contenus != null && !contenus.isEmpty()) {
             double solde = giveSoePieces(contenus);
             if (solde != 0) {
                 return result.pieceComptaNotEquilibre();
@@ -4993,9 +4993,9 @@ public class ServiceComptabilite extends GenericService {
     }
 
     public ResultatAction comptabiliserDivers(YvsComptaCaisseDocDivers y, List<YvsComptaContentJournal> contenus, List<YvsComptaAbonementDocDivers> abs, List<YvsComptaCentreDocDivers> secs, List<YvsComptaTaxeDocDivers> taxs, List<YvsComptaCoutSupDocDivers> couts) {
-        ResultatAction result = new ResultatAction();
-        if (contenus != null ? !contenus.isEmpty() : false) {
-            if (y != null ? (y.getId() != null ? y.getId() > 0 : false) : false) {
+        ResultatAction<?> result = new ResultatAction<>();
+        if (contenus != null && !contenus.isEmpty()) {
+            if (y != null && (y.getId() != null && y.getId() > 0)) {
                 if (y.getStatutDoc().equals(Constantes.ETAT_VALIDE)) {
                     boolean comptabilise = dao.isComptabilise(y.getId(), Constantes.SCR_DIVERS);
                     if (comptabilise) {
