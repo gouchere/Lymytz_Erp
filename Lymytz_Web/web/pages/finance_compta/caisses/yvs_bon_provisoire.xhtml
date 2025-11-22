@@ -223,13 +223,6 @@
             </p:dialog>
         </h:form>
         <h:form prependId="false">
-            <p:confirmDialog id="cfm_bon_mission" hideEffect="explode" widgetVar="dlgConfirmBonProvisoire" closeOnEscape="true" header="#{lab.L_confirmation}"
-                             message="#{lab.LCF_PBP_text3} #{managedBonProvisoire.selectBon.bonMission.mission.mission.numeroMission}.#{lab.LCF_PBP_text4}">
-                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonProvisoire.forceOnViewMission()}" oncomplete="dlgConfirmBonProvisoire.hide();"/>
-                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmBonProvisoire.hide()"/>
-            </p:confirmDialog>
-        </h:form>
-        <h:form prependId="false">
             <p:dialog widgetVar="dlgBonPieceMission" width="80%" closeOnEscape="true" footer="&copy; Lymytz" header="#{lab.LCF_PBP_liste_reglement_mission}">
                 <p:dataTable value="#{managedBonProvisoire.bonProvisoire.mission.reglements}" var="rReg" id="data_piece_mission_bon" rowIndexVar="iReg" rowKey="#{rReg.id}" selectionMode="single"> 
                     <p:ajax event="rowSelect" listener="#{managedBonProvisoire.loadOnViewPieceMission}" oncomplete="dlgBonPieceMission.hide()"/>                    
@@ -308,11 +301,6 @@
             </p:dialog>
         </h:form>
         <h:form prependId="false">
-            <p:confirmDialog id="cfm_bon_achat" hideEffect="explode" widgetVar="dlgConfirmBonProvAchat" closeOnEscape="true" header="#{lab.L_confirmation}"
-                             message="#{lab.LCF_PBP_text5} #{managedBonProvisoire.selectBon.bonAchat.piece.achat.numDoc}. #{lab.LCF_PBP_text4}">
-                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonProvisoire.forceOnViewAchat()}" oncomplete="dlgConfirmBonProvAchat.hide();"/>
-                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmBonProvAchat.hide()"/>
-            </p:confirmDialog>
             <p:dialog widgetVar="dlgBonPieceAchat" width="80%" closeOnEscape="true" footer="&copy; Lymytz" header="#{lab.LCF_PBP_liste_reglement_achat}">
                 <p:dataTable value="#{managedBonProvisoire.bonProvisoire.achat.reglements}" var="rRega" id="data_piece_achat_bon" rowIndexVar="iReg" rowKey="#{rRega.id}" selectionMode="single"> 
                     <p:ajax event="rowSelect" listener="#{managedBonProvisoire.loadOnViewPieceAchat}" oncomplete="dlgBonPieceAchat.hide()"/>                    
@@ -401,15 +389,11 @@
             </p:dialog>
         </h:form>
         <h:form prependId="false">
-            <p:confirmDialog id="cfm_bon_divers" hideEffect="explode" widgetVar="dlgConfirmBonProvDivers" closeOnEscape="true" header="#{lab.L_confirmation}"
-                             message="#{lab.LCF_PBP_text5} #{managedBonProvisoire.selectBon.bonDivers.piece.docDivers.numPiece}. #{lab.LCF_PBP_text4}">
-                <p:commandButton value="#{lab.L_oui}" actionListener="#{managedBonProvisoire.forceOnViewDivers()}" oncomplete="dlgConfirmBonProvDivers.hide();"/>
-                <p:commandButton type="button"  value="#{lab.L_non}" onclick="dlgConfirmBonProvDivers.hide()"/>
-            </p:confirmDialog>
-        </h:form>
-        <h:form prependId="false">
-            <p:dialog widgetVar="dlgBonPieceDivers" width="80%" closeOnEscape="true" footer="&copy; Lymytz" header="#{lab.LCF_PBP_liste_reglement_od}">
-                <p:dataTable value="#{managedBonProvisoire.bonProvisoire.divers.reglements}" var="pc_d" id="data_piece_divers_bon" rowIndexVar="mensIdx" rowKey="#{pc_d.id}" selectionMode="single"> 
+            <p:dialog widgetVar="dlgBonPieceDivers" width="80%" closeOnEscape="true" footer="&copy; Lymytz" 
+                      header="#{lab.LCF_PBP_liste_reglement_od}">
+                <h3>Règlements du bon provisoire #{managedBonProvisoire.bonProvisoire.divers.numPiece}</h3>
+                <p:dataTable value="#{managedBonProvisoire.bonProvisoire.divers.reglements}" var="pc_d" id="data_piece_divers_bon" rowIndexVar="mensIdx" 
+                             rowKey="#{pc_d.id}" selectionMode="single"> 
                     <p:ajax event="rowSelect" listener="#{managedBonProvisoire.loadOnViewPieceDivers}" oncomplete="dlgBonPieceDivers.hide()"/>                    
                     <p:column headerText="N°" style="width: 5%" styleClass="statut_#{pc_d.statutPiece}">
                         <span>#{mensIdx+1}</span>
@@ -450,8 +434,11 @@
 
             <p:dialog widgetVar="dlgBonDivers" width="80%" closeOnEscape="true" footer="&copy; Lymytz" header="#{lab.LCF_PBP_liste_od}">
                 <div class="dlg_part_fixe">
-                    <p:watermark for="txt_num_divers_bon" value="#{lab.L_rechercher}..." />
+                    <p>Entrez les premières lettres du numéro de document ou du tiers</p>
+                    <p:watermark for="txt_num_divers_bon" value="Numéro du doc..." />
                     <p:watermark for="txt_mat_divers_bon" value="#{lab.L_tiers}..." />
+                    <p:commandButton icon="ui-icon-bullet" actionListener="#{managedDocDivers.clearParams()}" title="#{lab.L_reset_param}" style="width: 22px; height: 22px"
+                                     update="data_divers_bon"/>
                     <h:inputText value="#{managedDocDivers.numSearch}" style="font-size: 0.7em" id="txt_num_divers_bon" >
                         <p:ajax event="valueChange" listener="#{managedDocDivers.searchByNum()}" update="data_divers_bon"/>
                     </h:inputText>
@@ -558,7 +545,8 @@
             <p:confirmDialog  header="#{lab.L_confirmation}"
                               width="40%" widgetVar="dlgValidDoc" message="#{lab.LCF_PBP_text6}">
                 <p:commandButton value="#{lab.L_oui}" icon="ui-icon-circle-check" actionListener="#{managedBonProvisoire.validerOrder()}"
-                                 update=":main_bon_provisoire:data_bon_provisoire :main_bon_provisoire:etapes_valide_bon_provisoire" oncomplete="dlgValidDoc.hide()"/>
+                                 update=":main_bon_provisoire:data_bon_provisoire :main_bon_provisoire:etapes_valide_bon_provisoire :main_bon_provisoire:blog_form_bon_provisoire" 
+                                 oncomplete="dlgValidDoc.hide()"/>
                 <p:commandButton value="#{lab.L_annuler}" icon="ui-icon-circle-close" type="button" onclick="dlgValidDoc.hide()" />
             </p:confirmDialog>
         </h:form>
@@ -639,14 +627,16 @@
                 <-->                
                 <div class="yvs_form_bon_provisoire" style="width: 99%; margin: auto; background: white">
                     <p:outputPanel autoUpdate="true" id="entete_bon_provisoire" >
-                        <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="font-size: 0.9em;float: left" rendered="#{managedBonProvisoire.bonProvisoire.id gt 0}">
-                            <span>#{lab.L_numero} : </span>
-                            <h:outputText value="#{managedBonProvisoire.bonProvisoire.numero}" style="float: left;background: black;color: white;font-size: 1.2em"/>                   
+                        <h:panelGrid columns="2" styleClass="yvs_nostyle" cellpadding="0" cellspacing="0" style="font-size: 0.9em;float: left"
+                                     rendered="#{managedBonProvisoire.bonProvisoire.id gt 0}">
+                            <span>#{lab.L_numero} du bon: </span>
+                            <h:outputText value="#{managedBonProvisoire.bonProvisoire.numero}"/>  
+                            <span>Statut de paiement :</span>
+                            <h:outputText value="#{(managedBonProvisoire.bonProvisoire.statutPaiement == constantes.STATUT_DOC_PAYER)?'Payé ':
+                                                   (managedBonProvisoire.bonProvisoire.statutPaiement == constantes.STATUT_DOC_ENCOUR)?
+                                                   'En cours de paiement':'Non payé'}"
+                                          style="font-size: 1em"/>
                         </h:panelGrid>
-                        <h:panelGroup style="float: left;margin-top: 2px;margin-left: 1.5%" rendered="#{managedBonProvisoire.bonProvisoire.id gt 0}">
-                            <h:outputText value="#{(managedBonProvisoire.bonProvisoire.statutPaiement == constantes.STATUT_DOC_PAYER)?'Payé ':(managedBonProvisoire.bonProvisoire.statutPaiement == constantes.STATUT_DOC_ENCOUR)?'En cours de paiement':'Paiement en attente'}"
-                                          styleClass="button-stateOF #{(managedBonProvisoire.bonProvisoire.statutPaiement == constantes.STATUT_DOC_PAYER)?'button-stateOF_actif':''}"  style="font-size: 1em"/>
-                        </h:panelGroup>
                         <h:panelGrid columns="1" style="margin-top: 2px;margin-left: 25%; float: left">
                             <span style="font-size: 0.8em;text-align: center">Bons non Justifiés( Fcfa)</span>
                             <h:outputText value="#{managedBonProvisoire.totalNonJustifie}" id="zone_total" converter="#{managedBonProvisoire.getConverter(constantes.CONVERTER_MONNAIE)}"
@@ -681,8 +671,10 @@
                                         <p:menuitem icon="ui-icon-circle-arrow-w" value="#{lab.L_annuler}" oncomplete="dglMotifCancelEtape.show()" rendered="#{etapeM.etapeValid}"
                                                     update=":main-motif_etap_bonp:value_motif_etap_bonp" actionListener="#{managedBonProvisoire.annulEtapeOrdre(etapeM, false)}"/>
                                     </p:contextMenu>
-                                    <p:commandLink id="etape_valide_doc_divers" value="#{etapeM.etape.labelStatut}" disabled="#{(!etapeM.etapeActive or etapeM.etapeValid)}" title="#{etapeM.etape.titreEtape}" 
-                                                   styleClass="#{(etapeM.etapeValid)?'statu_valide':'etat_formation_true'}" actionListener="#{managedBonProvisoire.validEtapeOrdre(etapeM, false)}"
+                                    <p:commandLink id="etape_valide_doc_divers" value="#{etapeM.etape.labelStatut}" 
+                                                   disabled="#{(!etapeM.etapeActive or etapeM.etapeValid)}" title="#{etapeM.etape.titreEtape}" 
+                                                   styleClass="#{(etapeM.etapeValid)?'statu_valide':'etat_formation_true'}" 
+                                                   actionListener="#{managedBonProvisoire.validEtapeOrdre(etapeM, false)}"
                                                    update=":main_bon_provisoire:data_bon_provisoire :main_bon_provisoire:etapes_valide_bon_provisoire" />                        
                                     <h:outputText value=" #{lab.L_a} " rendered="#{!etapeM.etapeValid and etapeM.motif ne null}" title="#{lab.LC_PA_annuler_pour} : #{etapeM.motif}" style="position: relative;left: -10px; top: 5px; font-size: 0.7em; color: #FFF; background: red; border-radius: 5px;"/>
                                 </ui:repeat>
@@ -691,7 +683,8 @@
                                                    disabled="#{(managedBonProvisoire.bonProvisoire.statut == constantes.STATUT_DOC_VALIDE)}"
                                                    styleClass="#{(managedBonProvisoire.bonProvisoire.statut==constantes.STATUT_DOC_VALIDE)?'statut_valide':'etat_formation_true'}" 
                                                    onclick="dlgValidDoc.show()" 
-                                                   rendered="#{(managedBonProvisoire.bonProvisoire.etapesValidations.size() le 0) and managedBonProvisoire.bonProvisoire.id gt 0}" type="button"/>  
+                                                   rendered="#{(managedBonProvisoire.bonProvisoire.etapesValidations.size() le 0) and managedBonProvisoire.bonProvisoire.id gt 0}" 
+                                                   type="button"/>  
                                     <p:commandLink value="#{managedBonProvisoire.writeEtape(((managedBonProvisoire.bonProvisoire.statutJustify==constantes.STATUT_DOC_JUSTIFIER)?lab.LCF_PBP_injustifier:lab.LCF_PBP_justifier), managedBonProvisoire.bonProvisoire.firstEtape)}"
                                                    actionListener="#{managedBonProvisoire.justifybon()}" styleClass="etat_formation_true" disabled="#{managedBonProvisoire.bonProvisoire.statut!=constantes.STATUT_DOC_VALIDE}"
                                                    update=":main_bon_provisoire:data_bon_provisoire :main_bon_provisoire:etapes_valide_bon_provisoire"
@@ -713,22 +706,23 @@
                                             <f:selectItems value="#{managedTypeDocDivers.typesDocDivers}" var="id_ty" itemValue="#{id_ty.id}" itemLabel="#{id_ty.libelle}" />
                                         </h:selectOneMenu>    
                                     </h:panelGroup>
-                                    <h:panelGroup id="blog_document_bon" style="float: right">
-                                        <span style="font-weight: normal">#{lab.LCF_PBP_document} : </span> 
+                                    <h:panelGroup id="blog_document_bon" style="float: right" rendered="#{managedBonProvisoire.bonProvisoire.statut == constantes.STATUT_DOC_VALIDE}">
+                                        <span style="font-weight: normal">Choisir un type de justificatif : </span> 
                                         <h:selectOneMenu value="#{managedBonProvisoire.bonProvisoire.bonFor}">
                                             <f:selectItem itemValue="O" itemLabel="#{lab.LDB_PCB_autres.toUpperCase()}"/>
-                                            <f:selectItem itemValue="M" itemLabel="#{lab.LDB_PCB_missions.toUpperCase()}"/>
                                             <f:selectItem itemValue="A" itemLabel="#{lab.LDB_PCB_achats.toUpperCase()}"/>
                                             <f:selectItem itemValue="D" itemLabel="#{lab.LCF_PBP_op_divers}"/>
                                             <p:ajax event="valueChange" listener="#{managedBonProvisoire.chooseForBon(false, true)}" update="blog_document_bon"/>
-                                        </h:selectOneMenu>  
+                                        </h:selectOneMenu>
+                                        <!-->Bloc de saisie des missions<-->
                                         <h:panelGroup style="float: right">
                                             <h:panelGroup id="blog_mission_bon" rendered="#{managedBonProvisoire.bonProvisoire.bonFor == 'M'}">
                                                 <span> --> </span>
                                                 <h:inputText value="#{managedBonProvisoire.bonProvisoire.numeroExterne}" style="color: #{managedBonProvisoire.bonProvisoire.mission.error?'red':'normal'};width: 150px">
                                                     <p:ajax event="valueChange" listener="#{managedBonProvisoire.searchMission()}" update="blog_mission_bon"/>
                                                 </h:inputText>
-                                                <p:commandButton icon="ui-icon-search" style="width: 20px; height: 20px; margin-left: 5px; display: inline" actionListener="#{managedBonProvisoire.openListMission(null, false)}"/>
+                                                <p:commandButton icon="ui-icon-search" style="width: 20px; height: 20px; margin-left: 5px; display: inline" 
+                                                                 actionListener="#{managedBonProvisoire.openListMission(null, false)}"/>
                                                 <h:outputText value="#{managedBonProvisoire.bonProvisoire.mission.employe.nom_prenom}" style="font-size: 0.8em;margin-left: 5px; font-weight: normal"/>
                                             </h:panelGroup><br />
                                             <h:panelGroup layout="block" rendered="#{managedBonProvisoire.bonProvisoire.mission.bonsProvisoire.size() gt 0}">
@@ -737,13 +731,15 @@
                                                 </ui:repeat>
                                             </h:panelGroup>
                                         </h:panelGroup>
+                                        <!-->Bloc de saisie des achats<-->
                                         <h:panelGroup style="float: right">
                                             <h:panelGroup id="blog_achat_bon" rendered="#{managedBonProvisoire.bonProvisoire.bonFor == 'A'}">
                                                 <span> --> </span>
                                                 <h:inputText value="#{managedBonProvisoire.bonProvisoire.numeroExterne}" style="color: #{managedBonProvisoire.bonProvisoire.achat.error?'red':'normal'};width: 150px">
                                                     <p:ajax event="valueChange" listener="#{managedBonProvisoire.searchAchat()}" update="blog_achat_bon"/>
                                                 </h:inputText>
-                                                <p:commandButton icon="ui-icon-search" style="width: 20px; height: 20px; margin-left: 5px; display: inline" actionListener="#{managedBonProvisoire.openListAchat(null, false)}"/>
+                                                <p:commandButton icon="ui-icon-search" style="width: 20px; height: 20px; margin-left: 5px; display: inline" 
+                                                                 actionListener="#{managedBonProvisoire.openListAchat(null, false)}"/>
                                                 <h:outputText value="#{managedBonProvisoire.bonProvisoire.achat.fournisseur.nom_prenom}" style="font-size: 0.8em;margin-left: 5px; font-weight: normal"/>
                                             </h:panelGroup><br />
                                             <h:panelGroup layout="block" rendered="#{managedBonProvisoire.bonProvisoire.achat.bonsProvisoire.size() gt 0}">
@@ -752,13 +748,15 @@
                                                 </ui:repeat>
                                             </h:panelGroup>
                                         </h:panelGroup>
+                                        <!-->Bloc de saisie des opérations diverses<-->
                                         <h:panelGroup style="float: right">
                                             <h:panelGroup id="blog_divers_bon" rendered="#{managedBonProvisoire.bonProvisoire.bonFor == 'D'}">
                                                 <span> --> </span>
                                                 <h:inputText value="#{managedBonProvisoire.bonProvisoire.numeroExterne}" style="color: #{managedBonProvisoire.bonProvisoire.divers.error?'red':'normal'};width: 150px">
                                                     <p:ajax event="valueChange" listener="#{managedBonProvisoire.searchDivers()}" update="blog_divers_bon"/>
                                                 </h:inputText>
-                                                <p:commandButton icon="ui-icon-search" style="width: 20px; height: 20px; margin-left: 5px; display: inline" actionListener="#{managedBonProvisoire.openListDivers(null, false)}"/>
+                                                <p:commandButton icon="ui-icon-search" style="width: 20px; height: 20px; margin-left: 5px; display: inline" 
+                                                                 actionListener="#{managedBonProvisoire.openListDivers(null, false)}"/>
                                                 <h:outputText value="#{managedBonProvisoire.resumeText(managedBonProvisoire.bonProvisoire.divers.description)}" style="font-size: 0.8em;margin-left: 5px; font-weight: normal"/>
                                             </h:panelGroup><br />
                                             <h:panelGroup layout="block" rendered="#{managedBonProvisoire.bonProvisoire.divers.bonsProvisoire.size() gt 0}">
@@ -828,7 +826,8 @@
                                 </div>
                             </f:facet>
                         </h:panelGrid>  
-                        <p:dataTable id="data-justificatifs_bon_provisoire" value="#{managedBonProvisoire.bonProvisoire.justificatifs}" var="justif_" rowKey="#{justif_.id}" rowIndexVar="jIdx">
+                        <p:dataTable id="data-justificatifs_bon_provisoire" value="#{managedBonProvisoire.bonProvisoire.justificatifs}" 
+                                     var="justif_" rowKey="#{justif_.id}" rowIndexVar="jIdx" emptyMessage="Pas de justificatifs rattachés">
                             <f:facet name="header">
                                 <div align="left" style="font-size: 1.1em;font-weight: bold">
                                     <span style="color: black; letter-spacing: 2px;">#{lab.LCF_PBP_justificatifs}</span>                                      
@@ -852,11 +851,20 @@
                             <p:column headerText="#{lab.L_tiers}" styleClass="statut_#{justif_.statutPiece}" width="100">
                                 <span  >#{justif_.tiers.nom_prenom}</span>
                             </p:column>
-                            <p:column headerText="#{lab.L_date}" width="80" styleClass="statut_#{justif_.statutPiece}">
+                            <p:column headerText="Justifier le" width="80" styleClass="statut_#{justif_.statutPiece}">
                                 <h:outputText value="#{justif_.dateJustifier}" converter="DDMMYYYY" />
                             </p:column>
                             <p:column headerText="#{lab.L_montant}" style="text-align: right;" width="100" styleClass="statut_#{justif_.statutPiece}">
                                 <h:outputText value="#{justif_.montant}" converter="DN" style="padding-right: 2px" />
+                            </p:column>
+                            <p:column headerText="" width="20" style="text-align: center"
+                                      rendered="#{managedBonProvisoire.bonProvisoire.statutJustify!=constantes.ETAT_JUSTIFIE}">
+                                <p:contextMenu for="btn_option_bonp" event="left click" styleClass="context_menu">                                                                
+                                    <p:menuitem value="#{lab.L_supprimer}" icon="ui-icon-trash" id="data-justificatifs_bon_provisoire"
+                                                actionListener="#{managedBonProvisoire.deleteJustificatif(justif_)}"/>
+                                </p:contextMenu>
+                                <p:commandButton icon="ui-icon-gear" title="Supprimer ce justificatif" id="btn_option_bonp" 
+                                                 type="button" style="width: 18px; height: 18px"/>
                             </p:column>
                         </p:dataTable>
                     </p:outputPanel>
@@ -876,10 +884,10 @@
                                 <span title="#{managedBonProvisoire.resumeText(bon.description)}">#{Idx+1}</span>
                                 <h:graphicImage title="#{lab.L_nouveau}" library="img" name="redo.png" width="15" height="15" rendered="#{bon.new_}"/>  
                             </div>
-                            <h:panelGroup style="float: right">
-                                <h:outputText value="M" class="indice_statut" rendered="#{bon.bonMission.id gt 0}" title="#{lab.LCF_PBP_pour_mission_n} #{bon.bonMission.mission.mission.referenceMission}}"/>
-                                <h:outputText value="A" class="indice_statut" rendered="#{bon.bonAchat.id gt 0}" title="#{lab.LCF_PBP_pour_facture_n} #{bon.bonAchat.piece.achat.numDoc}}"/>
-                            </h:panelGroup>  
+                            <!--                            <h:panelGroup style="float: right">
+                                                            <h:outputText value="M" class="indice_statut" rendered="#{bon.bonMission.id gt 0}" title="#{lab.LCF_PBP_pour_mission_n} #{bon.bonMission.mission.mission.referenceMission}}"/>
+                                                            <h:outputText value="A" class="indice_statut" rendered="#{bon.bonAchat.id gt 0}" title="#{lab.LCF_PBP_pour_facture_n} #{bon.bonAchat.piece.achat.numDoc}}"/>
+                                                        </h:panelGroup>  -->
                         </p:column>                            
                         <p:column headerText="#{lab.L_numero}" styleClass="statut_#{bon.statut}" width="100">
                             <span title="#{managedBonProvisoire.resumeText(bon.description)}" style="float: left">#{bon.numero}</span>

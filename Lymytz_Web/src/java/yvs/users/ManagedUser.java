@@ -57,7 +57,6 @@ import yvs.parametrage.agence.ManagedAgence;
 import yvs.parametrage.agence.UtilAgence;
 import yvs.parametrage.societe.ManagedSociete;
 import yvs.parametrage.societe.UtilSte;
-import yvs.users.messagerie.GroupeMessage;
 import yvs.util.Managed;
 import yvs.util.MdpUtil;
 import yvs.util.PaginatorResult;
@@ -1166,11 +1165,6 @@ public class ManagedUser extends Managed<Users, YvsUsers> implements Serializabl
             chooseAgence();
         }
         initView();
-        users.getDossiers().add(new GroupeMessage());
-        users.getDossiers().add(new GroupeMessage());
-        users.getDossiers().add(new GroupeMessage());
-        users.getDossiers().add(new GroupeMessage());
-        users.getDossiers().add(new GroupeMessage());
     }
 
     public void initView() {

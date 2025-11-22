@@ -14,7 +14,6 @@ import yvs.commercial.CategoriePerso;
 import yvs.commercial.commission.PlanCommission;
 import yvs.commercial.UtilCom;
 import yvs.entity.base.YvsBaseCodeAcces;
-//import yvs.entity.communication.YvsAdresseProfessionnel;
 import yvs.entity.communication.YvsMsgConversation;
 import yvs.entity.communication.YvsMsgGroupeMessage;
 import yvs.entity.communication.YvsMsgCarnetAdresse;
@@ -34,12 +33,6 @@ import yvs.entity.users.YvsUsersMemo;
 import yvs.parametrage.societe.Societe;
 import yvs.parametrage.societe.UtilSte;
 import yvs.parametrage.agence.UtilAgence;
-import yvs.users.messagerie.Conversation;
-import yvs.users.messagerie.Destinataire;
-import yvs.users.messagerie.DiffusionContact;
-import yvs.users.messagerie.FiltreMail;
-import yvs.users.messagerie.GroupeDiffusion;
-import yvs.users.messagerie.GroupeMessage;
 
 /**
  *
@@ -129,27 +122,6 @@ public class UtilUsers {
         return l;
     }
 
-//    public static AdresseProfessionnel buildBeanAdresseProfessionnel(YvsAdresseProfessionnel a) {
-//        AdresseProfessionnel r = new AdresseProfessionnel();
-//        if (a != null) {
-//            r.setAdresse(a.getAdresse());
-//            r.setId(a.getId());
-//            r.setPassword(a.getPassword());
-//            r.setPrincipal((a.getPrincipal() != null) ? a.getPrincipal() : false);
-//        }
-//        return r;
-//    }
-//
-//    public static List<AdresseProfessionnel> buildBeanListAdresseProfessionnel(List<YvsAdresseProfessionnel> e) {
-//        List<AdresseProfessionnel> l = new ArrayList<>();
-//        if (e != null) {
-//            for (YvsAdresseProfessionnel i : e) {
-//                AdresseProfessionnel b = buildBeanAdresseProfessionnel(i);
-//                l.add(b);
-//            }
-//        }
-//        return l;
-//    }
     public static NiveauAcces buildBeanNiveauAcces(YvsNiveauAcces e) {
         NiveauAcces b = new NiveauAcces();
         if (e != null) {
@@ -305,182 +277,6 @@ public class UtilUsers {
         return r;
     }
 
-    /**
-     * *******FIN GESTION ACCES**********
-     *
-     */
-    /**
-     * *******DEBUT GESTION CONVERSATION**********
-     *
-     * @param c
-     * @return
-     */
-    public static Destinataire buildBeanDestinataire(YvsMsgDestinataire c) {
-        Destinataire r = new Destinataire();
-        if (c != null) {
-            r.setAccuse((c.getAccuse() != null) ? c.getAccuse() : false);
-            r.setDateReception((c.getDateReception() != null) ? c.getDateReception() : new Date());
-            r.setHeureReception((c.getHeureReception() != null) ? c.getHeureReception() : new Date());
-            r.setSupp((c.getSupp() != null) ? c.getSupp() : false);
-            r.setDestinataire((c.getDestinataire() != null) ? buildBeanUsers(c.getDestinataire()) : new Users());
-            r.setExterne((c.getExterne() != null) ? c.getExterne() : false);
-            r.setAdresseExterne(c.getAdresseExterne());
-            r.setCopie((c.getCopie() != null) ? c.getCopie() : false);
-            r.setDelete((c.getDelete() != null) ? c.getDelete() : false);
-            r.setId(c.getId());
-            r.setSendAccuse((c.getSendAccuse() != null) ? c.getSendAccuse() : false);
-            if (r.isExterne()) {
-                r.setSendTo(r.getAdresseExterne());
-            } else {
-                r.setSendTo(r.getDestinataire().getNomUsers());
-            }
-            r.setGroupe((c.getGroupeMessage() != null) ? buildBeanGroupeMessage(c.getGroupeMessage()) : new GroupeMessage());
-        }
-        return r;
-    }
-
-    public static List<Destinataire> buildBeanListDestinataire(List<YvsMsgDestinataire> list) {
-        List<Destinataire> r = new ArrayList<>();
-        if (list != null) {
-            for (YvsMsgDestinataire c : list) {
-                Destinataire bean = buildBeanDestinataire(c);
-                r.add(bean);
-            }
-        }
-        return r;
-    }
-
-    public static Conversation buildBeanConversation(YvsMsgConversation c) {
-        Conversation r = new Conversation();
-        if (c != null) {
-            r.setId(c.getId());
-            r.setReference(c.getReference());
-            r.setContenu(c.getContenu());
-            r.setPriorite(c.getPriorite());
-            r.setExterne((c.getExterne() != null) ? c.getExterne() : false);
-            r.setAccuse((c.getAccuse() != null) ? c.getAccuse() : false);
-            r.setAdresseExterne(c.getAdresseExterne());
-            r.setDateEnvoi((c.getDateEnvoi() != null) ? c.getDateEnvoi() : new Date());
-            r.setHeureEnvoi((c.getHeureEnvoi() != null) ? c.getHeureEnvoi() : new Date());
-            r.setObjet(c.getObjet());
-            r.setSupp((c.getSupp() != null) ? c.getSupp() : false);
-            r.setEnvoyer((c.getEnvoyer() != null) ? c.getEnvoyer() : false);
-            r.setDelete((c.getDelet() != null) ? c.getDelet() : false);
-            r.setEmetteur((c.getEmetteur() != null) ? buildBeanUsers(c.getEmetteur()) : new Users());
-            r.setPieceJointe(c.getPieceJointe());
-//            if ((c.getYvsConversationList() != null) ? !c.getYvsConversationList().isEmpty() : false) {
-//                r.setConversationList(buildBeanListConversation(c.getYvsConversationList()));
-//            }
-            r.setDestinataires_cc(null);
-            int cpt = 0;
-//            if ((c.getYvsMsgDestinataireList() != null) ? !c.getYvsMsgDestinataireList().isEmpty() : false) {
-//                r.setListDestinataire(buildBeanListDestinataire(c.getYvsMsgDestinataireList()));
-//                for (Destinataire d : r.getListDestinataire()) {
-//                    if ((r.getDestinataires() != null) ? "".equals(r.getDestinataires()) : true) {
-//                        r.setDestinataires(d.getSendTo());
-//                    } else {
-//                        r.setDestinataires(r.getDestinataires() + "; " + d.getSendTo());
-//                    }
-//                    if (d.isExterne()) {
-//                        if ((r.getAdressesExternes() != null) ? "".equals(r.getAdressesExternes()) : true) {
-//                            r.setAdressesExternes(d.getAdresseExterne());
-//                        } else {
-//                            r.setAdressesExternes(r.getAdressesExternes() + "; " + d.getAdresseExterne());
-//                        }
-//                    }
-//                    if (d.isCopie()) {
-//                        if ((r.getDestinataires_cc() != null) ? "".equals(r.getDestinataires_cc()) : true) {
-//                            r.setDestinataires_cc(d.getSendTo());
-//                        } else {
-//                            r.setDestinataires_cc(r.getDestinataires_cc() + "; " + d.getSendTo());
-//                        }
-//                        if (d.isExterne()) {
-//                            if ((r.getAdresseExterne_cc() != null) ? "".equals(r.getAdresseExterne_cc()) : true) {
-//                                r.setAdresseExterne_cc(d.getSendTo());
-//                            } else {
-//                                r.setAdresseExterne_cc(r.getAdresseExterne_cc() + "; " + d.getSendTo());
-//                            }
-//                        }
-//                    } else {
-//                        cpt += 1;
-//                        if ((r.getDestinataires_() != null) ? "".equals(r.getDestinataires_()) : true) {
-//                            r.setDestinataires_(d.getSendTo());
-//                        } else {
-//                            r.setDestinataires_(r.getDestinataires_() + "; " + d.getSendTo());
-//                        }
-//                    }
-//                }
-//            }
-            r.setSendMultiple(cpt > 1);
-            r.setSendCopie((r.getDestinataires_cc() != null) ? !"".equals(r.getDestinataires_cc()) : false);
-        }
-        return r;
-    }
-
-    public static List<Conversation> buildBeanListConversation(List<YvsMsgConversation> list) {
-        List<Conversation> r = new ArrayList<>();
-        if (list != null) {
-            for (YvsMsgConversation c : list) {
-                r.add(buildBeanConversation(c));
-            }
-        }
-        return r;
-    }
-
-    public static DiffusionContact buildBeanDiffusionContact(YvsMsgDiffusionContact d) {
-        DiffusionContact r = new DiffusionContact();
-        if (d != null) {
-            r.setActif((d.getActif() != null) ? d.getActif() : true);
-            r.setId(d.getId());
-            r.setUser((d.getUsers() != null) ? buildBeanUsers(d.getUsers()) : new Users());
-        }
-        return r;
-    }
-
-    public static List<DiffusionContact> buildBeanListDiffusionContact(List<YvsMsgDiffusionContact> list) {
-        List<DiffusionContact> r = new ArrayList<>();
-        if (list != null) {
-            for (YvsMsgDiffusionContact c : list) {
-                r.add(buildBeanDiffusionContact(c));
-            }
-        }
-        return r;
-    }
-
-    public static GroupeDiffusion buildBeanGroupeDiffusion(YvsMsgGroupeDiffusion g) {
-        GroupeDiffusion r = new GroupeDiffusion();
-        if (g != null) {
-            r.setId(g.getId());
-            r.setLibelle(g.getLibelle());
-            r.setReference(g.getReference());
-            r.setPublics((g.getPublics() != null) ? g.getPublics() : false);
-            r.setSociete((g.getSociete() != null) ? UtilSte.buildBeanSociete(g.getSociete()) : new Societe());
-            r.setUser((g.getUsers() != null) ? buildBeanUsers(g.getUsers()) : new Users());
-            r.setDiffusionContactList((g.getYvsDiffusionContactList() != null) ? buildBeanListDiffusionContact(g.getYvsDiffusionContactList())
-                    : new ArrayList<DiffusionContact>());
-        }
-        return r;
-    }
-
-    public static List<GroupeDiffusion> buildBeanListGroupeDiffusion(List<YvsMsgGroupeDiffusion> list) {
-        List<GroupeDiffusion> r = new ArrayList<>();
-        if (list != null) {
-            for (YvsMsgGroupeDiffusion c : list) {
-                r.add(buildBeanGroupeDiffusion(c));
-            }
-        }
-        return r;
-    }
-
-    public static GroupeMessage buildBeanGroupeMessage(YvsMsgGroupeMessage g) {
-        GroupeMessage r = new GroupeMessage();
-        if (g != null) {
-            r = new GroupeMessage(g.getId(), g.getLibelle());
-            r.setReference(g.getReference());
-            r.setCheminParent(buildCheminParentDossier(g));
-        }
-        return r;
-    }
 
     private static String buildCheminParentDossier(YvsMsgGroupeMessage g) {
         String chemin;
@@ -490,35 +286,6 @@ public class UtilUsers {
             chemin = g.getReference();
         }
         return chemin;
-    }
-
-    public static List<GroupeMessage> buildBeanListGroupeMessage(List<YvsMsgGroupeMessage> list) {
-        List<GroupeMessage> r = new ArrayList<>();
-        if (list != null) {
-            for (YvsMsgGroupeMessage c : list) {
-                r.add(buildBeanGroupeMessage(c));
-            }
-        }
-        return r;
-    }
-
-    public static FiltreMail buildBeanFiltreMail(YvsMsgFiltreMessage f) {
-        FiltreMail r = new FiltreMail();
-        r.setBase((f.getBase() != null) ? f.getBase() : "E");
-        r.setId(f.getId());
-        r.setValeur(f.getValeur());
-        r.setGroupeMessage((f.getGroupeMessage() != null) ? buildBeanGroupeMessage(f.getGroupeMessage()) : new GroupeMessage());
-        return r;
-    }
-
-    public static List<FiltreMail> buildBeanListFiltreMail(List<YvsMsgFiltreMessage> list) {
-        List<FiltreMail> r = new ArrayList<>();
-        if (list != null) {
-            for (YvsMsgFiltreMessage c : list) {
-                r.add(buildBeanFiltreMail(c));
-            }
-        }
-        return r;
     }
 
     /**

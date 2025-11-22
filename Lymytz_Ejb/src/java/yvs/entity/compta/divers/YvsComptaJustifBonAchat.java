@@ -45,6 +45,9 @@ public class YvsComptaJustifBonAchat implements Serializable {
     @Basic(optional = false)
     @Column(name = "id")
     private Long id;
+    @Column(name="date_justification")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dateJustification;
     @Column(name = "date_save")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateSave;
@@ -85,6 +88,14 @@ public class YvsComptaJustifBonAchat implements Serializable {
         this.id = id;
     }
 
+    public Date getDateJustification() {
+        return dateJustification;
+    }
+
+    public void setDateJustification(Date dateJustification) {
+        this.dateJustification = dateJustification;
+    }
+    
     public Date getDateSave() {
         return dateSave;
     }

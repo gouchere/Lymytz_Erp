@@ -57,15 +57,16 @@ import yvs.entity.users.YvsUsers;
 import yvs.entity.users.YvsUsersAgence;
 import yvs.grh.bean.mission.ManagedMission;
 import yvs.grh.bean.mission.Mission;
-import static yvs.init.Initialisation.FILE_SEPARATOR;
 import yvs.users.ManagedUser;
 import yvs.users.Users;
 import yvs.users.UtilUsers;
 import yvs.util.Constantes;
 import yvs.util.Managed;
-import static yvs.util.Managed.formatDate;
 import yvs.util.ParametreRequete;
 import yvs.util.enume.Nombre;
+
+import static yvs.util.Managed.formatDate;
+import static yvs.init.Initialisation.FILE_SEPARATOR;
 
 /**
  *
@@ -89,7 +90,11 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
     YvsComptaParametre currentParam;
     private YvsWorkflowValidBonProvisoire currentEtape;
 
-    private boolean addDate, select, toValideLoad = true, _first, createPiece = false;
+    private boolean addDate,
+            select,
+            toValideLoad = true,
+            _first,
+            createPiece = false;
     private Boolean forMissionSearch;
     private long caisseSearch;
     private Date dateDebutSearch = new Date(), dateFinSearch = new Date();
@@ -445,8 +450,11 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
 
     public void loadAllOthers(boolean avance, boolean init) {
         paginator.addParam(new ParametreRequete("y.agence.societe", "societe", currentAgence.getSociete(), "=", "AND"));
-        String table = "YvsComptaBonProvisoire y JOIN FETCH y.ordonnateur LEFT JOIN FETCH y.justifyBy LEFT JOIN FETCH y.validerBy LEFT JOIN FETCH y.bonAchat LEFT JOIN FETCH y.bonMission LEFT JOIN FETCH y.bonDivers "
-                + " LEFT JOIN FETCH y.justificatifs LEFT JOIN FETCH y.justificatifsAchats LEFT JOIN FETCH y.justificatifsMissions LEFT JOIN FETCH y.etapesValidations";
+        String table = "YvsComptaBonProvisoire y JOIN FETCH y.ordonnateur LEFT JOIN FETCH y.justifyBy LEFT JOIN FETCH y.validerBy"
+                + " LEFT JOIN FETCH y.justificatifs "
+                + "LEFT JOIN FETCH y.justificatifsAchats "
+                + "LEFT JOIN FETCH y.justificatifsMissions "
+                + "LEFT JOIN FETCH y.etapesValidations";
         documents = paginator.executeDynamicQuery("DISTINCT(y)", "DISTINCT(y)", table, "y.dateBon DESC, y.numero DESC", avance, init, (int) imax, dao);
         update("data_bon_provisoire");
     }
@@ -647,10 +655,10 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
     public boolean saveNew() {
         try {
             if (controleFiche(bonProvisoire)) {
-                boolean update = bonProvisoire.getId() > 0;
+                boolean isUpdating = bonProvisoire.getId() > 0;
                 selectBon = UtilCompta.buildBonProvisoire(bonProvisoire, currentUser);
                 if (saveNew(selectBon)) {
-                    if (!update) {
+                    if (!isUpdating) {
                         bonProvisoire.setEtapeTotal(selectBon.getEtapeTotal());
                         bonProvisoire.setId(selectBon.getId());
                         bonProvisoire.setEtapesValidations(new ArrayList<>(selectBon.getEtapesValidations()));
@@ -658,7 +666,7 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
 
                     saveOrDeleteBonMission(selectBon, bonProvisoire);
                     saveOrDeleteBonAchat(selectBon, bonProvisoire);
-                    saveOrDeleteBonDivers(selectBon, bonProvisoire);
+                    saveOrDeletePieceCaisseDivers(selectBon, bonProvisoire);
 
                     documents.set(documents.indexOf(selectBon), selectBon);
                     actionOpenOrResetAfter(this);
@@ -749,31 +757,30 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
         update("data-justificatifs_bon_provisoire");
     }
 
-    private void saveOrDeleteBonDivers(YvsComptaBonProvisoire entity, BonProvisoire bean) {
+    private void saveOrDeletePieceCaisseDivers(YvsComptaBonProvisoire entity, BonProvisoire bean) {
         if (bean.getDivers() != null ? bean.getDivers().getId() > 0 : false) {
             YvsComptaCaissePieceDivers piece = bean.getPieceDivers();
+            ManagedDocDivers docDiversService = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
             if (createPiece) {
-                ManagedDocDivers w = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
-                if (w != null) {
-                    piece = w.getPiece(-1L, bean.getCaisse(), new DocCaissesDivers(bean.getDivers().getId()), bean.getDivers(), modeEspece(), bean.getMontant(), entity.getDateBon());
+                if (docDiversService != null) {
+                    piece = docDiversService.getPiece(-1L, bean.getCaisse(), new DocCaissesDivers(bean.getDivers().getId()), bean.getDivers(), modeEspece(), bean.getMontant(), entity.getDateBon());
                     piece.setCaissier(entity.getCaissier());
                     piece.setDatePaimentPrevu(entity.getDateBon());
                     piece.setDatePiece(entity.getDateBon());
                     piece.setNote(bean.getDescription());
 
                     piece.setId(null);
-                    String numero = genererReference(Constantes.TYPE_PC_DIVERS_NAME, piece.getDatePiece());
-                    if (numero != null ? numero.trim().length() < 1 : true) {
+                    String currentRefNumber = genererReference(Constantes.TYPE_PC_DIVERS_NAME, piece.getDatePiece());
+                    if (currentRefNumber != null ? currentRefNumber.trim().length() < 1 : true) {
                         return;
                     }
-                    piece.setNumPiece(numero);
+                    piece.setNumPiece(currentRefNumber);
                     piece = (YvsComptaCaissePieceDivers) dao.save1(piece);
                 }
             }
             if (piece != null ? piece.getId() > 0 : false) {
-                ManagedDocDivers w = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
-                if (w != null) {
-                    YvsComptaJustificatifBon y = w.addBonProvisoire(entity, piece, true, false);
+                if (docDiversService != null) {
+                    YvsComptaJustificatifBon y = docDiversService.addBonProvisoire(entity, piece, true, false);
                     if (y != null ? y.getId() > 0 : false) {
                         bean.getJustificatifs().add(UtilCompta.buildBeanJustifierBon(y));
                     }
@@ -933,7 +940,6 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                 if (w != null) {
                     YvsComptaJustifBonMission entity = w.addBonProvisoire(selectBon, y, true, true);
                     if (entity != null ? entity.getId() > 0 : false) {
-                        selectBon.setBonMission(entity);
                         int idx = selectBon.getJustificatifsMissions().indexOf(entity);
                         if (idx > -1) {
                             selectBon.getJustificatifsMissions().set(idx, entity);
@@ -981,7 +987,6 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                 if (w != null) {
                     YvsComptaJustifBonAchat entity = w.addBonProvisoire(selectBon, y, true, true);
                     if (entity != null ? entity.getId() > 0 : false) {
-                        selectBon.setBonAchat(entity);
                         int idx = selectBon.getJustificatifsAchats().indexOf(entity);
                         if (idx > -1) {
                             selectBon.getJustificatifsAchats().set(idx, entity);
@@ -1024,42 +1029,48 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                 getErrorMessage("Cette pièce est déja reglée");
                 return;
             }
-            if (select) {
-                ManagedDocDivers w = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
-                if (w != null) {
-                    YvsComptaJustificatifBon entity = w.addBonProvisoire(selectBon, y, true, true);
-                    if (entity != null ? entity.getId() > 0 : false) {
-                        selectBon.setBonDivers(entity);
-                        int idx = selectBon.getJustificatifs().indexOf(entity);
-                        if (idx > -1) {
-                            selectBon.getJustificatifs().set(idx, entity);
-                        }
-                        idx = documents.indexOf(selectBon);
-                        if (idx > -1) {
-                            documents.set(idx, selectBon);
-                            update("data_bon_provisoire");
-                        }
-                    }
-                }
-            } else {
-                createPiece = false;
-                bonProvisoire.setPieceDivers(y);
+            ManagedDocDivers managedDocDivers = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
+            if (managedDocDivers != null) {
+                YvsComptaJustificatifBon entity = managedDocDivers.addBonProvisoire(selectBon, y, true, true);
+                addCurentJustifOnList(entity);
             }
+        }
+    }
+
+    private void addCurentJustifOnList(YvsComptaJustificatifBon entity) {
+        if (entity != null ? entity.getId() > 0 : false) {
+            int idx = selectBon.getJustificatifs().indexOf(entity);
+            if (idx > -1) {
+                selectBon.getJustificatifs().set(idx, entity);
+            }
+            idx = documents.indexOf(selectBon);
+            if (idx > -1) {
+                documents.set(idx, selectBon);
+                update("data_bon_provisoire");
+            }
+            JustifierBon justificatifBean = UtilCompta.buildBeanJustifierBon(entity);
+            idx = bonProvisoire.getJustificatifs().indexOf(justificatifBean);
+            if (idx > -1) {
+                bonProvisoire.getJustificatifs().set(idx, justificatifBean);
+            } else {
+                bonProvisoire.getJustificatifs().add(justificatifBean);
+            }
+            update("data-justificatifs_bon_provisoire");
         }
     }
 
     public void loadOnViewDivers(SelectEvent ev) {
         if (ev != null ? ev.getObject() != null : false) {
-            YvsComptaCaisseDocDivers y = (YvsComptaCaisseDocDivers) ev.getObject();
-            bonProvisoire.setDivers(y);
+            YvsComptaCaisseDocDivers selectedDocumentDivers = (YvsComptaCaisseDocDivers) ev.getObject();
+            bonProvisoire.setDivers(selectedDocumentDivers);
             if (select) {
                 createPiece = true;
-                if (y.getReglements() != null ? !y.getReglements().isEmpty() : false) {
+                if (selectedDocumentDivers.getReglements() != null ? !selectedDocumentDivers.getReglements().isEmpty() : false) {
                     openDialog("dlgBonPieceDivers");
                     update("data_piece_divers_bon");
                 }
             } else {
-                onSelectBonDivers(y);
+                onSelectBonDivers(selectedDocumentDivers);
                 update("blog_divers_bon");
             }
         }
@@ -1111,33 +1122,31 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
         }
     }
 
-    public void forceOnViewMission() {
-        if (bonProvisoire.getPieceMission() != null ? bonProvisoire.getPieceMission().getId() > 0 : false) {
-            ManagedMission w = (ManagedMission) giveManagedBean(ManagedMission.class);
-            if (w != null) {
-                w.forceOnViewMission(selectBon, bonProvisoire.getPieceMission());
-            }
-        }
-    }
-
-    public void forceOnViewAchat() {
-        if (bonProvisoire.getPieceAchat() != null ? bonProvisoire.getPieceAchat().getId() > 0 : false) {
-            ManagedFactureAchat w = (ManagedFactureAchat) giveManagedBean(ManagedFactureAchat.class);
-            if (w != null) {
-                w.forceOnViewAchat(selectBon, bonProvisoire.getPieceAchat());
-            }
-        }
-    }
-
-    public void forceOnViewDivers() {
-        if (bonProvisoire.getPieceDivers() != null ? bonProvisoire.getPieceDivers().getId() > 0 : false) {
-            ManagedDocDivers w = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
-            if (w != null) {
-                w.forceOnViewDivers(selectBon, bonProvisoire.getPieceDivers());
-            }
-        }
-    }
-
+//    public void forceOnViewMission() {
+//        if (bonProvisoire.getPieceMission() != null ? bonProvisoire.getPieceMission().getId() > 0 : false) {
+//            ManagedMission w = (ManagedMission) giveManagedBean(ManagedMission.class);
+//            if (w != null) {
+//                w.forceOnViewMission(selectBon, bonProvisoire.getPieceMission());
+//            }
+//        }
+//    }
+//    public void forceOnViewAchat() {
+//        if (bonProvisoire.getPieceAchat() != null ? bonProvisoire.getPieceAchat().getId() > 0 : false) {
+//            ManagedFactureAchat w = (ManagedFactureAchat) giveManagedBean(ManagedFactureAchat.class);
+//            if (w != null) {
+//                w.forceOnViewAchat(selectBon, bonProvisoire.getPieceAchat());
+//            }
+//        }
+//    }
+//
+//    public void forceOnViewDivers() {
+//        if (bonProvisoire.getPieceDivers() != null ? bonProvisoire.getPieceDivers().getId() > 0 : false) {
+//            ManagedDocDivers w = (ManagedDocDivers) giveManagedBean(ManagedDocDivers.class);
+//            if (w != null) {
+//                w.forceOnViewDivers(selectBon, bonProvisoire.getPieceDivers());
+//            }
+//        }
+//    }
     public void openListMission(YvsComptaBonProvisoire y, boolean select) {
         this.select = select;
         if (y != null ? y.getId() > 0 : false) {
@@ -1643,7 +1652,7 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                     }
                     if (y.getCaisse() != null ? y.getCaisse().getId() < 1 : true) {
                         if (msg) {
-                            getErrorMessage("Vous devez precisez la caisse");
+                            getErrorMessage("Vous devez preciser la caisse");
                         }
                         return false;
                     }
@@ -1651,14 +1660,18 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                 selectBon.setJustifyBy(null);
                 selectBon.setDateJustify(null);
                 if (selectBon.getStatutJustify().equals(Constantes.ETAT_JUSTIFIE)) {
-                    selectBon.setStatutJustify(Constantes.ETAT_INJUSTIFIE);
+                    if (autoriser("compta_injustifier_bp")) {
+                        selectBon.setStatutJustify(Constantes.ETAT_INJUSTIFIE);
+                    } else {
+                        getErrorMessage("Vous ne disposez pas des droits pour changerle statut de ce bon");
+                    }
                 } else {
                     if (!Constantes.ETAT_REGLE.equals(y.getStatutPaiement())) {
                         getErrorMessage("Le bon provisoire ne peut être justifier", "Il n'est pas encore payé!");
                         return false;
                     } else {
                         //Vérifie l'equilibre des montants
-                        if (y.getMontant() >= y.getJustifier()) {
+                        if (y.getMontant() >= y.getMontantJustifie()) {
                             if (force && autoriser("compta_justif_bp")) {
                                 selectBon.setStatutJustify(Constantes.ETAT_JUSTIFIE);
                                 selectBon.setDateJustify(new Date());
@@ -1696,9 +1709,22 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
         return false;
     }
 
+    public void deleteJustificatif(JustifierBon pieceJustif) {
+        if (pieceJustif != null && pieceJustif.getId() > 0) {
+            // le bon ne doit pas être justifié
+            if (Constantes.STATUT_DOC_JUSTIFIER == pieceJustif.getBon().getStatutJustify()) {
+                getErrorMessage("Vous ne pouvez modifier le bon lorsqu'il est déjà justifié !");
+                return;
+            }
+            dao.delete(new YvsComptaJustificatifBon(pieceJustif.getId()));
+            bonProvisoire.getJustificatifs().remove(pieceJustif);
+            succes();
+        }
+    }
+
     public void verifyToJustify(YvsGrhMissions m) {
         if (m != null ? m.getId() > 0 : false) {
-            if (m.getStatutMission().equals(Constantes.STATUT_DOC_VALIDE)) {
+            if (Constantes.STATUT_DOC_VALIDE == (m.getStatutMission())) {
                 setMontantTotalMission(m, new Mission());
                 Double montant = (Double) dao.loadObjectByNameQueries("YvsComptaCaissePieceMission.findByMissPaye", new String[]{"mission", "statut"}, new Object[]{m, Constantes.STATUT_DOC_PAYER});
                 double total = montant != null ? montant : 0;
@@ -1830,6 +1856,9 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                     } else {
                         getErrorMessage("Aucun paramètre de base n'a été trouvé !");
                     }
+                } else {
+                    getErrorMessage("Vous n'êtes pas autorisé à valider des bons!", " Veuillez contacter votre responsable");
+                    openNotAcces();
                 }
             }
         }
@@ -2211,7 +2240,7 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                     }
                     documents = dao.loadNameQueries(nameQueri, champ, val);
                     for (YvsComptaBonProvisoire d : documents) {
-                        double justifier = d.getJustifier();
+                        double justifier = d.getMontantJustifie();
                         debit += d.getMontant();
                         credit += justifier;
                         solde += d.getMontant() - justifier;
@@ -2259,7 +2288,7 @@ public class ManagedBonProvisoire extends Managed<BonProvisoire, YvsComptaBonPro
                     }
                     documents = dao.loadNameQueries(nameQueri, champ, val);
                     for (YvsComptaBonProvisoire d : documents) {
-                        double justifier = d.getJustifier();
+                        double justifier = d.getMontantJustifie();
                         debit += d.getMontant();
                         credit += justifier;
                         solde += d.getMontant() - justifier;

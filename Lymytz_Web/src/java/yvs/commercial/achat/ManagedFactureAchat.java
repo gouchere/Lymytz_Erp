@@ -5180,16 +5180,16 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
         return y;
     }
 
-    public void forceOnViewAchat(YvsComptaBonProvisoire piece, YvsComptaCaissePieceAchat select) {
-        if (piece != null ? piece.getId() > 0 : false) {
-            if (piece.getBonAchat() != null) {
-                piece.getBonAchat().setPiece(select);
-            }
-            if (select != null ? select.getId() > 0 : false) {
-                addBonProvisoire(piece, select, true, true);
-            }
-        }
-    }
+//    public void forceOnViewAchat(YvsComptaBonProvisoire piece, YvsComptaCaissePieceAchat select) {
+//        if (piece != null ? piece.getId() > 0 : false) {
+//            if (piece.getBonAchat() != null) {
+//                piece.getBonAchat().setPiece(select);
+//            }
+//            if (select != null ? select.getId() > 0 : false) {
+//                addBonProvisoire(piece, select, true, true);
+//            }
+//        }
+//    }
 
     public YvsComptaJustifBonAchat addBonProvisoire(YvsComptaBonProvisoire bon, YvsComptaCaissePieceAchat piece, boolean msg, boolean succes) {
         if (piece != null ? piece.getId() < 1 : true) {
@@ -5204,10 +5204,19 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
             }
             return null;
         }
-        if (bon.getBonAchat() != null ? (bon.getBonAchat().getId() > 0 ? !bon.getBonAchat().getPiece().equals(piece) : false) : false) {
-            openDialog("dlgConfirmBonProvAchat");
-            update("cfm_bon_achat");
-            return null;
+        if (bon.getJustificatifs() != null) {
+            boolean alreadyLink = false;
+            for (YvsComptaJustifBonAchat j : bon.getJustificatifsAchats()) {
+                if (j.getPiece().equals(piece)) {
+                    alreadyLink = true;
+                    break;
+                }
+            }
+            if (!alreadyLink) {
+                openDialog("dlgConfirmBonProvDivers");
+                update("cfm_bon_divers");
+                return null;
+            }
         }
         if (bon.getMontant() <= 0) {
             if (msg) {
@@ -5221,28 +5230,30 @@ public class ManagedFactureAchat extends ManagedCommercial<DocAchat, YvsComDocAc
             }
             return null;
         }
-        YvsComptaJustifBonAchat y = new YvsComptaJustifBonAchat(piece, bon);
-        y.setAuthor(currentUser);
-        if (bon.getBonAchat() != null ? bon.getBonAchat().getId() < 1 : true) {
-            champ = new String[]{"bon", "piece"};
-            val = new Object[]{bon, piece};
-            YvsComptaJustifBonAchat old = (YvsComptaJustifBonAchat) dao.loadOneByNameQueries("YvsComptaJustifBonAchat.findOne", champ, val);
-            if (old != null ? old.getId() < 1 : true) {
-                y.setId(null);
-                y = (YvsComptaJustifBonAchat) dao.save1(y);
-            } else {
-                y = old;
-            }
-        } else {
-            y.setId(bon.getBonAchat().getId());
-            dao.update(y);
-        }
-        bon.setBonAchat(y);
-        piece.setJustify(y);
+        YvsComptaJustifBonAchat currentJustif = new YvsComptaJustifBonAchat(piece, bon);
+        currentJustif.setAuthor(currentUser);
+        currentJustif.setId(null);
+        currentJustif = (YvsComptaJustifBonAchat) dao.save1(currentJustif);
+//        if (bon.getBonAchat() != null ? bon.getBonAchat().getId() < 1 : true) {
+//            champ = new String[]{"bon", "piece"};
+//            val = new Object[]{bon, piece};
+//            YvsComptaJustifBonAchat old = (YvsComptaJustifBonAchat) dao.loadOneByNameQueries("YvsComptaJustifBonAchat.findOne", champ, val);
+//            if (old != null ? old.getId() < 1 : true) {
+//                currentJustif.setId(null);
+//                currentJustif = (YvsComptaJustifBonAchat) dao.save1(currentJustif);
+//            } else {
+//                currentJustif = old;
+//            }
+//        } else {
+//            currentJustif.setId(bon.getBonAchat().getId());
+//            dao.update(currentJustif);
+//        }
+//        bon.setBonAchat(currentJustif);
+        piece.setJustify(currentJustif);
         if (succes) {
             succes();
         }
-        return y;
+        return currentJustif;
     }
 
     public void comptabiliseByDate(Date dateDebut, Date dateFin) {

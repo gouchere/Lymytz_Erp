@@ -18,6 +18,7 @@ import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
+
 import lymytz.navigue.Navigations;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.event.CellEditEvent;
@@ -1219,6 +1220,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
         return null;
     }
+
     List<Long> idsIndicateurs;
 
     private List<YvsProdOfIndicateurSuivi> buildIndicateurSuivi(YvsProdIndicateurOp ind, double qte, YvsProdFluxComposant item) {
@@ -1311,7 +1313,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
     }
 
-//    public void listenChangeValueQte() {
+    //    public void listenChangeValueQte() {
 //        if (ordre.canEditable(autoriser("prod_update_of_encours"))) {
 //            champ = new String[]{"nomenclature"};
 //            val = new Object[]{new YvsProdNomenclature(ordre.getNomenclature().getId())};
@@ -2204,6 +2206,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             getErrorMessage("Aucune opération trouvé pour cette OF!");
         }
     }
+
     private List<YvsProdComposantOF> listeComposants = new ArrayList<>();
     private List<String> colonnes = new ArrayList<>();
 
@@ -2260,7 +2263,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         return null;
     }
 
-//    private YvsProdFluxComposant getOneFluxBySens(YvsProdComposantOF oc, List<YvsProdFluxComposant> list, Character sens) {
+    //    private YvsProdFluxComposant getOneFluxBySens(YvsProdComposantOF oc, List<YvsProdFluxComposant> list, Character sens) {
 //        for (YvsProdFluxComposant f : list) {
 //            if (f.getComposant().equals(oc) && f.getSens().equals(sens)) {
 //                return f;
@@ -2277,7 +2280,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         return null;
     }
 
-//    private Integer giveOrdreInNom(YvsProdNomenclature n, YvsBaseArticles art) {
+    //    private Integer giveOrdreInNom(YvsProdNomenclature n, YvsBaseArticles art) {
 //        Integer o = (Integer) dao.loadOneByNameQueries("YvsProdComposantNomenclature.findOrdreByNom", new String[]{"article", "nomenclature"}, new Object[]{art, n});
 //        return (o != null) ? o : 0;
 //    }
@@ -2728,9 +2731,10 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 //            List<YvsProdComposantNomenclature> l = dao.loadListTableByNameQueries(nameQueri, champ, val);
 //            //garde les composants qui ont une nomenclature afin de générer les ordres de fabrications correspondant au besoin
 //            for (YvsProdComposantNomenclature c : l) {
-////                if (!c.getArticle().getYvsProdComposantNomenclatureList().isEmpty()) {
-////                    listArtIntermediaire.add(c.getArticle());
-////                }
+
+    /// /                if (!c.getArticle().getYvsProdComposantNomenclatureList().isEmpty()) {
+    /// /                    listArtIntermediaire.add(c.getArticle());
+    /// /                }
 //            }
 //            if (!l.isEmpty()) {
 //                ordre.setListComposantOf(calculBesoins(l, l.get(0).getNomenclature()));
@@ -2750,7 +2754,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
     }
 
     private YvsProdComposantOF calculBesoins(YvsProdComposantNomenclature composantNom_, YvsProdNomenclature nom_,
-            List<YvsProdComposantOF> result, OrdreFabrication ordre, boolean findPr) {
+                                             List<YvsProdComposantOF> result, OrdreFabrication ordre, boolean findPr) {
         YvsProdComposantOF composant_ = null;
         double qte, cout = 0;
         if (composantNom_ != null) {
@@ -3010,6 +3014,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
         }
         return re;
     }
+
     private List<Long> idsCurrentEquipes = new ArrayList<>();
 
     private void buildIdEquipe(List<YvsComCreneauHoraireUsers> l) {
@@ -4736,6 +4741,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
             }
         }
     }
+
     public boolean date_, displayQteDeclarer;
     private String egaliteStatutOf = "IN", egaliteStatutDec = " =", egaliteSite = " IN ";
     private List<String> statutsOf = new ArrayList<>();
@@ -5171,6 +5177,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     /**
      * *
+     *
      * @param all : Le paramètre all détermine si l'on charge le résumé de l'OF
      * ou Juste le résumé d'une equipe
      */
@@ -5263,7 +5270,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
     public void initTransfert_(Boolean re) {
         if (re) {
             //charge les dépôts lié
-            if (currentSession != null ? currentSession.getDepot() != null : false) {
+            if (currentSession != null && currentSession.getDepot() != null) {
                 depotsCible = dao.loadNameQueries("YvsComLiaisonDepot.findDepotLierByDepot_", new String[]{"depot"}, new Object[]{currentSession.getDepot()});
                 if (!depotsCible.isEmpty()) {
                     depotDest = UtilProd.buildBeanDepot(depotsCible.get(0));
@@ -5281,7 +5288,7 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public void chooseDepotCible(ValueChangeEvent ev) {
         Long re = (Long) ev.getNewValue();
-        if (re != null ? re > 0 : false) {
+        if (re != null && re > 0) {
             int idx = depotsCible.indexOf(new YvsBaseDepots(re));
             if (idx >= 0) {
                 depotDest = UtilProd.buildBeanDepot(depotsCible.get(idx));
@@ -5297,42 +5304,28 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
 
     public void transfertAllProd() {
         ManagedTransfertStock service = (ManagedTransfertStock) giveManagedBean(ManagedTransfertStock.class);
-        if (service != null && declaration.getSessionOf() != null ? declaration.getSessionOf().getId() > 0 : false) {
+        if (service != null && declaration.getSessionOf() != null && declaration.getSessionOf().getId() > 0) {
             //vérifie si l'article existe dans le dépôt
             Long nb = (Long) dao.loadObjectByNameQueries("YvsBaseArticleDepot.countByArticleDepot", new String[]{"article", "depot"}, new Object[]{selectedOf.getArticle(), new YvsBaseDepots(depotDest.getId())});
-            if (nb != null ? nb <= 0 : true) {
+            if (nb == null || nb <= 0) {
                 getErrorMessage("Impossible de continuer ce transfert", "Cet article n'est pas référencé dans le dépôt cible");
                 return;
             }
-            //Cherche un doc de transfert entre les deux dépôt à cette date et au créneau
+            //Cherche un doc de transfert entre les deux dépôts à cette date et au créneau
             YvsComCreneauDepot crSrc = (YvsComCreneauDepot) dao.loadOneByNameQueries("YvsComCreneauDepot.findByTrancheDepot", new String[]{"tranche", "depot"}, new Object[]{new YvsGrhTrancheHoraire(declaration.getSessionOf().getTranche().getId()), new YvsBaseDepots(declaration.getSessionOf().getDepot().getId())});
-            if ((crSrc != null) ? crSrc.getId() < 1 : true) {
+            if (crSrc == null || crSrc.getId() < 1) {
                 getErrorMessage("Vous devez specifier le créneau source");
                 return;
             }
             YvsComCreneauDepot crDest = (YvsComCreneauDepot) dao.loadOneByNameQueries("YvsComCreneauDepot.findByTrancheDepot", new String[]{"tranche", "depot"}, new Object[]{new YvsGrhTrancheHoraire(trancheHoraire.getId()), new YvsBaseDepots(depotDest.getId())});
-            if ((crDest != null) ? crDest.getId() < 1 : true) {
+            if (crDest == null || crDest.getId() < 1) {
                 getErrorMessage("Vous devez specifier le créneau de reception");
                 return;
             }
-            YvsComDocStocks doc = null;
-            if (crDest != null && crSrc != null) {
-                doc = (YvsComDocStocks) dao.loadOneByNameQueries("YvsComDocStocks.findOneDocStockToEdit", new String[]{"statut", "statut1", "statut2", "date", "crSource", "crDest"},
-                        new Object[]{Constantes.ETAT_EDITABLE, Constantes.ETAT_ENCOURS, Constantes.ETAT_SOUMIS, declaration.getSessionOf().getDateSession(), crSrc, crDest});
-            }
+            YvsComDocStocks doc = (YvsComDocStocks) dao.loadOneByNameQueries("YvsComDocStocks.findOneDocStockToEdit", new String[]{"statut", "date", "crSource", "crDest"},
+                    new Object[]{Constantes.ETAT_EDITABLE, declaration.getSessionOf().getDateSession(), crSrc, crDest});
             if (doc == null) {
-                service.setDocStock(new DocStock());
-                service.getDocStock().setActif(true);
-                service.getDocStock().setCreneauDestinataire(UtilCom.buildBeanCreneau(crDest));
-                service.getDocStock().setCreneauSource(UtilCom.buildBeanCreneau(crSrc));
-                service.getDocStock().setDateDoc(declaration.getSessionOf().getDateSession());
-                service.getDocStock().setDateReception(declaration.getSessionOf().getDateSession());
-                service.getDocStock().setDescription("Transfert de production");
-                service.getDocStock().setDestination(depotDest);
-                service.getDocStock().setSource(declaration.getSessionOf().getDepot());
-                service.getDocStock().setStatut(Constantes.ETAT_EDITABLE);
-                service.getDocStock().setTypeDoc(Constantes.TYPE_FT);
-                service.getDocStock().setNature(Constantes.TRANSFERT);
+                service.setDocStock(buildHotDocStock(crDest, crSrc));
             } else {
                 //charge le contenu
                 doc.setContenus(dao.loadNameQueries("YvsComContenuDocStock.findByDocStock", new String[]{"docStock"}, new Object[]{doc}));
@@ -5347,37 +5340,59 @@ public final class ManagedOrdresF extends Managed<OrdreFabrication, YvsProdOrdre
                     return;
                 }
             }
-            ContenuDocStock c = new ContenuDocStock();
-            c.setActif(true);
-            c.setArticle(ordre.getArticles());
-            c.setConditionnement(declaration.getConditionnement());
-            c.setDateContenu(declaration.getSessionOf().getDateSession());
-            c.setPrixEntree(declaration.getCout());
-            c.setPrix(declaration.getCout());
-            c.setQteAttente(declaration.getQuantite());
-            c.setQuantite(declaration.getQuantite());
-            c.setResultante(declaration.getQuantite());
-            c.setQteAttente(declaration.getQuantite());
-            c.setStatut(Constantes.ETAT_EDITABLE);
-            c.setUniteDestination(declaration.getConditionnement());
-            c.setDocStock(service.getDocStock());
-            service.setContenu(c);
+            service.setContenu(buildHotContentTransfert(service.getDocStock()));
             YvsComContenuDocStock re = service.saveEntityContenu();
             //update déclaration 
-            if (re != null ? re.getId() > 0 : false) {
+            if (re != null && re.getId() > 0) {
                 selectDeclaration.setDocStock(re);
                 dao.update(selectDeclaration);
-                if (!service.getDocStock().getStatut().equals(Constantes.ETAT_SOUMIS) && !service.getDocStock().getStatut().equals(Constantes.ETAT_ENCOURS)) {
-                    if (service.transmis()) {
-                        getInfoMessage("Transmis !");
-                    } else {
-                        getWarningMessage("Production non transféré !");
-                    }
-                }
+                //todo on ne transmet plus le document de stock automatiquement.
+                getWarningMessage("L'article a été ajouté au document de transfert","Vous devez valider votre document de transfert dans la gestion des stocks.");
+//                if (!service.getDocStock().getStatut().equals(Constantes.ETAT_SOUMIS) && !service.getDocStock().getStatut().equals(Constantes.ETAT_ENCOURS)) {
+//                    if (service.transmis()) {
+//                        getInfoMessage("Transmis !");
+//                    } else {
+//                        getWarningMessage("Production non transféré !");
+//                    }
+//                }
             } else {
                 getWarningMessage("Transmission impossible !");
             }
         }
+    }
+
+    private ContenuDocStock buildHotContentTransfert(DocStock docStock) {
+        ContenuDocStock c = new ContenuDocStock();
+        c.setActif(true);
+        c.setArticle(ordre.getArticles());
+        c.setConditionnement(declaration.getConditionnement());
+        c.setDateContenu(declaration.getSessionOf().getDateSession());
+        c.setPrixEntree(declaration.getCout());
+        c.setPrix(declaration.getCout());
+        c.setQteAttente(declaration.getQuantite());
+        c.setQuantite(declaration.getQuantite());
+        c.setResultante(declaration.getQuantite());
+        c.setQteAttente(declaration.getQuantite());
+        c.setStatut(Constantes.ETAT_EDITABLE);
+        c.setUniteDestination(declaration.getConditionnement());
+        c.setDocStock(docStock);
+        return c;
+    }
+
+    private DocStock buildHotDocStock(YvsComCreneauDepot crDest, YvsComCreneauDepot crSrc) {
+        DocStock docStock = new DocStock();
+        docStock.setActif(true);
+        docStock.setCreneauDestinataire(UtilCom.buildBeanCreneau(crDest));
+        docStock.setCreneauSource(UtilCom.buildBeanCreneau(crSrc));
+        docStock.setDateDoc(declaration.getSessionOf().getDateSession());
+        docStock.setDateReception(declaration.getSessionOf().getDateSession());
+        docStock.setDescription("Transfert de production");
+        docStock.setDestination(depotDest);
+        docStock.setSource(declaration.getSessionOf().getDepot());
+        docStock.setStatut(Constantes.ETAT_EDITABLE);
+        docStock.setTypeDoc(Constantes.TYPE_FT);
+        docStock.setNature(Constantes.TRANSFERT);
+        return docStock;
     }
 
     public void openViewToConfirmTransfert(YvsProdDeclarationProduction dec) {

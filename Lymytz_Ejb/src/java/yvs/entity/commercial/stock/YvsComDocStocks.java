@@ -70,7 +70,7 @@ import yvs.entity.users.YvsUsersAgence;
     @NamedQuery(name = "YvsComDocStocks.findStatutById", query = "SELECT y.statut FROM YvsComDocStocks y WHERE y.id = :id"),
 
     @NamedQuery(name = "YvsComDocStocks.findOneDocStock", query = "SELECT y FROM YvsComDocStocks y WHERE y.statut=:statut AND y.dateDoc=:date AND y.creneauSource=:crSource AND y.creneauDestinataire=:crDest"),
-    @NamedQuery(name = "YvsComDocStocks.findOneDocStockToEdit", query = "SELECT y FROM YvsComDocStocks y WHERE (y.statut=:statut OR y.statut=:statut1 OR y.statut=:statut2) AND y.dateDoc=:date AND y.creneauSource=:crSource AND y.creneauDestinataire=:crDest"),
+    @NamedQuery(name = "YvsComDocStocks.findOneDocStockToEdit", query = "SELECT y FROM YvsComDocStocks y WHERE y.statut=:statut AND y.dateDoc=:date AND y.creneauSource=:crSource AND y.creneauDestinataire=:crDest"),
 
     @NamedQuery(name = "YvsComDocStocks.findByCreneauSource", query = "SELECT y FROM YvsComDocStocks y WHERE y.creneauSource = :creneauSource AND y.typeDoc = :typeDoc"),
     @NamedQuery(name = "YvsComDocStocks.findBySourceStatut", query = "SELECT y FROM YvsComDocStocks y WHERE y.source = :depot AND y.typeDoc = :typeDoc AND y.statut = :statut"),

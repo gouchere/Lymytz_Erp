@@ -5581,74 +5581,74 @@ public class ManagedDocDivers extends Managed<DocCaissesDivers, YvsComptaCaisseD
         }
     }
 
-    public void forceOnViewDivers(YvsComptaBonProvisoire piece, YvsComptaCaissePieceDivers select) {
-        if (piece != null ? piece.getId() > 0 : false) {
-            if (piece.getBonDivers() != null) {
-                piece.getBonDivers().setPiece(select);
-            }
-            if (select != null ? select.getId() > 0 : false) {
-                addBonProvisoire(piece, select, true, true);
+//    public void forceOnViewDivers(YvsComptaBonProvisoire piece, YvsComptaCaissePieceDivers select) {
+//        if (piece != null ? piece.getId() > 0 : false) {
+//            if (piece.getBonDivers() != null) {
+//                piece.getBonDivers().setPiece(select);
+//            }
+//            if (select != null ? select.getId() > 0 : false) {
+//                addBonProvisoire(piece, select, true, true);
+//            }
+//        }
+//    }
+    private boolean canAddBonProvisoire(YvsComptaBonProvisoire bon, YvsComptaCaissePieceDivers piece) {
+        if (bon == null || piece == null) {
+            getErrorMessage("Impossible de continuer", "Erreur technique au chargement des pièces");
+            return false;
+        }
+        // Le Bon doit être payé
+        if (!Constantes.ETAT_REGLE.equals(bon.getStatutPaiement())) {
+            getErrorMessage("Impossible de continuer", "Votre bon provisoire n'est pas encore payé");
+            return false;
+        }
+        // La pièce de règlement ne doit pas déjà être payé
+        if (!Constantes.ETAT_REGLE.equals(piece.getStatutPiece().toString())) {
+            getErrorMessage("Impossible de continuer", "Vous ne pouvez justifier le bon avec une pièce déjà réglée");
+            return false;
+        }
+        // La pièce de règlement ne doit pas déjà être payé
+        if (bon.getMontant() <= 0) {
+            getErrorMessage("Impossible de continuer", "Le montant du bon est incorrect");
+            return false;
+        }
+        if (bon.getJustificatifs() != null) {
+            for (YvsComptaJustificatifBon j : bon.getJustificatifs()) {
+                if (j.getPiece().equals(piece)) {
+                    getWarningMessage("Cette pièce fait déjà partie des justificatifs.", "Vous pouvez la supprimer depuis le tableau des justificatifs");
+                    return false;
+                }
             }
         }
+        // Le montant de la pièce doit être inférieur au reste à justifier sur le bon
+        if (piece.getMontant() > bon.getReste()) {
+            if (bon.getMontant() <= 0) {
+                getErrorMessage("Impossible de continuer", "Le montant de la pièce doit être inférieur au reste à justifier");
+                return false;
+            }
+        }
+        return true;
     }
 
+//    Ajouter un justificatif au bon provisoire
     public YvsComptaJustificatifBon addBonProvisoire(YvsComptaBonProvisoire bon, YvsComptaCaissePieceDivers piece, boolean msg, boolean succes) {
-        if (piece != null ? piece.getId() < 1 : true) {
-            if (msg) {
-                getErrorMessage("Vous devez selectionner une mission!!!");
-            }
-            return null;
-        }
-        if (bon != null ? bon.getId() < 1 : true) {
-            if (msg) {
-                getErrorMessage("Vous devez enregistrer un bon provisoire!!!");
-            }
-            return null;
-        }
-        if (bon.getBonDivers() != null ? (bon.getBonDivers().getId() > 0 ? !bon.getBonDivers().getPiece().equals(piece) : false) : false) {
-            openDialog("dlgConfirmBonProvDivers");
-            update("cfm_bon_divers");
-            return null;
-        }
-        if (bon.getMontant() <= 0) {
-            if (msg) {
-                getErrorMessage("Vous devez entrer le montant du bon");
-            }
-            return null;
-        }
-        if (bon.getMontant() > piece.getMontant()) {
-            if (msg) {
-                getErrorMessage("Impossible de créer un bon au montant superieur au reglement du document");
-            }
-            return null;
-        }
-        YvsComptaJustificatifBon y = new YvsComptaJustificatifBon(bon, piece);
-        y.setAuthor(currentUser);
-        if (bon.getBonDivers() != null ? bon.getBonDivers().getId() < 1 : true) {
-            champ = new String[]{"bon", "piece"};
-            val = new Object[]{bon, piece};
-            YvsComptaJustificatifBon old = (YvsComptaJustificatifBon) dao.loadOneByNameQueries("YvsComptaJustificatifBon.findOne", champ, val);
-            if (old != null ? old.getId() < 1 : true) {
-                y.setId(null);
-                y = (YvsComptaJustificatifBon) dao.save1(y);
-            } else {
-                y = old;
+        if (canAddBonProvisoire(bon, piece)) {
+            try {
+                YvsComptaJustificatifBon currentJustificatif = new YvsComptaJustificatifBon(bon, piece);
+                currentJustificatif.setAuthor(currentUser);
+                currentJustificatif.setId(null);
+                currentJustificatif = (YvsComptaJustificatifBon) dao.save1(currentJustificatif);
+                if (succes) {
+                    succes();
+                }
+                return currentJustificatif;
+            } catch (Exception ex) {
+                getErrorMessage("Erreur technique lors de l'enregistrement du justificatif", ex.getMessage());
+                Logger.getLogger(ManagedDocDivers.class.getName()).log(Level.SEVERE, "Erreur lors de la justification du bon provisoire", ex);
+                return null;
             }
         } else {
-            y.setId(bon.getBonDivers().getId());
-            dao.update(y);
+            return null;
         }
-        bon.setBonDivers(y);
-        int idx = piece.getBonsProvisoire().indexOf(y);
-        if (idx > 0) {
-            piece.getBonsProvisoire().set(idx, y);
-        } else {
-            piece.getBonsProvisoire().add(0, y);
-        }
-        if (succes) {
-            succes();
-        }
-        return y;
     }
 
     public YvsComptaCaissePieceDivers createNewPieceCaisse(DocCaissesDivers d, YvsComptaCaissePieceDivers pt, boolean delete) {

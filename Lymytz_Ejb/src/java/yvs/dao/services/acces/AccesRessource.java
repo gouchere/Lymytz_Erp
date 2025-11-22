@@ -127,7 +127,7 @@ public class AccesRessource implements Serializable {
     public boolean compta_cancel_piece_valide, compta_od_statut_valid_to_edit, compta_od_statut_encours_to_edit, compta_od_annul_comptabilite,
             compta_cheq_reg_vente_annul_comptabilite, compta_od_valid_max_seuil_montant, compta_od_change_nature,
             compta_od_view_all, compta_od_view_all_agence, compta_od_valide_recette, compta_od_valide_depense, //pour l'annulation du statut validé d'une pièce de caisse
-            compta_justif_bp,compta_valid_bp, compta_valid_all_bp, compta_valid_bp_under_max,
+            compta_justif_bp, compta_injustifier_bp, compta_valid_bp, compta_valid_all_bp, compta_valid_bp_under_max,
             compta_ope_client_change_agence_equilibre, compta_ope_fsseur_change_agence_equilibre;
 
     /**
@@ -2467,7 +2467,15 @@ public class AccesRessource implements Serializable {
     public void setGrh_delete_bulletin(boolean grh_delete_bulletin) {
         this.grh_delete_bulletin = grh_delete_bulletin;
     }
-    
+
+    public boolean isCompta_injustifier_bp() {
+        return compta_injustifier_bp;
+    }
+
+    public void setCompta_injustifier_bp(boolean compta_injustifier_bp) {
+        this.compta_injustifier_bp = compta_injustifier_bp;
+    }
+   
     
     
     

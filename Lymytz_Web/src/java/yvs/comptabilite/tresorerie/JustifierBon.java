@@ -29,7 +29,7 @@ public class JustifierBon implements Serializable {
     private Date dateJustifier = new Date();
     private Date datePiece;
     private Date dateSave = new Date();
-//    private PieceTresorerie piece;
+    private PieceTresorerie piece;
     private BonProvisoire bon = new BonProvisoire();
     private YvsComptaCaissePieceDivers piceDivers;
     private YvsComptaCaissePieceAchat pieceAchat;
@@ -88,14 +88,7 @@ public class JustifierBon implements Serializable {
     public void setDateSave(Date dateSave) {
         this.dateSave = dateSave;
     }
-
-//    public PieceTresorerie getPiece() {
-//        return piece;
-//    }
-//
-//    public void setPiece(PieceTresorerie piece) {
-//        this.piece = piece;
-//    }
+    
     public BonProvisoire getBon() {
         return bon;
     }
@@ -183,6 +176,7 @@ public class JustifierBon implements Serializable {
     public void setType(String type) {
         this.type = type;
     }
+       
 
     @Override
     public int hashCode() {

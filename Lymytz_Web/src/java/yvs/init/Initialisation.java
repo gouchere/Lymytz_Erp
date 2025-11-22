@@ -4,16 +4,34 @@
  */
 package yvs.init;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Serializable;
-import java.io.Writer;
+import org.primefaces.event.FlowEvent;
+import org.primefaces.event.SelectEvent;
+import org.primefaces.event.UnselectEvent;
+import yvs.base.produits.Articles;
+import yvs.connexion.Loggin;
+import yvs.dao.Options;
+import yvs.entity.commercial.YvsComParametre;
+import yvs.entity.compta.YvsComptaParametre;
+import yvs.entity.grh.presence.YvsPointeuse;
+import yvs.entity.mutuelle.YvsMutMutuelle;
+import yvs.entity.param.YvsAgences;
+import yvs.entity.param.YvsModuleActive;
+import yvs.entity.param.YvsSocietes;
+import yvs.entity.param.workflow.YvsConnection;
+import yvs.entity.production.YvsProdParametre;
+import yvs.entity.users.*;
+import yvs.parametrage.agence.Agence;
+import yvs.parametrage.societe.Societe;
+import yvs.users.Users;
+import yvs.util.*;
+
+import javax.annotation.PostConstruct;
+import javax.faces.application.FacesMessage;
+import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
+import javax.faces.bean.SessionScoped;
+import javax.faces.context.FacesContext;
+import java.io.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,49 +40,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
-import javax.faces.application.FacesMessage;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
-import javax.faces.bean.SessionScoped;
-import javax.faces.context.ExternalContext;
-import javax.faces.context.FacesContext;
-import javax.servlet.http.HttpSession;
-import org.primefaces.event.FlowEvent;
-import org.primefaces.event.SelectEvent;
-import org.primefaces.event.UnselectEvent;
-import yvs.connexion.Loggin;
-import yvs.entity.mutuelle.YvsMutMutuelle;
-import yvs.entity.param.YvsAgences;
-import yvs.entity.param.YvsSocietes;
-import yvs.entity.param.workflow.YvsConnection;
-import yvs.entity.users.YvsAutorisationModule;
-import yvs.entity.users.YvsAutorisationPageModule;
-import yvs.entity.users.YvsAutorisationRessourcesPage;
-import yvs.entity.users.YvsModule;
-import yvs.entity.users.YvsNiveauAcces;
-import yvs.entity.users.YvsNiveauUsers;
-import yvs.entity.users.YvsPageModule;
-import yvs.entity.users.YvsRessourcesPage;
-import yvs.entity.users.YvsUsers;
-import yvs.entity.users.YvsUsersAgence;
-import yvs.parametrage.societe.Societe;
-import yvs.parametrage.agence.Agence;
-import yvs.base.produits.Articles;
-import yvs.dao.Options;
-import yvs.entity.commercial.YvsComParametre;
-import yvs.entity.compta.YvsComptaParametre;
-import yvs.entity.grh.presence.YvsPointeuse;
-import yvs.entity.param.YvsModuleActive;
-import yvs.entity.production.YvsProdParametre;
-import yvs.entity.users.YvsUsersGrade;
-import yvs.users.Users;
-import yvs.users.messagerie.Conversation;
-import yvs.util.Constantes;
-import yvs.util.FileInfo;
-import yvs.util.Managed;
-import yvs.util.MdpUtil;
-import yvs.util.Util;
 //import yvs.util.Util;
 
 /**
@@ -498,30 +473,6 @@ public class Initialisation extends Managed implements Serializable {
             file.mkdirs();
         }
         return sb.toString();
-    }
-
-    public static String getCheminMailUser(Conversation mail) {
-        StringBuilder sb = new StringBuilder(cheminDocUsers);
-        File file = new File(sb.toString());
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        String cheminUser = sb.append(FILE_SEPARATOR).append(mail.getEmetteur().getNomUsers().replace(" ", "_")).toString();
-        file = new File(cheminUser);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        String cheminMail = sb.append(FILE_SEPARATOR).append("Mail").toString();
-        file = new File(cheminMail);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        String chemin = sb.append(FILE_SEPARATOR).append(mail.getReference().replace(" ", "_")).toString();
-        file = new File(chemin);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-        return chemin;
     }
 
     public static String getCheminDocMut() {
