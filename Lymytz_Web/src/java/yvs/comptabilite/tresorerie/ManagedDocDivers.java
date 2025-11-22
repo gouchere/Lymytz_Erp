@@ -3390,22 +3390,22 @@ public class ManagedDocDivers extends Managed<DocCaissesDivers, YvsComptaCaisseD
     }
 
     public void deleteBeanAbonnement_() {
-        try {
-            if (docDivers.canDelete()) {
-                if (abonnCD != null) {
+        if (abonnCD != null) {
+            try {
+                if (docDivers.canDelete() && !dao.isComptabilise(docDivers.getId(), Constantes.SCR_DIVERS)) {
                     abonnCD.setAuthor(currentUser);
                     dao.delete(abonnCD);
                     docDivers.getAbonnements().remove(abonnCD);
                     succes();
                     update("data_abonnement_others");
                     update("data_others");
+                } else {
+                    getErrorMessage("Vous ne pouvez pas modifier cette pièce");
                 }
-            } else {
-                getErrorMessage("Vous ne pouvez pas modifier cette pièce");
+            } catch (Exception ex) {
+                getErrorMessage("Suppression Impossible !");
+                log.log(Level.SEVERE, null, ex);
             }
-        } catch (Exception ex) {
-            getErrorMessage("Suppression Impossible !");
-            log.log(Level.SEVERE, null, ex);
         }
     }
 
