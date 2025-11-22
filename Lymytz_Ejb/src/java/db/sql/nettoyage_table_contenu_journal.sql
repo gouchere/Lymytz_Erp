@@ -1,10 +1,11 @@
---DROP FUNCTION public.remove_not_source_contenu_journal(int8, varchar, date, date);
+-- DROP FUNCTION public.remove_not_source_contenu_journal(int8, varchar, date, date, boolean);
 
 CREATE OR REPLACE FUNCTION public.remove_not_source_contenu_journal(
     societe_ bigint,
     table_name_ varchar,
     date_debut_ date,
-    date_fin_ date
+    date_fin_ date,
+    delete_ boolean
 )
 RETURNS SETOF yvs_compta_content_journal
 LANGUAGE plpgsql
@@ -73,24 +74,25 @@ BEGIN
                     SELECT 1 FROM %I src WHERE src.id = y.ref_externe
               )
         $sql$, societe_, date_debut_, date_fin_, rec.table_externe, rec.table_source);
-
+		
         -- 2️⃣ SUPPRIMER CES LIGNES
-        EXECUTE format($sql$
-            DELETE FROM yvs_compta_content_journal y
-            USING yvs_compta_pieces_comptable p,
-                  yvs_compta_journaux j,
-                  yvs_agences a
-            WHERE y.piece = p.id
-              AND p.journal = j.id
-              AND j.agence = a.id
-              AND a.societe = %L
-              AND y.echeance BETWEEN %L AND %L
-              AND y.table_externe = %L
-              AND NOT EXISTS (
-                    SELECT 1 FROM %I src WHERE src.id = y.ref_externe
-              )
-        $sql$, societe_, date_debut_, date_fin_, rec.table_externe, rec.table_source);
-
+        IF(delete_)THEN
+            EXECUTE format($sql$
+                DELETE FROM yvs_compta_content_journal y
+                USING yvs_compta_pieces_comptable p,
+                      yvs_compta_journaux j,
+                      yvs_agences a
+                WHERE y.piece = p.id
+                  AND p.journal = j.id
+                  AND j.agence = a.id
+                  AND a.societe = %L
+                  AND y.echeance BETWEEN %L AND %L
+                  AND y.table_externe = %L
+                  AND NOT EXISTS (
+                        SELECT 1 FROM %I src WHERE src.id = y.ref_externe
+                  )
+            $sql$, societe_, date_debut_, date_fin_, rec.table_externe, rec.table_source);
+        END IF;
     END LOOP;
 
     -- 3️⃣ RETOURNER TOUTES LES LIGNES SUPPRIMÉES (même structure que yvs_compta_content_journal)
