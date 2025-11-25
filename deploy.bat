@@ -1,3 +1,7 @@
+
+Viewed
+Original file line number	Original file line	Diff line number	Diff line change
+@@ -0,0 +1,54 @@
 @echo off
 REM ============================
 REM Script de deploiement GlassFish
@@ -10,6 +14,18 @@ set EAR_PATH=%NAME_APP%.ear
 set PASS_FILE=password.txt
 
 echo Deploiement de l'application %NAME_APP%
+
+rem Vérifie que la variable d'env pour AS_ADMIN_PWD est bien définie
+if "%AS_ADMIN_PWD%"=="" (
+    echo [ERREUR] La variable d'environnement AS_ADMIN_PWD n'est pas definie.
+    echo          Exemple : set AS_ADMIN_PWD=monSuperMotDePasse
+    exit /b 1
+)
+
+rem Fichier password temporaire
+set "PASS_FILE=%TEMP%\asadmin_pwd_%RANDOM%.txt"
+
+> "%PASS_FILE%" echo AS_ADMIN_PASSWORD=%AS_ADMIN_PWD%
 
 REM --- Verifier si le domaine est demarre ---
 echo.
@@ -50,5 +66,8 @@ if errorlevel 0 (
 ) else (
     echo Erreur lors du deploiement.
 )
-
+rem Nettoyage
+echo Nettoyage
+echo ==============================================================
+del "%PWFILE%" >nul 2>&1
 pause
