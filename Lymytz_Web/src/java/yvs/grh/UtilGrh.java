@@ -1433,10 +1433,10 @@ public class UtilGrh {
     public static List<Departements> buildBeanDepartement(List<YvsGrhDepartement> ldep) {
         List<Departements> result = new ArrayList<>();
         for (YvsGrhDepartement dep : ldep) {
-            chemin = null;
+            chemin = new CheminDepartement();
             Departements d = buildBeanDepartement(dep);
             setcheminParent1(d, ldep);
-            d.setCheminParent(chemin);
+            d.setCheminParent(chemin.path);
             result.add(d);
         }
 
@@ -1447,39 +1447,49 @@ public class UtilGrh {
         List<Departements> list = new ArrayList<>();
         if (l != null) {
             for (YvsGrhDepartement dep : l) {
-                chemin = null;
+                chemin = new CheminDepartement();
                 Departements d = buildBeanDepartement(dep);
                 setcheminParent1(d, l);
-                d.setCheminParent(chemin);
+                d.setCheminParent(chemin.path);
                 list.add(d);
             }
         }
         return list;
     }
 
-    static String chemin;
+    static CheminDepartement chemin;
+
+    static class CheminDepartement {
+
+        public String path = null;
+        public List<Integer> ids = new ArrayList<>();
+    }
 
     public static String setcheminParent1(Departements dep, List<YvsGrhDepartement> l) {
         try {
-            if (dep.getIdParent() != -1) {
+            if (chemin.ids == null) {
+                chemin.ids = new ArrayList<>();
+            }
+            if (dep.getIdParent() != -1 && dep.getIdParent() != dep.getId()) {
                 YvsGrhDepartement d = null;
                 int i = l.indexOf(new YvsGrhDepartement(dep.getIdParent()));
                 if (i >= 0) {
                     d = l.get(i);
                 }
-                if (d != null) {
-                    if (chemin != null) {
-                        chemin = d.getIntitule() + " / " + chemin;
+                if (d != null && !chemin.ids.contains(d.getId())) {
+                    chemin.ids.add(d.getId());
+                    if (chemin.path != null) {
+                        chemin.path = d.getIntitule() + " / " + chemin.path;
                     } else {
-                        chemin = d.getIntitule();
+                        chemin.path = d.getIntitule();
                     }
                     Departements dd = buildBeanDepartement(d);
                     setcheminParent1(dd, l);
                 }
             } else {
-                return chemin;
+                return chemin.path;
             }
-            return chemin;
+            return chemin.path;
         } catch (Exception ex) {
             Logger.getLogger(UtilGrh.class.getName()).log(Level.SEVERE, null, ex);
             return null;
