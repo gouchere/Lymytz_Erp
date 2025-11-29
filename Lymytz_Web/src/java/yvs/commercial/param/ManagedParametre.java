@@ -178,6 +178,9 @@ public class ManagedParametre extends ManagedCommercial<Parametre, YvsBaseCaisse
             p.setTauxMargeSur(y.getTauxMargeSur());
             p.setDateSave(y.getDateSave());
             p.setDateUpdate(new Date());
+            p.setDisplayAvgPuv(y.isDisplayAvgPuv());
+            p.setDisplayPrixRevient(y.isDisplayPrixRevient());
+            p.setDisplayResteALivrer(y.isDisplayResteALivrer());
             p.setSociete(currentAgence.getSociete());
             p.setAuthor(currentUser);
         }
