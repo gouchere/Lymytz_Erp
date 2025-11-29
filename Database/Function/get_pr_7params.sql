@@ -28,16 +28,13 @@ BEGIN
 																		WHERE article = article_ AND default_pr IS TRUE AND d.agence=agence_ LIMIT 1;
 		END IF;
 		_depot_=line_ad_.depot;
-	ELSE
-	     -- Récupère la catégorie du produit dans le dépôt
-	    -- SELECT INTO categorie_ ad.categorie FROM yvs_base_article_depot ad WHERE ad.article=article_ AND ad.depot=_depot_;
 	END IF;
 	depot_ = COALESCE(_depot_, depot_);
         -- A partir d'ici, je récupère le PR dans la table historique, qui fait office de cache pour le PR
 	-- calcul de la prériode de référence
 	IF(depot_ IS NOT NULL) THEN 
 		date_debut=(date_ - interval '7 day')::date;
-		select into line_ * from yvs_historique_pr y where y.conditionnement=unite_ and y.date_evaluation between date_debut and date_ and y.depot=depot_ LIMIT 1;
+		select into line_ * from yvs_historique_pr y where y.conditionnement=unite_ and y.date_evaluation between date_debut and date_ and y.depot=depot_ ORDER BY y.date_evaluation DESC LIMIT 1;
 		if(line_.id is not null and line_.pr>0) then  
 			return line_.pr;
 		else
