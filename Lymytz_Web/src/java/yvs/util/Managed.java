@@ -5581,7 +5581,7 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     public double convertirUnites(YvsBaseUniteMesure entree, YvsBaseUniteMesure sortie, double qte) {
         if ((sortie != null ? sortie.getId() > 0 : false) && (entree != null ? entree.getId() > 0 : false)) {
             if (entree.equals(sortie)) {
-                return 1;
+                return qte;
             }
             YvsBaseTableConversion tc = (YvsBaseTableConversion) dao.loadOneByNameQueries("YvsBaseTableConversion.findUniteCorrespondance", new String[]{"unite", "uniteE"}, new Object[]{entree, sortie});
             return convertirUnites(entree, sortie, qte, (tc != null ? tc.getTauxChange() : 0));
@@ -5592,7 +5592,7 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
     public double convertirUnites(YvsBaseUniteMesure entree, YvsBaseUniteMesure sortie, double qte, double coeficient) {
         if ((sortie != null ? sortie.getId() > 0 : false) && (entree != null ? entree.getId() > 0 : false)) {
             if (entree.equals(sortie)) {
-                return 1;
+                return qte;
             } else {
                 return (qte * coeficient);
             }
