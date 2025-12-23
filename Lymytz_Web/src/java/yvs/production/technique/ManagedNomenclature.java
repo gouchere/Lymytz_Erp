@@ -13,12 +13,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.poi.hssf.util.CellRangeAddress;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -62,6 +64,8 @@ import yvs.util.Util;
 @ManagedBean
 @SessionScoped
 public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclature> implements Serializable {
+
+    private static final Logger LOGGER = Logger.getLogger(ManagedNomenclature.class.getName());
 
     @ManagedProperty(value = "#{nomenclature}")
     private Nomenclature nomenclature;
@@ -445,7 +449,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     @Override
     public boolean controleFiche(Nomenclature bean) {
-        if (bean.getCompose() != null ? bean.getCompose().getId() < 1 : true) {
+        if (bean.getCompose() == null || bean.getCompose().getId() < 1) {
             getErrorMessage("Vous devez choisir un article");
             return false;
         }
@@ -457,21 +461,21 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
             getErrorMessage("Vous devez précisez un niveau");
             return false;
         }
-        if (bean.getUnite() != null ? bean.getUnite().getId() < 1 : true) {
+        if (bean.getUnite() == null || bean.getUnite().getId() < 1) {
             getErrorMessage("Vous devez précisez l'unité de mesure");
             return false;
         }
         champ = new String[]{"niveau", "article"};
         val = new Object[]{bean.getNiveau(), new YvsBaseArticles(bean.getCompose().getId())};
         YvsProdNomenclature p = (YvsProdNomenclature) dao.loadOneByNameQueries("YvsProdNomenclature.findByArticleNiveau", champ, val);
-        if (p != null ? !p.getId().equals(bean.getId()) : false) {
+        if (p != null && !p.getId().equals(bean.getId())) {
             getErrorMessage("Vous avez deja enregistré une nomenclature de cette article avec ce niveau");
             return false;
         }
         champ = new String[]{"reference", "societe"};
         val = new Object[]{bean.getReference(), currentAgence.getSociete()};
         p = (YvsProdNomenclature) dao.loadOneByNameQueries("YvsProdNomenclature.findByReference", champ, val);
-        if (p != null ? !p.getId().equals(bean.getId()) : false) {
+        if (p != null && !p.getId().equals(bean.getId())) {
             getErrorMessage("Vous avez deja enregistré une nomenclature avec cette reference");
             return false;
         }
@@ -479,11 +483,11 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     private boolean controleFicheComposant(ComposantNomenclature bean) {
-        if (bean.getNomenclature() != null ? bean.getNomenclature().getId() < 1 : true) {
+        if (bean.getNomenclature() == null || bean.getNomenclature().getId() < 1) {
             getErrorMessage("votre nomenclature n'est pas référencé");
             return false;
         }
-        if (bean.getArticle() != null ? bean.getArticle().getId() < 1 : true) {
+        if (bean.getArticle() == null || bean.getArticle().getId() < 1) {
             getErrorMessage("veuillez choisir l'article");
             return false;
         }
@@ -495,15 +499,11 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
             getErrorMessage("vous devez indiquer un ordre positif");
             return false;
         }
-        if (bean.getUnite() != null ? bean.getUnite().getId() < 1 : true) {
+        if (bean.getUnite() == null || bean.getUnite().getId() < 1) {
             getErrorMessage("vous devez indiquer une quantité valide pour ce composant");
             return false;
         }
-//        if (bean.getArticle().equals(nomenclature.getCompose()) && bean.getUnite().equals(nomenclature.getUnite())) {
-//            getErrorMessage("Erreur de liaison cyclique dans la définition de la nomenclature !");
-//            return false;
-//        }
-        if (nomenclature.isQteLieAuxComposant() ? bean.getCoefficient() == 0 : false) {
+        if (nomenclature.isQteLieAuxComposant() && bean.getCoefficient() == 0) {
             getErrorMessage("Vous devez choisir une unité de conditionnement qui a une equivalence");
             return false;
         }
@@ -514,7 +514,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
             }
         }
         YvsProdComposantNomenclature y = (YvsProdComposantNomenclature) dao.loadOneByNameQueries("YvsProdComposantNomenclature.findByOne", new String[]{"article", "unite", "nomenclature"}, new Object[]{new YvsBaseArticles(bean.getArticle().getId()), new YvsBaseConditionnement(bean.getUnite().getId()), new YvsProdNomenclature(nomenclature.getId())});
-        if (y != null ? y.getId() > 0 ? !y.getId().equals(bean.getId()) : false : false) {
+        if (y != null && (y.getId() > 0 && !y.getId().equals(bean.getId()))) {
             getErrorMessage("Vous avez deja ajouté ce composant", "Il est peut-être désactivé.");
             return false;
         }
@@ -540,16 +540,16 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     private double valeurTotal() {
         Double val_total = 0.0;
         Double pr;
+        Date dateReference = new Date(); // Optimisation: réutilisation de l'objet Date
         for (YvsProdComposantNomenclature compo : nomenclature.getComposants()) {
-            pr = dao.getPr(compo.getArticle().getId(), 0, 0L, new Date(), compo.getUnite().getId());
-            pr = pr != null ? pr : compo.getUnite().getPrixAchat();
+            pr = dao.getPr(compo.getArticle().getId(), 0, 0L, dateReference, compo.getUnite().getId());
+            pr = pr > 0 ? pr : compo.getUnite().getPrixAchat();
             compo.setPr(pr);
             compo.setValeur(compo.getQuantite() * compo.getPr());
             if (compo.getActif() && compo.getInsideCout()) {
                 val_total += compo.getValeur();
             }
         }
-        val_total = val_total != null ? val_total : 0;
         return val_total;
     }
 
@@ -622,7 +622,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
             int row = ev.getRowIndex();
             if (row >= 0) {
                 YvsProdComposantNomenclature co = nomenclature.getComposants().get(row);
-                if (co != null ? co.getId() > 0 : false) {
+                if (co != null && co.getId() > 0) {
                     co.setDateUpdate(new Date());
                     co.setAuthor(currentUser);
                     dao.update(co);
@@ -644,6 +644,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     public boolean saveNewComposant() {
+        long start = System.nanoTime();
         String action = composant.getId() > 0 ? "Modification" : "Insertion";
         try {
             if (nomenclature.getId() <= 0) {
@@ -700,6 +701,9 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
             getErrorMessage(action + " impossible");
             getException("Error " + action, ex);
             return false;
+        } finally {
+            long end = System.nanoTime();
+            LOGGER.info("Temps d'execution de saveNewComposant : " + (end - start) / 1_000_000_000.0 + " s");
         }
     }
 
@@ -714,7 +718,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     @Override
     public void deleteBean() {
         try {
-            if (tabIds != null ? tabIds.trim().length() > 0 : false) {
+            if (tabIds != null && tabIds.trim().length() > 0) {
                 List<Long> l = decomposeIdSelection(tabIds);
                 List<YvsProdNomenclature> list = new ArrayList<>();
                 YvsProdNomenclature y;
@@ -746,7 +750,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     public void deleteBean_() {
         try {
-            if (selectNomenclature != null ? selectNomenclature.getId() > 0 : false) {
+            if (selectNomenclature != null && selectNomenclature.getId() > 0) {
                 dao.delete(selectNomenclature);
                 int idx = nomenclatures.indexOf(selectNomenclature);
                 if (idx > -1) {
@@ -765,7 +769,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     public void deleteBeanComposant() {
         try {
-            if (tabIds_composant != null ? tabIds_composant.trim().length() > 0 : false) {
+            if (tabIds_composant != null && tabIds_composant.trim().length() > 0) {
                 String[] ids = tabIds_composant.trim().split("-");
                 for (String o : ids) {
                     long id = Long.valueOf(o);
@@ -808,7 +812,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     public void deleteBeanComposant_() {
         try {
-            if (selectComposant != null ? selectComposant.getId() > 0 : false) {
+            if (selectComposant != null && selectComposant.getId() > 0) {
                 dao.delete(selectComposant);
                 int idx = nomenclatures.indexOf(new YvsProdNomenclature(nomenclature.getId()));
                 if (idx > -1) {
@@ -879,7 +883,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     @Override
     public void loadOnView(SelectEvent ev) {
-        if (ev != null ? ev.getObject() != null : false) {
+        if (ev != null && ev.getObject() != null) {
             selectNomenclature = (YvsProdNomenclature) ev.getObject();
             onSelectObject(selectNomenclature);
             displaySousProd = true;
@@ -890,16 +894,6 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     public Double giveQuantite(YvsProdComposantNomenclature current) {
         if (current.getComposantLie() != null) {
-//            YvsProdComposantNomenclature co = null;
-//            for (YvsProdComposantNomenclature c : nomenclature.getComposants()) {
-//                if (c.equals(current)) {
-//                    co = c;
-//                    break;
-//                }
-//            }
-//            if (co != null) {
-//                return co.getQuantite() * current.getQuantite() / 100;
-//            }
             return current.getComposantLie().getQuantite() * current.getQuantite() / 100;
         } else {
             return current.getQuantite();
@@ -929,7 +923,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     public void loadOnViewComposant(SelectEvent ev) {
-        if (ev != null ? ev.getObject() != null : false) {
+        if (ev != null && ev.getObject() != null) {
             YvsProdComposantNomenclature y = (YvsProdComposantNomenclature) ev.getObject();
             if (y.getId() > 0) {
                 if (y.getArticle().getConditionnements().isEmpty()) {
@@ -951,7 +945,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
             composantLie = UtilProd.buildBeanComposantNomenclature(y.getComposantLie());
         }
         listOthers = dao.loadNameQueries("YvsProdNomenclature.findByArticleActif", new String[]{"article"}, new Object[]{new YvsBaseArticles(idArticle)});
-        if (listOthers != null ? !listOthers.isEmpty() : false) {
+        if (listOthers != null && !listOthers.isEmpty()) {
             openDialog("dlgApplyPsf");
             otherNom = UtilProd.buildSimpleBeanNomenclature(listOthers.get(0));
             update("form_define_nom_");
@@ -962,38 +956,9 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         resetFicheComposant();
     }
 
-    public void chooseUnitePreference() {
-//        ManagedUniteMesure m = (ManagedUniteMesure) giveManagedBean(ManagedUniteMesure.class);
-//        if (m != null) {
-//            switch (nomenclature.getUnitePreference()) {
-//                case Constantes.UNITE_VOLUME:
-//                    nomenclature.setUnite(nomenclature.getCompose() != null
-//                            ? (nomenclature.getCompose().getUniteVolume() != null
-//                            ? (nomenclature.getCompose().getUniteVolume().getId() > 0
-//                            ? nomenclature.getCompose().getUniteVolume()
-//                            : new UniteMesure("UNITAIRE"))
-//                            : new UniteMesure("UNITAIRE"))
-//                            : new UniteMesure("UNITAIRE"));
-//                    m.loadByType(Constantes.UNITE_VOLUME);
-//                    break;
-//                default:
-//                    nomenclature.setUnite(nomenclature.getCompose() != null
-//                            ? (nomenclature.getCompose().getUnite() != null
-//                            ? (nomenclature.getCompose().getUnite().getId() > 0
-//                            ? nomenclature.getCompose().getUnite()
-//                            : new UniteMesure("UNITAIRE"))
-//                            : new UniteMesure("UNITAIRE"))
-//                            : new UniteMesure("UNITAIRE"));
-//                    m.loadByType(Constantes.UNITE_MASSE);
-//                    break;
-//            }
-//            update("txt_unite_nomenclature");
-//        }
-    }
-
     public void toogleActiveAll(Boolean activ) {
         try {
-            if (tabIds_composant != null ? tabIds_composant.trim().length() > 0 : false) {
+            if (tabIds_composant != null && !tabIds_composant.trim().isEmpty()) {
                 String[] ids = tabIds_composant.trim().split("-");
                 for (String o : ids) {
                     int idx = Integer.valueOf(o);
@@ -1055,7 +1020,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     public void loadOnViewArticle(SelectEvent ev) {
-        if ((ev != null) ? ev.getObject() != null : false) {
+        if (ev != null && ev.getObject() != null) {
             YvsBaseArticles bean = (YvsBaseArticles) ev.getObject();
             bean.setConditionnements(dao.loadNameQueries("YvsBaseConditionnement.findByArticle", new String[]{"article"}, new Object[]{bean}));
             chooseArticle(UtilProd.buildBeanArticleForForm(bean));
@@ -1063,7 +1028,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     public void loadOnViewUnite(SelectEvent ev) {
-        if ((ev != null) ? ev.getObject() != null : false) {
+        if (ev != null && ev.getObject() != null) {
             YvsBaseConditionnement bean = (YvsBaseConditionnement) ev.getObject();
             composant.setUnite(UtilProd.buildBeanConditionnement(bean));
             update("txt_qte_composant_converti");
@@ -1085,11 +1050,11 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         nomenclature.getCompose().setDesignation("");
         nomenclature.getCompose().setError(true);
         nomenclature.getCompose().setId(0);
-        if (num != null ? num.trim().length() > 0 : false) {
+        if (num != null && !num.trim().isEmpty()) {
             ManagedArticles m = (ManagedArticles) giveManagedBean("Marticle");
             if (m != null) {
                 Articles y = m.searchArticleActif(null, num, true);
-                if (m.getArticlesResult() != null ? !m.getArticlesResult().isEmpty() : false) {
+                if (m.getArticlesResult() != null && !m.getArticlesResult().isEmpty()) {
                     if (m.getArticlesResult().size() > 1) {
                         update("data_article_nomenclature");
                     } else {
@@ -1106,11 +1071,11 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         composant.getArticle().setDesignation("");
         composant.getArticle().setError(true);
         composant.getArticle().setId(0);
-        if (num != null ? num.trim().length() > 0 : false) {
+        if (num != null && !num.trim().isEmpty()) {
             ManagedArticles m = (ManagedArticles) giveManagedBean("Marticle");
             if (m != null) {
                 Articles y = m.searchArticleActif(null, num, true);
-                if (m.getArticlesResult() != null ? !m.getArticlesResult().isEmpty() : false) {
+                if (m.getArticlesResult() != null && !m.getArticlesResult().isEmpty()) {
                     if (m.getArticlesResult().size() > 1) {
                         update("data_article_nomenclature");
                     } else {
@@ -1154,7 +1119,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     public void chooseUniteComposant() {
-        if (composant.getUnite() != null ? composant.getUnite().getId() > 0 : false) {
+        if (composant.getUnite() != null && composant.getUnite().getId() > 0) {
             Double taux = 1D;
             if (composant.getUnite().getUnite().getId() != nomenclature.getUnite().getUnite().getId()) {
                 taux = (Double) dao.loadOneByNameQueries("YvsBaseTableConversion.findTauxByUniteCorrespondance", new String[]{"unite", "uniteE"}, new Object[]{new YvsBaseUniteMesure(composant.getUnite().getUnite().getId()), new YvsBaseUniteMesure(nomenclature.getUnite().getUnite().getId())});
@@ -1168,11 +1133,11 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         composant.getUnite().getUnite().setLibelle("");
         composant.getUnite().getUnite().setError(true);
         composant.getUnite().getUnite().setId(0);
-        if (num != null ? num.trim().length() > 0 : false) {
+        if (num != null && !num.trim().isEmpty()) {
             ManagedUniteMesure m = (ManagedUniteMesure) giveManagedBean(ManagedUniteMesure.class);
             if (m != null) {
                 UniteMesure y = m.findUnite(num, true);
-                if (m.getUnites() != null ? !m.getUnites().isEmpty() : false) {
+                if (m.getUnites() != null && !m.getUnites().isEmpty()) {
                     if (m.getUnites().size() > 1) {
                         update("data_unite_nomenclature");
                     } else {
@@ -1194,7 +1159,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     public void blurQuantiteComposant() {
-        if (nomenclature.isQteLieAuxComposant() ? composant.getTypeComposant().equals("N") : false) {
+        if (nomenclature.isQteLieAuxComposant() && composant.getTypeComposant().equals("N")) {
             double qte = composant.getQuantite() * composant.getCoefficient();
             nomenclature.setQuantite(nomenclature.getQuantite() + qte);
             update("txt_qte_nomenclature");
@@ -1215,11 +1180,11 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     public void checkPrincipal() {
         if (nomenclature.isPrincipal()) {
-            if (nomenclature.getCompose() != null ? nomenclature.getCompose().getId() > 0 : false) {
+            if (nomenclature.getCompose() != null && nomenclature.getCompose().getId() > 0) {
                 champ = new String[]{"article"};
                 val = new Object[]{new YvsBaseArticles(nomenclature.getCompose().getId())};
                 YvsProdNomenclature p = (YvsProdNomenclature) dao.loadOneByNameQueries("YvsProdNomenclature.findByPrincipal", champ, val);
-                if (p != null ? (p.getId() > 0 ? !p.getId().equals(nomenclature.getId()) : false) : false) {
+                if (p != null && (p.getId() > 0 && !p.getId().equals(nomenclature.getId()))) {
                     getErrorMessage("Cette article a déjà une nomenclature principale");
                     nomenclature.setPrincipal(false);
                     update("chk_principal_nomenclature");
@@ -1233,7 +1198,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
             champ = new String[]{"article"};
             val = new Object[]{y.getArticle()};
             YvsProdNomenclature p = (YvsProdNomenclature) dao.loadOneByNameQueries("YvsProdNomenclature.findByPrincipal", champ, val);
-            if (p != null ? (p.getId() > 0 ? !p.getId().equals(nomenclature.getId()) : false) : false) {
+            if (p != null && (p.getId() > 0 && !p.getId().equals(nomenclature.getId()))) {
                 getErrorMessage("Cette article a déjà une nomenclature principale");
                 return;
             }
@@ -1258,7 +1223,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         champ = new String[]{"reference", "societe"};
         val = new Object[]{n, currentAgence.getSociete()};
         YvsProdNomenclature p = (YvsProdNomenclature) dao.loadOneByNameQueries("YvsProdNomenclature.findByReference", champ, val);
-        if (p != null ? !p.getId().equals(nomenclature.getId()) : false) {
+        if (p != null && !p.getId().equals(nomenclature.getId())) {
             for (int i = 1; i < 100; i++) {
                 if (i < 10) {
                     n = "NOME-" + y.getRefArt() + "/0" + i;
@@ -1268,7 +1233,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
                 champ = new String[]{"reference", "societe"};
                 val = new Object[]{n, currentAgence.getSociete()};
                 p = (YvsProdNomenclature) dao.loadOneByNameQueries("YvsProdNomenclature.findByReference", champ, val);
-                if (p != null ? p.getId() < 1 : true) {
+                if (p == null || p.getId() < 1) {
                     return n;
                 }
             }
@@ -1295,7 +1260,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     public void addParamReference() {
         ParametreRequete p = new ParametreRequete("y.reference", "reference", null);
-        if (numSearch != null ? numSearch.trim().length() > 0 : false) {
+        if (numSearch != null && !numSearch.trim().isEmpty()) {
             switch (droit) {
                 case 1:
                     p = new ParametreRequete("UPPER(y.reference)", "reference", numSearch.toUpperCase() + "%", "LIKE", "AND");
@@ -1339,7 +1304,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     public void addParamCategorie() {
         ParametreRequete p = new ParametreRequete("y.gamme.article.categorie", "categorie", null);
-        if (categorieSearch != null ? categorieSearch.trim().length() > 0 : false) {
+        if (categorieSearch != null && !categorieSearch.trim().isEmpty()) {
             switch (droit) {
                 case 1:
                     p = new ParametreRequete("y.article.categorie", "categorie", categorieSearch, "=", "AND");
@@ -1425,7 +1390,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     public void addParamArticle() {
         ParametreRequete p = new ParametreRequete("y.article", "article", null);
-        if (artSearch != null ? artSearch.trim().length() > 0 : false) {
+        if (artSearch != null && !artSearch.trim().isEmpty()) {
             p = new ParametreRequete(null, "article", artSearch.toUpperCase() + "%", "LIKE", "AND");
             switch (droit) {
                 case 1:
@@ -1491,7 +1456,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         if (toUpComposant(y)) {
             int idx = nomenclature.getComposants().indexOf(y);
             YvsProdComposantNomenclature n = nomenclature.getComposants().get(idx - 1);
-            if (n != null ? n.getId() > 0 : false) {
+            if (n != null && n.getId() > 0) {
                 int ordre = n.getOrdre();
                 n.setOrdre(y.getOrdre() == 0 ? 1 : y.getOrdre());
                 y.setOrdre(ordre);
@@ -1518,7 +1483,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         if (toDownComposant(y)) {
             int idx = nomenclature.getComposants().indexOf(y);
             YvsProdComposantNomenclature n = nomenclature.getComposants().get(idx + 1);
-            if (n != null ? n.getId() > 0 : false) {
+            if (n != null && n.getId() > 0) {
                 int ordre = n.getOrdre();
                 n.setOrdre(y.getOrdre());
                 y.setOrdre(ordre == 0 ? 1 : ordre);
@@ -1621,7 +1586,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     public void attribCodeAcces(SelectEvent ev) {
-        if (ev != null ? ev.getObject() != null : false) {
+        if (ev != null && ev.getObject() != null) {
             codeAcces = (YvsBaseCodeAcces) ev.getObject();
             selectNomenclature.setAcces(codeAcces);
             dao.update(selectNomenclature);
@@ -1639,7 +1604,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
             YvsProdNomenclature y = UtilProd.buildBeanNomenclature(nomenclature, currentUser);
             y.setId(null);
             y = (YvsProdNomenclature) dao.save1(y);
-            if (y != null ? y.getId() > 0 : false) {
+            if (y != null && y.getId() > 0) {
                 YvsProdComposantNomenclature current;
                 if (y.getComposants() == null) {
                     y.setComposants(new ArrayList<YvsProdComposantNomenclature>());
@@ -1759,22 +1724,15 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
                         fusionneTo = nomenclatures.get(idx).getReference();
                     } else {
                         YvsProdNomenclature c = (YvsProdNomenclature) dao.loadOneByNameQueries("YvsProdNomenclature.findById", new String[]{"id"}, new Object[]{newValue});
-                        if (c != null ? c.getId() > 0 : false) {
+                        if (c != null && c.getId() > 0) {
                             fusionneTo = c.getReference();
                         }
                     }
                     YvsProdNomenclature c;
                     for (int i : ids) {
                         long oldValue = nomenclatures.get(i).getId();
-                        if (i > -1) {
-                            if (oldValue != newValue) {
-                                fusionnesBy.add(nomenclatures.get(i).getReference());
-                            }
-                        } else {
-                            c = (YvsProdNomenclature) dao.loadOneByNameQueries("YvsProdNomenclature.findById", new String[]{"id"}, new Object[]{oldValue});
-                            if (c != null ? c.getId() > 0 : false) {
-                                fusionnesBy.add(c.getReference());
-                            }
+                        if (oldValue != newValue) {
+                            fusionnesBy.add(nomenclatures.get(i).getReference());
                         }
                     }
                 }
@@ -1807,7 +1765,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
                     if (dao.fusionneData("yvs_prod_composant_nomenclature", newValue, oldValue)) {
                         for (String i : oldValue.split(",")) {
                             Long id = Long.valueOf(i);
-                            if (id > 0 ? !id.equals(newValue) : false) {
+                            if (id > 0 && !id.equals(newValue)) {
                                 nomenclature.getComposants().remove(new YvsProdComposantNomenclature(id));
                             }
                         }
@@ -1820,22 +1778,15 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
                         fusionneToComposant = nomenclature.getComposants().get(idx).getArticle().getDesignation();
                     } else {
                         YvsProdComposantNomenclature c = (YvsProdComposantNomenclature) dao.loadOneByNameQueries("YvsProdComposantNomenclature.findById", new String[]{"id"}, new Object[]{newValue});
-                        if (c != null ? c.getId() > 0 : false) {
+                        if (c != null && c.getId() > 0) {
                             fusionneToComposant = c.getArticle().getDesignation();
                         }
                     }
                     YvsProdComposantNomenclature c;
                     for (int i : ids) {
                         long oldValue = nomenclature.getComposants().get(i).getId();
-                        if (i > -1) {
-                            if (oldValue != newValue) {
-                                fusionnesByComposant.add(nomenclature.getComposants().get(i).getArticle().getDesignation());
-                            }
-                        } else {
-                            c = (YvsProdComposantNomenclature) dao.loadOneByNameQueries("YvsProdComposantNomenclature.findById", new String[]{"id"}, new Object[]{oldValue});
-                            if (c != null ? c.getId() > 0 : false) {
-                                fusionnesByComposant.add(c.getArticle().getDesignation());
-                            }
+                        if (oldValue != newValue) {
+                            fusionnesByComposant.add(nomenclature.getComposants().get(i).getArticle().getDesignation());
                         }
                     }
                 }
@@ -1904,7 +1855,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         if (!composant.getArticle().equals(composant.getNomenclature().getArticle())) {
             List<YvsProdComposantNomenclature> l;
             Long nb = (Long) dao.loadObjectByNameQueries("YvsProdNomenclature.countByArticleActif", new String[]{"article"}, new Object[]{composant.getArticle()});
-            if (nb != null ? nb > 1 : false) {
+            if (nb != null && nb > 1) {
                 l = dao.loadNameQueries("YvsProdComposantNomenclature.findComposantNomByArticleP",
                         new String[]{"article"}, new Object[]{composant.getArticle()});
             } else {
@@ -1924,7 +1875,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     public void toogleComposantAlternatif(YvsProdComposantNomenclature composant) {
-        if (composant != null ? composant.getId() > 0 : false) {
+        if (composant != null && composant.getId() > 0) {
             composant.setAlternatif(!composant.getAlternatif());
             composant.setAuthor(currentUser);
             composant.setDateUpdate(new Date());
@@ -1949,7 +1900,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     public void checkGammeArticle(YvsProdComposantNomenclature composant) {
         List<YvsProdOperationsGamme> l;
         Long nb = (Long) dao.loadObjectByNameQueries("YvsProdGammeArticle.CountByArticle", new String[]{"article"}, new Object[]{new YvsBaseArticles(nomenclature.getCompose().getId())});
-        if (nb != null ? nb > 1 : false) {
+        if (nb != null && nb > 1) {
             l = dao.loadNameQueries("YvsProdOperationsGamme.findByArticleP",
                     new String[]{"article"}, new Object[]{new YvsBaseArticles(nomenclature.getCompose().getId())});
         } else {
@@ -1958,7 +1909,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
         }
         YvsProdComposantOp c;
         composantsOperation.clear();
-        Integer id = -100;
+        int id = -100;
         for (YvsProdOperationsGamme o : l) {
             System.err.println("---- " + o.getCodeRef());
             c = (YvsProdComposantOp) dao.loadOneByNameQueries("YvsProdComposantOp.findByOne", new String[]{"operation", "composant"}, new Object[]{o, composant});
@@ -1977,7 +1928,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
     }
 
     public void addComposantOnOperation(YvsProdComposantOp c) {
-        if (c != null ? c.getId() < 0 : false) {
+        if (c != null && c.getId() < 0) {
             c.setDateSave(new Date());
             c.setDateUpdate(new Date());
             c.setAuthor(currentUser);
@@ -2101,10 +2052,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
 
     public void maintenance2() {
         List<YvsProdNomenclature> ln = dao.loadNameQueries("YvsProdNomenclature.findAll", new String[]{"societe"}, new Object[]{currentAgence.getSociete()});
-        for (YvsProdNomenclature n : ln) {
-            //trouve le sous produit
-
-        }
+        //trouve le sous produit
         succes();
 
     }
@@ -2147,7 +2095,7 @@ public class ManagedNomenclature extends Managed<Nomenclature, YvsProdNomenclatu
                 }
                 rowCount++;
             }
-            String destination = Initialisation.getCheminResource() + "" + Initialisation.FILE_SEPARATOR + "nomenclature.xlsx";
+            String destination = Initialisation.getCheminResource() + Initialisation.FILE_SEPARATOR + "nomenclature.xlsx";
             try (FileOutputStream outputStream = new FileOutputStream(destination)) {
                 workbook.write(outputStream);
             }

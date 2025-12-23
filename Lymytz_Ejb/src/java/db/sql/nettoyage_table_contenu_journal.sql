@@ -12,7 +12,7 @@ LANGUAGE plpgsql
 AS $function$
 DECLARE
     rec RECORD;
-    filter_table varchar := NULLIF(table_name_, '');
+      varchar := NULLIF(table_name_, '');
 BEGIN
     -- TABLE TEMPORAIRE MAPPING
     CREATE TEMP TABLE yvs_contenu_journal_mapping (
