@@ -19,6 +19,7 @@ import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
+
 import lymytz.navigue.Navigations;
 import org.primefaces.event.CellEditEvent;
 import org.primefaces.event.RowEditEvent;
@@ -36,7 +37,9 @@ import yvs.base.tiers.Tiers;
 import yvs.commercial.Commerciales;
 import yvs.commercial.ManagedCatCompt;
 import yvs.commercial.ManagedCommercial;
+
 import static yvs.commercial.ManagedCommercial.currentParam;
+
 import yvs.commercial.ManagedCommerciaux;
 import yvs.commercial.ManagedModeReglement;
 import yvs.commercial.ManagedTaxes;
@@ -128,7 +131,9 @@ import yvs.grh.bean.TypeCout;
 import yvs.grh.bean.TypeElementAdd;
 import yvs.grh.paie.ManagedRetenue;
 import yvs.grh.presence.TrancheHoraire;
+
 import static yvs.init.Initialisation.FILE_SEPARATOR;
+
 import yvs.parametrage.PlanPrelevement;
 import yvs.parametrage.dico.Dictionnaire;
 import yvs.parametrage.dico.ManagedDico;
@@ -144,8 +149,10 @@ import yvs.service.com.vente.IYvsComDocVentesInformations;
 import yvs.users.Users;
 import yvs.users.UtilUsers;
 import yvs.util.Constantes;
+
 import static yvs.util.Managed.ldf;
 import static yvs.util.Managed.time;
+
 import yvs.util.PaginatorResult;
 import yvs.util.ParametreRequete;
 import yvs.util.Util;
@@ -160,9 +167,9 @@ import yvs.util.enume.Nombre;
 @SessionScoped
 public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDocVentes> implements Serializable {
 
-    private YvsComEnteteDocVente selectEntete;
-//    private EnteteDocVente entete = new EnteteDocVente();
+    private final static Logger logger = Logger.getLogger(ManagedFactureVenteV2.class.getName());
 
+    private YvsComEnteteDocVente selectEntete;
     private DocVente docVente = new DocVente();
     private List<YvsComDocVentes> documents, selections;
     private YvsComDocVentes docLie;
@@ -1602,6 +1609,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         all_contenus = p_contenu.executeDynamicQuery("YvsComContenuDocVente", orderBy, avance, init, dao);
         update("data_contenu_fv");
     }
+
     boolean initForm = true;
 
     private boolean initDroit() {
@@ -1668,6 +1676,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         paginator.addParam(new ParametreRequete("CO.id", "idCompta", "X", " IS NULL", "AND"));
         loadAllFacture(true);
     }
+
     private String pre = "y.";
 
     public void loadAllFacture(boolean avance) {
@@ -4951,6 +4960,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
         }
     }
+
     YvsComDocVentes distant;
 
     public void onValideDistantLivraison(YvsComDocVentes y) {
@@ -6971,7 +6981,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 if (y.getTiers() != null ? y.getTiers().getId() > 0 : true) {
                     String query = "UPDATE yvs_com_doc_ventes SET tiers=?, date_update=?, author=? WHERE id=? ";
                     dao.requeteLibre(query, new Options[]{new Options(y.getTiers().getId(), 1), new Options(new Date(), 2),
-                        new Options(currentUser.getId(), 3), new Options(y.getId(), 4)});
+                            new Options(currentUser.getId(), 3), new Options(y.getId(), 4)});
                     if (succes) {
                         succes();
                     }
@@ -8156,7 +8166,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
 
     public void addNote() {
         try {
-            if (notes != null ? !notes.isEmpty() : false) {
+            if (notes != null && !notes.isEmpty()) {
                 selectDoc.setNotes(notes);
                 dao.update(selectDoc);
                 succes();
@@ -8166,7 +8176,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Erreur survenue lors de l'ajout d'une note", e);
         }
     }
 
@@ -8179,10 +8189,10 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         } else {
             ManagedBonVente w = (ManagedBonVente) giveManagedBean(ManagedBonVente.class);
             if (w != null) {
-                if (docVente.getDocuments() != null ? docVente.getDocuments().isEmpty() : true) {
+                if (docVente.getDocuments() == null || docVente.getDocuments().isEmpty()) {
                     openDocumentLies();
                 }
-                if (docVente.getReglements() != null ? docVente.getReglements().isEmpty() : true) {
+                if (docVente.getReglements() == null || docVente.getReglements().isEmpty()) {
                     openDlgReglement();
                 }
                 w.setDateLivraison(dateLivraison);
@@ -8217,13 +8227,13 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         champ = new String[]{"article", "depot"};
         val = new Object[]{c.getArticle(), depot};
         YvsBaseArticleDepot y = (YvsBaseArticleDepot) dao.loadOneByNameQueries("YvsBaseArticleDepot.findByArticleDepot", champ, val);
-        if (y != null ? y.getId() < 1 : true) {
+        if (y == null || y.getId() < 1) {
             if (message) {
                 getErrorMessage("Impossible d'effectuer cette action... Car le depot " + depot.getDesignation() + " ne possède pas l'article " + c.getArticle().getDesignation());
             }
             return false;
         }
-        if (y.getRequiereLot() ? (c.getLots() != null ? c.getLots().isEmpty() : true) : false) {
+        if (y.getRequiereLot() && (c.getLots() != null ? c.getLots().isEmpty() : true)) {
             if (message) {
                 getErrorMessage("Un numéro de lot est requis pour l'article " + c.getArticle().getDesignation() + "  dans le depot " + depot.getDesignation());
             }
@@ -8247,7 +8257,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
     public void transmisOrder(YvsComDocVentes facture, Date dateLivraison, String statut, boolean message, boolean force) {
         String query = "SELECT action FROM yvs_com_doc_ventes WHERE id = ?";
         String action = (String) dao.loadObjectBySqlQuery(query, new Options[]{new Options(facture.getId(), 1)});
-        if (Util.asString(action) ? action.equals("L") : false) {
+        if (Util.asString(action) && action.equals("L")) {
             if (message) {
                 getErrorMessage("L'operation de livraison est déja en cours d'execution!!!");
             }
@@ -8256,7 +8266,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         query = "UPDATE yvs_com_doc_ventes SET action = 'L' WHERE id = ?";
         dao.requeteLibre(query, new Options[]{new Options(facture.getId(), 1)});
         try {
-            statut = statut != null ? statut.trim().length() > 0 ? statut : Constantes.ETAT_VALIDE : Constantes.ETAT_VALIDE;
+            statut = statut != null ? !statut.trim().isEmpty() ? statut : Constantes.ETAT_VALIDE : Constantes.ETAT_VALIDE;
             if (!force) {
                 if (!autoriser("fv_livrer")) {
                     if (message) {
@@ -8266,15 +8276,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     dao.requeteLibre(query, new Options[]{new Options(facture.getId(), 1)});
                     return;
                 }
-                if (facture == null) {
-                    if (message) {
-                        getErrorMessage("Vous devez selectionner la facture");
-                    }
-                    query = "UPDATE yvs_com_doc_ventes SET action = null WHERE id = ?";
-                    dao.requeteLibre(query, new Options[]{new Options(facture.getId(), 1)});
-                    return;
-                }
-                if (facture.getModelReglement() != null ? (facture.getModelReglement().getPayeBeforeValide() ? !facture.getStatutRegle().equals(Constantes.ETAT_REGLE) : false) : false) {
+                if (facture.getModelReglement() != null && (facture.getModelReglement().getPayeBeforeValide() && !facture.getStatutRegle().equals(Constantes.ETAT_REGLE))) {
                     if (message) {
                         getErrorMessage("La facture doit étre payée!");
                     }
@@ -8282,7 +8284,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     dao.requeteLibre(query, new Options[]{new Options(facture.getId(), 1)});
                     return;
                 }
-                if (facture.getEnteteDoc() != null ? (facture.getEnteteDoc().getCreneau() != null ? (facture.getEnteteDoc().getCreneau().getCreneauPoint() != null ? (facture.getEnteteDoc().getCreneau().getCreneauPoint().getPoint() != null) : false) : false) : false) {
+                if (facture.getEnteteDoc() != null && (facture.getEnteteDoc().getCreneau() != null && (facture.getEnteteDoc().getCreneau().getCreneauPoint() != null && (facture.getEnteteDoc().getCreneau().getCreneauPoint().getPoint() != null)))) {
                     switch (facture.getEnteteDoc().getCreneau().getCreneauPoint().getPoint().getLivraisonOn()) {
                         case 'R': {
                             if (!facture.getStatutRegle().equals(Constantes.ETAT_REGLE)) {
@@ -8306,7 +8308,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                         }
                     }
                 }
-                if (dateLivraison != null ? dateLivraison.after(new Date()) : true) {
+                if (dateLivraison == null || dateLivraison.after(new Date())) {
                     if (message) {
                         getErrorMessage("La date de livraison est incorrecte !");
                     }
@@ -8314,7 +8316,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     dao.requeteLibre(query, new Options[]{new Options(facture.getId(), 1)});
                     return;
                 }
-                if (facture.getDepotLivrer() != null ? facture.getDepotLivrer().getId() < 1 : true) {
+                if (facture.getDepotLivrer() == null || facture.getDepotLivrer().getId() < 1) {
                     if (message) {
                         getErrorMessage("Aucun dépôt de livraison n'a été trouvé !");
                     }
@@ -8322,9 +8324,9 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                     dao.requeteLibre(query, new Options[]{new Options(facture.getId(), 1)});
                     return;
                 }
-                if (facture.getTrancheLivrer() != null ? facture.getTrancheLivrer().getId() < 1 : true) {
+                if (facture.getTrancheLivrer() == null || facture.getTrancheLivrer().getId() < 1) {
                     List<YvsGrhTrancheHoraire> list = loadTranche(facture.getDepotLivrer(), dateLivraison);
-                    if (list != null ? list.size() == 1 : false) {
+                    if (list != null && list.size() == 1) {
                         facture.setTrancheLivrer(list.get(0));
                     } else {
                         if (message) {
@@ -8360,15 +8362,15 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                 }
             }
             String num = genererReference(Constantes.TYPE_BLV_NAME, dateLivraison, facture.getDepotLivrer().getId(), Constantes.DEPOT);
-            if (num != null ? num.trim().length() > 0 : false) {
+            if (num != null && !num.trim().isEmpty()) {
                 List<YvsComContenuDocVente> l = loadContenusStay(facture, Constantes.TYPE_BLV);
-                if (l != null ? !l.isEmpty() : false) {
+                if (l != null && !l.isEmpty()) {
                     List<YvsBaseDepots> depotsLivraison = new ArrayList<>();
                     List<YvsComContenuDocVente> list = new ArrayList<>();
                     YvsBaseDepots depot;
                     for (YvsComContenuDocVente c : l) {
                         depot = facture.getDepotLivrer();
-                        if (c.getDepoLivraisonPrevu() != null ? (c.getDepoLivraisonPrevu().getId() != null ? c.getDepoLivraisonPrevu().getId() > 0 : false) : false) {
+                        if (c.getDepoLivraisonPrevu() != null && (c.getDepoLivraisonPrevu().getId() != null && c.getDepoLivraisonPrevu().getId() > 0)) {
                             depot = c.getDepoLivraisonPrevu();
                         }
                         if (!depotsLivraison.contains(depot)) {
@@ -8442,11 +8444,11 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                             distant.setId(null);
                             distant = (YvsComDocVentes) dao.save1(distant);
                             for (YvsComContenuDocVente c : list) {
-                                if (c.getDepoLivraisonPrevu() != null ? (c.getDepoLivraisonPrevu().getId() > 0 ? c.getDepoLivraisonPrevu().equals(d) : true) : true) {
+                                if (c.getDepoLivraisonPrevu() == null || (c.getDepoLivraisonPrevu().getId() > 0 ? c.getDepoLivraisonPrevu().equals(d) : true)) {
                                     c.setDocVente(distant);
                                     c.setStatut(Constantes.ETAT_VALIDE);
                                     c.setAuthor(currentUser);
-                                    if (c.getLots() != null ? c.getLots().isEmpty() : true) {
+                                    if (c.getLots() == null || c.getLots().isEmpty()) {
                                         c.setParent(new YvsComContenuDocVente(c.getId()));
                                         c.setId(null);
                                         distant.getContenus().add((YvsComContenuDocVente) dao.save1(c));
@@ -8492,12 +8494,12 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
                                 param = new Options[]{new Options(facture.getId(), 1)};
                                 dao.requeteLibre(rq, param);
                             }
-                            facture.setConsigner(statut.equals(Constantes.ETAT_VALIDE) ? false : facture.getConsigner());
+                            facture.setConsigner(!statut.equals(Constantes.ETAT_VALIDE) && facture.getConsigner());
                             facture.setDateConsigner(statut.equals(Constantes.ETAT_VALIDE) ? null : facture.getDateConsigner());
                             facture.setStatutLivre(statut.equals(Constantes.ETAT_VALIDE) ? Constantes.ETAT_LIVRE : Constantes.ETAT_ATTENTE);
                             if (statut.equals(Constantes.ETAT_VALIDE)) {
                                 for (YvsComContenuDocVente c : facture.getContenus()) {
-                                    if (c.getIdReservation() != null ? c.getIdReservation().getId() != null ? c.getIdReservation().getId() > 0 : false : false) {
+                                    if (c.getIdReservation() != null && (c.getIdReservation().getId() != null ? c.getIdReservation().getId() > 0 : false)) {
                                         long id = c.getIdReservation().getId();
                                         c.setIdReservation(null);
                                         rq = "UPDATE yvs_com_contenu_doc_vente SET id_reservation = null WHERE id = ?";
@@ -8579,7 +8581,7 @@ public class ManagedFactureVenteV2 extends ManagedCommercial<DocVente, YvsComDoc
         return false;
     }
 
-//    public boolean changeStatutWithOutSucces(String etat) {
+    //    public boolean changeStatutWithOutSucces(String etat) {
 //        return ;
 //    }
     public boolean changeStatut(String etat, YvsComDocVentes entity) {

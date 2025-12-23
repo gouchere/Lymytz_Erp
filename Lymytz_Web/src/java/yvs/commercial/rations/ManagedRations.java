@@ -374,7 +374,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
         Long id = (Long) dao.loadObjectByNameQueries("YvsComDocRation.findCOne", chp, val);
         id = (id == null) ? 0 : id;
         if (bean.getId() <= 0) {
-            if (id != null ? id > 0 : false) {
+            if (id > 0) {
                 getErrorMessage("Une fiche à déjà été trouvé pour ce créneau horaire");
                 return false;
             }
@@ -388,9 +388,9 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
         if (!verifyDate(bean.getDateFiche(), ecart, "")) {
             return false;
         }
-        if (bean.getNumDoc() != null ? bean.getNumDoc().trim().length() < 1 : true) {
+        if (bean.getNumDoc() == null || bean.getNumDoc().trim().isEmpty()) {
             String ref = genererReference(Constantes.TYPE_RA_NAME, bean.getDateFiche(), bean.getDepot().getId());
-            if ((ref != null) ? ref.trim().equals("") : true) {
+            if (ref == null || ref.trim().isEmpty()) {
                 return false;
             }
             bean.setNumDoc(ref);
@@ -435,7 +435,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
     }
 
     public void updateBean(YvsComDocRation bean) {
-        if (bean != null ? bean.getId() != null : false) {
+        if (bean != null && bean.getId() != null) {
             document = UtilCom.buildBeanDocRation(bean);
             document.getDepot().setTranches(dao.loadNameQueries("YvsComCreneauDepot.findByDepot", new String[]{"depot"}, new Object[]{new YvsBaseDepots(document.getDepot().getId())}));
             update("form_edit_doc_ration");
@@ -1074,7 +1074,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
         if (controleSaveRation()) {
             boolean exist_inventaire = false;
             try {
-                // Vérifié qu'aucun document d'inventaire n'exite après cette date
+                // Vérifié qu'aucun document d'inventaire n'existe après cette date
                 boolean gescom_update_stock_after_valide = autoriser("gescom_update_stock_after_valide");
                 exist_inventaire = !controleInventaire(selectedRation.getDocRation().getDepot().getId(), dateRation, selectedRation.getDocRation().getCreneauHoraire().getTranche().getId(), !gescom_update_stock_after_valide);
                 if (exist_inventaire) {
@@ -1107,7 +1107,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
                 succes();
             } else {
                 quantite = selectedRation.getQuantite();
-                if (ration.getLot() != null ? ration.getLot().getId() > 0 : false) {
+                if (ration.getLot() != null && ration.getLot().getId() > 0) {
                     selectedRation.setLot(UtilCom.buildLotReception(ration.getLot(), currentAgence, currentUser));
                 }
                 selectedRation.setDateSave(new Date());
@@ -1120,7 +1120,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
             try {
                 if (exist_inventaire) {
                     YvsComDocStocks inventaire = dao.lastInventaire(selectedRation.getDocRation().getDepot().getId(), dateRation, selectedRation.getDocRation().getCreneauHoraire().getTranche().getId());
-                    if (inventaire != null ? inventaire.getId() > 0 : false) {
+                    if (inventaire != null && inventaire.getId() > 0) {
                         majInventaire(inventaire, selectedRation.getArticle(), selectedRation.getConditionnement(), quantite, Constantes.MOUV_SORTIE);
                     }
                 }
@@ -1132,7 +1132,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
     }
 
     public void chooseLot() {
-        if ((ration.getLot() != null) ? ration.getLot().getId() > 0 : false) {
+        if (ration.getLot() != null && ration.getLot().getId() > 0) {
             ManagedLotReception m = (ManagedLotReception) giveManagedBean(ManagedLotReception.class);
             if (m != null) {
                 int idx = m.getLots().indexOf(new YvsComLotReception(ration.getLot().getId()));
@@ -1144,7 +1144,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
     }
 
     public void selectLineRation(SelectEvent ev) {
-        if (ev != null ? ev.getObject() != null : false) {
+        if (ev != null && ev.getObject() != null) {
             selectedRation = (YvsComRation) ev.getObject();
             if (selectedDoc != null) {
                 if (dateRation != null) {
@@ -1168,7 +1168,6 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
                             }
                             update("data-ration_require_lot");
                         }
-                    } else {
                     }
                 } else {
                     getErrorMessage("Aucune date n'a été selectionné !");
@@ -1238,7 +1237,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
 
     public void suspensionRationTiers() {
         ManagedParamRation w = (ManagedParamRation) giveManagedBean(ManagedParamRation.class);
-        if (w != null ? (selectedRation != null ? selectedRation.getPersonnel() != null : false) : false) {
+        if (w != null && (selectedRation != null && selectedRation.getPersonnel() != null)) {
             YvsComParamRation pra = (YvsComParamRation) dao.loadOneByNameQueries("YvsComParamRation.findOne", new String[]{"personnel", "article", "conditionnement"}, new Object[]{selectedRation.getPersonnel(), selectedRation.getArticle(), selectedRation.getConditionnement()});
             if (pra != null) {
                 Calendar c = Calendar.getInstance();
@@ -1246,7 +1245,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
                 c.add(Calendar.DATE, selectedDoc.getNbrJrUsine() - 1);
                 ParamRationSuspension suspension = new ParamRationSuspension(selectedDoc.getDateFiche(), c.getTime());
                 YvsComParamRationSuspension y = w.saveNewSuspension(pra, suspension);
-                if (y != null ? y.getId() > 0 : false) {
+                if (y != null && y.getId() > 0) {
                     selectedDoc.getListRations().remove(selectedRation);
                     if (ration.getId() == selectedRation.getId()) {
                         ration = new Rations();
@@ -1277,7 +1276,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
 
     public void changeCalculPr(YvsComRation y) {
         try {
-            if (y != null ? y.getId() > 0 : false) {
+            if (y != null && y.getId() > 0) {
                 if (!autoriser("recalcul_pr")) {
                     openNotAcces();;
                     return;
@@ -1312,7 +1311,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
             }
             if (selectedDoc.getStatut().equals(Constantes.STATUT_DOC_VALIDE)) {
                 Long nb = (Long) dao.loadObjectByNameQueries("YvsComRation.findByFicheC", new String[]{"docRation"}, new Object[]{selectedDoc});
-                if (nb != null ? nb > 0 : false) {
+                if (nb != null && nb > 0) {
                     getErrorMessage("Impossible d'annuler cette fiche de ration", "Des tiers ont déjà été servi !");
                     return;
                 }
@@ -1347,7 +1346,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
     }
 
     public void loadAllRationTiersPeriode(YvsComRation ra) {
-        if (ra != null ? ra.getDocRation().getPeriode() != null : false) {
+        if (ra != null && ra.getDocRation().getPeriode() != null) {
             listDetailsRationsTiers.clear();
             YvsComRation current;
             Calendar cal = Calendar.getInstance();
@@ -1391,7 +1390,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
 
     public void print(YvsComDocRation ra) {
         try {
-            if (ra != null ? ra.getId() > 0 : false) {
+            if (ra != null && ra.getId() > 0) {
                 Map<String, Object> param = new HashMap<>();
                 String path = FacesContext.getCurrentInstance().getExternalContext().getRealPath(FILE_SEPARATOR + "WEB-INF" + FILE_SEPARATOR + "report");
                 param.put("ID", ra.getId().intValue());
@@ -1434,7 +1433,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
 
     public void printSituation(YvsComDocRation ra) {
         try {
-            if (ra != null ? ra.getId() > 0 : false) {
+            if (ra != null && ra.getId() > 0) {
                 Map<String, Object> param = new HashMap<>();
                 String path = FacesContext.getCurrentInstance().getExternalContext().getRealPath(FILE_SEPARATOR + "WEB-INF" + FILE_SEPARATOR + "report");
                 param.put("ID", ra.getId().intValue());
@@ -1488,7 +1487,7 @@ public class ManagedRations extends Managed<DocRations, YvsComDocRation> impleme
 
     public void addParamDates() {
         ParametreRequete p = new ParametreRequete("y.dateFiche", "dateFiche", null, "=", "AND");
-        if (addDateSearch ? (debutSearch != null && finSearch != null) : false) {
+        if (addDateSearch && (debutSearch != null && finSearch != null)) {
             p = new ParametreRequete("y.dateFiche", "dateFiche", debutSearch, finSearch, "BETWEEN", "AND");
         }
         paginator.addParam(p);
