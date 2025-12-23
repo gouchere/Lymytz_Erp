@@ -41,7 +41,7 @@ public class ComposantNomenclature implements Serializable {
     public ComposantNomenclature() {
         this.typeComposant = "N";
         this.modeArrondi = "E";
-        this.coefficient=1;
+        this.insideCout= true;
     }
 
     public boolean isActif() {
@@ -109,7 +109,7 @@ public class ComposantNomenclature implements Serializable {
     }
 
     public String getTypeComposant() {
-        return typeComposant != null ? typeComposant.trim().length() > 0 ? typeComposant : "N" : "N";
+        return typeComposant != null ? !typeComposant.trim().isEmpty() ? typeComposant : "N" : "N";
     }
 
     public void setTypeComposant(String typeComposant) {
@@ -117,7 +117,7 @@ public class ComposantNomenclature implements Serializable {
     }
 
     public String getModeArrondi() {
-        return modeArrondi != null ? modeArrondi.trim().length() > 0 ? modeArrondi : "E" : "E";
+        return modeArrondi != null ? !modeArrondi.trim().isEmpty() ? modeArrondi : "E" : "E";
     }
 
     public void setModeArrondi(String modeArrondi) {
