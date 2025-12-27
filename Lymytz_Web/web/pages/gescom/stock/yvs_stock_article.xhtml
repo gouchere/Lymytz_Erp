@@ -272,30 +272,44 @@
                             <p:column headerText="#{lab.L_unite}" style="width: 10%;text-align: center">
                                 <span title="#{stock.conditionnement.unite.libelle}" style="font-size: 0.9em;color: #003399">#{stock.conditionnement.unite.reference}</span>
                             </p:column>
-                            <p:column headerText="#{lab.LC_PSA_puv}" style="width: 10%;text-align: right;">
-                                <h:outputText value="#{stock.conditionnement.prix} "/>
+                            <p:column headerText="#{managedStockArticle.displayAvgPuv ? 'Moy. PUV' : lab.LC_PSA_puv}" style="width: 10%;text-align: right;">
+                                <h:outputText value="#{managedStockArticle.displayAvgPuv ? stock.article.puv : stock.conditionnement.prix} " 
+                                              title="#{managedStockArticle.displayAvgPuv ? ('le prix de vente est : '.concat(stock.conditionnement.prix)) : ''}"/>
                             </p:column>
                             <p:column headerText="#{lab.LC_PSA_stock}" style="width: 12%;text-align: right;background:#{stock.stockInitial gt 0?'green':(stock.stockInitial lt 0?'red':'')}">
                                 <h:outputText value="#{stock.stockInitial}" style="color:  #{stock.stockInitial==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
                             </p:column>
-                            <p:column headerText="#{lab.L_prix}" style="width: 10%;text-align: right;">
+                            <p:column headerText="#{lab.L_prix}" style="width: 10%;text-align: right;" rendered="#{managedStockArticle.displayPrixRevient}">
                                 <h:outputText value="#{stock.prixRevient} "/>
                             </p:column>
                             <p:column headerText="#{lab.LC_PSA_reservation}" rendered="false" style="width: 12%;text-align: right;background:#{stock.quantiteReserve eq 0? '':(stock.stockInitial ge stock.quantiteReserve?'tomato':'red')}">
                                 <h:outputText value="#{stock.quantiteReserve}" style="color:  #{stock.quantiteReserve==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
                                 <span title="#{stock.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{stock.conditionnement.unite.reference}</span>
                             </p:column>
-                            <p:column headerText="#{lab.LC_PSA_reste_a_livrer}" style="width: 12%;text-align: right;background:#{stock.resteALivrer eq 0 ? '':(stock.stockInitial ge stock.resteALivrer?'goldenrod':'red')}">
+                            <p:column headerText="#{lab.LC_PSA_reste_a_livrer}" rendered="#{managedStockArticle.displayResteALivrer}"
+                                      style="width: 12%;text-align: right;background:#{stock.resteALivrer eq 0 ? '':(stock.stockInitial ge stock.resteALivrer?'goldenrod':'red')}">
                                 <h:outputText value="#{stock.resteALivrer}" style="color:  #{stock.resteALivrer==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
                                 <span title="#{stock.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{stock.conditionnement.unite.reference}</span>
                             </p:column>
-                            <p:column headerText="#{lab.LC_PSA_reste_dispo}" style="width: 12%;text-align: right;background:#{stock.resteALivrer eq 0 ? '':(stock.stockInitial ge stock.resteALivrer?'goldenrod':'red')}">
+                            <p:column headerText="#{lab.LC_PSA_reste_dispo}" rendered="#{managedStockArticle.displayResteALivrer}"
+                                      style="width: 12%;text-align: right;background:#{stock.resteALivrer eq 0 ? '':(stock.stockInitial ge stock.resteALivrer?'goldenrod':'red')}">
                                 <h:outputText value="#{((stock.stockInitial-stock.resteALivrer) gt 0)?(stock.stockInitial-stock.resteALivrer):0}" style="color:  #{stock.resteALivrer==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
                             </p:column>
                             <p:column headerText="#{lab.LC_PSA_valeur}" style="width: 12%;text-align: right">
                                 <h:outputText value="#{stock.stockInitial * stock.prixRevient}" style="color: #{stock.stockInitial>0?'green':(0>stock.stockInitial?'red':'')}" converter="#{managedStockArticle.converter}"/>
                             </p:column>
                             <p:column headerText="" style="width: 5%;text-align: center"  rendered="#{accesRessource.gescom_stock_generer_entree}">
+                                <f:facet name="header">
+                                    <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_opt_stock_dep_head" type="button"/>
+                                    <p:contextMenu for="btn_opt_stock_dep_head" event="left click" style="width:200px" >
+                                        <p:menuitem value="#{managedStockArticle.displayPrixRevient?'Cacher':'Afficher'} le prix de revient"
+                                                    icon="ui-icon-calculator" actionListener="#{managedStockArticle.calculePrFromArtcleStock()}" />
+                                        <p:menuitem value="#{managedStockArticle.displayResteALivrer?'Cacher':'Afficher'} le reste a livrer"
+                                                    icon="ui-icon-calculator" actionListener="#{managedStockArticle.calculeResteALivreFromArtcleStock()}" />
+                                        <p:menuitem value="#{managedStockArticle.displayAvgPuv?'Cacher':'Afficher'} la moyenne du puv"
+                                                    icon="ui-icon-calculator" actionListener="#{managedStockArticle.calculeAvgPuvFromArtcleStock()}" />
+                                    </p:contextMenu>
+                                </f:facet>
                                 <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_opt_stock_dep" type="button"/>
                                 <p:contextMenu for="btn_opt_stock_dep" event="left click" >
                                     <p:menuitem value="Stock par lot" icon="ui-icon-arrowstop-1-s" actionListener="#{managedStockArticle.openListLot(stock)}" rendered="#{stock.requiereLot}"
@@ -311,9 +325,9 @@
                                     <p:column footerText=""/> 
                                     <p:column footerText=""/> 
                                     <p:column footerText=""/> 
-                                    <p:column footerText=""/> 
-                                    <p:column footerText=""/> 
-                                    <p:column footerText=""/> 
+                                    <p:column footerText="" rendered="#{managedStockArticle.displayPrixRevient}"/> 
+                                    <p:column footerText="" rendered="#{managedStockArticle.displayResteALivrer}"/> 
+                                    <p:column footerText="" rendered="#{managedStockArticle.displayResteALivrer}"/> 
                                     <p:column style="text-align: right;font-weight: bold">
                                         <f:facet name="footer">
                                             <h:outputText value="#{managedStockArticle.totaux}" converter="#{managedBordStatistique.converter}"/> 

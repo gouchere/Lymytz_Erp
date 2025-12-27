@@ -126,6 +126,8 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
     private PaginatorResult<YvsBaseArticleDepot> pa = new PaginatorResult<>();
     private Dashboards inventaire = new Dashboards();
 
+    private Boolean displayPrixRevient, displayResteALivrer, displayAvgPuv;
+
     public ManagedStockArticle() {
         tranches = new ArrayList<>();
         emplacements = new ArrayList<>();
@@ -140,6 +142,30 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
         articlesDebut = new ArrayList<>();
         articlesFin = new ArrayList<>();
         conditionnements = new ArrayList<>();
+    }
+
+    public Boolean getDisplayPrixRevient() {
+        return displayPrixRevient != null ? displayPrixRevient : false;
+    }
+
+    public void setDisplayPrixRevient(boolean displayPrixRevient) {
+        this.displayPrixRevient = displayPrixRevient;
+    }
+
+    public Boolean getDisplayResteALivrer() {
+        return displayResteALivrer != null ? displayResteALivrer : false;
+    }
+
+    public void setDisplayResteALivrer(boolean displayResteALivrer) {
+        this.displayResteALivrer = displayResteALivrer;
+    }
+
+    public Boolean getDisplayAvgPuv() {
+        return displayAvgPuv != null ? displayAvgPuv : false;
+    }
+
+    public void setDisplayAvgPuv(boolean displayAvgPuv) {
+        this.displayAvgPuv = displayAvgPuv;
     }
 
     public Long getFamilleSearch() {
@@ -728,6 +754,15 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
         if (paramCommercial == null) {
             paramCommercial = currentParam;
         }
+        if (displayPrixRevient == null) {
+            displayPrixRevient = currentParam.getDisplayPrixRevient();
+        }
+        if (displayResteALivrer == null) {
+            displayResteALivrer = currentParam.getDisplayResteALivrer();
+        }
+        if (displayAvgPuv == null) {
+            displayAvgPuv = currentParam.getDisplayAvgPuv();
+        }
         if (mouvementStock.getDepot().getId() < 1) {
             mouvementStock.setDepot(UtilCom.buildSimpleBeanDepot(currentDepot));
         }
@@ -1125,6 +1160,47 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
         loadArticleStock(avance, init, true);
     }
 
+    public void calculePrFromArtcleStock() {
+        if (articles_stock != null) {
+            if (!getDisplayPrixRevient()) {
+                for (YvsBaseArticleDepot a : articles_stock) {
+                    a.setPrixRevient(findLastPr(a.getArticle().getId(), a.getDepot().getId(), dateSearch, a.getConditionnement().getId()));
+                    String query = "SELECT AVG(COALESCE(cout_entree, 0)) FROM yvs_base_mouvement_stock WHERE conditionnement = ? AND depot = ? AND date_doc <= ?";
+                    Double prixEntree = (Double) dao.loadObjectBySqlQuery(query, new Options[]{new Options(a.getConditionnement().getId(), 1), new Options(a.getDepot().getId(), 2), new Options(dateSearch, 3)});
+                    a.setPrixEntree(prixEntree != null ? prixEntree : 0);
+                }
+            }
+            setDisplayPrixRevient(!getDisplayPrixRevient());
+            update("data_stock_article");
+        }
+    }
+
+    public void calculeResteALivreFromArtcleStock() {
+        if (articles_stock != null) {
+            if (!getDisplayResteALivrer()) {
+                for (YvsBaseArticleDepot a : articles_stock) {
+                    a.setResteALivrer(dao.getResteALivrer(a.getArticle().getId(), a.getDepot().getId(), dateSearch, a.getConditionnement().getId()));
+                }
+            }
+            setDisplayResteALivrer(!getDisplayResteALivrer());
+            update("data_stock_article");
+        }
+    }
+
+    public void calculeAvgPuvFromArtcleStock() {
+        if (articles_stock != null) {
+            if (!getDisplayAvgPuv()) {
+                Double sr;
+                for (YvsBaseArticleDepot a : articles_stock) {
+                    sr = (Double) dao.loadOneByNameQueries("YvsBaseMouvementStock.findPrixByArticle", new String[]{"unite", "date"}, new Object[]{a.getConditionnement(), dateSearch});
+                    a.getArticle().setPuv(sr != null ? sr : 0);
+                }
+            }
+            setDisplayAvgPuv(!getDisplayAvgPuv());
+            update("data_stock_article");
+        }
+    }
+
     public void loadArticleStock(boolean avance, boolean init, boolean all) {
         articles_stock.clear();
         totaux = 0;
@@ -1132,7 +1208,6 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
             controlListAgence();
             paginator.addParam(new ParametreRequete("y.depot.agence.id", "agence", listIdAgences, "IN", "AND"));
             List<YvsBaseArticleDepot> list = paginator.executeDynamicQuery("YvsBaseArticleDepot", "y.article.designation, y.article.refArt", avance, init, (int) imax, dao);
-            Double sr;
             YvsBaseArticleDepot y;
             for (YvsBaseArticleDepot a : list) {
                 a.getArticle().setConditionnements(dao.loadNameQueries("YvsBaseConditionnement.findByArticle", new String[]{"article"}, new Object[]{a.getArticle()}));
@@ -1142,17 +1217,6 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
                     y.setConditionnement(c);
                     y.setStockInitial(dao.stocks(a.getArticle().getId(), trancheSearch, a.getDepot().getId(), 0, 0, dateSearch, c.getId(), 0));
                     y.setStock(y.getStockInitial());
-                    y.setPrixRevient(findLastPr(a.getArticle().getId(), a.getDepot().getId(), dateSearch, c.getId()));
-                    if (all) {                        
-                        String query = "SELECT AVG(COALESCE(cout_entree, 0)) FROM yvs_base_mouvement_stock WHERE conditionnement = ? AND depot = ? AND date_doc <= ?";
-                        Double prixEntree = (Double) dao.loadObjectBySqlQuery(query, new Options[]{new Options(c.getId(), 1), new Options(a.getDepot().getId(), 2), new Options(dateSearch, 3)});
-                        y.setPrixEntree(prixEntree != null ? prixEntree : 0);
-                        //stock reservé à une date
-                        y.setResteALivrer(dao.getResteALivrer(a.getArticle().getId(), a.getDepot().getId(), dateSearch, c.getId()));
-                        //calcule la moyenne des couts d'entree
-                        sr = (Double) dao.loadOneByNameQueries("YvsBaseMouvementStock.findPrixByArticle", new String[]{"unite", "date"}, new Object[]{c, dateSearch});
-                        y.getArticle().setPuv(sr != null ? sr : 0);
-                    }
                     boolean insert = false;
                     if (stock_) {
                         switch (getSoldeSearch()) {
