@@ -71,9 +71,9 @@ public interface DaoInterfaceLocal<T extends Serializable> {
 
     public EntityManager giveEntityManager();
 
-//    public CriteriaBuilder giveCriteriaBuilder();
-//
-//    public List<T> executeCriteriaQuery(CriteriaQuery<T> cq);
+    public CriteriaBuilder giveCriteriaBuilder();
+
+    public List<T> executeCriteriaQuery(CriteriaQuery<T> cq);
 
     public void save(T en);
 

@@ -140,13 +140,13 @@ public abstract class AbstractDao<T extends Serializable> {
         return em;
     }
 
-//    public CriteriaBuilder giveCriteriaBuilder() {
-//        return em.getCriteriaBuilder();
-//    }
-//
-//    public List<T> executeCriteriaQuery(CriteriaQuery<T> cq) {
-//        return em.createQuery(cq).getResultList();
-//    }
+    public CriteriaBuilder giveCriteriaBuilder() {
+        return em.getCriteriaBuilder();
+    }
+
+    public List<T> executeCriteriaQuery(CriteriaQuery<T> cq) {
+        return em.createQuery(cq).getResultList();
+    }
 
     public void setEM(String EM) {
         this.EM = EM;

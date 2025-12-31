@@ -1,43 +1,8 @@
-CREATE OR REPLACE FUNCTION public.com_inventaire(
-    societe_ bigint,
-    agence_ bigint,
-    depot_ bigint,
-    emplacement_ bigint,
-    famille_ bigint,
-    categorie_ character varying,
-    groupe_ bigint,
-    date_ date,
-    print_all_ boolean,
-    option_print_ character varying,
-    type_ character varying,
-    article_ character varying,
-    offset_ bigint,
-    limit_ bigint,
-    preparatoire_ boolean,
-    with_child_ boolean
-)
-RETURNS TABLE(
-    depot bigint,
-    article bigint,
-    code character varying,
-    designation character varying,
-    numero character varying,
-    famille character varying,
-    unite bigint,
-    reference character varying,
-    emplacement bigint,
-    prix double precision,
-    puv double precision,
-    pua double precision,
-    pr double precision,
-    stock double precision,
-    reservation double precision,
-    reste_a_livre double precision,
-    "position" double precision,
-    count double precision,
-    lot bigint
-)
-LANGUAGE plpgsql
+-- DROP FUNCTION public.com_inventaire(int8, int8, int8, int8, int8, varchar, int8, date, bool, varchar, varchar, varchar, int8, int8, bool, bool);
+
+CREATE OR REPLACE FUNCTION public.com_inventaire(societe_ bigint, agence_ bigint, depot_ bigint, emplacement_ bigint, famille_ bigint, categorie_ character varying, groupe_ bigint, date_ date, print_all_ boolean, option_print_ character varying, type_ character varying, article_ character varying, offset_ bigint, limit_ bigint, preparatoire_ boolean, with_child_ boolean)
+ RETURNS TABLE(depot bigint, article bigint, code character varying, designation character varying, numero character varying, famille character varying, unite bigint, reference character varying, emplacement bigint, prix double precision, puv double precision, pua double precision, pr double precision, stock double precision, reservation double precision, reste_a_livre double precision, "position" double precision, count double precision, lot bigint)
+ LANGUAGE plpgsql
 AS $function$
 DECLARE
     count_ bigint;
@@ -173,6 +138,7 @@ BEGIN
         a.pua,
         a.actif,
         a.requiere_lot,
+        -- Stock: jointure sur 'unite' comme dans l'original (s.article = articles_.unite)
         COALESCE(s.stock, 0) AS stock_val,
         s.lot AS lot_id,
         CASE 
@@ -184,7 +150,7 @@ BEGIN
             ELSE COALESCE(ral.reste, 0) 
         END AS reste_a_livrer_val
     FROM tmp_article a
-    LEFT JOIN tmp_stock s ON s.article = a.unite AND s.depot = a.depot
+    LEFT JOIN tmp_stock s ON s.article = a.unite AND s.depot = a.depot  -- Comme dans l'original
     LEFT JOIN tmp_reservation r 
         ON r.depot = a.depot 
         AND r.article = a.article 
@@ -252,4 +218,5 @@ BEGIN
     DROP TABLE IF EXISTS tmp_resultat;
 
 END;
-$function$;
+$function$
+;

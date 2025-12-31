@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -793,8 +794,8 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
     public void returnInventaire(long societe, long agence, long depot, long famille, String categorie, long groupe, Date date, boolean print_all, String option_print, String type, String article, long offset, long limit, boolean preparatoire, boolean multi, DaoInterfaceLocal dao) {
         dao.getEntityManager().clear();
         Options[] param = new Options[]{new Options(societe, 1), new Options(agence, 2), new Options(depot, 3), new Options(famille, 4), new Options(0, 5), new Options(categorie, 6), new Options(groupe, 7), new Options(date, 8), new Options(print_all, 9), new Options(option_print, 10), new Options(type, 11), new Options(article, 12), new Options(offset, 13), new Options(limit, 14), new Options(preparatoire, 15)};
-        String query = "select y.depot, y.article, y.code, y.designation, y.numero, y.famille, y.unite, y.reference, y.prix, y.puv, y.pua, y.pr, y.stock, y.reservation, y.reste_a_livre, a.categorie, d.designation as libelle, (y.prix * y.stock) AS valeur "
-                + "from public.com_inventaire(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) y INNER JOIN yvs_base_articles a ON y.article = a.id INNER JOIN yvs_base_depots d ON y.depot = d.id ";
+        String query = "select y.depot, y.article, y.code, y.designation, y.numero, y.famille, y.unite, y.reference, y.prix, y.puv, y.pua, y.pr, y.stock, y.reservation, y.reste_a_livre, a.categorie, d.designation as libelle, (y.prix * y.stock) AS valeur, ad.requiere_lot "
+                + "from public.com_inventaire(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) y INNER JOIN yvs_base_articles a ON y.article = a.id INNER JOIN yvs_base_depots d ON y.depot = d.id LEFT JOIN yvs_base_article_depot ad ON ad.article = y.article AND ad.depot = y.depot ";
         if (multi) {
             query += "order by y.designation, d.designation";
         } else {
@@ -835,8 +836,9 @@ public class Dashboards extends Gestionnaire implements Serializable, Cloneable 
                     String _categorie_ = (String) o[i++];
                     String _libelle_ = (String) o[i++];
                     Double _valeur_ = (Double) o[i++];
+                    Boolean _requiere_lot_ = (Boolean) o[i++];
 
-                    inventaires.add(new InventairePreparatoire(_depot_, _article_, _code_, _designation_, _categorie_, _numero_, _famille_, _unite_, _reference_, _libelle_, _prix_, _puv_, _pua_, _pr_, _stock_, _reservation_, _reste_a_livre_, _valeur_));
+                    inventaires.add(new InventairePreparatoire(_depot_, _article_, _code_, _designation_, _categorie_, _numero_, _famille_, _unite_, _reference_, _libelle_, _prix_, _puv_, _pua_, _pr_, _stock_, _reservation_, _reste_a_livre_, _valeur_, (_requiere_lot_ != null ? _requiere_lot_ : false)));
                     totaux += (_valeur_ != null ? _valeur_ : 0);
 
                     if (!elements.contains(_unite_)) {
