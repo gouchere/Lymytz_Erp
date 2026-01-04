@@ -54,6 +54,7 @@ import yvs.entity.produits.group.YvsBaseFamilleArticle;
 import yvs.entity.produits.group.YvsBaseGroupesArticle;
 import yvs.etats.Dashboards;
 import yvs.etats.SeuilStocks;
+import yvs.etats.commercial.InventairePreparatoire;
 import yvs.grh.presence.TrancheHoraire;
 import yvs.parametrage.entrepot.Depots;
 import yvs.util.Constantes;
@@ -91,7 +92,8 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
     private ConditionnementDepot conditionnement = new ConditionnementDepot();
     private PaginatorResult<YvsBaseArticleDepot> p_article = new PaginatorResult<>();
     private List<YvsBaseArticleDepot> articles_depot, articlesSelect;
-    private YvsBaseArticleDepot selectArticle, stock;
+    private YvsBaseArticleDepot selectArticle;
+    private InventairePreparatoire stock;
     private YvsBaseDepots entityDepot;
 
     private long famille;
@@ -113,7 +115,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
 
     private double totaux = 0;
     private Boolean suiviEnStock, depotActif = true, withLot;
-    private boolean stock_, selectArt, listArt, multi;
+    private boolean stock_ = true, selectArt, listArt, multi;
     private String tabIds, tabIds_emplacement, numSearch, categorieSearch, soldeSearch = "", typeUnite = "V";
     private Long familleSearch;
     private Boolean paramActifF;
@@ -182,11 +184,11 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
         this.inventaire = inventaire;
     }
 
-    public YvsBaseArticleDepot getStock() {
+    public InventairePreparatoire getStock() {
         return stock;
     }
 
-    public void setStock(YvsBaseArticleDepot stock) {
+    public void setStock(InventairePreparatoire stock) {
         this.stock = stock;
     }
 
@@ -1143,7 +1145,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
                     y.setStockInitial(dao.stocks(a.getArticle().getId(), trancheSearch, a.getDepot().getId(), 0, 0, dateSearch, c.getId(), 0));
                     y.setStock(y.getStockInitial());
                     y.setPrixRevient(findLastPr(a.getArticle().getId(), a.getDepot().getId(), dateSearch, c.getId()));
-                    if (all) {                        
+                    if (all) {
                         String query = "SELECT AVG(COALESCE(cout_entree, 0)) FROM yvs_base_mouvement_stock WHERE conditionnement = ? AND depot = ? AND date_doc <= ?";
                         Double prixEntree = (Double) dao.loadObjectBySqlQuery(query, new Options[]{new Options(c.getId(), 1), new Options(a.getDepot().getId(), 2), new Options(dateSearch, 3)});
                         y.setPrixEntree(prixEntree != null ? prixEntree : 0);
@@ -1282,8 +1284,13 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
 
     public void loadArticleStock() {
         try {
-            inventaire.returnInventaire(currentAgence.getSociete().getId(), agence_, 0, famSearch, catSearch, grpSearch, dateSearch, !stock_, soldeSearch, typeUnite, articlesSearch, 0, 0, false, true, dao);
-            update("data_stock_article_multi");
+            inventaire.returnInventaire(currentAgence.getSociete().getId(), agence_, multi ? 0 : depotSearch, famSearch, catSearch, grpSearch, dateSearch, !stock_, soldeSearch, typeUnite, articlesSearch, 0, 0, false, true, dao);
+            if (multi) {
+                update("data_stock_article_multi");
+            } else {
+                totaux = inventaire.getTotaux();
+                update("data_stock_article");
+            }
         } catch (Exception ex) {
             getException("loadArticleStock", ex);
         }
@@ -1416,11 +1423,16 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
     public void calculerStock(boolean multi, boolean all) {
         imax = 0;
         this.multi = multi;
-        if (multi) {
-            loadArticleStock();
-        } else {
-            loadArticleStock(true, true, all);
+        if (!multi && depotSearch < 1) {
+            getErrorMessage("Vous devez selectionner un depot");
+            return;
         }
+        loadArticleStock();
+//        if (multi) {
+//            loadArticleStock();
+//        } else {
+//            loadArticleStock(true, true, all);
+//        }
         update("blog_plus_option_stock_article");
     }
 
@@ -2804,19 +2816,19 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
         }
     }
 
-    public void openListLot(YvsBaseArticleDepot ad) {
-        this.stock = stock;
+    public void openListLot(InventairePreparatoire ad) {
+        this.stock = ad;
         ManagedLotReception w = (ManagedLotReception) giveManagedBean(ManagedLotReception.class);
         if (w != null) {
-            lots = w.loadList(ad.getDepot().getId(), ad.getConditionnement().getId(), dateSearch, ad.getStockInitial(), ad.getStockInitial());
+            lots = w.loadList(ad.getDepot(), ad.getUnite(), dateSearch, ad.getStock(), ad.getStock());
         }
         update("data-stock_require_lot");
     }
 
-    public void openToGenerated(YvsBaseArticleDepot ad) {
+    public void openToGenerated(InventairePreparatoire ad) {
         listArticle.clear();
         if (ad != null) {
-            listArticle.add(ad);
+            listArticle.add(ad.convert());
         } else {
             listArticle.addAll(articles_depot);
         }

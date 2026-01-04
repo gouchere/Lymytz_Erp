@@ -147,7 +147,9 @@ public class Columns implements Serializable, Comparable {
     public int compareTo(Object o) {
         Columns c = (Columns) o;
         if (Integer.valueOf(position).equals(c.position)) {
-            return String.valueOf(valeur).compareTo(c.valeur.toString());
+            if (valeur != null && c.valeur != null) {
+                return String.valueOf(valeur).compareTo(c.valeur.toString());
+            }
         }
         return Integer.valueOf(position).compareTo(c.position);
     }

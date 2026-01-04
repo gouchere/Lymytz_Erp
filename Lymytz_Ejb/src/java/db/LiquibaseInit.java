@@ -27,7 +27,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 @Singleton
 public class LiquibaseInit {
 
-    @Resource(lookup = "jdbc/lymytz-erp")
+    @Resource(name = "lymytz_erp", mappedName = "lymytz_erp")
     private DataSource dataSource;
 
     private final Logger logger = Logger.getLogger(getClass().getName());

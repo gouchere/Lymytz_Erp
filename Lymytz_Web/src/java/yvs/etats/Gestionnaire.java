@@ -1128,11 +1128,17 @@ public class Gestionnaire implements Serializable, Cloneable {
                     Rows e = (Rows) lignes.get(i);
                     if (e.getTitres().isEmpty()) {
                         for (Columns periode : colonnes) {
+                            if (periode.getValeur() == null) {
+                                continue;
+                            }
                             sum += Double.valueOf(iValeur(element, periode.getValeur().toString(), type).toString());
                         }
                     } else {
                         for (String titre : e.getTitres()) {
                             for (Columns periode : colonnes) {
+                            if (periode.getValeur() == null) {
+                                continue;
+                            }
                                 sum += Double.valueOf(iValeur(element, periode.getValeur().toString(), titre, type).toString());
                             }
                         }
@@ -1205,11 +1211,16 @@ public class Gestionnaire implements Serializable, Cloneable {
                 Long element = elements.get(row);
                 for (int i = 0; i < colonnes.size(); i++) {
                     Columns periode = colonnes.get(i);
+                    if (periode.getValeur() == null) {
+                        continue;
+                    }
                     if (periode.getTitres().isEmpty()) {
-                        valueSumRow += Double.valueOf(iValeur(element, periode.getValeur().toString(), type).toString());
+                        Object value = iValeur(element, periode.getValeur().toString(), type);
+                        valueSumRow += (value != null ? Double.valueOf(value.toString()) : 0);
                     } else {
                         for (String titre : periode.getTitres()) {
-                            valueSumRow += Double.valueOf(iValeur(element, periode.getValeur().toString(), titre, type).toString());
+                            Object value = iValeur(element, periode.getValeur().toString(), titre, type);
+                            valueSumRow += (value != null ? Double.valueOf(value.toString()) : 0);
                         }
                     }
                 }
@@ -1865,6 +1876,9 @@ public class Gestionnaire implements Serializable, Cloneable {
             }
             for (int i = 0; i < colonnes.size(); i++) {
                 column = colonnes.get(i);
+                if (column.getValeur() == null) {
+                    continue;
+                }
                 if (!column.getValeur().toString().equals("TOTAUX")) {
                     value = new JournalVendeur(0, column.getValeur().toString());
                     for (String type : types.split(";")) {

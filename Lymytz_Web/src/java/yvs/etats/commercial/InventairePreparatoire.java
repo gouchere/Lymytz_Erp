@@ -5,6 +5,8 @@
  */
 package yvs.etats.commercial;
 
+import yvs.entity.base.YvsBaseArticleDepot;
+
 /**
  *
  * @author Lymytz Dowes
@@ -29,6 +31,7 @@ public class InventairePreparatoire {
     String categorie;
     String libelle;
     double valeur;
+    boolean requiere_lot;
 
     public InventairePreparatoire(long depot, long article, String code, String designation, String famille, long unite, String reference, double puv, double pua) {
         this.depot = depot;
@@ -61,6 +64,11 @@ public class InventairePreparatoire {
         this.categorie = categorie;
         this.libelle = libelle;
         this.valeur = valeur;
+    }
+
+    public InventairePreparatoire(long depot, long article, String code, String designation, String categorie, String numero, String famille, long unite, String reference, String libelle, double prix, double puv, double pua, double pr, double stock, double reservation, double reste_a_livre, double valeur, boolean requiere_lot) {
+        this(depot, article, code, designation, categorie, numero, famille, unite, reference, libelle, prix, puv, pua, pr, stock, reservation, reste_a_livre, valeur);
+        this.requiere_lot = requiere_lot;
     }
 
     public long getDepot() {
@@ -207,4 +215,17 @@ public class InventairePreparatoire {
         this.valeur = valeur;
     }
 
+    public boolean isRequiere_lot() {
+        return requiere_lot;
+    }
+
+    public void setRequiere_lot(boolean requiere_lot) {
+        this.requiere_lot = requiere_lot;
+    }
+
+    public YvsBaseArticleDepot convert() {
+        YvsBaseArticleDepot ad = new YvsBaseArticleDepot();
+
+        return ad;
+    }
 }

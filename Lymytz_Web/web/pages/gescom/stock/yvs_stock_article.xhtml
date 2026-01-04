@@ -28,6 +28,40 @@
                 collapseForm('stock_article');
             });
         </script>
+        <style>
+            .notification-success {
+                background: linear-gradient(to right, #3498db, #5dade2);
+                width: fit-content;
+                padding: 16px 20px;
+                margin: 5px auto;
+                color: white;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .notification-success h3 {
+                margin: 0 0 6px 0;
+                font-size: 22px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .notification-success h3::before {
+                content: '✔';
+                color: #a8e063;
+                font-size: 18px;
+            }
+
+            .notification-success p {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 400;
+                opacity: 0.95;
+                line-height: 1.4;
+            }
+        </style>
         <h:form>
             <p:remoteCommand name="updateBeanCaisse_" actionListener="#{managedStockArticle.updateBean()}"/>
         </h:form> 
@@ -55,7 +89,7 @@
                     </p:column>
                     <p:column headerText="Stock" style="text-align: right">
                         <h:outputText value="#{aRL.stock}" converter="#{managedStockArticle.converterStock}"/>
-                        <span title="#{managedStockArticle.stock.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{managedStockArticle.stock.conditionnement.unite.reference}</span>
+                        <span title="#{managedStockArticle.stock.reference}" style="font-size: 0.6em;color: #003399">#{managedStockArticle.stock.reference}</span>
                     </p:column>
                 </p:dataTable>
                 <f:facet name="footer" class="yvs-dialog-footer">
@@ -257,48 +291,45 @@
                 <-->
                 <div class="yvs_form_stock_article" style="width: 99%;height: 100%; margin: auto; background: white">
                     <p:outputPanel id="blog_form_stock_article">
-                        <p:dataTable id="data_stock_article" value="#{managedStockArticle.articles_stock}" var="stock" rowKey="#{stock.id}" rowIndexVar="mouvIdx">
+                        <p:dataTable id="data_stock_article" value="#{managedStockArticle.inventaire.inventaires}" var="stock" rowKey="#{stock.unite}" rowIndexVar="mouvIdx"
+                                     paginator="true" paginatorAlwaysVisible="false" rows="15" 
+                                     paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" rowsPerPageTemplate="15,30,45,60,75,90">
                             <p:column headerText="N°" width="40">
-                                <h:graphicImage library="icones" name="coche.png" rendered="#{stock.prixRevient lt stock.prixEntree}" width="20" height="10" 
-                                                title="#{lab.LC_PSA_le_prix_entree} (#{stock.prixEntree}) #{lab.LC_PSA_est_superieur_prix_revient}"/>
                                 <span>#{mouvIdx+1}</span>
                             </p:column>
-                            <p:column headerText="#{lab.L_depot}" style="width: 12%">
-                                <h:outputText value="#{stock.depot.designation}"/>
-                            </p:column>
-                            <p:column headerText="#{lab.L_article}" filterBy="#{stock.article.refArt}">
-                                [<span style="font-weight: bold">#{stock.article.refArt}</span>] <span style=";margin-right: 3px">#{stock.article.designation}</span>
+                            <p:column headerText="#{lab.L_article}" filterBy="#{stock.code}">
+                                [<span style="font-weight: bold">#{stock.code}</span>] <span style=";margin-right: 3px">#{stock.designation}</span>
                             </p:column>
                             <p:column headerText="#{lab.L_unite}" style="width: 10%;text-align: center">
-                                <span title="#{stock.conditionnement.unite.libelle}" style="font-size: 0.9em;color: #003399">#{stock.conditionnement.unite.reference}</span>
+                                <span title="#{stock.reference}" style="font-size: 0.9em;color: #003399">#{stock.reference}</span>
                             </p:column>
                             <p:column headerText="#{lab.LC_PSA_puv}" style="width: 10%;text-align: right;">
-                                <h:outputText value="#{stock.conditionnement.prix} "/>
+                                <h:outputText value="#{stock.prix} "/>
                             </p:column>
-                            <p:column headerText="#{lab.LC_PSA_stock}" style="width: 12%;text-align: right;background:#{stock.stockInitial gt 0?'green':(stock.stockInitial lt 0?'red':'')}">
-                                <h:outputText value="#{stock.stockInitial}" style="color:  #{stock.stockInitial==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
+                            <p:column headerText="#{lab.LC_PSA_stock}" style="width: 12%;text-align: right;background:#{stock.stock gt 0?'green':(stock.stock lt 0?'red':'')}">
+                                <h:outputText value="#{stock.stock}" style="color:  #{stock.stock==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
                             </p:column>
                             <p:column headerText="#{lab.L_prix}" style="width: 10%;text-align: right;">
-                                <h:outputText value="#{stock.prixRevient} "/>
+                                <h:outputText value="#{stock.pr} "/>
                             </p:column>
-                            <p:column headerText="#{lab.LC_PSA_reservation}" rendered="false" style="width: 12%;text-align: right;background:#{stock.quantiteReserve eq 0? '':(stock.stockInitial ge stock.quantiteReserve?'tomato':'red')}">
-                                <h:outputText value="#{stock.quantiteReserve}" style="color:  #{stock.quantiteReserve==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
-                                <span title="#{stock.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{stock.conditionnement.unite.reference}</span>
+                            <p:column headerText="#{lab.LC_PSA_reservation}" rendered="false" style="width: 12%;text-align: right;background:#{stock.reservation eq 0? '':(stock.stock ge stock.reservation?'tomato':'red')}">
+                                <h:outputText value="#{stock.reservation}" style="color:  #{stock.reservation==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
+                                <span title="#{stock.reference}" style="font-size: 0.6em;color: #003399">#{stock.reference}</span>
                             </p:column>
-                            <p:column headerText="#{lab.LC_PSA_reste_a_livrer}" style="width: 12%;text-align: right;background:#{stock.resteALivrer eq 0 ? '':(stock.stockInitial ge stock.resteALivrer?'goldenrod':'red')}">
-                                <h:outputText value="#{stock.resteALivrer}" style="color:  #{stock.resteALivrer==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
-                                <span title="#{stock.conditionnement.unite.libelle}" style="font-size: 0.6em;color: #003399">#{stock.conditionnement.unite.reference}</span>
+                            <p:column headerText="#{lab.LC_PSA_reste_a_livrer}" style="width: 12%;text-align: right;background:#{stock.reste_a_livre eq 0 ? '':(stock.stock ge stock.reste_a_livre?'goldenrod':'red')}">
+                                <h:outputText value="#{stock.reste_a_livre}" style="color:  #{stock.reste_a_livre==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
+                                <span title="#{stock.reference}" style="font-size: 0.6em;color: #003399">#{stock.reference}</span>
                             </p:column>
-                            <p:column headerText="#{lab.LC_PSA_reste_dispo}" style="width: 12%;text-align: right;background:#{stock.resteALivrer eq 0 ? '':(stock.stockInitial ge stock.resteALivrer?'goldenrod':'red')}">
-                                <h:outputText value="#{((stock.stockInitial-stock.resteALivrer) gt 0)?(stock.stockInitial-stock.resteALivrer):0}" style="color:  #{stock.resteALivrer==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
+                            <p:column headerText="#{lab.LC_PSA_reste_dispo}" style="width: 12%;text-align: right;background:#{stock.reste_a_livre eq 0 ? '':(stock.stock ge stock.reste_a_livre?'goldenrod':'red')}">
+                                <h:outputText value="#{((stock.stock-stock.reste_a_livre) gt 0)?(stock.stock-stock.reste_a_livre):0}" style="color:  #{stock.reste_a_livre==0?'':'white'}" converter="#{managedStockArticle.converterStock}"/>
                             </p:column>
                             <p:column headerText="#{lab.LC_PSA_valeur}" style="width: 12%;text-align: right">
-                                <h:outputText value="#{stock.stockInitial * stock.prixRevient}" style="color: #{stock.stockInitial>0?'green':(0>stock.stockInitial?'red':'')}" converter="#{managedStockArticle.converter}"/>
+                                <h:outputText value="#{stock.valeur}" style="color: #{stock.stock>0?'green':(0>stock.stock?'red':'')}" converter="#{managedStockArticle.converter}"/>
                             </p:column>
                             <p:column headerText="" style="width: 5%;text-align: center"  rendered="#{accesRessource.gescom_stock_generer_entree}">
                                 <p:commandButton icon="ui-icon-gear" style="width: 22px; height: 22px" id="btn_opt_stock_dep" type="button"/>
                                 <p:contextMenu for="btn_opt_stock_dep" event="left click" >
-                                    <p:menuitem value="Stock par lot" icon="ui-icon-arrowstop-1-s" actionListener="#{managedStockArticle.openListLot(stock)}" rendered="#{stock.requiereLot}"
+                                    <p:menuitem value="Stock par lot" icon="ui-icon-arrowstop-1-s" actionListener="#{managedStockArticle.openListLot(stock)}" rendered="#{stock.requiere_lot}"
                                                 oncomplete="dlgListLotReception.show()"/>
                                     <p:menuitem value="#{lab.LC_PSA_generer_entree}" icon="ui-icon-arrowstop-1-s" actionListener="#{managedStockArticle.openToGenerated(stock)}" />
                                 </p:contextMenu>
@@ -316,28 +347,17 @@
                                     <p:column footerText=""/> 
                                     <p:column style="text-align: right;font-weight: bold">
                                         <f:facet name="footer">
-                                            <h:outputText value="#{managedStockArticle.totaux}" converter="#{managedBordStatistique.converter}"/> 
+                                            <h:outputText value="#{managedStockArticle.inventaire.totaux}" converter="#{managedBordStatistique.converter}"/> 
                                         </f:facet>                                
                                     </p:column> 
                                     <p:column footerText=""/> 
                                 </p:row>
                             </p:columnGroup>
                         </p:dataTable>   
-                        <p:outputPanel autoUpdate="true" style="float: right" layout="block">
-                            <p:commandButton actionListener="#{managedStockArticle.loadArticleStock(false,false)}"  update="data_stock_article" icon="ui-icon-circle-triangle-w" disabled="#{managedStockArticle.paginator.disPrev}"/>
-                            <p:outputPanel >
-                                <p:inplace label="#{managedStockArticle.paginator.currentPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold">
-                                    <pe:inputNumber value="#{managedStockArticle.paginator.gotoPage}" style="width: 30px;text-align: center" decimalPlaces="0">
-                                        <p:ajax event="blur" listener="#{managedStockArticle.gotoPagePaginator()}" update="data_stock_article"/>
-                                    </pe:inputNumber>
-                                </p:inplace><p:outputLabel value="/#{managedStockArticle.paginator.nbPage}" style="margin-top: 15px; font-size: 0.8em; font-weight: bold" />
-                            </p:outputPanel>
-                            <p:commandButton actionListener="#{managedStockArticle.loadArticleStock(true,false)}" update="data_stock_article" icon="ui-icon-circle-triangle-e" disabled="#{managedStockArticle.paginator.disNext}"/>
-                            <p:selectOneMenu value="#{managedStockArticle.imax}" label="#{lab.L_nombre_max_resultat}" valueChangeListener="#{managedStockArticle.choosePaginator_}" style="float: right; font-size: 0.9em;margin-top: 3px;min-width: 50px" >
-                                <f:selectItems value="#{managedTransfertStock.paginations}"/>
-                                <p:ajax event="valueChange" update="data_stock_article"/>
-                            </p:selectOneMenu>
-                        </p:outputPanel>                              
+                        <div class="notification-success">
+                            <h3>Conseil de performance</h3>
+                            <p>Afin d’optimiser les performances, nous vous recommandons de restreindre la liste des articles affichés ou d’accéder au détail du stock en téléchargeant l'état d'inventaire.</p>
+                        </div>
                     </p:outputPanel>
                 </div>
                 <!-->
@@ -415,13 +435,14 @@
             <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
                             styleClass="img_slide" title="#{lab.L_cacher}"/>  
             <div class="zone_find" style="width: 97%">
-                <h:panelGrid id="blog-search_stock_article" columns="8" style="font-size: 0.8em; float: left" cellpadding="0" cellspacing="0">                            
+                <h:panelGrid id="blog-search_stock_article" columns="9" style="font-size: 0.8em; float: left" cellpadding="0" cellspacing="0">                            
                     <h:outputText value="" />
                     <h:outputText value="#{lab.L_agence}" />
                     <h:outputText value="#{lab.LC_PSA_depots}" />
                     <h:outputText value="#{lab.L_tranche}" />
                     <h:outputText value="#{lab.L_date}" />
                     <h:outputText value="#{lab.LC_PSA_articles}" />
+                    <h:outputText value="" />
                     <h:outputText value="" />
                     <h:outputText value="" />
                     <p:commandButton icon="ui-icon-bullet" actionListener="#{managedStockArticle.clearParams()}" title="#{lab.L_reset_param}"
@@ -464,6 +485,11 @@
                     <p:splitButton value="#{lab.LC_PSA_calculer}" actionListener="#{managedStockArticle.calculerStock(true)}" icon="ui-icon-check">
                         <p:menuitem value="Plus d'options" icon="ui-icon-plus" onclick="dlgPlusOption.show()"  global="false"/>
                     </p:splitButton> 
+                </div>
+                <div style="float: left;margin-top: 7.5px">
+                    <p:splitButton value="#{lab.LC_PSA_telecharger_inventaire}" actionListener="#{managedStockArticle.printInventairePreparatoire()}" ajax="false" icon="ui-icon-print">
+                        <p:menuitem value="Inventaire avec détails" actionListener="#{managedStockArticle.printInventaire()}" ajax="false" icon="ui-icon-print"/>
+                    </p:splitButton>
                 </div>
                 <h:panelGroup style="float: right;font-size: 0.8em;margin-top: 7.5px;background: #000;padding: 5px">
                     <p:selectBooleanCheckbox itemLabel="#{lab.LC_PSA_article_stock}" value="#{managedStockArticle.stock_}" style="color: white;margin-top: 5px!important">
