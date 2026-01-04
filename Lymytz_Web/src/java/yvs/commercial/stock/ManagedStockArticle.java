@@ -115,7 +115,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
 
     private double totaux = 0;
     private Boolean suiviEnStock, depotActif = true, withLot;
-    private boolean stock_, selectArt, listArt, multi;
+    private boolean stock_ = true, selectArt, listArt, multi;
     private String tabIds, tabIds_emplacement, numSearch, categorieSearch, soldeSearch = "", typeUnite = "V";
     private Long familleSearch;
     private Boolean paramActifF;

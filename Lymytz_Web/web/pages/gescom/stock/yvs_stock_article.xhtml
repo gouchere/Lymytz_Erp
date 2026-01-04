@@ -28,6 +28,40 @@
                 collapseForm('stock_article');
             });
         </script>
+        <style>
+            .notification-success {
+                background: linear-gradient(to right, #3498db, #5dade2);
+                width: fit-content;
+                padding: 16px 20px;
+                margin: 5px auto;
+                color: white;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .notification-success h3 {
+                margin: 0 0 6px 0;
+                font-size: 22px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .notification-success h3::before {
+                content: '✔';
+                color: #a8e063;
+                font-size: 18px;
+            }
+
+            .notification-success p {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 400;
+                opacity: 0.95;
+                line-height: 1.4;
+            }
+        </style>
         <h:form>
             <p:remoteCommand name="updateBeanCaisse_" actionListener="#{managedStockArticle.updateBean()}"/>
         </h:form> 
@@ -258,10 +292,9 @@
                 <div class="yvs_form_stock_article" style="width: 99%;height: 100%; margin: auto; background: white">
                     <p:outputPanel id="blog_form_stock_article">
                         <p:dataTable id="data_stock_article" value="#{managedStockArticle.inventaire.inventaires}" var="stock" rowKey="#{stock.unite}" rowIndexVar="mouvIdx"
-                                     paginator="true" paginatorAlwaysVisible="false" rows="20">
+                                     paginator="true" paginatorAlwaysVisible="false" rows="15" 
+                                     paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}" rowsPerPageTemplate="15,30,45,60,75,90">
                             <p:column headerText="N°" width="40">
-                                <h:graphicImage library="icones" name="coche.png" rendered="#{stock.pr lt stock.prix}" width="20" height="10" 
-                                                title="#{lab.LC_PSA_le_prix_entree} (#{stock.prix}) #{lab.LC_PSA_est_superieur_prix_revient}"/>
                                 <span>#{mouvIdx+1}</span>
                             </p:column>
                             <p:column headerText="#{lab.L_article}" filterBy="#{stock.code}">
@@ -320,7 +353,11 @@
                                     <p:column footerText=""/> 
                                 </p:row>
                             </p:columnGroup>
-                        </p:dataTable>                          
+                        </p:dataTable>   
+                        <div class="notification-success">
+                            <h3>Conseil de performance</h3>
+                            <p>Afin d’optimiser les performances, nous vous recommandons de restreindre la liste des articles affichés ou d’accéder au détail du stock en téléchargeant l'état d'inventaire.</p>
+                        </div>
                     </p:outputPanel>
                 </div>
                 <!-->
@@ -398,13 +435,14 @@
             <h:graphicImage library="img"  name="pointe_.png" style="border: none; position: relative; bottom: -20px" width="20" height="20"
                             styleClass="img_slide" title="#{lab.L_cacher}"/>  
             <div class="zone_find" style="width: 97%">
-                <h:panelGrid id="blog-search_stock_article" columns="8" style="font-size: 0.8em; float: left" cellpadding="0" cellspacing="0">                            
+                <h:panelGrid id="blog-search_stock_article" columns="9" style="font-size: 0.8em; float: left" cellpadding="0" cellspacing="0">                            
                     <h:outputText value="" />
                     <h:outputText value="#{lab.L_agence}" />
                     <h:outputText value="#{lab.LC_PSA_depots}" />
                     <h:outputText value="#{lab.L_tranche}" />
                     <h:outputText value="#{lab.L_date}" />
                     <h:outputText value="#{lab.LC_PSA_articles}" />
+                    <h:outputText value="" />
                     <h:outputText value="" />
                     <h:outputText value="" />
                     <p:commandButton icon="ui-icon-bullet" actionListener="#{managedStockArticle.clearParams()}" title="#{lab.L_reset_param}"
@@ -447,6 +485,11 @@
                     <p:splitButton value="#{lab.LC_PSA_calculer}" actionListener="#{managedStockArticle.calculerStock(true)}" icon="ui-icon-check">
                         <p:menuitem value="Plus d'options" icon="ui-icon-plus" onclick="dlgPlusOption.show()"  global="false"/>
                     </p:splitButton> 
+                </div>
+                <div style="float: left;margin-top: 7.5px">
+                    <p:splitButton value="#{lab.LC_PSA_telecharger_inventaire}" actionListener="#{managedStockArticle.printInventairePreparatoire()}" ajax="false" icon="ui-icon-print">
+                        <p:menuitem value="Inventaire avec détails" actionListener="#{managedStockArticle.printInventaire()}" ajax="false" icon="ui-icon-print"/>
+                    </p:splitButton>
                 </div>
                 <h:panelGroup style="float: right;font-size: 0.8em;margin-top: 7.5px;background: #000;padding: 5px">
                     <p:selectBooleanCheckbox itemLabel="#{lab.LC_PSA_article_stock}" value="#{managedStockArticle.stock_}" style="color: white;margin-top: 5px!important">
