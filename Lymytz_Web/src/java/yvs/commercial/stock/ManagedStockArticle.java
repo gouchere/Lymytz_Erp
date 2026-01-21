@@ -837,7 +837,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
 
     public void searchArticleByRefArtActif() {
         ParametreRequete p = new ParametreRequete("y.article.refArt", "designation", null);
-        if (numSearch != null ? numSearch.trim().length() > 0 : false) {
+        if (numSearch != null && numSearch.trim().length() > 0) {
             p = new ParametreRequete(null, "designation", numSearch + "%", "LIKE", "AND");
             p.getOtherExpression().add(new ParametreRequete("UPPER(y.article.designation)", "designation", numSearch.toUpperCase() + "%", "LIKE", "OR"));
             p.getOtherExpression().add(new ParametreRequete("UPPER(y.article.refArt)", "refArt", numSearch.toUpperCase() + "%", "LIKE", "OR"));
@@ -847,7 +847,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
     }
 
     public void loadActifArticleByDepot(boolean avancer, boolean init) {
-        if ((entityDepot != null) ? entityDepot.getId() > 0 : false) {
+        if (entityDepot != null && entityDepot.getId() > 0) {
             pa.addParam(new ParametreRequete("y.depot", "depot", entityDepot, "=", "AND"));
             pa.addParam(new ParametreRequete("y.actif", "actif", true, "=", "AND"));
             pa.addParam(new ParametreRequete("y.article.actif", "active", true, "=", "AND"));
@@ -872,7 +872,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
     }
 
     public void loadActifArticleByPoint(boolean avancer, boolean init) {
-        if (entityPoint != null ? entityPoint.getId() > 0 : false) {
+        if (entityPoint != null && entityPoint.getId() > 0) {
             String queryFrom = "YvsBaseArticleDepot y JOIN FETCH y.article JOIN FETCH y.depot.points LP JOIN FETCH LP.pointVente ";
             pv.addParam(new ParametreRequete("LP.pointVente", "point", entityPoint, " = ", "AND"));
             pv.addParam(new ParametreRequete("y.actif", "actifDep", true, "=", "AND"));
@@ -1225,7 +1225,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
         paginator.addParam(new ParametreRequete("y.article", "refLike", new YvsBaseArticles(article), "=", "AND"));
         if (!paginator.getParams().isEmpty()) {
             controlListAgence();
-            paginator.addParam(new ParametreRequete("y.depot.agence.id", "agence", listIdAgences, "IN", "AND"));
+            paginator.addParam(new ParametreRequete( "y.depot.agence.id", "agence", listIdAgences, "IN", "AND"));
             List<YvsBaseArticleDepot> list = paginator.executeDynamicQuery("YvsBaseArticleDepot", "y.article.designation, y.article.refArt", true, true, (int) imax, dao);
             Double sr;
             YvsBaseArticleDepot y;
@@ -1296,7 +1296,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
         }
     }
 
-    public void loadArticleStockOLD(boolean avance, boolean init) {
+   /* public void loadArticleStockOLD(boolean avance, boolean init) {
         articles_stock.clear();
         if (stock_) {
             paginator.addParam(new ParametreRequete("y.depot", "depot", null, "=", "AND"));
@@ -1400,7 +1400,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
             }
         }
         update("data_stock_article");
-    }
+    }*/
 
     public void gotoPagePaginator() {
         paginator.gotoPage((int) imax);
@@ -1466,7 +1466,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
                 article.setDepot(UtilCom.buildBeanDepot(entityDepot));
             }
             if (controleFicheArticle(article)) {
-                if (article.getDepotPr() != null ? article.getDepotPr().getId() < 1 : true) {
+                if (article.getDepotPr() == null || article.getDepotPr().getId() < 1) {
                     cloneObject(article.getDepotPr(), article.getDepot());
                 }
                 YvsBaseArticleDepot entity = UtilCom.buildArticleDepot(article, currentUser);
@@ -2154,7 +2154,7 @@ public class ManagedStockArticle extends ManagedCommercial<MouvementStock, YvsBa
     public void addParamArticle() {
         articlesSearch = "";
         ParametreRequete p = new ParametreRequete("UPPER(y.article.refArt)", "refLike", null);
-        if (artSearch != null ? artSearch.trim().length() > 0 : false) {
+        if (artSearch != null && artSearch.trim().length() > 0) {
             p = new ParametreRequete(null, "refLike", artSearch.toUpperCase() + "%", "LIKE", "AND");
             p.getOtherExpression().add(new ParametreRequete("UPPER(y.article.refArt)", "refLike", artSearch.toUpperCase() + "%", "LIKE", "OR"));
             p.getOtherExpression().add(new ParametreRequete("UPPER(y.article.designation)", "refLike", artSearch.toUpperCase() + "%", "LIKE", "OR"));

@@ -303,13 +303,8 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
         new SelectItem((int) 10, "10"),
         new SelectItem((int) 15, "15"),
         new SelectItem((int) 25, "25"),
-        new SelectItem((int) 50, "50")
-//        new SelectItem((int) 100, "100"),
-//        new SelectItem((int) 150, "150"),
-//        new SelectItem((int) 200, "200"),
-//        new SelectItem((int) 500, "500"),
-//        new SelectItem((int) 1000, "1000"),
-//        new SelectItem((int) 5000, "1000+")
+        new SelectItem((int) 50, "50"),
+        new SelectItem((int) 100, "100")
     };
 
     public Managed getInstance() {
