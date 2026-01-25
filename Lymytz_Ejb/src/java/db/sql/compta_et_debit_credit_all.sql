@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION report.compta_et_debit_credit_all(
+CREATE OR REPLACE FUNCTION public.compta_et_debit_credit_all(
     agence_ bigint, 
     societe_ bigint, 
     valeur_ bigint, 
@@ -40,16 +40,12 @@ BEGIN
         SELECT 
             SUM(o.debit) AS total_debit, 
             SUM(o.credit) AS total_credit
-        FROM yvs_compta_content_analytique o
-        INNER JOIN yvs_compta_content_journal c ON o.contenu = c.id
-        INNER JOIN yvs_compta_pieces_comptable p ON c.piece = p.id
-        INNER JOIN yvs_compta_journaux j ON j.id = p.journal
-        INNER JOIN yvs_agences a ON j.agence = a.id
+        FROM view_compta_analytique_debit_credit o
         WHERE type_ = 'A'
-            AND p.date_piece BETWEEN date_debut_ AND date_fin_
-            AND (journal_ IS NULL OR journal_ <= 0 OR j.id = journal_)
-            AND (agence_ IS NULL OR agence_ <= 0 OR j.agence = agence_)
-            AND (societe_ IS NULL OR societe_ <= 0 OR a.societe = societe_)
+            AND o.date_piece BETWEEN date_debut_ AND date_fin_
+            AND (journal_ IS NULL OR journal_ <= 0 OR o.journal_id = journal_)
+            AND (agence_ IS NULL OR agence_ <= 0 OR o.agence = agence_)
+            AND (societe_ IS NULL OR societe_ <= 0 OR o.societe = societe_)
             AND o.centre = valeur_
     ),
     -- CTE pour données comptables générales (type_ != 'A')
@@ -57,7 +53,7 @@ BEGIN
         SELECT 
             SUM(c.debit) AS total_debit, 
             SUM(c.credit) AS total_credit
-        FROM report.view_compta_debit_credit c
+        FROM view_compta_debit_credit c
         WHERE type_ != 'A'
             AND c.date_piece BETWEEN date_debut_ AND date_fin_
             AND (journal_ IS NULL OR journal_ <= 0 OR c.journal_id = journal_)

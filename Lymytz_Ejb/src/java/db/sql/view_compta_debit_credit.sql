@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS report.view_compta_debit_credit;
-CREATE TABLE report.view_compta_debit_credit AS
+DROP MATERIALIZED VIEW IF EXISTS view_compta_debit_credit;
+CREATE MATERIALIZED VIEW view_compta_debit_credit AS
 SELECT
     p.date_piece,
     j.agence,
@@ -8,7 +8,7 @@ SELECT
     c.compte_general,
     c.compte_tiers,
     c.table_tiers,
-
+    c.report,
     SUM(c.debit)  AS debit,
     SUM(c.credit) AS credit
 
@@ -24,4 +24,12 @@ GROUP BY
     j.id,
     c.compte_general,
     c.compte_tiers,
-    c.table_tiers;
+    c.table_tiers,
+    c.report
+;
+
+
+
+--# ...existing code...
+--0 2 * * * postgres psql -d lymytz_demo_0 -c "REFRESH MATERIALIZED VIEW CONCURRENTLY view_compta_debit_credit;"
+--# ...existing code...
