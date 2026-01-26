@@ -22,3 +22,9 @@ GROUP BY
     o.centre,   
     c.report
 ;
+
+
+
+--# ...existing code...
+--0 2 * * * postgres psql -d lymytz_demo_0 -c "REFRESH MATERIALIZED VIEW CONCURRENTLY view_compta_analytique_debit_credit;"
+--# ...existing code...
