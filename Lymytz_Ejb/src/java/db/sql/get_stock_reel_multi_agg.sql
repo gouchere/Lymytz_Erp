@@ -1,16 +1,10 @@
--- DROP FUNCTION public.get_stock_reel_multi_agg(bigint[], bigint, bigint, bigint, date, bigint);
-CREATE OR REPLACE FUNCTION public.get_stock_reel_multi_agg(
-    art_ids  bigint[],   -- liste d'articles
-    tranche_ bigint,
-    depot_   bigint,
-    agence_  bigint,
-    date_    date,
-    lot_     bigint      -- 0 = tous lots, sinon stock du lot
-)
-    RETURNS TABLE(depot bigint, article bigint, lot bigint, stock double precision)
-    LANGUAGE sql
-    STABLE
-AS $$
+DROP FUNCTION public.get_stock_reel_multi_agg(bigint[], int8, int8, int8, date, int8);
+
+CREATE OR REPLACE FUNCTION public.get_stock_reel_multi_agg(art_ids bigint[], tranche_ bigint, depot_ bigint, agence_ bigint, date_ date, lot_ bigint)
+ RETURNS TABLE(depot bigint, article bigint, conditionnement bigint, lot bigint, stock double precision)
+ LANGUAGE sql
+ STABLE
+AS $function$
 WITH params AS (
     SELECT
         COALESCE(date_, current_date) AS d,
@@ -22,7 +16,8 @@ WITH params AS (
 -- 1) Stock cumulé jusqu'à la date via l'agrégat
      stock_agg AS (
          SELECT
-			sj.depot,
+			 sj.depot,
+             sj.article,
              sj.conditionnement,
              l.lot,
              SUM(
@@ -41,7 +36,7 @@ WITH params AS (
            AND (p.agence_id  = 0 OR d.agence = p.agence_id)
            AND sj.date_doc <= p.d
            AND (p.lot_id    = 0 OR l.lot = p.lot_id)   -- filtre lot
-         GROUP BY sj.depot, sj.conditionnement, l.lot
+         GROUP BY sj.depot, sj.article, sj.conditionnement, l.lot
      ),
 -- 2) Tranches à exclure (comme ta fonction)
      tranches_excl AS (
@@ -60,6 +55,7 @@ WITH params AS (
      correction_tranche AS (
          SELECT
 			 m.depot, 
+             m.article,
              m.conditionnement,
              l.lot,
              SUM(
@@ -80,13 +76,15 @@ WITH params AS (
            AND p.tranche_id  > 0
            AND m.date_doc    = p.d
            AND m.tranche IN (SELECT id FROM tranches_excl)
-         GROUP BY m.depot, m.conditionnement, l.lot
+         GROUP BY m.depot, m.article, m.conditionnement, l.lot
      )
 SELECT
     COALESCE(sa.depot, ct.depot) AS depot,
-    COALESCE(sa.conditionnement, ct.conditionnement) AS article,
+    COALESCE(sa.article, ct.article) AS article,
+    COALESCE(sa.conditionnement, ct.conditionnement) AS conditionnement,
     COALESCE(sa.lot, ct.lot) AS lot,
     COALESCE(sa.qty, 0) - COALESCE(ct.qty_tranche, 0) AS stock
 FROM stock_agg sa
-         FULL JOIN correction_tranche ct ON ct.depot = sa.depot AND ct.conditionnement = sa.conditionnement AND ct.lot = sa.lot;
-$$;
+         FULL JOIN correction_tranche ct ON ct.depot = sa.depot AND ct.article = sa.article AND ct.conditionnement = sa.conditionnement AND ct.lot = sa.lot;
+$function$
+;

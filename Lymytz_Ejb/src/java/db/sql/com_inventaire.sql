@@ -150,7 +150,7 @@ BEGIN
             ELSE COALESCE(ral.reste, 0) 
         END AS reste_a_livrer_val
     FROM tmp_article a
-    LEFT JOIN tmp_stock s ON s.article = a.unite AND s.depot = a.depot  -- Comme dans l'original
+    LEFT JOIN tmp_stock s ON s.article = a.article AND s.conditionnement = a.unite AND s.depot = a.depot  -- Comme dans l'original
     LEFT JOIN tmp_reservation r 
         ON r.depot = a.depot 
         AND r.article = a.article 
