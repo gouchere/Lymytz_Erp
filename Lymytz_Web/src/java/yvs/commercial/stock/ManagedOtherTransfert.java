@@ -1787,6 +1787,7 @@ public class ManagedOtherTransfert extends ManagedCommercial<DocStock, YvsComDoc
         docStock.setSource(new Depots());
         docStock.setCreneauDestinataire(new Creneau());
         docStock.setCreneauSource(new Creneau());
+        tranche = 0; 
         if (entree) {
             docStock.setMouvement(Constantes.MOUV_ENTREE);
             docStock.setDestination(new Depots(depot));
