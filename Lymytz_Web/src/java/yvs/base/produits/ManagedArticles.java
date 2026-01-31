@@ -6573,6 +6573,10 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
 
     public void removeConditionnementPoint(YvsBaseConditionnementPoint y) {
         try {
+            if (!autoriser("base_article_update_puv")) {
+                openNotAcces();
+                return;
+            }
             if (y != null ? y.getId() > 0 : false) {
                 int index = pointsVentes.indexOf(y);
                 y.setDateUpdate(new Date());
@@ -6590,6 +6594,10 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
 
     public void addConditionnementPoint(YvsBaseConditionnementPoint y) {
         try {
+            if (!autoriser("base_article_update_puv")) {
+                openNotAcces();
+                return;
+            }
             if (y != null ? y.getId() < 1 : true) {
                 int index = pointsVentes.indexOf(y);
                 y.setDateUpdate(new Date());
@@ -6620,6 +6628,10 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
 
     public void updateConditionnementPoint(RowEditEvent ev) {
         if (ev != null) {
+            if (!autoriser("base_article_update_puv")) {
+                openNotAcces();
+                return;
+            }
             YvsBaseConditionnementPoint y = (YvsBaseConditionnementPoint) ev.getObject();
             y.setDateUpdate(new Date());
             dao.update(y);
