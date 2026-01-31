@@ -38,22 +38,25 @@ $$ LANGUAGE plpgsql;
 -- ============================================================================
 
 -- Index composite pour recherche rapide article + depot
+
 SELECT create_index_if_not_exists(
-    'idx_article_depot_article_depot',
+    'yvs_base_article_depot_article_depot_idx',
     'yvs_base_article_depot',
     '(article, depot)'
 );
 
 -- Index partiel pour les dépôts par défaut (WHERE default_pr IS TRUE)
+
 SELECT create_index_if_not_exists(
-    'idx_article_depot_article_default',
+    'yvs_base_article_depot_article_default_pr_idx',
     'yvs_base_article_depot',
     '(article) WHERE default_pr IS TRUE'
 );
 
 -- Index pour incluure la catégorie
+
 SELECT create_index_if_not_exists(
-    'idx_article_depot_article_categorie',
+    'yvs_base_article_depot_article_depot_categorie_idx',
     'yvs_base_article_depot',
     '(article, depot, categorie)'
 );
@@ -64,22 +67,25 @@ SELECT create_index_if_not_exists(
 
 -- Index composite pour recherche optimale des mouvements d'entrée
 -- Inclut la condition WHERE pour réduire la taille de l'index
+
 SELECT create_index_if_not_exists(
-    'idx_mouvement_stock_article_date',
+    'yvs_base_mouvement_stock_article_date_doc_mouvement_idx',
     'yvs_base_mouvement_stock',
     '(article, date_doc DESC, mouvement) WHERE COALESCE(calcul_pr, TRUE) IS TRUE'
 );
 
 -- Index par dépôt pour les recherches filtrées
+
 SELECT create_index_if_not_exists(
-    'idx_mouvement_stock_depot_article',
+    'yvs_base_mouvement_stock_depot_article_date_doc_idx',
     'yvs_base_mouvement_stock',
     '(depot, article, date_doc DESC) WHERE COALESCE(calcul_pr, TRUE) IS TRUE AND mouvement = ''E'''
 );
 
 -- Index pour les tranches (si utilisé)
+
 SELECT create_index_if_not_exists(
-    'idx_mouvement_stock_tranche',
+    'yvs_base_mouvement_stock_article_tranche_date_doc_idx',
     'yvs_base_mouvement_stock',
     '(article, tranche, date_doc DESC) WHERE COALESCE(calcul_pr, TRUE) IS TRUE'
 );
@@ -91,14 +97,14 @@ BEGIN
     -- Tenter avec INCLUDE si PostgreSQL >= 11
     IF current_setting('server_version_num')::integer >= 110000 THEN
         PERFORM create_index_if_not_exists(
-            'idx_mouvement_stock_complete',
+            'yvs_base_mouvement_stock_article_depot_date_doc_mouvement_calcul_pr_idx',
             'yvs_base_mouvement_stock',
             '(article, depot, date_doc DESC, mouvement, calcul_pr) INCLUDE (cout_stock, conditionnement)'
         );
     ELSE
         -- Fallback sans INCLUDE pour versions anciennes
         PERFORM create_index_if_not_exists(
-            'idx_mouvement_stock_complete',
+            'yvs_base_mouvement_stock_article_depot_date_doc_mouvement_calcul_pr_cout_stock_conditionnement_idx',
             'yvs_base_mouvement_stock',
             '(article, depot, date_doc DESC, mouvement, calcul_pr, cout_stock, conditionnement)'
         );
@@ -110,15 +116,17 @@ END $$;
 -- ============================================================================
 
 -- Index pour les conversions d'unités
+
 SELECT create_index_if_not_exists(
-    'idx_table_conversion_unites',
+    'yvs_base_table_conversion_unite_unite_equivalent_idx',
     'yvs_base_table_conversion',
     '(unite, unite_equivalent)'
 );
 
 -- Index inverse pour recherches bidirectionnelles
+
 SELECT create_index_if_not_exists(
-    'idx_table_conversion_unites_inverse',
+    'yvs_base_table_conversion_unite_equivalent_unite_idx',
     'yvs_base_table_conversion',
     '(unite_equivalent, unite)'
 );
@@ -128,8 +136,9 @@ SELECT create_index_if_not_exists(
 -- ============================================================================
 
 -- Index pour jointures rapides
+
 SELECT create_index_if_not_exists(
-    'idx_conditionnement_id_unite',
+    'yvs_base_conditionnement_id_unite_idx',
     'yvs_base_conditionnement',
     '(id, unite)'
 );
@@ -139,8 +148,9 @@ SELECT create_index_if_not_exists(
 -- ============================================================================
 
 -- Index pour récupération rapide de l'agence
+
 SELECT create_index_if_not_exists(
-    'idx_depots_id_agence',
+    'yvs_base_depots_id_agence_idx',
     'yvs_base_depots',
     '(id, agence)'
 );
@@ -150,15 +160,17 @@ SELECT create_index_if_not_exists(
 -- ============================================================================
 
 -- Index composite pour recherche par article et unité
+
 SELECT create_index_if_not_exists(
-    'idx_nomenclature_article_unite',
+    'yvs_prod_nomenclature_article_unite_mesure_actif_idx',
     'yvs_prod_nomenclature',
     '(article, unite_mesure) WHERE actif IS TRUE'
 );
 
 -- Index pour recherche par article seul
+
 SELECT create_index_if_not_exists(
-    'idx_nomenclature_article_actif',
+    'yvs_prod_nomenclature_article_actif_idx',
     'yvs_prod_nomenclature',
     '(article) WHERE actif IS TRUE'
 );
@@ -168,15 +180,17 @@ SELECT create_index_if_not_exists(
 -- ============================================================================
 
 -- Index pour récupération des composants d'une nomenclature
+
 SELECT create_index_if_not_exists(
-    'idx_composant_nomenclature_nomenclature',
+    'yvs_prod_composant_nomenclature_nomenclature_actif_inside_cout_alternatif_idx',
     'yvs_prod_composant_nomenclature',
     '(nomenclature) WHERE actif IS TRUE AND inside_cout IS TRUE AND alternatif IS FALSE'
 );
 
 -- Index pour vérifier si un article a une nomenclature
+
 SELECT create_index_if_not_exists(
-    'idx_composant_nomenclature_article',
+    'yvs_prod_composant_nomenclature_article_actif_idx',
     'yvs_prod_composant_nomenclature',
     '(article) WHERE actif IS TRUE'
 );
@@ -187,13 +201,13 @@ DO $$
 BEGIN
     IF current_setting('server_version_num')::integer >= 110000 THEN
         PERFORM create_index_if_not_exists(
-            'idx_composant_nomenclature_complete',
+            'yvs_prod_composant_nomenclature_nomenclature_article_actif_inside_cout_alternatif_idx',
             'yvs_prod_composant_nomenclature',
             '(nomenclature, article, actif, inside_cout, alternatif) INCLUDE (unite, quantite, composant_lie)'
         );
     ELSE
         PERFORM create_index_if_not_exists(
-            'idx_composant_nomenclature_complete',
+            'yvs_prod_composant_nomenclature_nomenclature_article_actif_inside_cout_alternatif_unite_quantite_composant_lie_idx',
             'yvs_prod_composant_nomenclature',
             '(nomenclature, article, actif, inside_cout, alternatif, unite, quantite, composant_lie)'
         );
@@ -201,8 +215,9 @@ BEGIN
 END $$;
 
 -- Index pour les composants liés
+
 SELECT create_index_if_not_exists(
-    'idx_composant_nomenclature_lie',
+    'yvs_prod_composant_nomenclature_id_quantite_idx',
     'yvs_prod_composant_nomenclature',
     '(id, quantite)'
 );
@@ -212,15 +227,17 @@ SELECT create_index_if_not_exists(
 -- ============================================================================
 
 -- Index pour récupération rapide de la catégorie
+
 SELECT create_index_if_not_exists(
-    'idx_articles_id_categorie',
+    'yvs_base_articles_id_categorie_idx',
     'yvs_base_articles',
     '(id, categorie)'
 );
 
 -- Index pour la référence (utilisé dans les logs)
+
 SELECT create_index_if_not_exists(
-    'idx_articles_ref_art',
+    'yvs_base_articles_ref_art_idx',
     'yvs_base_articles',
     '(ref_art)'
 );
@@ -230,8 +247,9 @@ SELECT create_index_if_not_exists(
 -- ============================================================================
 
 -- Index pour récupération rapide des paramètres de production
+
 SELECT create_index_if_not_exists(
-    'idx_prod_parametre_societe',
+    'yvs_prod_parametre_societe_idx',
     'yvs_prod_parametre',
     '(societe)'
 );
@@ -241,8 +259,9 @@ SELECT create_index_if_not_exists(
 -- ============================================================================
 
 -- Index pour jointure avec paramètres
+
 SELECT create_index_if_not_exists(
-    'idx_agences_id_societe',
+    'yvs_agences_id_societe_idx',
     'yvs_agences',
     '(id, societe)'
 );
