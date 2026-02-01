@@ -6557,8 +6557,12 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
             if (y != null ? y.getId() > 0 : false) {
                 y.setDateUpdate(new Date());
                 y.setActif(!y.getActif());
+                y.setAuthor(currentUser);
+                y.setDateUpdate(new Date());
                 dao.update(y);
                 y.getArticle().setActif(y.getActif());
+                y.getArticle().setAuthor(currentUser);
+                y.getArticle().setDateUpdate(new Date());
                 dao.update(y.getArticle());
                 int index = pointsVentes.indexOf(y);
                 if (index > -1) {
@@ -6579,6 +6583,7 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
             }
             if (y != null ? y.getId() > 0 : false) {
                 int index = pointsVentes.indexOf(y);
+                y.setAuthor(currentUser);
                 y.setDateUpdate(new Date());
                 dao.delete(y);
                 y.setId(YvsBaseConditionnementPoint.ids--);
@@ -6600,7 +6605,6 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
             }
             if (y != null ? y.getId() < 1 : true) {
                 int index = pointsVentes.indexOf(y);
-                y.setDateUpdate(new Date());
                 if (y.getArticle() == null) {
                     getErrorMessage("Action impossible!!!");
                     return;
@@ -6608,6 +6612,7 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
                 if (y.getArticle() != null ? y.getArticle().getId() < 1 : true) {
                     y.getArticle().setId(null);
                     y.getArticle().setDateUpdate(new Date());
+                    y.getArticle().setAuthor(currentUser);
                     y.setArticle((YvsBaseArticlePoint) dao.save1(y.getArticle()));
                 }
                 if (!y.getArticle().getActif()) {
@@ -6615,6 +6620,8 @@ public class ManagedArticles extends Managed<Articles, YvsBaseArticles> implemen
                     dao.update(y.getArticle());
                 }
                 y.setId(null);
+                y.setAuthor(currentUser);
+                y.setDateUpdate(new Date());
                 y = (YvsBaseConditionnementPoint) dao.save1(y);
                 if (index > -1) {
                     pointsVentes.set(index, y);
