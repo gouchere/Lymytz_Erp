@@ -21,6 +21,7 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
 import org.primefaces.component.selectcheckboxmenu.SelectCheckboxMenu;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.ToggleSelectEvent;
@@ -125,7 +126,22 @@ public class ManagedValorisation extends ManagedCommercial<MouvementStock, YvsBa
             Quantite,
             Stock,
             CoutStock
-    ));
+    ));    
+
+    private SelectItem[] paginations = {
+        new SelectItem((int) 0, "@"),
+        new SelectItem((int) 5, "5"),
+        new SelectItem((int) 10, "10"),
+        new SelectItem((int) 15, "15"),
+        new SelectItem((int) 25, "25"),
+        new SelectItem((int) 50, "50"),
+        new SelectItem((int) 100, "100"),
+        new SelectItem((int) 150, "150"),
+        new SelectItem((int) 200, "200"),
+        new SelectItem((int) 500, "500"),
+        new SelectItem((int) 1000, "1000"),
+        new SelectItem((int) 5000, "1000+")
+    };
 
     public ManagedValorisation() {
         mouvements = new ArrayList<>();
@@ -136,6 +152,11 @@ public class ManagedValorisation extends ManagedCommercial<MouvementStock, YvsBa
         tranches = new ArrayList<>();
         historiques = new ArrayList<>();
         selections = new ArrayList<>();
+    }
+
+    @Override
+    public SelectItem[] getPaginations() {
+        return paginations; //To change body of generated methods, choose Tools | Templates.
     }
 
     public String[] getColumnsName() {
