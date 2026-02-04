@@ -35,7 +35,7 @@ public class AccesRessource implements Serializable {
     //Page Niveau Acces base_client
     public boolean base_client_save, base_client_update, base_client_delete, base_client_print_actif, base_client_change_ristourne, base_client_associer_tarifaire;
     //Page Niveau Acces base_article
-    public boolean base_article_save, base_article_update, base_article_delete, base_article_add_depot, base_article_save_tarifaire,
+    public boolean base_article_save, base_article_update, base_article_delete, base_article_add_depot, base_article_save_tarifaire,base_article_update_puv,
             base_article_defined_comptable, base_article_change_reference, base_view_article_puv, base_view_article_pua, base_view_article_pr;
 
 //Module parametrage param_
@@ -150,6 +150,14 @@ public class AccesRessource implements Serializable {
 
     //Projet proj_
     public boolean proj_departement_save, proj_departement_update, proj_departement_delete, proj_projet_view, proj_projet_save, proj_projet_update, proj_projet_delete, proj_projet_add_service;
+
+    public boolean isBase_article_update_puv() {
+        return base_article_update_puv;
+    }
+
+    public void setBase_article_update_puv(boolean base_article_update_puv) {
+        this.base_article_update_puv = base_article_update_puv;
+    }
 
     public boolean isBase_uncloture_periode_exo() {
         return base_uncloture_periode_exo;
