@@ -2708,11 +2708,11 @@ public class ManagedDocDivers extends Managed<DocCaissesDivers, YvsComptaCaisseD
     }
 
     public void saveAbonnementPieceCaisse() {
-        if (docDivers != null ? docDivers.getId() > 0 : false) {
+        if (docDivers != null && docDivers.getId() > 0) {
             for (YvsComptaAbonementDocDivers pc : docDivers.getAbonnements()) {
                 pc.setAuthor(currentUser);
                 pc.setDocDivers(new YvsComptaCaisseDocDivers(docDivers.getId()));
-                if (pc.getId() != null ? pc.getId() <= 0 : true) {
+                if (pc.getId() == null || pc.getId() <= 0) {
                     pc.setId(null);
                     pc = (YvsComptaAbonementDocDivers) dao.save1(pc);
                 } else {
