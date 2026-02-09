@@ -81,7 +81,7 @@ public class ManagedCaisses extends Managed<Caisses, YvsBaseCaisse> implements S
     private List<String> fusionnesBy;
 
     private List<YvsUsers> users;
-    private long agenceFind;
+    private long agenceFind;   
 
     public ManagedCaisses() {
         caisses = new ArrayList<>();

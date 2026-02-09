@@ -1110,6 +1110,10 @@ public class ManagedPointVente extends ManagedCommercial<PointVente, YvsBasePoin
         String action = article.isUpdate() ? "Modification" : "Insertion";
         YvsBaseConditionnementPoint temp = null;
         try {
+            if (!autoriser("base_article_update_puv")) {
+                openNotAcces();
+                return null;
+            }
             ArticleDepot bean = recopieViewArticle();
             if (controleFicheArticle(bean)) {
                 YvsBaseArticlePoint entity = buildArticlePoint(bean);
