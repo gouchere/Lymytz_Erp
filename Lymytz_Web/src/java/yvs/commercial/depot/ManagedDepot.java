@@ -749,7 +749,7 @@ public class ManagedDepot extends ManagedCommercial<Depots, YvsBaseDepots> imple
                             }
                         }
                     }
-                    //charge les dépôts où il en est responsable ou les dépôt ayant le même code d'accès que le user
+                    //charge les dépôts où il en  est responsable ou les dépôt ayant le même code d'accès que le user
                     String query = "SELECT d.id FROM yvs_base_depots d "
                             + "INNER JOIN yvs_base_users_acces ua ON d.code_acces=ua.code WHERE d.actif IS TRUE AND ua.users=? AND d.agence = ?";
                     //id dépôt avec code d'accès

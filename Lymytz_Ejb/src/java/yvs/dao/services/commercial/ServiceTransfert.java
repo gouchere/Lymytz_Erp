@@ -87,7 +87,7 @@ public class ServiceTransfert extends GenericService {
         return result.succes();
     }
 
-    private ResultatAction checkDocument(YvsComDocStocks bean, boolean control_tranche_source, boolean control_tranche_destination) {
+    private ResultatAction  checkDocument(YvsComDocStocks bean, boolean control_tranche_source, boolean control_tranche_destination) {
         if (bean == null) {
             return result.emptyDoc();
         }
