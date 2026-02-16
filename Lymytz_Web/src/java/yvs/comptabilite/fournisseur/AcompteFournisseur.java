@@ -161,7 +161,7 @@ public class AcompteFournisseur implements Serializable {
     }
 
     public char getNature() {
-        return Character.valueOf(nature) != null ? String.valueOf(nature).trim().length() > 0 ? nature : 'D' : 'D';
+        return Character.valueOf(nature) != null ? !String.valueOf(nature).trim().isEmpty() ? nature : 'D' : 'D';
     }
 
     public void setNature(char nature) {
@@ -169,7 +169,7 @@ public class AcompteFournisseur implements Serializable {
     }
 
     public char getStatut() {
-        return Character.valueOf(statut) != null ? String.valueOf(statut).trim().length() > 0 ? statut : Constantes.STATUT_DOC_ATTENTE : Constantes.STATUT_DOC_ATTENTE;
+        return Character.valueOf(statut) != null ? !String.valueOf(statut).trim().isEmpty() ? statut : Constantes.STATUT_DOC_ATTENTE : Constantes.STATUT_DOC_ATTENTE;
     }
 
     public void setStatut(char statut) {
@@ -177,7 +177,7 @@ public class AcompteFournisseur implements Serializable {
     }
 
     public char getStatutNotif() {
-        return Character.valueOf(statutNotif) != null ? String.valueOf(statutNotif).trim().length() > 0 ? statutNotif : Constantes.STATUT_DOC_ATTENTE : Constantes.STATUT_DOC_ATTENTE;
+        return Character.valueOf(statutNotif) != null ? !String.valueOf(statutNotif).trim().isEmpty() ? statutNotif : Constantes.STATUT_DOC_ATTENTE : Constantes.STATUT_DOC_ATTENTE;
     }
 
     public void setStatutNotif(char statutNotif) {

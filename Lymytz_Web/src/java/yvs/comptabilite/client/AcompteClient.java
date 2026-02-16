@@ -176,7 +176,7 @@ public class AcompteClient implements Serializable {
     }
 
     public char getNature() {
-        return Character.valueOf(nature) != null ? String.valueOf(nature).trim().length() > 0 ? nature : 'A' : 'A';
+        return !String.valueOf(nature).trim().isEmpty() ? nature : 'D';
     }
 
     public void setNature(char nature) {
@@ -184,7 +184,7 @@ public class AcompteClient implements Serializable {
     }
 
     public char getStatut() {
-        return Character.valueOf(statut) != null ? String.valueOf(statut).trim().length() > 0 ? statut : Constantes.STATUT_DOC_ATTENTE : Constantes.STATUT_DOC_ATTENTE;
+        return !String.valueOf(statut).trim().isEmpty() ? statut : Constantes.STATUT_DOC_ATTENTE;
     }
 
     public void setStatut(char statut) {
@@ -192,7 +192,7 @@ public class AcompteClient implements Serializable {
     }
 
     public char getStatutNotif() {
-        return Character.valueOf(statutNotif) != null ? String.valueOf(statutNotif).trim().length() > 0 ? statutNotif : Constantes.STATUT_DOC_ATTENTE : Constantes.STATUT_DOC_ATTENTE;
+        return !String.valueOf(statutNotif).trim().isEmpty() ? statutNotif : Constantes.STATUT_DOC_ATTENTE;
     }
 
     public void setStatutNotif(char statutNotif) {
@@ -239,10 +239,7 @@ public class AcompteClient implements Serializable {
             return false;
         }
         final AcompteClient other = (AcompteClient) obj;
-        if (this.id != other.id) {
-            return false;
-        }
-        return true;
+        return this.id == other.id;
     }
 
 }
