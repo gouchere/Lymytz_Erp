@@ -3342,11 +3342,19 @@ public class ManagedBonVente extends ManagedCommercial<DocVente, YvsComDocVentes
     }
 
     public void transmisOrder() {
+        if (!autoriser("fv_livrer")) {
+            openNotAcces();
+            return;
+        }
         transmisOrder(docVente, selectDoc, dateLivraison, Constantes.ETAT_VALIDE);
     }
 
     public void transmisOrderAll() {
         try {
+            if (!autoriser("fv_livrer")) {
+                openNotAcces();
+                return;
+            }
             List<Integer> ids = decomposeSelection(tabIds);
             if (!ids.isEmpty()) {
                 YvsComDocVentes y;
@@ -3376,97 +3384,40 @@ public class ManagedBonVente extends ManagedCommercial<DocVente, YvsComDocVentes
             }
             YvsComDocVentes facture = validerOrder(docVente, selectDoc, true);
             if (facture != null ? facture.getId() > 0 : false) {
-                List<YvsComContenuDocVente> contenus = new ArrayList<>(docVente.getContenus());
-                if (contenus != null ? !contenus.isEmpty() : false) {
-                    boolean continu = false;
-                    String num = genererReference(Constantes.TYPE_BLV_NAME, dateLivraison, facture.getDepotLivrer().getId(), Constantes.DEPOT);
-                    if (num != null ? num.trim().length() < 1 : true) {
-                        return;
-                    }
-                    YvsComDocVentes y = new YvsComDocVentes(null, facture);
-                    if (y.getClient() == null) {
-                        y.setClient(selectDoc.getClient());
-                    }
-                    if (y.getCategorieComptable() == null) {
-                        y.setCategorieComptable(selectDoc.getCategorieComptable());
-                    }
-                    y.setDateSave(new Date());
-                    y.setAuthor(currentUser);
-                    y.setTypeDoc(Constantes.TYPE_BLV);
-                    y.setNumDoc(num);
-                    y.setNumPiece("BLV N° " + facture.getNumDoc());
-                    y.setLivreur(currentUser.getUsers());
-                    y.setDateLivraison(dateLivraison);
-                    y.setDocumentLie(new YvsComDocVentes(facture.getId()));
-                    y.setHeureDoc(new Date());
-                    y.setStatut(statutLivre);
-                    y.setStatutLivre(Constantes.ETAT_LIVRE);
-                    y.setStatutRegle(Constantes.ETAT_ATTENTE);
-                    y.setAnnulerBy(null);
-                    y.setCloturerBy(null);
-                    y.setDateAnnuler(null);
-                    y.setDateCloturer(null);
-                    y.setValiderBy(currentUser.getUsers());
-                    y.setDateValider(new Date());
-                    y.setEtapeTotal(0);
-                    y.setDescription("Livraison Facture N° " + facture.getNumDoc() + " le " + ldf.format(dateLivraison) + " à " + time.format(y.getHeureDoc()));
-                    y.setId(null);
-                    y.getContenus().clear();
-                    y = (YvsComDocVentes) dao.save1(y);
-                    if (y != null ? y.getId() > 0 : false) {
-                        YvsComContenuDocVente c;
-                        int lenght = contenus.size();
+                ManagedFactureVenteV2 w = (ManagedFactureVenteV2) giveManagedBean(ManagedFactureVenteV2.class);
+                if (w != null) {
+                    List<YvsComptaCaissePieceVente> reglements = new ArrayList<>(facture.getReglements());
+                    w.transmisOrder(facture, dateLivraison, statutLivre, true, false);
+                    if (reglements != null ? reglements.isEmpty() : true) {
+                        YvsComptaCaissePieceVente p;
+                        int lenght = docVente.getReglements().size();
                         for (int i = 0; i < lenght; i++) {
-                            c = new YvsComContenuDocVente(null, contenus.get(i));
-                            c.setDocVente(y);
-                            c.setStatut(Constantes.ETAT_VALIDE);
-                            c.setAuthor(currentUser);
-                            c.setId(null);
-                            c = (YvsComContenuDocVente) dao.save1(c);
-                            if (!y.getContenus().contains(c)) {
-                                y.getContenus().add(c);
-                            }
-                        }
-                        if (facture.getReglements() != null ? facture.getReglements().isEmpty() : true) {
-                            YvsComptaCaissePieceVente p;
-                            lenght = docVente.getReglements().size();
-                            for (int i = 0; i < lenght; i++) {
-                                p = docVente.getReglements().get(i);
-                                if (p.getMouvement().equals(Constantes.MOUV_CAISS_SORTIE.charAt(0))) {
-                                    dao.delete(p);
-                                    docVente.getReglements().remove(p);
-                                } else {
-                                    p.setValideBy(currentUser.getUsers());
-                                    p.setVente(facture);
-                                    p.setAuthor(currentUser);
-                                    dao.update(p);
-                                    if (!facture.getReglements().contains(p)) {
-                                        facture.getReglements().add(p);
-                                    }
+                            p = docVente.getReglements().get(i);
+                            if (p.getMouvement().equals(Constantes.MOUV_CAISS_SORTIE.charAt(0))) {
+                                dao.delete(p);
+                                docVente.getReglements().remove(p);
+                            } else {
+                                p.setValideBy(currentUser.getUsers());
+                                p.setVente(facture);
+                                p.setAuthor(currentUser);
+                                dao.update(p);
+                                if (!facture.getReglements().contains(p)) {
+                                    facture.getReglements().add(p);
                                 }
                             }
-                            if (getType().equals(Constantes.TYPE_BCV)) {
-                                update("tabview_commande_vente:data_mensualite_commande_vente");
-                            } else {
-                                update("tabview_facture_vente:data_mensualite_facture_vente");
-                            }
                         }
-                        continu = true;
+                        if (getType().equals(Constantes.TYPE_BCV)) {
+                            update("tabview_commande_vente:data_mensualite_commande_vente");
+                        } else {
+                            update("tabview_facture_vente:data_mensualite_facture_vente");
+                        }
                     }
-                    if (continu) {
-                        facture.setStatutLivre(Constantes.ETAT_LIVRE);
-                        if (currentUser != null ? currentUser.getId() > 0 : false) {
-                            facture.setAuthor(currentUser);
-                        }
-                        dao.update(facture);
-
-                        docVente.setStatutLivre(Constantes.ETAT_LIVRE);
-                        selectDoc.setStatutLivre(Constantes.ETAT_LIVRE);
-                        dao.update(selectDoc);
-                        int idx = documents.indexOf(selectDoc);
-                        if (idx > -1) {
-                            documents.set(idx, selectDoc);
-                        }
+                    docVente.setStatutLivre(Constantes.ETAT_LIVRE);
+                    selectDoc.setStatutLivre(Constantes.ETAT_LIVRE);
+                    dao.update(selectDoc);
+                    int idx = documents.indexOf(selectDoc);
+                    if (idx > -1) {
+                        documents.set(idx, selectDoc);
                     }
                 }
             }
