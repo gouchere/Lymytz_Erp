@@ -39,6 +39,7 @@ import javax.faces.event.ActionEvent;
 import javax.faces.event.MethodExpressionActionListener;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
@@ -6122,6 +6123,16 @@ public abstract class Managed<T extends Serializable, S extends Serializable> im
         } else if (currentUser != null) {
             if (currentUser.getUsers() == null) {
                 redirectTohome();
+            }
+        }
+    }
+
+    public void checkChangePassword() {
+        if (currentUser.isMustChangePassword() && currentUser.getNombreJourRestantDefaultPassWord() < 1) {
+            HttpServletRequest request = (HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
+            String url = request.getRequestURI();
+            if (!url.contains("users/yvs_profil_users.xhtml")) {
+                openDialog("dlgChangePassword");
             }
         }
     }

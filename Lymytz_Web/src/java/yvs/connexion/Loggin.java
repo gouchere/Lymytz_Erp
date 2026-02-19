@@ -64,6 +64,7 @@ import yvs.users.acces.AccesRessource;
 import yvs.util.Constantes;
 import static yvs.util.Constantes.USE_PRETTY;
 import yvs.util.MdpUtil;
+import yvs.util.Util;
 import yvs.util.UtilitaireGenerique;
 
 /**
@@ -105,7 +106,7 @@ public class Loggin implements Serializable {
     private String adresseMac, adresseIp;
     private boolean smallNavigation = false;
     private List<YvsModule> modulesActif = new ArrayList<>();
-    
+
     //*****Programmation des droits d'accès**/
     @ManagedProperty(value = "#{accesModule}")
     private AccesModule accesModule;
@@ -272,7 +273,7 @@ public class Loggin implements Serializable {
     public void setAgence(YvsAgences agence) {
         this.agence = agence;
     }
-    
+
     private void getMessage1(String message) {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, message, message));
     }
@@ -390,6 +391,7 @@ public class Loggin implements Serializable {
         }
         if (currentUser != null && ua != null) {
             ua.setLastConnexion(currentUser.getLastConnexion());
+            ua.setFirstConnexion(currentUser.getFirstConnexion());
             currentUser = ua;
             currentUser.getUsers().setNiveauAcces(userConnect.getNiveauAcces());
         }
@@ -400,7 +402,6 @@ public class Loggin implements Serializable {
                     currentUser.setMustChangePassword(true);
                 }
                 currentUser.setSmallNavigation(smallNavigation);
-                FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("user", currentUser);
                 currentNiveau = currentUser.getUsers().getNiveauAcces();
                 if ((currentNiveau != null) ? currentNiveau.getId() > 0 : false) {
                     FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("nivoAcces", currentNiveau);
@@ -652,6 +653,17 @@ public class Loggin implements Serializable {
         return nivo;
     }
 
+    private void onVerifyChangePassword() {
+        if (paramBase == null || currentUser == null) {
+            return;
+        }
+        if (!currentUser.isMustChangePassword()) {
+            return;
+        }
+        int ecart = Util.ecartOnDate(currentUser.getFirstConnexion(), new Date(), "jour");
+        currentUser.setNombreJourRestantDefaultPassWord(paramBase.getDureeDefaultPassword() - ecart);
+    }
+
     public void verifieParam() {
         if (setCorrectIn()) {// les paramètres de connexion sont correcte. (loggin et mot de passe
             //si le compte n'est pas super admin, il doit avoir une société et un )
@@ -660,6 +672,10 @@ public class Loggin implements Serializable {
             Initialisation.USERISSUPERADMIN = superAdmin;
             displaySociete = true;
             setConnecter(true);
+
+            onVerifyChangePassword();
+
+            FacesContext.getCurrentInstance().getExternalContext().getSessionMap().put("user", currentUser);
 
             HttpSession session = ((HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true));
             SessionManager.addSession(session.getId(), session);
@@ -781,6 +797,10 @@ public class Loggin implements Serializable {
                             if (c != null ? c.getId() > 0 : false) {
                                 currentUser.setLastConnexion(c.getDateConnexion());
                             }
+                            c = (YvsConnection) dao.loadOneByNameQueries("YvsConnection.findByUserAsc", new String[]{"users"}, new Object[]{userConnect});
+                            if (c != null ? c.getId() > 0 : false) {
+                                currentUser.setFirstConnexion(c.getDateConnexion());
+                            }
                             //on se connecte
                             agence = userConnect.getAgence();
                             loadAcces();    //charge les accès si l'utilisatur est connecté
@@ -859,6 +879,10 @@ public class Loggin implements Serializable {
                 YvsConnection c = (YvsConnection) dao.loadOneByNameQueries("YvsConnection.findByUser", new String[]{"users"}, new Object[]{userConnect});
                 if (c != null ? c.getId() > 0 : false) {
                     currentUser.setLastConnexion(c.getDateConnexion());
+                }
+                c = (YvsConnection) dao.loadOneByNameQueries("YvsConnection.findByUserAsc", new String[]{"users"}, new Object[]{userConnect});
+                if (c != null ? c.getId() > 0 : false) {
+                    currentUser.setFirstConnexion(c.getDateConnexion());
                 }
                 currentUser.setAgence(listAgences.get(listAgences.indexOf(new YvsAgences(id))));
                 //si tout est correcte, on initialise l'appli                       
@@ -1019,6 +1043,7 @@ public class Loggin implements Serializable {
     public void load() {
         try {
             HttpSession session = ((HttpSession) FacesContext.getCurrentInstance().getExternalContext().getSession(true));
+            session.invalidate();
             SessionManager.removeSession(session.getId());
         } catch (Exception ex) {
             Logger.getLogger(Loggin.class.getName()).log(Level.SEVERE, null, ex);

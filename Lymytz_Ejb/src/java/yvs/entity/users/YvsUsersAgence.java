@@ -89,16 +89,18 @@ public class YvsUsersAgence extends YvsEntity implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     private YvsUsersAgence author;
 
-//    @OneToOne(cascade = CascadeType.ALL, mappedBy = "author", fetch = FetchType.LAZY)
-//    private YvsBaseClassesStat yvsBaseClassesStat;
     @Transient
     private Date lastConnexion;
+    @Transient
+    private Date firstConnexion;
     @Transient
     private boolean mustChangePassword;
     @Transient
     private boolean smallNavigation;
     @Transient
     public static long ids = -1;
+    @Transient
+    private int nombreJourRestantDefaultPassWord = 30;
 
     public YvsUsersAgence() {
         this.dateSave = new Date();
@@ -140,6 +142,18 @@ public class YvsUsersAgence extends YvsEntity implements Serializable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     public void setLastConnexion(Date lastConnexion) {
         this.lastConnexion = lastConnexion;
+    }
+
+    @XmlJavaTypeAdapter(DateTimeAdapter.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    public Date getFirstConnexion() {
+        return firstConnexion;
+    }
+
+    @XmlJavaTypeAdapter(DateTimeAdapter.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    public void setFirstConnexion(Date firstConnexion) {
+        this.firstConnexion = firstConnexion;
     }
 
     @XmlJavaTypeAdapter(DateTimeAdapter.class)
@@ -188,6 +202,18 @@ public class YvsUsersAgence extends YvsEntity implements Serializable {
 
     public void setCanAction(Boolean canAction) {
         this.canAction = canAction;
+    }
+
+    @XmlTransient
+    @JsonIgnore
+    public int getNombreJourRestantDefaultPassWord() {
+        return nombreJourRestantDefaultPassWord;
+    }
+
+    @XmlTransient
+    @JsonIgnore
+    public void setNombreJourRestantDefaultPassWord(int nombreJourRestantDefaultPassWord) {
+        this.nombreJourRestantDefaultPassWord = nombreJourRestantDefaultPassWord;
     }
 
     @XmlTransient
