@@ -236,7 +236,7 @@ public class PaginatorResult<T extends Serializable> {
         double decc = (nbResult != 0) ? (((double) nbPage * (double) first / (double) nbResult) - ii) : 0;//partie décimle
         currentPage = (decc > 0) ? (ii + 1) : ii;
         currentPage = (currentPage == 0) ? 1 : currentPage;
-        result = (IS_JDBC ? jdbc.list(nameQuery, param, valParam, first, nbLimit) : dao.loadEntity(nameQuery, param, valParam, first, nbLimit));
+        result = (IS_JDBC ? jdbc.list(nameQuery, valParam, first, nbLimit) : dao.loadEntity(nameQuery, param, valParam, first, nbLimit));
 //        if (nbPage > 1) {
 //            disNext = false;
 //        } else {
@@ -253,7 +253,7 @@ public class PaginatorResult<T extends Serializable> {
 
     private PaginatorResult loadResultJPQL(String nameQueriCOunt, String nameQuery, String[] param, Object[] valParam) {
         nbResult = (Long) (IS_JDBC ? jdbc.object(nameQueriCOunt, param, valParam) : dao.loadObjectByEntity(nameQueriCOunt, param, valParam));
-        result = (IS_JDBC ? jdbc.list(nameQuery, param, valParam) : dao.loadEntity(nameQuery, param, valParam));
+        result = (IS_JDBC ? jdbc.list(nameQuery, valParam) : dao.loadEntity(nameQuery, param, valParam));
         return this;
     }
 
